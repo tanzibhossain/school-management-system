@@ -1,58 +1,249 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# School Management System v2
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A multi-tenant SaaS school management platform built with Laravel 13 and Next.js 15. Each school gets its own subdomain or custom domain. Everything runs self-hosted in Docker on a single Ubuntu VPS.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Tech Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+**Backend:** Laravel 13 · PHP 8.3 · MySQL 8 · Redis 7 · Laravel Horizon
+**Frontend:** Next.js 15 (App Router) · React Query · Tailwind CSS
+**File Storage:** MinIO (self-hosted, S3-compatible)
+**Auth:** Laravel Sanctum · Spatie Laravel Permission
+**Email:** Resend (platform-level)
+**PDF:** barryvdh/laravel-dompdf
+**API Docs:** Scribe + Postman export
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Prerequisites
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
+- Git
+- [Composer](https://getcomposer.org/download/) (for the initial project creation only)
+- A code editor (VS Code recommended)
+- Node.js 20+ (for the Next.js frontend only)
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+After the initial setup, all `composer` and `php artisan` commands run **inside the Docker container** — no local PHP needed day-to-day.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+---
 
-## Agentic Development
+## Local Development Setup
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### 1. Clone the repository
 
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```powershell
+git clone <repo-url>
+cd school-management-backend
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Environment
 
-## Contributing
+```powershell
+copy .env.example .env
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+The `.env.example` already has the correct values for local Docker development. Only update `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `RESEND_API_KEY` when you need real file uploads or email sending.
 
-## Code of Conduct
+### 3. Start Docker and run setup
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```powershell
+# Build and start all containers (3-5 min the first time)
+docker compose up -d --build
 
-## Security Vulnerabilities
+# Verify all containers are running (db, redis, minio, app, nginx)
+docker compose ps
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Generate app key, run migrations, link storage
+docker compose exec app php artisan key:generate
+docker compose exec app php artisan migrate
+docker compose exec app php artisan storage:link
+```
 
-## License
+### 4. Verify everything is working
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Visit `http://localhost:8080/api/v2/health` — you should see a JSON response confirming Laravel, DB, and Redis are all connected.
+
+---
+
+## Daily Workflow
+
+```powershell
+docker compose up -d                                     # start work
+docker compose down                                      # stop work
+docker compose ps                                        # check running containers
+docker compose logs -f app                               # watch Laravel logs live
+docker compose exec app php artisan migrate              # run migrations
+docker compose exec app php artisan test                 # run tests
+docker compose exec app composer require vendor/package  # install package
+docker compose exec app bash                             # open shell in container
+```
+
+> **Port note:** This project uses port **8080** (not 8000). Windows Hyper-V reserves 7980–8079 which includes 8000.
+
+---
+
+## Services
+
+| Service | URL | Notes |
+|---------|-----|-------|
+| Laravel API | http://localhost:8080 | Nginx → PHP-FPM |
+| Health Check | http://localhost:8080/api/v2/health | First thing to verify |
+| Next.js Frontend | http://localhost:3000 | Run separately with `npm run dev` |
+| MinIO Console | http://localhost:9001 | File storage browser UI |
+| Horizon Dashboard | http://localhost:8080/horizon | Queue monitoring |
+| MySQL | localhost:3307 | Connect via TablePlus or DBeaver |
+
+---
+
+## Roles
+
+| Role | Access |
+|------|--------|
+| Super Admin | Platform-wide — manages schools and plans |
+| Head Teacher | Full school admin |
+| Moderator | Page builder, admissions, marksheet, announcements, class promotion |
+| Teacher | Own classes: enter marks and attendance |
+| Finance | Payments, waivers, payroll structures, salary certificates |
+| Librarian | Library module only |
+| Student | Own records: results, attendance, fees, timetable |
+| Parent | Child's records |
+
+---
+
+## Git Workflow — Module & Feature Development
+
+Every module follows the same branch → build → commit → merge cycle. Each step of a module is a separate commit. This keeps your GitHub contribution graph active every day and gives you a clean, traceable history.
+
+### Branch strategy
+
+```
+main          — production only, tagged releases (v1.0, v1.1)
+develop       — integration branch, all features merge here first
+feature/*     — one branch per module or feature, deleted after merge
+```
+
+### Starting a new module
+
+```bash
+# Always branch off develop
+git checkout develop
+git pull origin develop
+git checkout -b feature/student-module
+```
+
+### Committing as you build (one commit per step)
+
+The 10-step pattern per module maps to ~10 commits:
+
+```bash
+# Step 1 — migration
+git add -A && git commit -m "feat(student): create students and contacts migrations"
+
+# Step 2 — model
+git add -A && git commit -m "feat(student): add Student model with relationships and scopes"
+
+# Step 3 — repository
+git add -A && git commit -m "feat(student): add StudentRepository with Redis cache-aside"
+
+# Step 4 — service
+git add -A && git commit -m "feat(student): add StudentService with enrolment logic"
+
+# Step 5 — observer
+git add -A && git commit -m "feat(student): add StudentObserver for cache invalidation"
+
+# Step 6 — FormRequests
+git add -A && git commit -m "feat(student): add StoreStudentRequest and UpdateStudentRequest"
+
+# Step 7 — resource
+git add -A && git commit -m "feat(student): add StudentResource and StudentCollection"
+
+# Step 8 — controller + routes
+git add -A && git commit -m "feat(student): add StudentController and api routes"
+
+# Step 9 — tests
+git add -A && git commit -m "test(student): add feature and unit tests for student module"
+
+# Step 10 — cleanup and final check
+git add -A && git commit -m "refactor(student): pint fixes and docblock cleanup"
+
+# Push the branch
+git push origin feature/student-module
+```
+
+### Merging when the module is complete
+
+```bash
+git checkout develop
+git merge --no-ff feature/student-module -m "merge: student module complete"
+git push origin develop
+
+# Delete the feature branch
+git branch -d feature/student-module
+git push origin --delete feature/student-module
+```
+
+### Tagging a release
+
+```bash
+git checkout main
+git merge --no-ff develop -m "release: v1.0 — core modules complete"
+git tag -a v1.0 -m "v1.0 — School, Academic, Auth, Student, Staff"
+git push origin main --tags
+```
+
+### Commit format
+
+```
+type(module): short description
+```
+
+| Type | When to use |
+|------|-------------|
+| `feat` | New functionality |
+| `fix` | Bug fix |
+| `test` | Adding or updating tests |
+| `refactor` | Code cleanup, no behaviour change |
+| `chore` | Config, dependencies, Docker changes |
+| `docs` | README, CLAUDE.md, comments |
+
+**Examples:**
+```bash
+git commit -m "feat(payment): add bKash payment gateway integration"
+git commit -m "fix(attendance): correct ZKTeco duplicate entry handling"
+git commit -m "test(mark): add unit test for grade boundary lookup"
+git commit -m "chore(docker): add MinIO health check to docker-compose"
+```
+
+### Daily commit goal
+
+Aim for **2–3 commits every work session**. 41 modules × ~10 commits = ~410 commits across 41 weeks. That fills your GitHub contribution graph with consistent green squares — visible proof of daily progress.
+
+```bash
+# Rule: never end a work session without committing what you built
+git add -A
+git commit -m "feat(library): add BookRepository with issue and return logic"
+git push origin feature/library-module
+```
+
+---
+
+## API Documentation
+
+```powershell
+docker compose exec app php artisan scribe:generate
+```
+
+Docs at `http://localhost:8080/docs` · Postman collection exported automatically.
+
+---
+
+## Common Issues
+
+| Problem | Fix |
+|---------|-----|
+| Port 8000 fails on Windows | Use port 8080 — Hyper-V reserves 7980–8079 |
+| `DB_HOST` connection refused | Use `db` not `127.0.0.1` in `.env` |
+| `REDIS_HOST` connection refused | Use `redis` not `127.0.0.1` in `.env` |
+| Composer/artisan commands fail | Run inside container: `docker compose exec app composer ...` |
+| MinIO uploads fail | Check `AWS_ENDPOINT=http://minio:9000` and `AWS_USE_PATH_STYLE_ENDPOINT=true` |
