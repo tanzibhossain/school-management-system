@@ -1,5 +1,6 @@
 root = true
 
+# ── Defaults — all files ─────────────────────────────────────────────────────
 [*]
 charset = utf-8
 end_of_line = lf
@@ -8,11 +9,46 @@ indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.md]
-trim_trailing_whitespace = false
+# ── PHP / Laravel ─────────────────────────────────────────────────────────────
+[*.php]
+indent_size = 4
 
+[*.blade.php]
+indent_size = 4
+
+# ── JavaScript / TypeScript (Next.js frontend) ───────────────────────────────
+[*.{js,jsx,ts,tsx}]
+indent_size = 2
+
+# ── CSS / SCSS ────────────────────────────────────────────────────────────────
+[*.{css,scss,sass}]
+indent_size = 2
+
+# ── JSON ─────────────────────────────────────────────────────────────────────
+[*.json]
+indent_size = 2
+
+# ── YAML ─────────────────────────────────────────────────────────────────────
 [*.{yml,yaml}]
 indent_size = 2
 
+# ── Docker Compose — 4 spaces (service blocks are deep) ──────────────────────
 [{compose,docker-compose}.{yml,yaml}]
+indent_size = 4
+
+# ── Markdown ─────────────────────────────────────────────────────────────────
+[*.md]
+trim_trailing_whitespace = false
+indent_size = 2
+
+# ── Makefile — MUST use real tabs, not spaces ─────────────────────────────────
+[Makefile]
+indent_style = tab
+
+# ── Shell scripts ─────────────────────────────────────────────────────────────
+[*.sh]
+indent_size = 2
+
+# ── Env files ─────────────────────────────────────────────────────────────────
+[*.env*]
 indent_size = 4

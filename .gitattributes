@@ -1,11 +1,46 @@
+# Normalize all text files to LF on commit and checkout
 * text=auto eol=lf
 
+# PHP
+*.php       diff=php
 *.blade.php diff=html
-*.css diff=css
-*.html diff=html
-*.md diff=markdown
-*.php diff=php
 
-/.github export-ignore
-CHANGELOG.md export-ignore
-.styleci.yml export-ignore
+# Web
+*.css       diff=css
+*.html      diff=html
+*.md        diff=markdown
+
+# Explicit LF for files that break in Linux containers if CRLF
+*.sh        text eol=lf
+Dockerfile  text eol=lf
+Makefile    text eol=lf
+*.env       text eol=lf
+*.json      text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+
+# Binary — prevent line ending changes corrupting these files
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.svg       binary
+*.woff      binary
+*.woff2     binary
+*.ttf       binary
+*.eot       binary
+*.pdf       binary
+*.docx      binary
+*.xlsx      binary
+*.zip       binary
+*.gz        binary
+*.tar       binary
+
+# Exclude from git archive / release tarballs
+/.github            export-ignore
+CHANGELOG.md        export-ignore
+.styleci.yml        export-ignore
+docker-compose.yml  export-ignore
+Dockerfile          export-ignore
+.gitattributes      export-ignore

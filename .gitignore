@@ -1,27 +1,58 @@
+# Logs
 *.log
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Environment
 .env
 .env.backup
 .env.production
-.phpactor.json
-.phpunit.result.cache
-/.codex
-/.cursor/
-/.idea
-/.nova
-/.phpunit.cache
-/.vscode
-/.zed
-/auth.json
-/node_modules
+!.env.example
+
+# Security — never commit keys or certificates
+deploy-key-*
+auth.json
+*.pem
+*.p12
+*.crt
+*.cert
+storage/*.key
+
+# Laravel
+/vendor/
+/node_modules/
 /public/build
-/public/fonts-manifest.dev.json
 /public/hot
 /public/storage
-/storage/*.key
+/public/fonts-manifest.dev.json
 /storage/pail
-/vendor
+
+# Testing
+.phpunit.result.cache
+/.phpunit.cache
+
+# IDE / Editors
+/.idea
+/.vscode
+/.cursor/
+/.nova
+/.zed
+/.codex
+.phpactor.json
 _ide_helper.php
+
+# Local dev helpers
 Homestead.json
 Homestead.yaml
-Thumbs.db
+
+# Scribe generated API docs (regenerate with: php artisan scribe:generate)
+/public/docs
+
+# Docker local overrides (machine-specific tweaks only)
+docker-compose.override.yml
+
+# Next.js (if frontend is in this repo)
+/.next/
+/out/
