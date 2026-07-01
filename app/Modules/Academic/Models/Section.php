@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Section extends Model
 {
-    protected $fillable = ['school_id', 'class_id', 'name', 'is_trash'];
+    protected $fillable = ['school_id', 'class_id', 'name', 'capacity', 'is_trash'];
 
     protected $casts = ['is_trash' => 'boolean'];
 
