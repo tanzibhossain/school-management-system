@@ -14,6 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->appendToGroup('api', \App\Http\Middleware\ResolveSchool::class);
+
+        $middleware->alias([
+            'ability'    => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
+            'abilities'  => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
