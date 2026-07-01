@@ -26,11 +26,13 @@ class StudentTest extends TestCase
     {
         parent::setUp();
 
+        $this->seed(\Database\Seeders\RoleSeeder::class);
+
         $this->school  = School::create(['name' => 'Test School', 'is_active' => true]);
         $this->admin   = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
         $this->admin->assignRole('admin');
 
-        $this->year    = AcademicYear::create(['school_id' => $this->school->id, 'name' => '2026', 'is_current' => true, 'is_trash' => false]);
+        $this->year    = AcademicYear::create(['school_id' => $this->school->id, 'year' => '2026', 'is_current' => true, 'is_trash' => false]);
         $this->class   = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 5', 'weight' => 5, 'is_trash' => false]);
         $this->section = Section::create(['school_id' => $this->school->id, 'class_id' => $this->class->id, 'name' => 'A', 'is_trash' => false]);
 
@@ -107,7 +109,7 @@ class StudentTest extends TestCase
             ->postJson('/api/v2/students', $this->enrolPayload());
 
         $student  = Student::where('admission_number', 'ADM-001')->first();
-        $newYear  = AcademicYear::create(['school_id' => $this->school->id, 'name' => '2027', 'is_current' => false, 'is_trash' => false]);
+        $newYear  = AcademicYear::create(['school_id' => $this->school->id, 'year' => '2027', 'is_current' => false, 'is_trash' => false]);
         $newClass = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 6', 'weight' => 6, 'is_trash' => false]);
         $newSec   = Section::create(['school_id' => $this->school->id, 'class_id' => $newClass->id, 'name' => 'A', 'is_trash' => false]);
 
@@ -152,7 +154,7 @@ class StudentTest extends TestCase
 
         auth()->forgetGuards();
 
-        $newYear = AcademicYear::create(['school_id' => $this->school->id, 'name' => '2027', 'is_current' => false, 'is_trash' => false]);
+        $newYear = AcademicYear::create(['school_id' => $this->school->id, 'year' => '2027', 'is_current' => false, 'is_trash' => false]);
 
         $this->withToken($this->token())
             ->postJson("/api/v2/students/{$student->id}/re-admit", [
