@@ -6,13 +6,13 @@ A multi-tenant SaaS school management platform built with Laravel 13 and Next.js
 
 ## Tech Stack
 
-**Backend:** Laravel 13 · PHP 8.3 · MySQL 8 · Redis 7 · Laravel Horizon
-**Frontend:** Next.js 15 (App Router) · React Query · Tailwind CSS
-**File Storage:** MinIO (self-hosted, S3-compatible)
-**Auth:** Laravel Sanctum · Spatie Laravel Permission
-**Email:** Resend (platform-level)
-**PDF:** barryvdh/laravel-dompdf
-**API Docs:** Scribe + Postman export
+- **Backend:** Laravel 13 · PHP 8.3 · MySQL 8 · Redis 7 · Laravel Horizon
+- **Frontend:** Next.js 15 (App Router) · React Query · Tailwind CSS
+- **File Storage:** MinIO (self-hosted, S3-compatible)
+- **Auth:** Laravel Sanctum · Spatie Laravel Permission
+- **Email:** Resend (platform-level)
+- **PDF:** barryvdh/laravel-dompdf
+- **API Docs:** Scribe + Postman export
 
 ---
 
