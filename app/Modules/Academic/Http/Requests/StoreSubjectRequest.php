@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Modules\Academic\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class StoreSubjectRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user()?->tokenCan('admin:academic') ?? false;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function rules(): array
+    {
+        return [
+            'name'     => 'required|string|max:150',
+            'sub_code' => 'nullable|string|max:30',
+            'weight'   => 'nullable|integer|min:0|max:255',
+        ];
+    }
+}
