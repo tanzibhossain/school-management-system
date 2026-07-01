@@ -35,7 +35,7 @@ class StudentController extends Controller
         return StudentListResource::collection($students);
     }
 
-    public function store(StoreStudentRequest $request): StudentResource
+    public function store(StoreStudentRequest $request): JsonResponse
     {
         $schoolId = app('current_school_id');
         $data     = $request->validated();

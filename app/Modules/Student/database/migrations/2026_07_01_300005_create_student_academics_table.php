@@ -12,19 +12,20 @@ return new class extends Migration
             $table->id();
             $table->foreignId('school_id')->constrained('schools')->cascadeOnDelete();
             $table->foreignId('student_id')->constrained('students')->cascadeOnDelete();
-            $table->foreignId('academic_year_id')->constrained('academic_years');
-            $table->foreignId('class_id')->constrained('classes');
-            $table->foreignId('section_id')->constrained('sections');
-            $table->foreignId('version_id')->nullable()->constrained('academic_versions')->nullOnDelete();
-            $table->foreignId('group_id')->nullable()->constrained('academic_groups')->nullOnDelete();
-            $table->foreignId('shift_id')->nullable()->constrained('academic_shifts')->nullOnDelete();
+            // Cross-module refs — no DB-level FK; enforced at application layer
+            $table->unsignedBigInteger('academic_year_id');
+            $table->unsignedBigInteger('class_id');
+            $table->unsignedBigInteger('section_id');
+            $table->unsignedBigInteger('version_id')->nullable();
+            $table->unsignedBigInteger('group_id')->nullable();
+            $table->unsignedBigInteger('shift_id')->nullable();
             $table->string('roll_number', 20)->nullable();
             $table->boolean('is_current')->default(true);
             $table->timestamp('promoted_at')->nullable();
             $table->timestamps();
 
-            $table->index(['school_id', 'student_id', 'is_current']);
-            $table->index(['school_id', 'class_id', 'section_id', 'academic_year_id']);
+            $table->index(['school_id', 'student_id', 'is_current'], 'sa_school_student_current_idx');
+            $table->index(['school_id', 'class_id', 'section_id', 'academic_year_id'], 'sa_school_class_section_year_idx');
         });
     }
 

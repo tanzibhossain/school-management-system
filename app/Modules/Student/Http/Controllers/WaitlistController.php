@@ -33,7 +33,7 @@ class WaitlistController extends Controller
         return WaitlistResource::collection($entries->load(['schoolClass', 'section']));
     }
 
-    public function store(StoreWaitlistRequest $request): WaitlistResource
+    public function store(StoreWaitlistRequest $request): JsonResponse
     {
         $entry = $this->service->addToWaitlist(app('current_school_id'), $request->validated());
 

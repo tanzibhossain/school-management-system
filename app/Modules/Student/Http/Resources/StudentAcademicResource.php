@@ -13,7 +13,7 @@ class StudentAcademicResource extends JsonResource
         return [
             'id'               => $this->id,
             'academic_year_id' => $this->academic_year_id,
-            'year'             => $this->whenLoaded('year', fn () => $this->year?->name),
+            'year'             => $this->whenLoaded('year', fn () => $this->year?->year),
             'class_id'         => $this->class_id,
             'class'            => $this->whenLoaded('schoolClass', fn () => $this->schoolClass?->name),
             'section_id'       => $this->section_id,

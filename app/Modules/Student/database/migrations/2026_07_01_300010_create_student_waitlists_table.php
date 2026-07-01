@@ -11,9 +11,10 @@ return new class extends Migration
         Schema::create('student_waitlists', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('school_id')->constrained('schools')->cascadeOnDelete();
-            $table->foreignId('academic_year_id')->constrained('academic_years');
-            $table->foreignId('class_id')->constrained('classes');
-            $table->foreignId('section_id')->nullable()->constrained('sections')->nullOnDelete();
+            // Cross-module refs — no DB-level FK; enforced at application layer
+            $table->unsignedBigInteger('academic_year_id');
+            $table->unsignedBigInteger('class_id');
+            $table->unsignedBigInteger('section_id')->nullable();
             $table->string('applicant_name');
             $table->string('guardian_name');
             $table->string('guardian_phone', 20);
@@ -23,7 +24,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamps();
 
-            $table->index(['school_id', 'class_id', 'section_id', 'status']);
+            $table->index(['school_id', 'class_id', 'section_id', 'status'], 'sw_school_class_section_status_idx');
         });
     }
 
