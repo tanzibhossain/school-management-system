@@ -15,6 +15,8 @@ use App\Modules\School\Observers\SchoolOpeningHourObserver;
 use App\Modules\School\Observers\SchoolPhoneObserver;
 use App\Modules\Announcement\Models\Announcement;
 use App\Modules\Announcement\Observers\AnnouncementObserver;
+use App\Modules\FeeItem\Models\FeeItem;
+use App\Modules\FeeItem\Observers\FeeItemObserver;
 use App\Modules\Staff\Models\Staff;
 use App\Modules\Staff\Observers\StaffObserver;
 use App\Modules\Student\Models\Student;
@@ -45,6 +47,9 @@ class AppServiceProvider extends ServiceProvider
 
         // ── Announcement module observers ─────────────────────────────────────
         Announcement::observe(AnnouncementObserver::class);
+
+        // ── FeeItem module observers ──────────────────────────────────────────
+        FeeItem::observe(FeeItemObserver::class);
 
         // ── Staff module observers ────────────────────────────────────────────
         Staff::observe(StaffObserver::class);
