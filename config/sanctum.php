@@ -18,12 +18,7 @@ return [
     |
     */
 
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
-        '%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
-        Sanctum::currentApplicationUrlWithPort(),
-        // Sanctum::currentRequestHost(),
-    ))),
+    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'localhost:3000')),
 
     /*
     |--------------------------------------------------------------------------
@@ -50,7 +45,9 @@ return [
     |
     */
 
-    'expiration' => null,
+    // Global default: 30 days (43200 min). Per-role expiry is set in AuthService
+    // when creating tokens: admin = 43200, student/parent = 10080 (7 days).
+    'expiration' => 43200,
 
     /*
     |--------------------------------------------------------------------------
