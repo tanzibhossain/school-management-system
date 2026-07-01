@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use App\Modules\Academic\Models\AcademicYear;
 use App\Modules\Academic\Models\ClassRoutine;
 use App\Modules\Academic\Observers\AcademicYearObserver;
@@ -12,6 +13,7 @@ use App\Modules\School\Models\SchoolPhone;
 use App\Modules\School\Observers\SchoolObserver;
 use App\Modules\School\Observers\SchoolOpeningHourObserver;
 use App\Modules\School\Observers\SchoolPhoneObserver;
+use App\Modules\User\Observers\UserObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -31,5 +33,8 @@ class AppServiceProvider extends ServiceProvider
         // ── Academic module observers ─────────────────────────────────────────
         AcademicYear::observe(AcademicYearObserver::class);
         ClassRoutine::observe(ClassRoutineObserver::class);
+
+        // ── User module observers ─────────────────────────────────────────────
+        User::observe(UserObserver::class);
     }
 }
