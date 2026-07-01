@@ -16,7 +16,7 @@ class AssignStaffRequest extends FormRequest
     {
         return [
             'academic_year_id' => ['required', 'integer', 'exists:academic_years,id'],
-            'class_id'         => ['required', 'integer', 'exists:school_classes,id'],
+            'class_id'         => ['required', 'integer', 'exists:classes,id'],
             'section_id'       => ['nullable', 'integer', 'exists:sections,id'],
             'subject'          => ['nullable', 'string', 'max:100'],
             'is_class_teacher' => ['boolean'],

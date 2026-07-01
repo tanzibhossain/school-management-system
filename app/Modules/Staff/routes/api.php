@@ -12,27 +12,41 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// ── Designations & Departments (admin only) ───────────────────────────────
-Route::middleware(['auth:sanctum', 'ability:admin:*'])->group(function (): void {
-    Route::apiResource('designations', DesignationController::class)->except(['show']);
-    Route::apiResource('departments', DepartmentController::class)->except(['show']);
+// ── Designations & Departments ────────────────────────────────────────────
+Route::middleware(['auth:sanctum', 'ability:admin:*'])->prefix('v2/designations')->group(function (): void {
+    Route::get('/',        [DesignationController::class, 'index']);
+    Route::post('/',       [DesignationController::class, 'store']);
+    Route::put('/{id}',    [DesignationController::class, 'update']);
+    Route::delete('/{id}', [DesignationController::class, 'destroy']);
 });
 
-// ── Staff CRUD ─────────────────────────────────────────────────────────────
-Route::middleware(['auth:sanctum', 'ability:admin:*'])->group(function (): void {
-    Route::apiResource('staff', StaffController::class);
-    Route::post('staff/{id}/terminate', [StaffController::class, 'terminate']);
-    Route::post('staff/{id}/re-hire', [StaffController::class, 'reHire']);
+Route::middleware(['auth:sanctum', 'ability:admin:*'])->prefix('v2/departments')->group(function (): void {
+    Route::get('/',        [DepartmentController::class, 'index']);
+    Route::post('/',       [DepartmentController::class, 'store']);
+    Route::put('/{id}',    [DepartmentController::class, 'update']);
+    Route::delete('/{id}', [DepartmentController::class, 'destroy']);
+});
+
+// ── Staff CRUD + transitions ──────────────────────────────────────────────
+Route::middleware(['auth:sanctum', 'ability:admin:*'])->prefix('v2/staff')->group(function (): void {
+    Route::get('/',        [StaffController::class, 'index']);
+    Route::post('/',       [StaffController::class, 'store']);
+    Route::get('/{id}',    [StaffController::class, 'show']);
+    Route::put('/{id}',    [StaffController::class, 'update']);
+    Route::delete('/{id}', [StaffController::class, 'destroy']);
+
+    Route::post('/{id}/terminate', [StaffController::class, 'terminate']);
+    Route::post('/{id}/re-hire',   [StaffController::class, 'reHire']);
 
     // Class assignments
-    Route::get('staff/{staffId}/academics', [StaffAcademicController::class, 'index']);
-    Route::post('staff/{staffId}/academics', [StaffAcademicController::class, 'store']);
-    Route::delete('staff/{staffId}/academics/{academicId}', [StaffAcademicController::class, 'destroy']);
+    Route::get('/{staffId}/academics',                        [StaffAcademicController::class, 'index']);
+    Route::post('/{staffId}/academics',                       [StaffAcademicController::class, 'store']);
+    Route::delete('/{staffId}/academics/{academicId}',        [StaffAcademicController::class, 'destroy']);
 });
 
 // ── Staff self-profile (teacher / staff role) ─────────────────────────────
-Route::middleware(['auth:sanctum', 'ability:teacher:*,staff:*,admin:*'])->group(function (): void {
-    Route::get('staff/me/profile', function (): \Illuminate\Http\JsonResponse {
+Route::middleware(['auth:sanctum', 'ability:teacher:*,staff:*,admin:*'])->prefix('v2/staff')->group(function (): void {
+    Route::get('/me/profile', function (): \Illuminate\Http\JsonResponse {
         $user  = request()->user();
         $staff = \App\Modules\Staff\Models\Staff::where('school_id', app('current_school_id'))
             ->where('user_id', $user->id)
