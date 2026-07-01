@@ -14,3 +14,8 @@ Route::get('/v2/health', function () {
     ]);
 });
 
+// Auto-load every module's routes/api.php
+foreach (glob(__DIR__ . '/../app/Modules/*/routes/api.php') as $moduleRoutes) {
+    require $moduleRoutes;
+}
+
