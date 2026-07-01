@@ -21,6 +21,8 @@ use App\Modules\Payment\Models\Invoice;
 use App\Modules\Payment\Observers\InvoiceObserver;
 use App\Modules\Staff\Models\Staff;
 use App\Modules\Staff\Observers\StaffObserver;
+use App\Modules\Examination\Models\Exam;
+use App\Modules\Examination\Observers\ExamObserver;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Observers\StudentObserver;
 use App\Modules\User\Observers\UserObserver;
@@ -61,5 +63,8 @@ class AppServiceProvider extends ServiceProvider
 
         // ── Student module observers ──────────────────────────────────────────
         Student::observe(StudentObserver::class);
+
+        // ── Examination module observers ──────────────────────────────────────
+        Exam::observe(ExamObserver::class);
     }
 }
