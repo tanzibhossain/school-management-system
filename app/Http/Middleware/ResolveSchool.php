@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Modules\School\Models\School;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -9,29 +10,24 @@ use Symfony\Component\HttpFoundation\Response;
 class ResolveSchool
 {
     /**
-     * Resolve the current school from the request host and bind it to the app.
+     * Resolve the current school and bind it to the app container.
      *
-     * Super-admin routes (prefixed with /api/v2/platform) bypass this check.
-     * All other API routes require a resolvable school.
+     * Platform-level routes (/api/v2/platform/* and /api/v2/health) bypass
+     * this check and do not require a school context.
      *
-     * TODO (School module): Replace the placeholder with real lookup:
-     *   $school = \App\Modules\School\Models\School::where('domain', $host)
-     *       ->orWhere('subdomain', $subdomain)
-     *       ->firstOrFail();
-     *   app()->instance('current_school', $school);
-     *   app()->instance('current_school_id', $school->id);
+     * All other API routes will have app('current_school') and
+     * app('current_school_id') available after this middleware runs.
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Platform-level routes do not require a school context.
         if ($request->is('api/v2/platform/*') || $request->is('api/v2/health')) {
             return $next($request);
         }
 
-        // ── Placeholder until the School module is built ──────────────────────
-        // Once School module exists, uncomment the real lookup above and remove
-        // the two lines below.
-        app()->instance('current_school_id', null);
+        $school = School::first();
+
+        app()->instance('current_school', $school);
+        app()->instance('current_school_id', $school?->id);
 
         return $next($request);
     }

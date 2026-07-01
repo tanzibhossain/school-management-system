@@ -40,7 +40,7 @@ abstract class BaseRepository
         );
     }
 
-    protected function flush(): void
+    public function flush(): void
     {
         $this->cache->tags([$this->cacheTag()])->flush();
     }
