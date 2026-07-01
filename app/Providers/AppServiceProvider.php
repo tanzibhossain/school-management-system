@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Modules\Academic\Models\AcademicYear;
+use App\Modules\Academic\Models\ClassRoutine;
+use App\Modules\Academic\Observers\AcademicYearObserver;
+use App\Modules\Academic\Observers\ClassRoutineObserver;
 use App\Modules\School\Models\School;
 use App\Modules\School\Models\SchoolOpeningHour;
 use App\Modules\School\Models\SchoolPhone;
@@ -23,5 +27,9 @@ class AppServiceProvider extends ServiceProvider
         School::observe(SchoolObserver::class);
         SchoolPhone::observe(SchoolPhoneObserver::class);
         SchoolOpeningHour::observe(SchoolOpeningHourObserver::class);
+
+        // ── Academic module observers ─────────────────────────────────────────
+        AcademicYear::observe(AcademicYearObserver::class);
+        ClassRoutine::observe(ClassRoutineObserver::class);
     }
 }
