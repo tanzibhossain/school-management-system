@@ -13,6 +13,8 @@ use App\Modules\School\Models\SchoolPhone;
 use App\Modules\School\Observers\SchoolObserver;
 use App\Modules\School\Observers\SchoolOpeningHourObserver;
 use App\Modules\School\Observers\SchoolPhoneObserver;
+use App\Modules\Announcement\Models\Announcement;
+use App\Modules\Announcement\Observers\AnnouncementObserver;
 use App\Modules\Staff\Models\Staff;
 use App\Modules\Staff\Observers\StaffObserver;
 use App\Modules\Student\Models\Student;
@@ -40,6 +42,9 @@ class AppServiceProvider extends ServiceProvider
 
         // ── User module observers ─────────────────────────────────────────────
         User::observe(UserObserver::class);
+
+        // ── Announcement module observers ─────────────────────────────────────
+        Announcement::observe(AnnouncementObserver::class);
 
         // ── Staff module observers ────────────────────────────────────────────
         Staff::observe(StaffObserver::class);
