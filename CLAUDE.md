@@ -64,32 +64,32 @@ Stack: Laravel 13 · PHP 8.3 · MySQL 8 · Redis 7 · Laravel Horizon · MinIO �
 
 Build in dependency order — never start a module before its dependencies are complete.
 
-| # | Module | Depends On |
-|---|--------|-----------|
-| 1 | School | — |
-| 2 | Academic | School |
-| 3 | User / Auth | — |
-| 4 | Student | Academic, User |
-| 5 | Staff | Academic, User |
-| 6 | Announcement | — |
-| 7 | Item | Academic |
-| 8 | Payment | Student, Item |
-| 9 | Examination | Academic, Student |
-| 10 | Mark | Examination, Student |
-| 11 | Leave | Student, Staff |
-| 12 | Loan | Staff |
-| 13 | Certificate | Student, Mark |
-| 14 | IdCard | Student, Staff |
-| 15 | Report | Payment, Mark, Student |
-| 16 | Sms | Student, Payment |
-| 17 | DataImport | Student, Academic |
-| 18 | OnlineAdmission | Academic, Student |
-| 19 | Website | — |
-| 20 | Payroll *(optional)* | Staff |
-| 21 | LMS *(optional)* | Academic, Student |
-| 22 | Library *(optional)* | Student, Staff |
-| 23 | Transport *(optional)* | Student, Payment |
-| 24 | Messaging *(optional)* | User |
+| # | Module | Depends On | Status |
+|---|--------|-----------|--------|
+| 1 | School | — | ✅ done |
+| 2 | Academic | School | ✅ done |
+| 3 | User / Auth | — | ✅ done |
+| 4 | Student | Academic, User | ✅ done |
+| 5 | Staff | Academic, User | ✅ done |
+| 6 | Announcement | — | ✅ done |
+| 7 | FeeItem | Academic | ✅ done — `app/Modules/FeeItem` (FeeCategory, FeeItem, FeeDiscount) |
+| 8 | Payment | Student, FeeItem | ✅ done — Invoice, Payment, Refund, StudentCredit, CreditTransaction, PaymentConfig, PaymentGatewayLog |
+| 9 | Examination | Academic, Student | ✅ done — ExamType, Exam, ExamSubject, ExamHall, ExamHallSeat, ExamSeating; anti_adjacency seating + blank_every |
+| 10 | Mark | Examination, Student | ⬜ next |
+| 11 | Leave | Student, Staff | ⬜ pending |
+| 12 | Loan | Staff | ⬜ pending |
+| 13 | Certificate | Student, Mark | ⬜ pending |
+| 14 | IdCard | Student, Staff | ⬜ pending |
+| 15 | Report | Payment, Mark, Student | ⬜ pending |
+| 16 | Sms | Student, Payment | ⬜ pending |
+| 17 | DataImport | Student, Academic | ⬜ pending |
+| 18 | OnlineAdmission | Academic, Student | ⬜ pending |
+| 19 | Website | — | ⬜ pending |
+| 20 | Payroll *(optional)* | Staff | ⬜ pending |
+| 21 | LMS *(optional)* | Academic, Student | ⬜ pending |
+| 22 | Library *(optional)* | Student, Staff | ⬜ pending |
+| 23 | Transport *(optional)* | Student, Payment | ⬜ pending |
+| 24 | Messaging *(optional)* | User | ⬜ pending |
 
 ---
 
