@@ -100,11 +100,14 @@ docker compose exec app php artisan test tests/Feature/Attendance/ --no-coverage
 
 ## After Tests Pass — Commit
 
+Full ordered checklist lives in CLAUDE.md ("After Every Module — Run & Ship").
+
 ```bash
+git checkout dev && git pull origin dev
 git checkout -b feature/attendance-module
-# ... commits ...
-git checkout main
+# ... commits: feat(attendance): ... ...
+git checkout dev
 git merge --no-ff feature/attendance-module
-git push origin main
-git push origin --delete feature/attendance-module
+git push origin dev
+git branch -d feature/attendance-module
 ```

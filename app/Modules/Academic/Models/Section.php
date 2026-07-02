@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Section extends Model
 {
-    protected $fillable = ['school_id', 'class_id', 'name', 'capacity', 'is_trash'];
+    protected $fillable = ['school_id', 'class_id', 'name', 'class_teacher_id', 'capacity', 'is_trash'];
 
     protected $casts = ['is_trash' => 'boolean'];
 
@@ -16,6 +16,12 @@ class Section extends Model
     public function schoolClass(): BelongsTo
     {
         return $this->belongsTo(SchoolClass::class, 'class_id');
+    }
+
+    /** Class teacher — the staff member who records this section's daily attendance. */
+    public function classTeacher(): BelongsTo
+    {
+        return $this->belongsTo(\App\Modules\Staff\Models\Staff::class, 'class_teacher_id');
     }
 
     /** @param  Builder<Section>  $query */
