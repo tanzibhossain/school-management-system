@@ -3,6 +3,9 @@
 Paste this file content at the start of every new Cowork or Claude Code session.
 Switch model to Fable 5 first: click the model picker → select **Claude Fable 5**.
 
+**CLAUDE.md is the single source of truth** — specs, global product rules, build order,
+and the Run & Ship checklist all live there. Where anything conflicts with CLAUDE.md, CLAUDE.md wins.
+
 ---
 
 ## Project Location
@@ -17,97 +20,91 @@ docker compose exec app php artisan <command>
 
 ---
 
-## What Is Already Built (Modules 1–9)
+## What Is Already Built (Modules 1–11)
 
 | # | Module | Folder | Key Models |
 |---|--------|--------|-----------|
-| 1 | School | `app/Modules/School` | School, SchoolPhone, SchoolOpeningHour |
-| 2 | Academic | `app/Modules/Academic` | AcademicYear, SchoolClass, Section, Subject, SubjectRelation, AcademicGroup, Version, Shift |
+| 1 | School | `app/Modules/School` | School (locale settings, country_code, institution_code), SchoolPhone, SchoolOpeningHour |
+| 2 | Academic | `app/Modules/Academic` | AcademicYear, SchoolClass, Section (+class_teacher_id), Subject, SubjectRelation, AcademicGroup, Version, Shift, ClassRoutine |
 | 3 | User / Auth | `app/Modules/User` | User + Sanctum + Spatie roles |
-| 4 | Student | `app/Modules/Student` | Student, StudentAcademic |
-| 5 | Staff | `app/Modules/Staff` | Staff |
+| 4 | Student | `app/Modules/Student` | Student, StudentAcademic, **StudentSubject** (enrollment + is_optional) |
+| 5 | Staff | `app/Modules/Staff` | Staff (rfid_number) |
 | 6 | Announcement | `app/Modules/Announcement` | Announcement |
 | 7 | FeeItem | `app/Modules/FeeItem` | FeeCategory, FeeItem, FeeDiscount |
-| 8 | Payment | `app/Modules/Payment` | Invoice, InvoiceItem, Payment, Refund, StudentCredit, CreditTransaction, PaymentConfig, PaymentGatewayLog |
-| 9 | Examination | `app/Modules/Examination` | ExamType, Exam, ExamSubject, ExamHall, ExamHallSeat, ExamSeating |
+| 8 | Payment | `app/Modules/Payment` | Invoice, Payment (multi-currency), Refund, StudentCredit, PaymentConfig (per-school gateway creds), gateways declare SUPPORTED_CURRENCIES |
+| 9 | Examination | `app/Modules/Examination` | ExamType, Exam, ExamSubject (+combined_group), ExamHall, ExamSeating |
+| 10 | Attendance | `app/Modules/Attendance` | StudentAttendance, StaffAttendance, AttendanceSetting, Holiday — ✅ tests green |
+| 11 | Mark | `app/Modules/Mark` | MarkDivision, MarkSetting, GradeBoundary, Mark, ExamResult, ExamWeight — 🔶 tests fixed, confirm green then merge |
 
-### Key Examination Details (module 9)
-- `ExamSeating` table is named `exam_seating` (not `exam_seatings`) — model has `protected $table = 'exam_seating'`
-- Seating strategies: `sequential`, `interleave_group`, `interleave_section`, `anti_adjacency`
-- `anti_adjacency` uses 2D row-offset algorithm — no same-group students front/back/left/right
-- `blank_every` param on assign request leaves empty buffer seats
-- Hall layout stored as JSON `layout_config` with `rows`, `sides[]`, `blocked_rows[]`
-- Routes auto-loaded via glob in `routes/api.php`
+### Key Attendance Details (module 10)
+- Student attendance = once-daily status enum (present|absent|late|half_day|leave), bulk upsert per class/section
+- Staff attendance = punch-based; RFID endpoint (first punch = in, last = out); auto clock-out job `attendance:auto-close` (every 30 min, per-school policy + timezone, check_out = school closing time, flagged `is_auto_closed`)
+- Working days = school_opening_hours (weekend config) + `holidays` table ('closure' type = retroactive void day)
+- Edit window 7 days (teacher) / unlimited (admin), audited via `edited_by`
+- `WorkingDayService` is reusable — Leave module should use it for day counting
+
+### Key Mark Details (module 11)
+- Result strategies per class: `bd_national` (optional bonus, 5.00 cap, fail-one-fail-all), `simple_average`, `weighted_average`, `percentage_only`
+- Templates in `config/grading.php` (grade boundaries + division sets) — seed data, not code
+- Combined subjects via `exam_subjects.combined_group`; absent = "Ab" (never zero); N/A for non-enrolled
+- Grace marks: separate audited column, per-class cap; merit rank always computed, `show_merit_position` toggle controls exposure
+- Moderator lock: `exam_results.is_locked` + `marks.locked_at` — locked rows never recomputed
+- Year-end weighted result: `exam_weights` + `GET /v2/marks/results/annual`
+- NO cache on mark writes; tabulation cached under `Cache::tags(['tabulation'])`
 
 ---
 
-## What Is Next — Module 10: Attendance, then Module 11: Mark
+## What Is Next — Module 12: Leave
 
-**Full agreed specs live in CLAUDE.md** (sections "Global Product Rules" and "Mark Module — Agreed Spec"). Where the DevPlan docx conflicts with CLAUDE.md, CLAUDE.md wins.
+**Depends on:** Student (#4), Staff (#5) — both complete. Integrates with Attendance (#10).
 
-### Module 10 — Attendance (build first)
-- **Depends on:** Student (#4), Staff (#5) — both complete.
-- Daily student attendance (per class/section) + staff attendance (manual entry now, RFID-ready — staff already have `rfid_number`)
-- Feeds Mark's attendance division and later attendance SMS (module Sms)
-
-### Module 11 — Mark (after Attendance)
-- **Depends on:** Examination (#9), Attendance (#10), Student (#4)
-- **Prerequisite:** `student_subjects` table (per-student enrollment, `is_optional` flag) — see CLAUDE.md
-- Divisions per exam subject; teachers enter marks per student per division
-- Result strategies pluggable per class (`bd_national`, `simple_average`, `weighted_average`, `percentage_only`)
-- Grading templates chosen at school setup (BD 5.0 / US 4.0 / UK 9–1 / percentage-only) seed `grade_boundaries`
-- Must support: absent ("Ab"), optional/4th subject GPA bonus, combined subjects, merit position with ties, N/A for non-enrolled, Moderator result lock
-- BD grade defaults: A+ 80–100 (5.00) … F 0–32 (0.00) — the DevPlan's 4.0-scale is wrong, ignore it
+### What the Leave module needs to do
+- Leave types per school (sick, casual, etc.) with per-year day limits — applies to students AND staff
+- Leave requests: date range, reason, optional attachment, status workflow (pending → approved/rejected, cancellable)
+- Day count = WORKING days only (reuse `WorkingDayService` — excludes weekends + holidays)
+- **Attendance integration (already spec'd in CLAUDE.md)**: approved student leave auto-sets attendance status `leave` for those dates, overriding an existing `absent`
+- Approval: Head Teacher/admin approves; teachers can approve their own section's student requests (reuse `class_teacher_id` pattern)
+- Leave balance tracking per person per year against the type's limit
 
 ### Global product reminders
-- School locale settings: currency, timezone, locale, academic year pattern, weekend days
-- Multi-currency: currency column on schools/invoices/payments (done)
-- Gateways by country: BD = bKash + SSLCommerz; everywhere else = Stripe + PayPal; more added later via country → gateway registry. Schools enter their own gateway credentials (per-school payment_configs)
-- English default, multi-language via lang files — no hardcoded user-facing strings
-
-### Do NOT cache mark write operations (same rule as Payment).
+- All user-facing strings via translation keys (English default)
+- Dates in school timezone (pattern established in Attendance)
+- No BD assumptions in core — day limits and types are per-school config
 
 ---
 
-## Architecture Rules (summary)
+## Architecture Rules (summary — full rules in CLAUDE.md)
 
-- Module path: `app/Modules/{ModuleName}/`
-- All queries scoped to `school_id` — get it via `app('current_school_id')`
+- Module path: `app/Modules/{ModuleName}/` — 10-step pattern, one commit per step
+- All queries scoped to `school_id` — via `app('current_school_id')`
 - Controllers thin (max 40 lines/method) — logic in Services
-- Every write endpoint: FormRequest with `authorize()` + `rules()`
-- Every response: JsonResource — never return a Model directly
-- Cache: `Cache::tags([...])->remember()` in Repositories
-- Observers flush cache on `saved()` / `deleted()`
-- Middleware: `['auth:sanctum', 'ability:admin:mark']`
-- Tests use SQLite in-memory — always add `protected $table` if model name pluralises wrongly
-- Add model `$attributes` defaults for any column with a DB-level default (avoid null in responses)
+- Every write endpoint: FormRequest with `authorize()` + `rules()`; every response: JsonResource
+- Cache: `Cache::tags([...])->remember()` in Repositories; Observers flush on saved/deleted
+- Middleware: `['auth:sanctum', 'ability:admin:*,teacher:*']` as appropriate
+- Tests: SQLite in-memory — add `protected $table` if pluralisation is wrong; mirror DB defaults in `$attributes`
+- **Test gotchas learned so far**: Sanctum guard caches the user within a test — call `$this->app['auth']->forgetGuards()` when switching tokens; use `whereDate` not `whereBetween` for date-range queries (SQLite stores date casts as datetime); fresh-model resources return 201 — force 200 on lazily-created GET endpoints
 
 ---
 
 ## Git Convention
 
 ```
-feat(attendance): description   # current module
-fix(attendance): description
-test(attendance): description
+feat(leave): description   # current module
+fix(leave): description
+test(leave): description
 ```
 
-## Run Tests
+## Run & Ship (full checklist in CLAUDE.md)
 
 ```bash
-docker compose exec app php artisan test tests/Feature/Attendance/ --no-coverage
-```
+docker compose exec app php artisan migrate
+docker compose exec app php artisan test tests/Feature/Leave/ --no-coverage
 
-## After Tests Pass — Commit
-
-Full ordered checklist lives in CLAUDE.md ("After Every Module — Run & Ship").
-
-```bash
 git checkout dev && git pull origin dev
-git checkout -b feature/attendance-module
-# ... commits: feat(attendance): ... ...
+git checkout -b feature/leave-module
+# ... commits ...
 git checkout dev
-git merge --no-ff feature/attendance-module
+git merge --no-ff feature/leave-module
 git push origin dev
-git branch -d feature/attendance-module
+git branch -d feature/leave-module
 ```
