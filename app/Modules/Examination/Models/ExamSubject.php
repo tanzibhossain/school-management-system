@@ -17,6 +17,7 @@ class ExamSubject extends Model
         'end_time',
         'full_marks',
         'pass_marks',
+        'combined_group', // Mark module: subjects sharing a group are graded as one
     ];
 
     protected $casts = [

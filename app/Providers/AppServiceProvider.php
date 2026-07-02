@@ -19,6 +19,8 @@ use App\Modules\Attendance\Models\StaffAttendance;
 use App\Modules\Attendance\Models\StudentAttendance;
 use App\Modules\Attendance\Observers\StaffAttendanceObserver;
 use App\Modules\Attendance\Observers\StudentAttendanceObserver;
+use App\Modules\Mark\Models\Mark;
+use App\Modules\Mark\Observers\MarkObserver;
 use App\Modules\FeeItem\Models\FeeItem;
 use App\Modules\FeeItem\Observers\FeeItemObserver;
 use App\Modules\Payment\Models\Invoice;
@@ -74,5 +76,8 @@ class AppServiceProvider extends ServiceProvider
         // ── Attendance module observers ───────────────────────────────────────
         StudentAttendance::observe(StudentAttendanceObserver::class);
         StaffAttendance::observe(StaffAttendanceObserver::class);
+
+        // ── Mark module observers ─────────────────────────────────────────────
+        Mark::observe(MarkObserver::class);
     }
 }
