@@ -9,12 +9,18 @@ class School extends Model
 {
     protected $fillable = [
         'name',
-        'eiin_code',
+        'institution_code',
+        'institution_code_label',
         'school_code',
         'technical_branch_code',
         'established',
         'address',
+        'country_code',
         'email',
+        'currency',
+        'timezone',
+        'locale',
+        'academic_year_pattern',
         'logo',
         'sms_api_key',
         'sms_sender_id',
@@ -31,6 +37,15 @@ class School extends Model
         'auto_due_enabled' => 'boolean',
         'fine_per_day'     => 'decimal:2',
         'is_active'        => 'boolean',
+    ];
+
+    // Mirror DB-level defaults (avoid null in responses before refresh)
+    protected $attributes = [
+        'institution_code_label' => 'Institution Code',
+        'currency'               => 'USD',
+        'timezone'               => 'UTC',
+        'locale'                 => 'en',
+        'academic_year_pattern'  => 'jan_dec',
     ];
 
     // ─── Relationships ────────────────────────────────────────────────────────

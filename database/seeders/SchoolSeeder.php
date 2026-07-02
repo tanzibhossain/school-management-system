@@ -13,11 +13,18 @@ class SchoolSeeder extends Seeder
         $school = School::firstOrCreate(
             ['name' => 'Demo School'],
             [
-                'eiin_code'   => null,
-                'school_code' => null,
-                'address'     => '123 School Street, Dhaka',
-                'email'       => 'info@demoschool.edu.bd',
-                'is_active'   => true,
+                // Bangladesh seed template — locale values come from here, never from code
+                'institution_code'       => null,
+                'institution_code_label' => 'EIIN',
+                'school_code'            => null,
+                'address'                => '123 School Street, Dhaka',
+                'country_code'           => 'BD',
+                'email'                  => 'info@demoschool.edu.bd',
+                'currency'               => 'BDT',
+                'timezone'               => 'Asia/Dhaka',
+                'locale'                 => 'en',
+                'academic_year_pattern'  => 'jan_dec',
+                'is_active'              => true,
             ]
         );
 
