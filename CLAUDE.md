@@ -142,6 +142,22 @@ V2 is a global product. V1 was Bangladesh-only — do NOT carry BD assumptions i
 
 ---
 
+## Attendance Module — Agreed Spec (Module 10)
+
+- **Student attendance** = once-daily status per student (no clock-out): enum `present | absent | late | half_day | leave`. Bulk upsert per class/section — resubmitting the register updates, never errors. Unique (school_id, student_id, date).
+- **Staff attendance** = punch-based: check_in, check_out, `source` enum(manual|rfid), `is_auto_closed` boolean.
+- **Auto clock-out**: scheduled job runs after each school's closing time (school timezone). Open records get check_out = that day's closing time from `school_opening_hours` (NEVER job run time), `is_auto_closed = true`. Auto-closed hours never count toward payroll/overtime without approval. Policy per school: close_at_closing_time (default) | max_shift_hours | off. Clock-out with no clock-in = flagged incomplete, never invent a check-in.
+- **Tables**: `student_attendances` (school_id, student_id, class_id, section_id, academic_year_id, date, status, note, recorded_by, edited_by nullable), `staff_attendances` (school_id, staff_id, date, check_in, check_out, status, source, is_auto_closed), `attendance_settings` (school_id, auto_close_policy, max_shift_hours, edit_window_days, late_threshold_minutes).
+- **Working-day aware**: attendance only on working days (per-school weekend config + holidays). Attendance % denominator = working days within the student's enrollment period (mid-year admissions count from admission date). Retroactive school closure: a "void day" mechanism excludes an already-marked date from all % calculations.
+- **Corrections**: editable within `edit_window_days` (default 7) by the recording teacher; older edits require Head Teacher ability. Every edit stores `edited_by` (audit).
+- **Leave integration (module 12)**: approved leave auto-sets status `leave` for those dates, overriding an existing `absent`. `leave` counts as excused — excluded from the absent count, configurable whether it counts in the % denominator.
+- **Mark integration (module 11)**: attendance-division marks are SNAPSHOTTED at mark-entry time (stored in `marks` like any entered value). Later attendance edits never silently change computed exam results.
+- **RFID**: device endpoint accepts raw punches; first punch of day = check_in, last = check_out, intermediate punches ignored. Dates are school-local (school timezone), never UTC-derived.
+- **Timezone rule**: "today" is always resolved in the school's timezone — one server, many countries.
+- **No cache on attendance write operations** (high-frequency daily writes).
+
+---
+
 ## Mark Module — Agreed Spec (Module 11)
 
 Decisions reconciled from v1 code + DevPlan + review (2026-07-02). Where the DevPlan docx conflicts with this section, THIS section wins.
