@@ -10,7 +10,6 @@ Follow every rule here without exception across all 25 modules.
 Multi-tenant SaaS school management platform.
 Stack: Laravel 13 · PHP 8.3 · MySQL 8 · Redis 7 · Laravel Horizon · MinIO · Sanctum · Spatie Permission
 
-**Preferred model:** `claude-fable-5` — switch with `/model fable` at the start of every session (requires Claude Code v2.1.170+, run `claude update` first).
 
 ---
 
@@ -78,7 +77,7 @@ Build in dependency order — never start a module before its dependencies are c
 | 8 | Payment | Student, FeeItem | ✅ done — Invoice, Payment, Refund, StudentCredit, CreditTransaction, PaymentConfig, PaymentGatewayLog |
 | 9 | Examination | Academic, Student | ✅ done — ExamType, Exam, ExamSubject, ExamHall, ExamHallSeat, ExamSeating; anti_adjacency seating + blank_every |
 | 10 | Attendance | Student, Staff | 🔶 code complete 2026-07-02 — `app/Modules/Attendance` (StudentAttendance, StaffAttendance, AttendanceSetting, Holiday); awaiting test run in Docker |
-| 11 | Mark | Examination, Attendance, Student | ⬜ next — see "Mark Module — Agreed Spec" below; prerequisite `student_subjects` still pending |
+| 11 | Mark | Examination, Attendance, Student | 🔶 code complete 2026-07-02 — `app/Modules/Mark` + `student_subjects` prerequisite; 4 result strategies, templates in `config/grading.php`; awaiting test run in Docker |
 | 12 | Leave | Student, Staff | ⬜ pending |
 | 13 | Loan | Staff | ⬜ pending |
 | 14 | Certificate | Student, Mark | ⬜ pending |
@@ -167,6 +166,11 @@ Decisions reconciled from v1 code + DevPlan + review (2026-07-02). Where the Dev
 - **Tables**: `mark_divisions`, `mark_settings` (school_id, class_id, mode enum(mark|grade), result_strategy), `grade_boundaries` (school_id, class_id, grade_label, min_percent, max_percent, gpa_point), `marks` (school_id, exam_id, student_id, mark_division_id, marks_obtained, is_absent, entered_by, locked_at), `exam_results` (school_id, exam_id, student_id, total_marks, percentage, grade, gpa, is_pass, merit_position, is_locked).
 - **Persist results**: `exam_results` rows are written on calculation and locked after Moderator approval — no recompute-on-read for locked results. Tabulation view cached via `Cache::tags(['tabulation'])`, flushed by MarkObserver.
 - **Must support** (all existed in v1): absent handling (`is_absent`, display "Ab", absent ≠ zero), optional/4th subject with GPA bonus (bd_national: GPA = (Σ compulsory GP + max(0, optional GP − 2.00)) / compulsory count, cap 5.00), combined subjects (e.g. Bangla 1st + 2nd paper graded as one with combined pass mark), merit position with tie handling (GPA → total → percentage; failed ranked after passed), N/A for non-enrolled subjects.
+- **Division templates (decided 2026-07-02)**: ready-made mark-division sets a school can apply per exam subject — e.g. `standard` (Attendance 10 / Mid 30 / Final 60), `continuous` (Attendance / Assignment / Class Test / Mid / Final) — or fully custom divisions. Templates are seed data, not code.
+- **Exam weighting (decided 2026-07-02)**: year-end combined result configurable per school/class — weighted aggregation across exams (e.g. Half-Yearly 30% + Annual 70%) via `exam_weights` config; ready-made templates + custom. Schema included in Mark v1.
+- **Merit rank visibility (decided 2026-07-02)**: always computed and stored; per-school setting `show_merit_position` controls exposure to students/parents. BD template default: visible.
+- **Grace marks (decided 2026-07-02)**: separate audited `grace_marks` column on `marks` (never mixed into `marks_obtained`), `grace_given_by` audit, per-school cap in mark settings. Applied before pass/grade calculation.
+- **Re-exams/improvement (decided 2026-07-02)**: DEFERRED. Keep ExamType flexible so a retake exam type can reference an original exam later.
 - **No cache on mark write operations** (same rule as Payment).
 
 ---
