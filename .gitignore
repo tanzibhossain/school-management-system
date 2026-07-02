@@ -56,3 +56,6 @@ docker-compose.override.yml
 # Next.js (if frontend is in this repo)
 /.next/
 /out/
+
+# Old v1 reference code — never commit (contains deploy keys)
+old/
