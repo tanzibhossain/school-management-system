@@ -61,7 +61,8 @@ docker compose exec app php artisan <command>
 
 ### Global product reminders
 - School locale settings: currency, timezone, locale, academic year pattern, weekend days
-- Multi-currency: currency column on schools/invoices/payments; Stripe (global) + bKash & SSLCommerz (BD) behind one gateway interface
+- Multi-currency: currency column on schools/invoices/payments (done)
+- Gateways by country: BD = bKash + SSLCommerz; everywhere else = Stripe + PayPal; more added later via country → gateway registry. Schools enter their own gateway credentials (per-school payment_configs)
 - English default, multi-language via lang files — no hardcoded user-facing strings
 
 ### Do NOT cache mark write operations (same rule as Payment).
