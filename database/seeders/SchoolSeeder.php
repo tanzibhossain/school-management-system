@@ -28,9 +28,9 @@ class SchoolSeeder extends Seeder
             ]
         );
 
-        // Seed opening hours: Mon–Thu open 08:00–16:00, Fri–Sat closed, Sun closed
+        // Bangladesh template: weekend = Friday + Saturday; Sunday–Thursday are school days
         $defaults = [
-            0 => ['is_open' => false, 'open_time' => null,    'close_time' => null],    // Sunday
+            0 => ['is_open' => true,  'open_time' => '08:00', 'close_time' => '16:00'], // Sunday
             1 => ['is_open' => true,  'open_time' => '08:00', 'close_time' => '16:00'], // Monday
             2 => ['is_open' => true,  'open_time' => '08:00', 'close_time' => '16:00'], // Tuesday
             3 => ['is_open' => true,  'open_time' => '08:00', 'close_time' => '16:00'], // Wednesday
