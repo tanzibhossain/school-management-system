@@ -77,8 +77,8 @@ Build in dependency order — never start a module before its dependencies are c
 | 7 | FeeItem | Academic | ✅ done — `app/Modules/FeeItem` (FeeCategory, FeeItem, FeeDiscount) |
 | 8 | Payment | Student, FeeItem | ✅ done — Invoice, Payment, Refund, StudentCredit, CreditTransaction, PaymentConfig, PaymentGatewayLog |
 | 9 | Examination | Academic, Student | ✅ done — ExamType, Exam, ExamSubject, ExamHall, ExamHallSeat, ExamSeating; anti_adjacency seating + blank_every |
-| 10 | Attendance | Student, Staff | ⬜ next — daily student + staff attendance (manual + RFID-ready); feeds Mark's attendance division and attendance SMS |
-| 11 | Mark | Examination, Attendance, Student | ⬜ pending — see "Mark Module — Agreed Spec" below |
+| 10 | Attendance | Student, Staff | 🔶 code complete 2026-07-02 — `app/Modules/Attendance` (StudentAttendance, StaffAttendance, AttendanceSetting, Holiday); awaiting test run in Docker |
+| 11 | Mark | Examination, Attendance, Student | ⬜ next — see "Mark Module — Agreed Spec" below; prerequisite `student_subjects` still pending |
 | 12 | Leave | Student, Staff | ⬜ pending |
 | 13 | Loan | Staff | ⬜ pending |
 | 14 | Certificate | Student, Mark | ⬜ pending |
@@ -241,4 +241,39 @@ type(module): short description
 Types: feat | fix | test | refactor | chore | docs
 ```
 
-Aim for 2–3 commits per work session. 24 modules × ~10 steps = ~240 commits.
+Aim for 2–3 commits per work session. 25 modules × ~10 steps = ~250 commits.
+
+---
+
+## After Every Module — Run & Ship (in this order)
+
+When a module's code is complete, Claude must provide these commands, in this exact order
+(replace `{module}` with the module name, e.g. `attendance`):
+
+```bash
+# 1. Run migrations
+docker compose exec app php artisan migrate
+
+# 2. Run the module's tests
+docker compose exec app php artisan test tests/Feature/{Module}/ --no-coverage
+
+# 3. Create the feature branch (do this BEFORE committing; ideally before coding starts)
+git checkout dev
+git pull origin dev
+git checkout -b feature/{module}-module
+
+# 4. Commit (one commit per 10-step stage where practical)
+git add app/Modules/{Module}/ tests/Feature/{Module}/ <other touched files>
+git commit -m "feat({module}): <short description>"
+
+# 5. Merge back to dev
+git checkout dev
+git merge --no-ff feature/{module}-module
+git push origin dev
+git branch -d feature/{module}-module
+```
+
+Rules:
+- Never merge with failing tests — fix and re-run step 2 first.
+- Shared-file edits (AppServiceProvider, bootstrap/app.php, routes/console.php, CLAUDE.md status table) belong in the module's commits.
+- Update the module's status in the Build Order table in the same branch before merging.
