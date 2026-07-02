@@ -17,6 +17,7 @@ class InvoiceResource extends JsonResource
             'academic_year_id' => $this->academic_year_id,
             'month'            => $this->month,
             'amount_due'       => $this->amount_due,
+            'currency'         => $this->currency,
             'amount_paid'      => $this->amount_paid,
             'credit_applied'   => $this->credit_applied,
             'remaining'        => $this->remainingAmount(),

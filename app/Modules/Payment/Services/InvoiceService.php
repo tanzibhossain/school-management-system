@@ -9,6 +9,7 @@ use App\Modules\Payment\Events\InvoiceGenerated;
 use App\Modules\Payment\Events\InvoicePaid;
 use App\Modules\Payment\Events\InvoiceWaived;
 use App\Modules\Payment\Models\Invoice;
+use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -93,6 +94,7 @@ class InvoiceService
                 'academic_year_id' => $yearId,
                 'month'            => $month,
                 'amount_due'       => $amountDue,
+                'currency'         => School::whereKey($schoolId)->value('currency') ?? 'USD',
                 'amount_paid'      => 0,
                 'credit_applied'   => $creditToApply,
                 'status'           => $amountDue == 0 ? 'paid' : 'unpaid',

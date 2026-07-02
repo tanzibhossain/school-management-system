@@ -14,6 +14,9 @@ use RuntimeException;
  */
 class BkashGateway
 {
+    /** bKash processes BDT only. */
+    public const SUPPORTED_CURRENCIES = ['BDT'];
+
     private PaymentConfig $config;
 
     public function __construct(PaymentConfig $config)

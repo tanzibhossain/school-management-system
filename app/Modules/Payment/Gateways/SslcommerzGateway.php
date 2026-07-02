@@ -15,6 +15,9 @@ use RuntimeException;
  */
 class SslcommerzGateway
 {
+    /** SSLCommerz settles in BDT (multi-currency display exists, settlement is BDT). */
+    public const SUPPORTED_CURRENCIES = ['BDT'];
+
     private PaymentConfig $config;
 
     public function __construct(PaymentConfig $config)

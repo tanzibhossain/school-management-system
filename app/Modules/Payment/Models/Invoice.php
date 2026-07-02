@@ -10,8 +10,11 @@ class Invoice extends Model
 {
     protected $fillable = [
         'school_id', 'invoice_number', 'student_id', 'academic_year_id', 'month',
-        'amount_due', 'amount_paid', 'credit_applied', 'status', 'due_date', 'note', 'issued_by',
+        'amount_due', 'currency', 'amount_paid', 'credit_applied', 'status', 'due_date', 'note', 'issued_by',
     ];
+
+    // Mirror DB-level default (services always set the school's currency explicitly)
+    protected $attributes = ['currency' => 'USD'];
 
     protected $casts = [
         'amount_due'     => 'decimal:2',

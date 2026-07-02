@@ -16,6 +16,7 @@ class PaymentResource extends JsonResource
             'invoice_id'      => $this->invoice_id,
             'student_id'      => $this->student_id,
             'amount'          => $this->amount,
+            'currency'        => $this->currency,
             'method'             => $this->method,
             'transaction_ref'    => $this->transaction_ref,
             'gateway_payment_id' => $this->gateway_payment_id,

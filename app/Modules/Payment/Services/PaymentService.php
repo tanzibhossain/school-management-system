@@ -42,6 +42,7 @@ class PaymentService
                 'receipt_number'=> $receiptNumber,
                 'invoice_id'    => $invoice->id,
                 'student_id'    => $invoice->student_id,
+                'currency'      => $invoice->currency,
                 'collected_by'  => $collectedBy,
                 'paid_at'       => now(),
                 // Cheque defaults
@@ -66,6 +67,8 @@ class PaymentService
      */
     public function initiateBkash(Invoice $invoice, string $callbackUrl): array
     {
+        $this->assertGatewaySupportsCurrency($invoice, BkashGateway::SUPPORTED_CURRENCIES, 'bKash');
+
         $config  = $this->requireConfig($invoice->school_id);
         $gateway = new BkashGateway($config);
         $token   = $gateway->grantToken();
@@ -120,6 +123,7 @@ class PaymentService
                 'invoice_id'         => $invoice->id,
                 'student_id'         => $invoice->student_id,
                 'amount'             => $result['amount'],
+                'currency'           => $invoice->currency,
                 'method'             => 'bkash',
                 'transaction_ref'    => $result['trxID'],       // bank transaction ID
                 'gateway_payment_id' => $paymentId,             // bKash paymentID — required for refunds
@@ -145,6 +149,8 @@ class PaymentService
      */
     public function initiateSslcommerz(Invoice $invoice, string $successUrl, string $failUrl, string $cancelUrl, string $ipnUrl): array
     {
+        $this->assertGatewaySupportsCurrency($invoice, SslcommerzGateway::SUPPORTED_CURRENCIES, 'SSLCommerz');
+
         $config  = $this->requireConfig($invoice->school_id);
         $gateway = new SslcommerzGateway($config);
 
@@ -201,6 +207,7 @@ class PaymentService
                 'invoice_id'         => $invoice->id,
                 'student_id'         => $invoice->student_id,
                 'amount'             => $validatedAmount,
+                'currency'           => $invoice->currency,
                 'method'             => 'sslcommerz',
                 'transaction_ref'    => $valId,                      // val_id
                 'gateway_payment_id' => $result['bank_tran_id'] ?? null, // required for refunds
@@ -217,6 +224,21 @@ class PaymentService
     }
 
     // ── Shared invoice update logic ──────────────────────────────────────────
+
+    /**
+     * Gateways declare which currencies they accept — reject mismatched invoices
+     * before any external call. Keeps BD-only gateways safe in a multi-currency system.
+     *
+     * @param  list<string>  $supported
+     */
+    private function assertGatewaySupportsCurrency(Invoice $invoice, array $supported, string $gatewayName): void
+    {
+        if (! in_array($invoice->currency, $supported, true)) {
+            throw new RuntimeException(
+                "{$gatewayName} does not support {$invoice->currency} — supported: " . implode(', ', $supported)
+            );
+        }
+    }
 
     private function updateInvoiceAfterPayment(Invoice $invoice, Payment $payment): void
     {

@@ -10,10 +10,13 @@ class Payment extends Model
 {
     protected $fillable = [
         'school_id', 'receipt_number', 'invoice_id', 'student_id',
-        'amount', 'method', 'transaction_ref', 'gateway_payment_id', 'gateway_status',
+        'amount', 'currency', 'method', 'transaction_ref', 'gateway_payment_id', 'gateway_status',
         'cheque_number', 'bank_name', 'cheque_date', 'cheque_status',
         'is_reversed', 'collected_by', 'paid_at', 'note',
     ];
+
+    // Mirror DB-level default (services always copy the invoice's currency explicitly)
+    protected $attributes = ['currency' => 'USD'];
 
     protected $casts = [
         'amount'      => 'decimal:2',
