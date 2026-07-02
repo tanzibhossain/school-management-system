@@ -25,6 +25,7 @@ services:
     app:
         build:
             context: .
+            command: sh -c "php artisan storage:link && php-fman"
             dockerfile: Dockerfile
         container_name: school_app
         restart: unless-stopped
