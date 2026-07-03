@@ -40,8 +40,9 @@ docker compose exec app php artisan <command>
 | 9 | Examination | `app/Modules/Examination` | ExamType, Exam, ExamSubject (+combined_group), ExamHall, ExamSeating |
 | 10 | Attendance | `app/Modules/Attendance` | StudentAttendance, StaffAttendance, AttendanceSetting, Holiday — ✅ tests green |
 | 11 | Mark | `app/Modules/Mark` | MarkDivision, MarkSetting, GradeBoundary, Mark, ExamResult, ExamWeight — 🔶 tests fixed, confirm green then merge |
-| 12 | Leave | `app/Modules/Leave` | LeaveType, StudentLeaveRequest, StaffLeaveRequest — 🔶 code complete 2026-07-03, test failures fixed (guard-caching + SQLite date-format), re-run to confirm green |
-| 13 | Loan | `app/Modules/Loan` | StaffLoan, LoanSchedule — 🔶 code complete 2026-07-03, awaiting test run in Docker |
+| 12 | Leave | `app/Modules/Leave` | LeaveType, StudentLeaveRequest, StaffLeaveRequest — ✅ tests green (2026-07-03, after guard-caching + SQLite date-format fixes) |
+| 13 | Loan | `app/Modules/Loan` | StaffLoan, LoanSchedule — ✅ tests green 2026-07-03 |
+| 14 | Certificate | `app/Modules/Certificate` | AdmitCard, TestimonialTemplate, Testimonial — ✅ tests green 2026-07-03 (incl. Transfer Certificate PDF retrofit) |
 
 ### Key Attendance Details (module 10)
 - Student attendance = once-daily status enum (present|absent|late|half_day|leave), bulk upsert per class/section
@@ -132,6 +133,56 @@ weren't trustworthy to mirror directly, so the design below was confirmed with t
 
 ---
 
+## Module 14: Certificate — code complete 2026-07-03, awaiting Docker test run
+
+**Depends on:** Student (#4), Mark (#11) — both complete.
+
+CLAUDE.md had no agreed spec for this module either. The DevPlan's combined "Modules 13–19" prompt table
+says: `Certificate | TemplateCompilationService | Use DomPDF. Admit card + transfer certificate + testimonial.
+Needs Mark data.` — but **Transfer Certificate already exists**, fully built inside the Student module
+(`app/Modules/Student/{Models,Services,Http}/...TransferCertificate*`, with its own template table). So this
+module's real scope is just Admit Card + Testimonial, confirmed with the user via three Q&A decisions:
+implement real DomPDF rendering (dompdf was installed but unused — even the existing TC only ever produced
+HTML, never a stored PDF), Testimonial = conduct remark + academic summary from Mark, Admit Card allows a
+"To be announced" placeholder when exam seating isn't assigned yet.
+
+### What was built
+- **Shared**: `App\Services\PdfRenderingService` (top-level, alongside `BaseService`/`BaseRepository` — not
+  inside any one module, since Certificate depends on Student, not the reverse). Wraps
+  `barryvdh/laravel-dompdf`: `renderToPdf()`, `store()`, `generateAndStore()`.
+- `admit_cards` (school_id, student_id, exam_id, file_path, generated_at, generated_by) — no DB-stored
+  template (content is a structured schedule/seating table, not prose); HTML built directly in
+  `AdmitCardService` from `Exam`/`ExamSubject` (schedule) and `ExamSeating`/`ExamHallSeat` (hall/seat, falls
+  back to "To be announced" if seating hasn't been assigned for that exam yet). `generate()` upserts by
+  (school_id, student_id, exam_id) — regenerating updates, never duplicates.
+- `testimonial_templates` / `testimonials` — mirrors Transfer Certificate's exact pattern: per-school HTML
+  template with `{{placeholders}}`, one `is_default`. `TestimonialService::render()` substitutes
+  `{{grade}}`/`{{gpa}}`/`{{percentage}}` from Mark's `ExamResult` (only when an `exam_id` is given — a
+  testimonial can be a pure conduct reference with none) and `{{attendance_percentage}}` from
+  `AttendanceService::studentSummary()` (only when an explicit `attendance_from`/`attendance_to` range is
+  given — deliberately NOT inferred from `academic_years`, which has no start/end dates; guessing calendar
+  bounds would bake in a BD-style assumption). `generate()` creates a draft (no PDF yet); `issue()` renders +
+  stores the PDF and flips status to `issued` — mirrors TC's own draft→issued lifecycle.
+- **Transfer Certificate retrofit**: `TransferCertificateService` now takes `PdfRenderingService` and actually
+  renders/stores a PDF in `issue()` (previously `file_path` was never written — the service's own docblock
+  said PDF generation was "deferred... when MinIO + PDF skill is wired"; that gap is now closed for all three
+  document types uniformly).
+- Routes: `/v2/certificates/admit-cards/*` (admin+teacher), `/v2/certificates/testimonials/*` +
+  `/testimonial-templates/*` (admin only)
+- Tests: `tests/Feature/Certificate/{AdmitCardTest,TestimonialTest}.php` +
+  `tests/Feature/Student/TransferCertificateTest.php` (new — TC had no test coverage before this). All PDF
+  assertions use `Storage::fake('minio')` and check the stored bytes start with `%PDF` (a real DomPDF render
+  executed, not a stub) rather than parsing PDF content.
+
+### Known gaps / follow-ups
+- No PHP available to run `php artisan test` in this session — run the Docker test command before merging.
+- Admit Card has no per-school customizable template (unlike Testimonial/TC) — fixed layout, by design
+  (content is tabular, not prose). Revisit if schools want branded admit cards later.
+- Testimonial's academic summary only pulls ONE exam's result (admin picks which) — no auto-detection of
+  "latest completed academic year," since `AcademicYear` has no date range to reason about that safely.
+
+---
+
 ## Architecture Rules (summary — full rules in CLAUDE.md)
 
 - Module path: `app/Modules/{ModuleName}/` — 10-step pattern, one commit per step
@@ -148,22 +199,22 @@ weren't trustworthy to mirror directly, so the design below was confirmed with t
 ## Git Convention
 
 ```
-feat(loan): description   # current module
-fix(loan): description
-test(loan): description
+feat(certificate): description   # current module
+fix(certificate): description
+test(certificate): description
 ```
 
 ## Run & Ship (full checklist in CLAUDE.md)
 
 ```bash
 docker compose exec app php artisan migrate
-docker compose exec app php artisan test tests/Feature/Leave/ tests/Unit/Loan/ tests/Feature/Loan/ --no-coverage
+docker compose exec app php artisan test tests/Feature/Leave/ tests/Unit/Loan/ tests/Feature/Loan/ tests/Feature/Certificate/ tests/Feature/Student/TransferCertificateTest.php --no-coverage
 
 git checkout dev && git pull origin dev
-git checkout -b feature/loan-module
+git checkout -b feature/certificate-module
 # ... commits ...
 git checkout dev
-git merge --no-ff feature/loan-module
+git merge --no-ff feature/certificate-module
 git push origin dev
-git branch -d feature/loan-module
+git branch -d feature/certificate-module
 ```
