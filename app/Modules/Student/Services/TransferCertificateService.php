@@ -6,13 +6,19 @@ use App\Models\User;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\TransferCertificate;
 use App\Modules\Student\Models\TransferCertificateTemplate;
+use App\Services\PdfRenderingService;
 use Illuminate\Support\Facades\DB;
 
 class TransferCertificateService
 {
+    public function __construct(
+        private readonly PdfRenderingService $pdf,
+    ) {}
+
     /**
-     * Generate and persist a TC for a student.
-     * PDF generation is deferred to a queued job when MinIO + PDF skill is wired.
+     * Generate and persist a draft TC for a student. The PDF itself is only
+     * rendered at issue() time (see below) — closes the gap this service used
+     * to leave open (file_path was never written).
      */
     public function generate(
         Student $student,
@@ -72,11 +78,18 @@ class TransferCertificateService
     }
 
     /**
-     * Mark TC as officially issued.
+     * Generate the PDF (via the shared PdfRenderingService, same one Certificate's
+     * Admit Card and Testimonial use) and mark the TC officially issued.
      */
     public function issue(TransferCertificate $tc): TransferCertificate
     {
-        $tc->update(['status' => 'issued']);
+        $html = $this->render($tc);
+        $path = $this->pdf->generateAndStore(
+            $html,
+            "certificates/{$tc->school_id}/transfer-certificates/{$tc->id}.pdf",
+        );
+
+        $tc->update(['status' => 'issued', 'file_path' => $path]);
 
         return $tc->fresh();
     }
