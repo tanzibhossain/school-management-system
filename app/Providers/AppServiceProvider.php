@@ -19,6 +19,12 @@ use App\Modules\Attendance\Models\StaffAttendance;
 use App\Modules\Attendance\Models\StudentAttendance;
 use App\Modules\Attendance\Observers\StaffAttendanceObserver;
 use App\Modules\Attendance\Observers\StudentAttendanceObserver;
+use App\Modules\Leave\Models\LeaveType;
+use App\Modules\Leave\Models\StaffLeaveRequest;
+use App\Modules\Leave\Models\StudentLeaveRequest;
+use App\Modules\Leave\Observers\LeaveTypeObserver;
+use App\Modules\Leave\Observers\StaffLeaveRequestObserver;
+use App\Modules\Leave\Observers\StudentLeaveRequestObserver;
 use App\Modules\Mark\Models\Mark;
 use App\Modules\Mark\Observers\MarkObserver;
 use App\Modules\FeeItem\Models\FeeItem;
@@ -79,5 +85,10 @@ class AppServiceProvider extends ServiceProvider
 
         // ── Mark module observers ─────────────────────────────────────────────
         Mark::observe(MarkObserver::class);
+
+        // ── Leave module observers ────────────────────────────────────────────
+        LeaveType::observe(LeaveTypeObserver::class);
+        StudentLeaveRequest::observe(StudentLeaveRequestObserver::class);
+        StaffLeaveRequest::observe(StaffLeaveRequestObserver::class);
     }
 }
