@@ -39,6 +39,12 @@ use App\Modules\Mark\Models\Mark;
 use App\Modules\Mark\Observers\MarkObserver;
 use App\Modules\FeeItem\Models\FeeItem;
 use App\Modules\FeeItem\Observers\FeeItemObserver;
+use App\Modules\IdCard\Models\IdCardBatch;
+use App\Modules\IdCard\Models\IdCardBatchFile;
+use App\Modules\IdCard\Models\IdCardTemplate;
+use App\Modules\IdCard\Observers\IdCardBatchFileObserver;
+use App\Modules\IdCard\Observers\IdCardBatchObserver;
+use App\Modules\IdCard\Observers\IdCardTemplateObserver;
 use App\Modules\Payment\Models\Invoice;
 use App\Modules\Payment\Observers\InvoiceObserver;
 use App\Modules\Staff\Models\Staff;
@@ -109,5 +115,10 @@ class AppServiceProvider extends ServiceProvider
         AdmitCard::observe(AdmitCardObserver::class);
         TestimonialTemplate::observe(TestimonialTemplateObserver::class);
         Testimonial::observe(TestimonialObserver::class);
+
+        // ── IdCard module observers ───────────────────────────────────────────
+        IdCardTemplate::observe(IdCardTemplateObserver::class);
+        IdCardBatch::observe(IdCardBatchObserver::class);
+        IdCardBatchFile::observe(IdCardBatchFileObserver::class);
     }
 }
