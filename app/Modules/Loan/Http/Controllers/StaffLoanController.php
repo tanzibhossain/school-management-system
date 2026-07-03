@@ -24,7 +24,7 @@ class StaffLoanController extends Controller
     public function store(SubmitStaffLoanRequest $request, int $staffId): StaffLoanResource
     {
         $schoolId = app('current_school_id');
-        $staff    = Staff::where('school_id', $schoolId)->findOrFail($staffId);
+        $staff = Staff::where('school_id', $schoolId)->findOrFail($staffId);
 
         $loan = $this->service->submit($schoolId, $staff, $request->validated(), $request->user());
 

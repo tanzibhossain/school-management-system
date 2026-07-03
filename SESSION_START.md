@@ -40,7 +40,8 @@ docker compose exec app php artisan <command>
 | 9 | Examination | `app/Modules/Examination` | ExamType, Exam, ExamSubject (+combined_group), ExamHall, ExamSeating |
 | 10 | Attendance | `app/Modules/Attendance` | StudentAttendance, StaffAttendance, AttendanceSetting, Holiday — ✅ tests green |
 | 11 | Mark | `app/Modules/Mark` | MarkDivision, MarkSetting, GradeBoundary, Mark, ExamResult, ExamWeight — 🔶 tests fixed, confirm green then merge |
-| 12 | Leave | `app/Modules/Leave` | LeaveType, StudentLeaveRequest, StaffLeaveRequest — 🔶 code complete 2026-07-03, awaiting test run in Docker |
+| 12 | Leave | `app/Modules/Leave` | LeaveType, StudentLeaveRequest, StaffLeaveRequest — 🔶 code complete 2026-07-03, test failures fixed (guard-caching + SQLite date-format), re-run to confirm green |
+| 13 | Loan | `app/Modules/Loan` | StaffLoan, LoanSchedule — 🔶 code complete 2026-07-03, awaiting test run in Docker |
 
 ### Key Attendance Details (module 10)
 - Student attendance = once-daily status enum (present|absent|late|half_day|leave), bulk upsert per class/section
@@ -87,6 +88,50 @@ docker compose exec app php artisan <command>
 
 ---
 
+## Module 13: Loan — code complete 2026-07-03, awaiting Docker test run
+
+**Depends on:** Staff (#5) — complete. No dependency on Payroll (#21, optional/unbuilt).
+
+CLAUDE.md had no agreed spec for this module — the DevPlan docx (`docs/SchoolMS_v2_DevPlan_original.docx`,
+"Module 12 — Loan") and the v1 reference code (`old/app/Modules/Loan`) disagreed with each other
+(interest-bearing, penalty tables, settlement fees, built on a generic pre-module `contacts` table) and
+weren't trustworthy to mirror directly, so the design below was confirmed with the user before building
+(see the four Q&A decisions: interest-free, defer repayment tracking, request→approve workflow, admin+accountant access).
+
+### What was built
+- `staff_loans` (school_id, staff_id, requested_amount, installment_count, reason, start_date, status
+  enum(pending|approved|rejected|cancelled), requested_by/approved_by/approved_at/rejection_reason) —
+  same shape as Leave's request tables
+- `loan_schedules` (school_id, staff_loan_id, installment_number, due_date, amount, is_paid, paid_amount,
+  paid_at) — the last three columns are reserved for a future Payroll integration and are NOT written to yet
+- **Interest-free**: `LoanScheduleCalculator::calculateSchedule(amount, installmentCount)` — pure, unit-tested
+  class that splits the amount evenly across installments; the LAST installment absorbs any rounding
+  remainder so the sum always exactly equals the requested amount. No amortization/interest math (deliberately
+  simpler than the DevPlan's `AmortizationCalculationEngine`).
+- **Workflow**: submit (staff themselves, or admin/accountant on their behalf) → admin/accountant approve or
+  reject. Approval IS the disbursement moment — it generates the `loan_schedules` rows (monthly cadence from
+  `start_date`, via `addMonthNoOverflow()`). No separate disburse step.
+- **Repayment marking deferred**: no service/controller logic exists for marking an installment paid — that's
+  explicit future scope once the Payroll module defines how salary deductions work.
+- **Cancellation**: requester may cancel while pending; admin/accountant may cancel pending OR approved.
+  Cancelling an approved loan also deletes its schedule rows (safe — nothing can be marked paid yet, so
+  there's no repayment history to lose).
+- **Access**: submit + view + self-cancel — `admin:*,accountant:*,staff:*`; approve/reject/pending queue —
+  `admin:*,accountant:*` only (matches FeeItem's convention, not Payment's admin-only one — per user decision).
+- Routes: `POST/GET /v2/loans/{staffId}`, `GET /v2/loans/pending`, `PATCH /v2/loans/{id}/approve|reject|cancel`
+- Tests: `tests/Unit/Loan/LoanScheduleCalculatorTest.php` (even split, rounding-remainder-on-last-installment,
+  single installment, invalid input) + `tests/Feature/Loan/StaffLoanTest.php` (submit→approve schedule
+  generation, accountant can approve, staff cannot approve own request, reject, cancel incl. schedule cleanup,
+  auth) — written with the Sanctum guard-caching (`forgetGuards()`) fix already applied from the Leave rework.
+
+### Known gaps / follow-ups
+- No PHP available to run `php artisan test` in this session — run the Docker test command before merging.
+- No loan-type/eligibility-cap entity (unlike Leave's `LeaveType`) — amount is admin/accountant discretion,
+  no automatic cap against `staff.basic_salary`. Flagged, not solved.
+- Repayment/installment-paid tracking is a placeholder pending Payroll (#21).
+
+---
+
 ## Architecture Rules (summary — full rules in CLAUDE.md)
 
 - Module path: `app/Modules/{ModuleName}/` — 10-step pattern, one commit per step
@@ -96,29 +141,29 @@ docker compose exec app php artisan <command>
 - Cache: `Cache::tags([...])->remember()` in Repositories; Observers flush on saved/deleted
 - Middleware: `['auth:sanctum', 'ability:admin:*,teacher:*']` as appropriate
 - Tests: SQLite in-memory — add `protected $table` if pluralisation is wrong; mirror DB defaults in `$attributes`
-- **Test gotchas learned so far**: Sanctum guard caches the user within a test — call `$this->app['auth']->forgetGuards()` when switching tokens; use `whereDate` not `whereBetween` for date-range queries (SQLite stores date casts as datetime); fresh-model resources return 201 — force 200 on lazily-created GET endpoints
+- **Test gotchas learned so far**: Sanctum guard caches the user within a test — call `$this->app['auth']->forgetGuards()` EVERY time a test switches to a different user's token (missing this caused 3 silent false-pass/false-fail auth bugs in Leave's first test run); use `whereDate` not `whereBetween` for date-range queries, and use the full `Y-m-d H:i:s` string (not just `Y-m-d`) in `assertDatabaseHas` against a `date`-cast column (SQLite stores it as datetime); fresh-model resources return 201 — force 200 on lazily-created GET endpoints
 
 ---
 
 ## Git Convention
 
 ```
-feat(leave): description   # current module
-fix(leave): description
-test(leave): description
+feat(loan): description   # current module
+fix(loan): description
+test(loan): description
 ```
 
 ## Run & Ship (full checklist in CLAUDE.md)
 
 ```bash
 docker compose exec app php artisan migrate
-docker compose exec app php artisan test tests/Feature/Leave/ --no-coverage
+docker compose exec app php artisan test tests/Feature/Leave/ tests/Unit/Loan/ tests/Feature/Loan/ --no-coverage
 
 git checkout dev && git pull origin dev
-git checkout -b feature/leave-module
+git checkout -b feature/loan-module
 # ... commits ...
 git checkout dev
-git merge --no-ff feature/leave-module
+git merge --no-ff feature/loan-module
 git push origin dev
-git branch -d feature/leave-module
+git branch -d feature/loan-module
 ```

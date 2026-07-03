@@ -2,6 +2,7 @@
 
 namespace App\Modules\Loan\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -25,11 +26,11 @@ class LoanSchedule extends Model
 
     protected $casts = [
         'installment_number' => 'integer',
-        'due_date'           => 'date',
-        'amount'             => 'decimal:2',
-        'is_paid'            => 'boolean',
-        'paid_amount'        => 'decimal:2',
-        'paid_at'            => 'datetime',
+        'due_date' => 'date',
+        'amount' => 'decimal:2',
+        'is_paid' => 'boolean',
+        'paid_amount' => 'decimal:2',
+        'paid_at' => 'datetime',
     ];
 
     // Mirror DB-level default
@@ -43,7 +44,7 @@ class LoanSchedule extends Model
         return $this->belongsTo(StaffLoan::class);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForSchool($query, int $schoolId): void
     {
         $query->where('school_id', $schoolId);

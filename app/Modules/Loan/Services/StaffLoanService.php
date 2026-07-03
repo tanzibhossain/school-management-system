@@ -30,13 +30,13 @@ class StaffLoanService
     public function submit(int $schoolId, Staff $staff, array $data, User $requester): StaffLoan
     {
         return StaffLoan::create([
-            'school_id'         => $schoolId,
-            'staff_id'          => $staff->id,
-            'requested_amount'  => $data['requested_amount'],
+            'school_id' => $schoolId,
+            'staff_id' => $staff->id,
+            'requested_amount' => $data['requested_amount'],
             'installment_count' => $data['installment_count'],
-            'reason'            => $data['reason'],
-            'start_date'        => $data['start_date'],
-            'requested_by'      => $requester->id,
+            'reason' => $data['reason'],
+            'start_date' => $data['start_date'],
+            'requested_by' => $requester->id,
         ]);
     }
 
@@ -59,7 +59,7 @@ class StaffLoanService
             }
 
             $locked->update([
-                'status'      => 'approved',
+                'status' => 'approved',
                 'approved_by' => $approver->id,
                 'approved_at' => now(),
             ]);
@@ -81,9 +81,9 @@ class StaffLoanService
         }
 
         $loan->update([
-            'status'           => 'rejected',
-            'approved_by'      => $approver->id,
-            'approved_at'      => now(),
+            'status' => 'rejected',
+            'approved_by' => $approver->id,
+            'approved_at' => now(),
             'rejection_reason' => $reason,
         ]);
 
@@ -132,11 +132,11 @@ class StaffLoanService
 
         foreach ($installments as $installment) {
             LoanSchedule::create([
-                'school_id'           => $loan->school_id,
-                'staff_loan_id'       => $loan->id,
-                'installment_number'  => $installment['installment_number'],
-                'due_date'            => $dueDate->toDateString(),
-                'amount'              => $installment['amount'],
+                'school_id' => $loan->school_id,
+                'staff_loan_id' => $loan->id,
+                'installment_number' => $installment['installment_number'],
+                'due_date' => $dueDate->toDateString(),
+                'amount' => $installment['amount'],
             ]);
 
             $dueDate = $dueDate->addMonthNoOverflow();

@@ -18,10 +18,10 @@ class SubmitStaffLoanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'requested_amount'  => ['required', 'numeric', 'min:0.01'],
+            'requested_amount' => ['required', 'numeric', 'min:0.01'],
             'installment_count' => ['required', 'integer', 'min:1', 'max:60'],
-            'reason'            => ['required', 'string', 'max:1000'],
-            'start_date'        => ['required', 'date_format:Y-m-d'],
+            'reason' => ['required', 'string', 'max:1000'],
+            'start_date' => ['required', 'date_format:Y-m-d'],
         ];
     }
 }

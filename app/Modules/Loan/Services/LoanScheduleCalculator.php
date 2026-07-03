@@ -28,8 +28,8 @@ class LoanScheduleCalculator
             throw new InvalidArgumentException('Installment count must be at least 1.');
         }
 
-        $base      = round($amount / $installmentCount, 2);
-        $schedule  = [];
+        $base = round($amount / $installmentCount, 2);
+        $schedule = [];
         $allocated = 0.0;
 
         for ($number = 1; $number <= $installmentCount; $number++) {

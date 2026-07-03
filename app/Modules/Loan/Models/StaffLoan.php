@@ -4,6 +4,7 @@ namespace App\Modules\Loan\Models;
 
 use App\Models\User;
 use App\Modules\Staff\Models\Staff;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -27,10 +28,10 @@ class StaffLoan extends Model
     ];
 
     protected $casts = [
-        'requested_amount'  => 'decimal:2',
+        'requested_amount' => 'decimal:2',
         'installment_count' => 'integer',
-        'start_date'        => 'date',
-        'approved_at'       => 'datetime',
+        'start_date' => 'date',
+        'approved_at' => 'datetime',
     ];
 
     // Mirror DB-level default
@@ -62,13 +63,13 @@ class StaffLoan extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForSchool($query, int $schoolId): void
     {
         $query->where('school_id', $schoolId);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeStatus($query, string $status): void
     {
         $query->where('status', $status);
