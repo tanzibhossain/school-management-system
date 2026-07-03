@@ -192,6 +192,6 @@ class IdCardRenderer
 
     private function mm(float $value): string
     {
-        return $value . 'mm';
+        return $value.'mm';
     }
 }

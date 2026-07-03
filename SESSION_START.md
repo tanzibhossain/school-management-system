@@ -43,6 +43,7 @@ docker compose exec app php artisan <command>
 | 12 | Leave | `app/Modules/Leave` | LeaveType, StudentLeaveRequest, StaffLeaveRequest — ✅ tests green (2026-07-03, after guard-caching + SQLite date-format fixes) |
 | 13 | Loan | `app/Modules/Loan` | StaffLoan, LoanSchedule — ✅ tests green 2026-07-03 |
 | 14 | Certificate | `app/Modules/Certificate` | AdmitCard, TestimonialTemplate, Testimonial — ✅ tests green 2026-07-03 (incl. Transfer Certificate PDF retrofit) |
+| 15 | IdCard | `app/Modules/IdCard` | IdCardTemplate, IdCardBatch, IdCardBatchFile — 🔶 code complete 2026-07-03, awaiting Docker test run |
 
 ### Key Attendance Details (module 10)
 - Student attendance = once-daily status enum (present|absent|late|half_day|leave), bulk upsert per class/section
@@ -183,6 +184,65 @@ HTML, never a stored PDF), Testimonial = conduct remark + academic summary from 
 
 ---
 
+## Module 15: IdCard — code complete 2026-07-03, awaiting Docker test run
+
+**Depends on:** Student (#4), Staff (#5) — both complete.
+
+CLAUDE.md had no agreed spec for this module. The DevPlan docx only covers a "13.12 Student ID Card"
+section (template layouts, per-school customisation, dompdf render "8 cards per A4 with crop marks",
+bulk generation as a queued Horizon job) — no Staff ID Card spec exists there, and v1's `old/app/Modules/IdCard`
+also had Guardian ID cards built on a generic pre-module `contacts` table, neither of which was trustworthy
+to mirror directly. Design was confirmed with the user via four Q&A decisions: bulk generation runs as a
+real queued Horizon job (this codebase's first — every other PDF module renders synchronously in-request),
+one shared `id_card_templates` table with a `type` column (student|staff) rather than two parallel tables,
+Guardian cards excluded (no Guardian module exists in v2), and only 2 of the DevPlan's 5 layouts
+(`horizontal_classic`, `vertical`) are actually coded — the other 3 are valid config values with no
+migration needed when they're built later. A follow-up decision capped each rendered PDF at 200 cards,
+auto-splitting larger batches into multiple files rather than one unbounded PDF.
+
+### What was built
+- `id_card_templates` (school_id, type enum(student|staff), name, layout enum(5 values — only
+  horizontal_classic/vertical rendered), background_color, accent_color, logo_path, font enum(sans|serif|mono),
+  visible_fields json nullable, is_default)
+- `id_card_batches` (school_id, type, template_id nullable/nullOnDelete, scope enum(single|class|all),
+  class_id/section_id nullable — student-only, target_ids json nullable for scope=single, total_count,
+  status enum(queued|processing|completed|failed), error_message, requested_by nullable/nullOnDelete,
+  generated_at)
+- `id_card_batch_files` (school_id, batch_id, file_index, file_path, card_count) — one row per rendered PDF
+  chunk; a 3-student batch produces 1 row, a 450-student "all students" batch produces 3 (200/200/50)
+- **`GenerateIdCardBatchJob implements ShouldQueue`** — the first queued job in the codebase. Resolves the
+  target student/staff set via `IdCardBatchService::targetQuery()` (shared with the controller's up-front
+  `total_count`), chunks it into groups of 200, renders each chunk through `IdCardRenderer` + the shared
+  `PdfRenderingService`, and writes one `id_card_batch_files` row per chunk. On any exception the batch is
+  marked `failed` with `error_message` — **not rethrown**, since the batch row's status is the client-facing
+  failure signal (per the polling design) and rethrowing would propagate into the HTTP request that
+  dispatched it under `QUEUE_CONNECTION=sync` (tests, and any deployment without Horizon configured — the
+  job still runs, just inline, so no fake-queue plumbing was needed to test it).
+- **dompdf doesn't fetch remote URLs by default** — photos and the template logo are read from MinIO and
+  inlined as base64 `data:` URIs (`IdCardBatchService::resolveDataUri()`), not linked by signed URL. Logo and
+  school phone number are resolved once per batch, not once per card.
+- **Print sheet layout uses a `<table>`, not CSS grid** — dompdf's CSS support is table-layout-first and
+  doesn't reliably support `display: grid` (or flexbox in the print sheet, though the per-card layouts do use
+  flex, which dompdf supports). `IdCardRenderer::wrapSheet()` lays cards into a 2-column `<table>` instead.
+- Routes: `/v2/id-cards/templates/*` (admin only), `/v2/id-cards/batches` (admin + teacher for
+  `type=student`; `RequestIdCardBatchRequest::authorize()` narrows `type=staff` to admin-only, matching
+  Testimonial's HR-sensitive-output precedent)
+- Tests: `tests/Feature/IdCard/{IdCardTemplateTest,IdCardBatchTest}.php` — template CRUD + default-swap,
+  class-scope batch, single-scope batch, staff batch, 205-student batch asserting a `[200, 5]` file split,
+  class-scope rejected for staff type (422), teacher allowed for student batches but forbidden for staff
+  ones, auth.
+
+### Known gaps / follow-ups
+- No PHP available to run `php artisan test` in this session — run the Docker test command below before merging.
+- Guardian ID cards excluded per the Q&A decision — v1 had them (via `student_guardians` now), can be added
+  later as a third `type` reusing the same template/batch infrastructure.
+- Only 2 of 5 DevPlan layouts are coded (`horizontal_classic`, `vertical`); `horizontal_modern`, `dual_stripe`,
+  `minimal` fall back to `horizontal_classic` in `IdCardRenderer::render()` until built.
+- No batch cap validation beyond the 200-per-file chunking — a genuinely huge school (thousands of students)
+  in `scope=all` would still take a while to render even split across files; revisit if that's reported slow.
+
+---
+
 ## Architecture Rules (summary — full rules in CLAUDE.md)
 
 - Module path: `app/Modules/{ModuleName}/` — 10-step pattern, one commit per step
@@ -199,22 +259,22 @@ HTML, never a stored PDF), Testimonial = conduct remark + academic summary from 
 ## Git Convention
 
 ```
-feat(certificate): description   # current module
-fix(certificate): description
-test(certificate): description
+feat(idcard): description   # current module
+fix(idcard): description
+test(idcard): description
 ```
 
 ## Run & Ship (full checklist in CLAUDE.md)
 
 ```bash
 docker compose exec app php artisan migrate
-docker compose exec app php artisan test tests/Feature/Leave/ tests/Unit/Loan/ tests/Feature/Loan/ tests/Feature/Certificate/ tests/Feature/Student/TransferCertificateTest.php --no-coverage
+docker compose exec app php artisan test tests/Feature/Leave/ tests/Unit/Loan/ tests/Feature/Loan/ tests/Feature/Certificate/ tests/Feature/Student/TransferCertificateTest.php tests/Feature/IdCard/ --no-coverage
 
 git checkout dev && git pull origin dev
-git checkout -b feature/certificate-module
+git checkout -b feature/idcard-module
 # ... commits ...
 git checkout dev
-git merge --no-ff feature/certificate-module
+git merge --no-ff feature/idcard-module
 git push origin dev
-git branch -d feature/certificate-module
+git branch -d feature/idcard-module
 ```
