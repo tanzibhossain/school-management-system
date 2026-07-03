@@ -44,6 +44,7 @@ docker compose exec app php artisan <command>
 | 13 | Loan | `app/Modules/Loan` | StaffLoan, LoanSchedule — ✅ tests green 2026-07-03 |
 | 14 | Certificate | `app/Modules/Certificate` | AdmitCard, TestimonialTemplate, Testimonial — ✅ tests green 2026-07-03 (incl. Transfer Certificate PDF retrofit) |
 | 15 | IdCard | `app/Modules/IdCard` | IdCardTemplate, IdCardBatch, IdCardBatchFile — 🔶 code complete 2026-07-03, awaiting Docker test run |
+| 16 | Report | `app/Modules/Report` | No new models — pure aggregation over Payment's schema — 🔶 code complete 2026-07-04, awaiting Docker test run |
 
 ### Key Attendance Details (module 10)
 - Student attendance = once-daily status enum (present|absent|late|half_day|leave), bulk upsert per class/section
@@ -243,6 +244,68 @@ auto-splitting larger batches into multiple files rather than one unbounded PDF.
 
 ---
 
+## Module 16: Report — code complete 2026-07-04, awaiting Docker test run
+
+**Depends on:** Payment (#8), Student (#4) — both complete. Mark (#11) is listed as a CLAUDE.md dependency
+but ISN'T actually touched by this pass — see scope note below.
+
+CLAUDE.md had no spec for this module beyond the dependency line and an escalation warning ("the Report
+module's cross-module aggregations" → escalate to Fable 5 if a specific piece proves hard). The DevPlan docx
+has no dedicated Report section at all, and v1's `old/app/Modules/Report` is built entirely against a v1-only
+accounting subsystem (`Cashbank`, `OthersPayment`, `SalesChart` — a full chart-of-accounts layer v2 never
+built) plus Payroll/SMS-era reports — none of that schema exists in v2, so it wasn't usable as prior art.
+Scope was confirmed with the user via three Q&A decisions: build Fee Collection + Outstanding Dues + Student
+Ledger only (NOT the "Combined Student Report Card" that would have actually touched Mark — so despite the
+CLAUDE.md dependency line, this pass is Payment+Student only; Mark integration is explicitly deferred, not
+forgotten), JSON + streamed PDF export with no new package (no Excel/CSV support added), and no caching —
+reports read already-persisted Payment data live.
+
+### What was built
+- **No new tables or models** — this module is a pure read/aggregation layer over Payment's existing schema
+  (`invoices`, `invoice_items`, `payments`, `refunds`, `student_credits`, `credit_transactions`) joined to
+  `students`/`student_academics`/`classes`/`sections` for class/section context. Steps 1, 2, and 5 of the
+  usual 10-step pattern (migrations, models, observers) are genuinely empty here — nothing to migrate,
+  nothing new to cache-flush — and were skipped rather than manufactured.
+- `ReportRepository` — plain class (NOT extending `BaseRepository`, which is built around cache-aside reads
+  for a single Eloquent model) built on `DB::table()` joins rather than Eloquent relations, since
+  invoices/payments reference `student_id`/class data without DB-level FKs (the same cross-module convention
+  used everywhere else in this schema) — there are no Eloquent relations to lean on anyway.
+- **Fee Collection Report** (`GET /v2/reports/fee-collection`) — active (non-reversed) payments in a date
+  range, joined to the invoice's class/section via the student's academic record **for that invoice's own
+  `academic_year_id`** (not "current" class — so a report run later still reflects the class the student was
+  in when the fee was paid), filterable by class/section/method, totals grouped by currency and by method.
+- **Outstanding Dues Report** (`GET /v2/reports/outstanding-dues`) — invoices in `unpaid`/`partial` status,
+  remaining amount computed as `amount_due − amount_paid − credit_applied`, grouped per student with an
+  oldest-due-date and per-invoice breakdown, filterable by class/section/academic_year.
+  Paid/waived/cancelled invoices are excluded.
+- **Student Financial Ledger** (`GET /v2/reports/students/{studentId}/ledger`) — a merged, sorted timeline of
+  that student's invoices/payments/refunds/credit-transactions. Deliberately does NOT compute one invented
+  "running balance" mixing invoice-due and credit-wallet semantics — entries just carry their own type/amount,
+  and the summary object reports `total_invoiced`, `total_paid`, `total_refunded`, `current_outstanding` (from
+  currently unpaid/partial invoices), and `credit_balance` (from `student_credits`) as distinct figures.
+- **PDF export** — `?format=pdf` on all three endpoints, reusing the existing `PdfRenderingService::renderToPdf()`
+  but **streamed directly in the HTTP response, not stored to MinIO and not logged to any DB row** — unlike
+  Certificate/IdCard, a report is a live filter-driven snapshot, not an official document with its own history
+  worth keeping. `ReportPdfBuilder` builds the HTML (plain tables, no DB-stored template — same reasoning as
+  AdmitCard's fixed layout).
+- **Access**: all three endpoints are `admin:*,accountant:*` only (route middleware + FormRequest
+  `authorize()` both enforce it) — not teacher-accessible, matching Payment/Loan's convention for
+  financial data.
+- Tests: `tests/Feature/Report/{FeeCollectionReportTest,OutstandingDuesReportTest,StudentLedgerReportTest}.php`
+  — date-range filtering, class/section scoping (against the invoice's own academic year, not current),
+  reversed-payment exclusion, multi-invoice aggregation per student, refund/credit-transaction inclusion in
+  the ledger, PDF export (`%PDF` header check, same pattern as Certificate/IdCard), access control, auth.
+
+### Known gaps / follow-ups
+- No PHP available to run `php artisan test` in this session — run the Docker test command below before merging.
+- Mark integration (the "Combined Student Report Card" joining academic result + fee status) was explicitly
+  deferred by the user, not attempted — CLAUDE.md's Mark dependency for this module isn't yet exercised.
+- No Excel/CSV export (no package was added) — JSON + PDF only.
+- No caching layer — every report read hits Payment's tables live. Fine at current expected data volumes;
+  revisit if a school's full-history reports get slow.
+
+---
+
 ## Architecture Rules (summary — full rules in CLAUDE.md)
 
 - Module path: `app/Modules/{ModuleName}/` — 10-step pattern, one commit per step
@@ -259,22 +322,23 @@ auto-splitting larger batches into multiple files rather than one unbounded PDF.
 ## Git Convention
 
 ```
-feat(idcard): description   # current module
-fix(idcard): description
-test(idcard): description
+feat(report): description   # current module
+fix(report): description
+test(report): description
 ```
 
 ## Run & Ship (full checklist in CLAUDE.md)
 
 ```bash
-docker compose exec app php artisan migrate
-docker compose exec app php artisan test tests/Feature/Leave/ tests/Unit/Loan/ tests/Feature/Loan/ tests/Feature/Certificate/ tests/Feature/Student/TransferCertificateTest.php tests/Feature/IdCard/ --no-coverage
+docker compose exec app php artisan test tests/Feature/Leave/ tests/Unit/Loan/ tests/Feature/Loan/ tests/Feature/Certificate/ tests/Feature/Student/TransferCertificateTest.php tests/Feature/IdCard/ tests/Feature/Report/ --no-coverage
 
 git checkout dev && git pull origin dev
-git checkout -b feature/idcard-module
+git checkout -b feature/report-module
 # ... commits ...
 git checkout dev
-git merge --no-ff feature/idcard-module
+git merge --no-ff feature/report-module
 git push origin dev
-git branch -d feature/idcard-module
+git branch -d feature/report-module
 ```
+
+Note: Report has no migrations to run (no new tables) — skip `php artisan migrate` for this module specifically.
