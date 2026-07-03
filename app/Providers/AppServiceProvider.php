@@ -25,6 +25,10 @@ use App\Modules\Leave\Models\StudentLeaveRequest;
 use App\Modules\Leave\Observers\LeaveTypeObserver;
 use App\Modules\Leave\Observers\StaffLeaveRequestObserver;
 use App\Modules\Leave\Observers\StudentLeaveRequestObserver;
+use App\Modules\Loan\Models\LoanSchedule;
+use App\Modules\Loan\Models\StaffLoan;
+use App\Modules\Loan\Observers\LoanScheduleObserver;
+use App\Modules\Loan\Observers\StaffLoanObserver;
 use App\Modules\Mark\Models\Mark;
 use App\Modules\Mark\Observers\MarkObserver;
 use App\Modules\FeeItem\Models\FeeItem;
@@ -90,5 +94,9 @@ class AppServiceProvider extends ServiceProvider
         LeaveType::observe(LeaveTypeObserver::class);
         StudentLeaveRequest::observe(StudentLeaveRequestObserver::class);
         StaffLeaveRequest::observe(StaffLeaveRequestObserver::class);
+
+        // ── Loan module observers ─────────────────────────────────────────────
+        StaffLoan::observe(StaffLoanObserver::class);
+        LoanSchedule::observe(LoanScheduleObserver::class);
     }
 }
