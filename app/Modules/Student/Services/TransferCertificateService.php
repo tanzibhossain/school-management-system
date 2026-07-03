@@ -6,13 +6,19 @@ use App\Models\User;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\TransferCertificate;
 use App\Modules\Student\Models\TransferCertificateTemplate;
+use App\Services\PdfRenderingService;
 use Illuminate\Support\Facades\DB;
 
 class TransferCertificateService
 {
+    public function __construct(
+        private readonly PdfRenderingService $pdf,
+    ) {}
+
     /**
-     * Generate and persist a TC for a student.
-     * PDF generation is deferred to a queued job when MinIO + PDF skill is wired.
+     * Generate and persist a draft TC for a student. The PDF itself is only
+     * rendered at issue() time (see below) — closes the gap this service used
+     * to leave open (file_path was never written).
      */
     public function generate(
         Student $student,
@@ -28,14 +34,14 @@ class TransferCertificateService
             $tcNumber = $this->generateTcNumber($student->school_id);
 
             return TransferCertificate::create([
-                'school_id'   => $student->school_id,
-                'student_id'  => $student->id,
+                'school_id' => $student->school_id,
+                'student_id' => $student->id,
                 'template_id' => $template?->id,
-                'tc_number'   => $tcNumber,
+                'tc_number' => $tcNumber,
                 'issued_date' => now()->toDateString(),
-                'issued_by'   => $issuedBy?->id,
-                'reason'      => $reason,
-                'status'      => 'draft',
+                'issued_by' => $issuedBy?->id,
+                'reason' => $reason,
+                'status' => 'draft',
             ]);
         });
     }
@@ -56,12 +62,12 @@ class TransferCertificateService
         $replacements = [
             '{{student_name}}' => $tc->student->name,
             '{{admission_number}}' => $tc->student->admission_number,
-            '{{student_id}}'   => $tc->student->student_id ?? '-',
-            '{{class}}'        => $academic?->schoolClass?->name ?? '-',
-            '{{section}}'      => $academic?->section?->name ?? '-',
-            '{{tc_number}}'    => $tc->tc_number,
-            '{{issued_date}}'  => $tc->issued_date->format('d M Y'),
-            '{{reason}}'       => ucfirst($tc->reason),
+            '{{student_id}}' => $tc->student->student_id ?? '-',
+            '{{class}}' => $academic?->schoolClass?->name ?? '-',
+            '{{section}}' => $academic?->section?->name ?? '-',
+            '{{tc_number}}' => $tc->tc_number,
+            '{{issued_date}}' => $tc->issued_date->format('d M Y'),
+            '{{reason}}' => ucfirst($tc->reason),
         ];
 
         return str_replace(
@@ -72,22 +78,29 @@ class TransferCertificateService
     }
 
     /**
-     * Mark TC as officially issued.
+     * Generate the PDF (via the shared PdfRenderingService, same one Certificate's
+     * Admit Card and Testimonial use) and mark the TC officially issued.
      */
     public function issue(TransferCertificate $tc): TransferCertificate
     {
-        $tc->update(['status' => 'issued']);
+        $html = $this->render($tc);
+        $path = $this->pdf->generateAndStore(
+            $html,
+            "certificates/{$tc->school_id}/transfer-certificates/{$tc->id}.pdf",
+        );
+
+        $tc->update(['status' => 'issued', 'file_path' => $path]);
 
         return $tc->fresh();
     }
 
     private function generateTcNumber(int $schoolId): string
     {
-        $year  = now()->format('Y');
+        $year = now()->format('Y');
         $count = TransferCertificate::where('school_id', $schoolId)
             ->whereYear('created_at', $year)
             ->count() + 1;
 
-        return 'TC/' . $year . '/' . str_pad((string) $count, 3, '0', STR_PAD_LEFT);
+        return 'TC/'.$year.'/'.str_pad((string) $count, 3, '0', STR_PAD_LEFT);
     }
 }
