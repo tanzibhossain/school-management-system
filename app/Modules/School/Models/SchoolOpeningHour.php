@@ -17,7 +17,7 @@ class SchoolOpeningHour extends Model
     ];
 
     protected $casts = [
-        'is_open'     => 'boolean',
+        'is_open' => 'boolean',
         'day_of_week' => 'integer',
     ];
 

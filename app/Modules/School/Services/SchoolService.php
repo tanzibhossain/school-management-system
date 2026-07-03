@@ -45,9 +45,9 @@ class SchoolService extends BaseService
 
             foreach ($phones as $index => $phone) {
                 SchoolPhone::create([
-                    'school_id'  => $schoolId,
-                    'phone'      => $phone['phone'],
-                    'label'      => $phone['label'] ?? null,
+                    'school_id' => $schoolId,
+                    'phone' => $phone['phone'],
+                    'label' => $phone['label'] ?? null,
                     'is_primary' => $phone['is_primary'] ?? (! $hasPrimary && $index === 0),
                 ]);
             }

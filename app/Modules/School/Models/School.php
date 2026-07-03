@@ -24,6 +24,7 @@ class School extends Model
         'logo',
         'sms_api_key',
         'sms_sender_id',
+        'sms_cost_per_segment',
         'auto_due_enabled',
         'fine_per_day',
         'quick_payment_process',
@@ -33,19 +34,20 @@ class School extends Model
     protected $hidden = ['sms_api_key'];
 
     protected $casts = [
-        'established'      => 'date',
+        'established' => 'date',
         'auto_due_enabled' => 'boolean',
-        'fine_per_day'     => 'decimal:2',
-        'is_active'        => 'boolean',
+        'fine_per_day' => 'decimal:2',
+        'sms_cost_per_segment' => 'decimal:4',
+        'is_active' => 'boolean',
     ];
 
     // Mirror DB-level defaults (avoid null in responses before refresh)
     protected $attributes = [
         'institution_code_label' => 'Institution Code',
-        'currency'               => 'USD',
-        'timezone'               => 'UTC',
-        'locale'                 => 'en',
-        'academic_year_pattern'  => 'jan_dec',
+        'currency' => 'USD',
+        'timezone' => 'UTC',
+        'locale' => 'en',
+        'academic_year_pattern' => 'jan_dec',
     ];
 
     // ─── Relationships ────────────────────────────────────────────────────────

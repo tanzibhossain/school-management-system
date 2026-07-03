@@ -11,10 +11,10 @@ class SchoolOpeningHourResource extends JsonResource
     {
         return [
             'day_of_week' => $this->day_of_week,
-            'day_name'    => $this->day_name,
-            'is_open'     => $this->is_open,
-            'open_time'   => $this->open_time,
-            'close_time'  => $this->close_time,
+            'day_name' => $this->day_name,
+            'is_open' => $this->is_open,
+            'open_time' => $this->open_time,
+            'close_time' => $this->close_time,
         ];
     }
 }

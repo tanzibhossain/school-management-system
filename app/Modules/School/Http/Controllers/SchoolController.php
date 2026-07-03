@@ -30,6 +30,7 @@ class SchoolController extends Controller
     public function update(UpdateSchoolRequest $request): SchoolResource
     {
         $school = School::current();
+
         return new SchoolResource(
             $this->service->updateSettings($school, $request->validated())
         );
