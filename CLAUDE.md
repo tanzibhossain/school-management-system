@@ -89,7 +89,7 @@ Build in dependency order — never start a module before its dependencies are c
 | 13 | Loan | Staff | ✅ done 2026-07-03 — `app/Modules/Loan` (StaffLoan, LoanSchedule); interest-free advances, request→approve workflow like Leave, admin+accountant decide; repayment/installment marking deferred until Payroll (#21) exists; tests green |
 | 14 | Certificate | Student, Mark | ✅ done 2026-07-03 — `app/Modules/Certificate` (AdmitCard, TestimonialTemplate, Testimonial); Transfer Certificate stays in the Student module (not duplicated) but was retrofitted to actually generate PDFs; shared `App\Services\PdfRenderingService` wraps DomPDF; tests green |
 | 15 | IdCard | Student, Staff | 🔶 code complete 2026-07-03 — `app/Modules/IdCard` (IdCardTemplate, IdCardBatch, IdCardBatchFile); first queued-job module (Horizon `GenerateIdCardBatchJob`, sync in tests), 200-cards-per-PDF chunking, base64-inlined photos/logos for dompdf; awaiting test run in Docker |
-| 16 | Report | Payment, Mark, Student | ⬜ pending |
+| 16 | Report | Payment, Mark, Student | 🔶 code complete 2026-07-04 — `app/Modules/Report` (no new tables — pure aggregation over Payment's schema); Fee Collection, Outstanding Dues, Student Ledger reports; JSON + streamed PDF (`?format=pdf`, no MinIO storage); admin+accountant only; awaiting test run in Docker |
 | 17 | Sms | Student, Payment | ⬜ pending — SMS cost logic must be encoding-aware (unicode/Bangla = 70 chars/segment, GSM-7 = 160) |
 | 18 | DataImport | Student, Academic | ⬜ pending |
 | 19 | OnlineAdmission | Academic, Student | ⬜ pending |
