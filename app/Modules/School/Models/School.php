@@ -24,6 +24,7 @@ class School extends Model
         'logo',
         'sms_api_key',
         'sms_sender_id',
+        'sms_cost_per_segment',
         'auto_due_enabled',
         'fine_per_day',
         'quick_payment_process',
@@ -36,6 +37,7 @@ class School extends Model
         'established'      => 'date',
         'auto_due_enabled' => 'boolean',
         'fine_per_day'     => 'decimal:2',
+        'sms_cost_per_segment' => 'decimal:4',
         'is_active'        => 'boolean',
     ];
 

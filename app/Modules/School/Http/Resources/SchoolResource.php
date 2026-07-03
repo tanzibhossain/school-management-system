@@ -26,6 +26,7 @@ class SchoolResource extends JsonResource
             'academic_year_pattern'  => $this->academic_year_pattern,
             'logo'                   => $this->logo,
             'sms_sender_id'          => $this->sms_sender_id,
+            'sms_cost_per_segment'   => $this->sms_cost_per_segment,
             // sms_api_key is in $hidden — never exposed
             'auto_due_enabled'       => $this->auto_due_enabled,
             'fine_per_day'           => $this->fine_per_day,
