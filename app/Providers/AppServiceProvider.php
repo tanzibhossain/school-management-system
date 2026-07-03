@@ -15,6 +15,12 @@ use App\Modules\School\Observers\SchoolOpeningHourObserver;
 use App\Modules\School\Observers\SchoolPhoneObserver;
 use App\Modules\Announcement\Models\Announcement;
 use App\Modules\Announcement\Observers\AnnouncementObserver;
+use App\Modules\Certificate\Models\AdmitCard;
+use App\Modules\Certificate\Models\Testimonial;
+use App\Modules\Certificate\Models\TestimonialTemplate;
+use App\Modules\Certificate\Observers\AdmitCardObserver;
+use App\Modules\Certificate\Observers\TestimonialObserver;
+use App\Modules\Certificate\Observers\TestimonialTemplateObserver;
 use App\Modules\Attendance\Models\StaffAttendance;
 use App\Modules\Attendance\Models\StudentAttendance;
 use App\Modules\Attendance\Observers\StaffAttendanceObserver;
@@ -98,5 +104,10 @@ class AppServiceProvider extends ServiceProvider
         // ── Loan module observers ─────────────────────────────────────────────
         StaffLoan::observe(StaffLoanObserver::class);
         LoanSchedule::observe(LoanScheduleObserver::class);
+
+        // ── Certificate module observers ──────────────────────────────────────
+        AdmitCard::observe(AdmitCardObserver::class);
+        TestimonialTemplate::observe(TestimonialTemplateObserver::class);
+        Testimonial::observe(TestimonialObserver::class);
     }
 }
