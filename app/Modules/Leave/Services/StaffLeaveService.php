@@ -36,7 +36,7 @@ class StaffLeaveService
             ->findOrFail($data['leave_type_id']);
 
         $from = CarbonImmutable::parse($data['from_date']);
-        $to   = CarbonImmutable::parse($data['to_date']);
+        $to = CarbonImmutable::parse($data['to_date']);
 
         if ($to->lessThan($from)) {
             throw ValidationException::withMessages([
@@ -61,15 +61,15 @@ class StaffLeaveService
         $this->assertWithinBalance($schoolId, $staff->id, $leaveType, $from->year, $workingDays);
 
         return StaffLeaveRequest::create([
-            'school_id'       => $schoolId,
-            'staff_id'        => $staff->id,
-            'leave_type_id'   => $leaveType->id,
-            'from_date'       => $from->toDateString(),
-            'to_date'         => $to->toDateString(),
-            'working_days'    => $workingDays,
-            'reason'          => $data['reason'],
+            'school_id' => $schoolId,
+            'staff_id' => $staff->id,
+            'leave_type_id' => $leaveType->id,
+            'from_date' => $from->toDateString(),
+            'to_date' => $to->toDateString(),
+            'working_days' => $workingDays,
+            'reason' => $data['reason'],
             'attachment_path' => $data['attachment_path'] ?? null,
-            'requested_by'    => $requester->id,
+            'requested_by' => $requester->id,
         ]);
     }
 
@@ -96,7 +96,7 @@ class StaffLeaveService
             );
 
             $locked->update([
-                'status'      => 'approved',
+                'status' => 'approved',
                 'approved_by' => $approver->id,
                 'approved_at' => now(),
             ]);
@@ -116,9 +116,9 @@ class StaffLeaveService
         }
 
         $request->update([
-            'status'           => 'rejected',
-            'approved_by'      => $approver->id,
-            'approved_at'      => now(),
+            'status' => 'rejected',
+            'approved_by' => $approver->id,
+            'approved_at' => now(),
             'rejection_reason' => $reason,
         ]);
 

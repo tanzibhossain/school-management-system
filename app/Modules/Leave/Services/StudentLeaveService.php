@@ -36,7 +36,7 @@ class StudentLeaveService
             ->findOrFail($data['leave_type_id']);
 
         $from = CarbonImmutable::parse($data['from_date']);
-        $to   = CarbonImmutable::parse($data['to_date']);
+        $to = CarbonImmutable::parse($data['to_date']);
 
         if ($to->lessThan($from)) {
             throw ValidationException::withMessages([
@@ -69,18 +69,18 @@ class StudentLeaveService
         $this->assertWithinBalance($schoolId, $student->id, $leaveType, $academic->academic_year_id, $workingDays);
 
         return StudentLeaveRequest::create([
-            'school_id'        => $schoolId,
-            'student_id'       => $student->id,
-            'class_id'         => $academic->class_id,
-            'section_id'       => $academic->section_id,
+            'school_id' => $schoolId,
+            'student_id' => $student->id,
+            'class_id' => $academic->class_id,
+            'section_id' => $academic->section_id,
             'academic_year_id' => $academic->academic_year_id,
-            'leave_type_id'    => $leaveType->id,
-            'from_date'        => $from->toDateString(),
-            'to_date'          => $to->toDateString(),
-            'working_days'     => $workingDays,
-            'reason'           => $data['reason'],
-            'attachment_path'  => $data['attachment_path'] ?? null,
-            'requested_by'     => $requester->id,
+            'leave_type_id' => $leaveType->id,
+            'from_date' => $from->toDateString(),
+            'to_date' => $to->toDateString(),
+            'working_days' => $workingDays,
+            'reason' => $data['reason'],
+            'attachment_path' => $data['attachment_path'] ?? null,
+            'requested_by' => $requester->id,
         ]);
     }
 
@@ -113,7 +113,7 @@ class StudentLeaveService
             );
 
             $locked->update([
-                'status'      => 'approved',
+                'status' => 'approved',
                 'approved_by' => $approver->id,
                 'approved_at' => now(),
             ]);
@@ -135,9 +135,9 @@ class StudentLeaveService
         }
 
         $request->update([
-            'status'           => 'rejected',
-            'approved_by'      => $approver->id,
-            'approved_at'      => now(),
+            'status' => 'rejected',
+            'approved_by' => $approver->id,
+            'approved_at' => now(),
             'rejection_reason' => $reason,
         ]);
 
@@ -176,7 +176,7 @@ class StudentLeaveService
     private function syncAttendance(StudentLeaveRequest $request): void
     {
         $cursor = CarbonImmutable::parse($request->from_date->toDateString());
-        $end    = CarbonImmutable::parse($request->to_date->toDateString());
+        $end = CarbonImmutable::parse($request->to_date->toDateString());
 
         while ($cursor->lessThanOrEqualTo($end)) {
             if ($this->workingDays->isWorkingDay($request->school_id, $cursor)) {
@@ -187,18 +187,18 @@ class StudentLeaveService
 
                 if ($existing === null) {
                     StudentAttendance::create([
-                        'school_id'        => $request->school_id,
-                        'student_id'       => $request->student_id,
-                        'class_id'         => $request->class_id,
-                        'section_id'       => $request->section_id,
+                        'school_id' => $request->school_id,
+                        'student_id' => $request->student_id,
+                        'class_id' => $request->class_id,
+                        'section_id' => $request->section_id,
                         'academic_year_id' => $request->academic_year_id,
-                        'date'             => $cursor->toDateString(),
-                        'status'           => 'leave',
-                        'recorded_by'      => $request->approved_by,
+                        'date' => $cursor->toDateString(),
+                        'status' => 'leave',
+                        'recorded_by' => $request->approved_by,
                     ]);
                 } elseif ($existing->status === 'absent') {
                     $existing->update([
-                        'status'    => 'leave',
+                        'status' => 'leave',
                         'edited_by' => $request->approved_by,
                     ]);
                 }

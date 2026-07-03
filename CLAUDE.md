@@ -85,7 +85,7 @@ Build in dependency order — never start a module before its dependencies are c
 | 9 | Examination | Academic, Student | ✅ done — ExamType, Exam, ExamSubject, ExamHall, ExamHallSeat, ExamSeating; anti_adjacency seating + blank_every |
 | 10 | Attendance | Student, Staff | 🔶 code complete 2026-07-02 — `app/Modules/Attendance` (StudentAttendance, StaffAttendance, AttendanceSetting, Holiday); awaiting test run in Docker |
 | 11 | Mark | Examination, Attendance, Student | 🔶 code complete 2026-07-02 — `app/Modules/Mark` + `student_subjects` prerequisite; 4 result strategies, templates in `config/grading.php`; awaiting test run in Docker |
-| 12 | Leave | Student, Staff | ⬜ pending |
+| 12 | Leave | Student, Staff | 🔶 code complete 2026-07-03 — `app/Modules/Leave` (LeaveType, StudentLeaveRequest, StaffLeaveRequest); approved student leave overrides `absent`→`leave` via WorkingDayService; staff approval admin-only (no manager field yet); awaiting test run in Docker |
 | 13 | Loan | Staff | ⬜ pending |
 | 14 | Certificate | Student, Mark | ⬜ pending |
 | 15 | IdCard | Student, Staff | ⬜ pending |

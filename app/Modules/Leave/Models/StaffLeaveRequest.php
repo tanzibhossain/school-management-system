@@ -4,6 +4,7 @@ namespace App\Modules\Leave\Models;
 
 use App\Models\User;
 use App\Modules\Staff\Models\Staff;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -28,10 +29,10 @@ class StaffLeaveRequest extends Model
     ];
 
     protected $casts = [
-        'from_date'    => 'date',
-        'to_date'      => 'date',
+        'from_date' => 'date',
+        'to_date' => 'date',
         'working_days' => 'integer',
-        'approved_at'  => 'datetime',
+        'approved_at' => 'datetime',
     ];
 
     // Mirror DB-level default
@@ -63,13 +64,13 @@ class StaffLeaveRequest extends Model
         return $this->belongsTo(User::class, 'approved_by');
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForSchool($query, int $schoolId): void
     {
         $query->where('school_id', $schoolId);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeStatus($query, string $status): void
     {
         $query->where('status', $status);

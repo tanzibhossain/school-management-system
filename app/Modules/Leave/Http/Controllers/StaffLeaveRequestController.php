@@ -24,7 +24,7 @@ class StaffLeaveRequestController extends Controller
     public function store(SubmitStaffLeaveRequest $request, int $staffId): StaffLeaveRequestResource
     {
         $schoolId = app('current_school_id');
-        $staff    = Staff::where('school_id', $schoolId)->findOrFail($staffId);
+        $staff = Staff::where('school_id', $schoolId)->findOrFail($staffId);
 
         $data = $request->validated();
 

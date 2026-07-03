@@ -24,7 +24,7 @@ class StudentLeaveRequestController extends Controller
     public function store(SubmitStudentLeaveRequest $request, int $studentId): StudentLeaveRequestResource
     {
         $schoolId = app('current_school_id');
-        $student  = Student::where('school_id', $schoolId)->findOrFail($studentId);
+        $student = Student::where('school_id', $schoolId)->findOrFail($studentId);
 
         $data = $request->validated();
 

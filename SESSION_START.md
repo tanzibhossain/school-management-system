@@ -40,6 +40,7 @@ docker compose exec app php artisan <command>
 | 9 | Examination | `app/Modules/Examination` | ExamType, Exam, ExamSubject (+combined_group), ExamHall, ExamSeating |
 | 10 | Attendance | `app/Modules/Attendance` | StudentAttendance, StaffAttendance, AttendanceSetting, Holiday — ✅ tests green |
 | 11 | Mark | `app/Modules/Mark` | MarkDivision, MarkSetting, GradeBoundary, Mark, ExamResult, ExamWeight — 🔶 tests fixed, confirm green then merge |
+| 12 | Leave | `app/Modules/Leave` | LeaveType, StudentLeaveRequest, StaffLeaveRequest — 🔶 code complete 2026-07-03, awaiting test run in Docker |
 
 ### Key Attendance Details (module 10)
 - Student attendance = once-daily status enum (present|absent|late|half_day|leave), bulk upsert per class/section
@@ -59,17 +60,25 @@ docker compose exec app php artisan <command>
 
 ---
 
-## What Is Next — Module 12: Leave
+## Module 12: Leave — code complete 2026-07-03, awaiting Docker test run
 
 **Depends on:** Student (#4), Staff (#5) — both complete. Integrates with Attendance (#10).
 
-### What the Leave module needs to do
-- Leave types per school (sick, casual, etc.) with per-year day limits — applies to students AND staff
-- Leave requests: date range, reason, optional attachment, status workflow (pending → approved/rejected, cancellable)
-- Day count = WORKING days only (reuse `WorkingDayService` — excludes weekends + holidays)
-- **Attendance integration (already spec'd in CLAUDE.md)**: approved student leave auto-sets attendance status `leave` for those dates, overriding an existing `absent`
-- Approval: Head Teacher/admin approves; teachers can approve their own section's student requests (reuse `class_teacher_id` pattern)
-- Leave balance tracking per person per year against the type's limit
+### What was built
+- `leave_types` (school_id, name, applies_to enum(student|staff|both), max_days_per_year nullable, requires_attachment, is_paid nullable, is_active)
+- `student_leave_requests` / `staff_leave_requests` — split tables (mirrors Attendance's student/staff split), each with from_date/to_date, `working_days` snapshotted at submission, status enum(pending|approved|rejected|cancelled), requested_by/approved_by/approved_at/rejection_reason
+- Day count = `WorkingDayService::countWorkingDays()` (reused from Attendance, not reimplemented)
+- **Balance**: computed live from `SUM(working_days) WHERE status='approved'` — no separate ledger table; checked at submission AND re-checked under `lockForUpdate()` at approval (closes the race where two pending requests both pass the submission-time check)
+- **Attendance integration**: `StudentLeaveService::approve()` walks each working day in range and sets `StudentAttendance.status = 'leave'` — creates the row if none exists, overrides only if the existing status is `absent`; present/late/half_day/leave are left untouched. Runs inside the same `DB::transaction` as the approval.
+- **Approval authority**: student leave — class teacher of the request's section (via `sections.class_teacher_id`, same pattern as Attendance) or admin. Staff leave — **admin only**, since `Staff` has no manager/line-supervisor field to delegate to (flagged as a gap, not solved).
+- **Cancellation**: requester may cancel while pending; admin may cancel pending or approved. Cancelling an approved request does NOT revert already-synced attendance rows — that needs a normal attendance correction (mirrors Mark's "never silently recompute locked results" caution).
+- Staff leave has NO attendance sync — `StaffAttendance` is punch-based (check_in/check_out), not a daily status enum, so there's nothing to override.
+- Routes: `/api/v2/leave/types` (admin), `/api/v2/leave/students/*` (admin+teacher), `/api/v2/leave/staff/*` (submit: admin+staff; approve/reject/pending: admin only)
+- Tests: `tests/Feature/Leave/` — `LeaveTypeTest`, `StudentLeaveRequestTest`, `StaffLeaveRequestTest` (working-day counting incl. holiday + closed-weekday exclusion, attachment requirement, balance enforcement, class-teacher-only approval, attendance override behavior, cancellation, auth)
+
+### Known gaps / follow-ups
+- No PHP available to run `php artisan test` in this session — run the Docker test command below before merging.
+- Staff leave approval delegation (line manager) deferred — admin-only for now.
 
 ### Global product reminders
 - All user-facing strings via translation keys (English default)

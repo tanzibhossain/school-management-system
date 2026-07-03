@@ -17,10 +17,10 @@ class SubmitStudentLeaveRequest extends FormRequest
     {
         return [
             'leave_type_id' => ['required', 'integer', 'exists:leave_types,id'],
-            'from_date'     => ['required', 'date_format:Y-m-d'],
-            'to_date'       => ['required', 'date_format:Y-m-d', 'after_or_equal:from_date'],
-            'reason'        => ['required', 'string', 'max:1000'],
-            'attachment'    => ['nullable', 'file', 'max:5120'],
+            'from_date' => ['required', 'date_format:Y-m-d'],
+            'to_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:from_date'],
+            'reason' => ['required', 'string', 'max:1000'],
+            'attachment' => ['nullable', 'file', 'max:5120'],
         ];
     }
 }
