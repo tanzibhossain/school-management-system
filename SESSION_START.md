@@ -48,6 +48,7 @@ docker compose exec app php artisan <command>
 | 17 | Sms | `app/Modules/Sms` | SmsBatch, SmsLog — 🔶 code complete 2026-07-04, awaiting Docker test run |
 | 18 | DataImport | `app/Modules/DataImport` | ImportBatch — 🔶 code complete 2026-07-04, awaiting Docker test run |
 | 19 | OnlineAdmission | `app/Modules/OnlineAdmission` | AdmissionApplication — 🔶 code complete 2026-07-04, awaiting Docker test run |
+| 20 | Website | `app/Modules/Website` | ⬜ **design locked 2026-07-04, not yet built** — see section below before starting |
 
 ### Key Attendance Details (module 10)
 - Student attendance = once-daily status enum (present|absent|late|half_day|leave), bulk upsert per class/section
@@ -513,6 +514,121 @@ would mean altering an already-shipped module's schema, which wasn't worth it fo
   block ("Admission Form" in the DevPlan) — out of scope here; this module is the backend API only.
 - Multiple guardians, addresses, and sibling links aren't captured on an application — only one guardian,
   matching CLAUDE.md's DataImport row-field decision. These can be added afterward via the normal Student API.
+
+---
+
+## Module 20: Website — design locked 2026-07-04, NOT YET BUILT
+
+**Depends on:** none — CLAUDE.md and the DevPlan both explicitly call it "fully independent — build last."
+When picking this up, read this whole section first — the research and three clarifying-question rounds
+that produced this design are already done; don't repeat them.
+
+**Why this is different from every module so far**: the DevPlan devotes an entire top-level section ("9.
+Website Page Builder — Elementor-Style Visual Editor") to this — a full drag-and-drop CMS: pages with
+versioned revisions and slug-change redirects, a menu system, a template gallery, global appearance/theme
+settings, header/footer builders, and a block library (Heading, Text, Image, Video, YouTube, Slider, Button,
+Icon, Spacer, Divider, HTML Embed, and "Dynamic Blocks" pulling live data from other modules). The DevPlan
+itself splits this into **8 sprints**, and only Sprint 1 ("Backend: all migrations, models, repos, services,
+routes, seeders") belongs in this Laravel repo — the other 7 sprints are Next.js frontend work, and CLAUDE.md
+is explicit that the frontend doesn't start until all Laravel modules are done. Even scoped to backend-only,
+this is roughly 3–4x the size of any module built so far — build it in sub-batches (core pages/slugs/redirects
+→ layouts/publishing/revisions → menus → site settings/layouts → templates/media → dynamic blocks), not one
+pass, and check in on progress as you go.
+
+### Decisions already confirmed with the user (do not re-ask)
+1. **Full DevPlan Sprint-1 backend scope** — all 9 tables below, not a narrower MVP slice.
+2. **Layout storage: opaque JSON blob** (`layout_json` LONGTEXT on `page_layouts`/`site_layouts`), matching
+   the DevPlan's schema exactly. Laravel stores/versions/serves it verbatim and never parses block structure
+   — the Next.js/Craft.js editor owns everything inside the tree. Explicitly rejected: modeling
+   sections/rows/columns/blocks as relational tables — no backend code here ever needs to query *inside* a
+   layout (the dynamic-block reads below are separate, module-specific queries, not queries against the page
+   tree), so relational tables would buy queryability nothing uses at a real cost to how revisions/publishing
+   work (one JSON write vs. snapshotting an entire relational tree per save).
+3. **Dynamic-block public data endpoints are in scope for this pass**, not deferred. Per-block reality check
+   (see full research in the conversation this was designed in, summarized here):
+   - **Result Checker (reads Mark)**: Mark has **no existing public lookup** — `ExamResultController::studentResult()`
+     requires an authenticated admin/teacher/the-student's-own-linked-user. Do **NOT** modify Mark's schema or
+     controller. Build a NEW public query inside Website's own `PublicPortalService`: join
+     `exam_results.student_id` → `students.id` → `student_academics` matching `roll_number` + `class_id` (+
+     `is_current`, or the exam's academic year), all scoped to `school_id` — a public visitor identifies
+     themselves by roll number + class + exam, not a login. Same "read-only cross-module aggregation, source
+     module untouched" pattern Report already established.
+   - **Notice Board (reads Announcement)**: fully reusable as-is — `AnnouncementRepository::listVisible($schoolId, ['all'])`
+     already filters published/not-expired/not-trashed. No Announcement changes needed.
+   - **Staff/Teacher List (reads Staff)**: `Designation` is free-text (`school_id, name` only) — there is no
+     "is this a teaching role" flag anywhere. Expose a public Staff-list endpoint filterable by
+     `designation_id`/`department_id` (covers the "Dept filter" block). Do NOT invent a new Staff↔Subject
+     relation to support "Teacher List: Subject filter" from DevPlan table 92 — that's a known, accepted gap.
+   - **Class Routine (reads Academic)**: join `class_routines` to `subject`/`teacher`/`period` for a given
+     class + section.
+   - **Admission Form**: no new code at all — it's literally OnlineAdmission's existing public
+     `POST /v2/admission-applications` endpoint (module #19). The block just points the frontend at it.
+   - **Stats Counter**: trivial — `Student::active()->where('school_id', $id)->count()` and the same for
+     `Staff` (both scopes already exist).
+
+### Schema (9 tables — see DevPlan section 9.11 for the original list; adapted to this codebase's conventions)
+- `menus` (school_id, name)
+- `menu_items` (school_id, menu_id, parent_id nullable self-FK for one level of dropdown nesting, label,
+  type enum(page/external/dynamic/dropdown), page_id nullable FK, url nullable, dynamic_route nullable
+  e.g. `/result` `/admission` `/notice` `/routine`, target enum(_self/_blank), icon nullable, sort_order)
+- `site_settings` (school_id UNIQUE — one row per school; full color palette, typography, button state JSON
+  columns (`btn_filled_json`/`btn_outline_json`), global background, `homepage_page_id` FK nullable,
+  `maintenance_mode` boolean, cookie banner text, `ga4_id`/`fb_pixel_id`, `custom_css` LONGTEXT)
+- `pages` (school_id, slug UNIQUE per school, title, meta_title, meta_desc, og_image, status
+  enum(draft/published), is_homepage boolean). Slug: auto-generate from title, admin-editable after,
+  reserved-slug blocklist enforced in the FormRequest (`api, admin, login, dashboard, horizon, storage`).
+  `is_homepage` is a denormalized convenience flag kept in sync by `PageService::setHomepage()` — the real
+  source of truth is `site_settings.homepage_page_id`.
+- `page_redirects` (school_id, old_slug, new_slug, created_at only — no updated_at, matches DevPlan exactly).
+  Auto-created by `PageService::update()` whenever a page's slug changes; served by a public redirect-lookup
+  endpoint, never by Laravel routing middleware directly (that's the Next.js app's job to consume).
+- `page_layouts` (school_id added even though the DevPlan's compressed schema line omits it — CLAUDE.md's
+  "every table must have school_id" rule wins; page_id FK, layout_json LONGTEXT, is_published boolean,
+  published_at nullable, created_by nullable FK users nullOnDelete, created_at only). Versioned: every save is
+  a NEW row, never an update — `PageService::publish()` flips `is_published` on the target row and clears it
+  on any prior published row for that page; `restore()` creates a new row copying an old revision's
+  `layout_json` rather than rewinding, so history is never destroyed.
+- `site_layouts` (school_id, type enum(header/footer), layout_json, is_published, published_at, created_by
+  nullable/nullOnDelete, created_at only) — same versioning pattern as `page_layouts`, keyed by type instead
+  of page_id (only two rows' worth of "current" state: one header chain, one footer chain).
+- `page_templates` (school_id **nullable** — null means a global starter template seeded for every school,
+  e.g. the DevPlan's "School Homepage / About Us / Admission / Contact / Notice Board / Result / Blank" set;
+  non-null means a school's own "Save as Template" custom template; name, thumbnail nullable, layout_json)
+- `website_media` (school_id, filename, path — MinIO, not the DevPlan's literal "r2_path" naming, matching
+  this codebase's actual storage convention; mime_type, alt_text nullable, size_bytes, width_px/height_px
+  nullable — extracted via `getimagesize()` for images, uploaded_by nullable FK users nullOnDelete)
+
+### Models / Repositories — which entities get their own Repository vs. are managed through a parent's Service
+Top-level (own Repository, cached list): `Menu`, `SiteSetting` (singleton-per-school — `getOrCreate($schoolId)`
+helper, same shape as `AttendanceSetting`/`PaymentConfig`'s one-row-per-school pattern), `Page`,
+`PageTemplate`, `WebsiteMedia`.
+Child/versioned (NO separate Repository — managed directly by the parent's Service, same precedent as
+`StudentAcademic`/`IdCardBatchFile` not having their own): `MenuItem` (whole tree replaced atomically via
+`MenuService::replaceItems()`, matching the DevPlan's own `PUT /menus/{id}/items` full-tree-replace spec — not
+item-by-item CRUD), `PageLayout`, `SiteLayout`, `PageRedirect`.
+
+### Services
+- `PageService` — create (slug generation + reserved-slug + uniqueness), update (slug change → auto
+  `PageRedirect`), `saveLayout()` (new `PageLayout` row, draft), `publish()`, `duplicate()`, `restore()`,
+  `setHomepage()` (keeps `pages.is_homepage` and `site_settings.homepage_page_id` in sync).
+- `MenuService` — CRUD on `Menu`; `replaceItems(Menu, array $tree)` — full-tree replace.
+- `SiteSettingService` — `getOrCreate()`, `update()`.
+- `SiteLayoutService` — `save()`, `publish()` per type(header/footer).
+- `PageTemplateService` — `saveAsTemplate(Page, name)` (clones current layout into a new template row).
+- `WebsiteMediaService` — `upload()` (MinIO store + dimension extraction), `delete()`.
+- `PublicPortalService` — the dynamic-block reads described above (result checker, notices, staff list, class
+  routine, stats). DevPlan calls this `PublicPortalRepository` with a "long TTL cache (6hr), flushed by a
+  PortalAssetObserver on any slider/gallery update" — worth considering when built, but not mandatory for a
+  correct first pass.
+
+### API (per DevPlan section 9.12)
+- **Public, no auth**: `GET /public/pages/{slug}`, `GET /public/site-chrome` (header+footer+site_settings),
+  `GET /public/redirect/{slug}`, `GET /public/staff`, `GET /public/notices`, `GET /public/routine/{classId}`,
+  `GET /public/stats`, `POST /public/results/check` — plus OnlineAdmission's existing
+  `POST /v2/admission-applications` for the Admission Form block (no new endpoint needed there).
+- **Admin** (`admin:*`): full `apiResource` for pages + `/layout /publish /duplicate /revisions /restore/{lid}
+  /set-homepage`; `apiResource` for menus + `PUT /menus/{id}/items`; `GET/PUT /site-layouts/{type}` +
+  `/publish`; `GET/PUT /site-settings`; `GET/POST /page-templates`; `GET/POST/DELETE /website/media`.
 
 ---
 
