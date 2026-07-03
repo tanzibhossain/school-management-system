@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use App\Modules\Sms\Gateways\LogGateway;
+use App\Modules\Sms\Gateways\SmsGatewayContract;
+use App\Modules\Sms\Models\SmsBatch;
+use App\Modules\Sms\Models\SmsLog;
+use App\Modules\Sms\Observers\SmsBatchObserver;
+use App\Modules\Sms\Observers\SmsLogObserver;
 use App\Models\User;
 use App\Modules\Academic\Models\AcademicYear;
 use App\Modules\Academic\Models\ClassRoutine;
@@ -60,7 +66,9 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // Sms module — bind the stub gateway; swap for a real provider implementation
+        // of SmsGatewayContract here once one is chosen, nothing else changes.
+        $this->app->bind(SmsGatewayContract::class, LogGateway::class);
     }
 
     public function boot(): void
@@ -120,5 +128,9 @@ class AppServiceProvider extends ServiceProvider
         IdCardTemplate::observe(IdCardTemplateObserver::class);
         IdCardBatch::observe(IdCardBatchObserver::class);
         IdCardBatchFile::observe(IdCardBatchFileObserver::class);
+
+        // ── Sms module observers ──────────────────────────────────────────────
+        SmsBatch::observe(SmsBatchObserver::class);
+        SmsLog::observe(SmsLogObserver::class);
     }
 }
