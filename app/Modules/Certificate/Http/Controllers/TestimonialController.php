@@ -37,7 +37,7 @@ class TestimonialController extends Controller
     public function storeTemplate(StoreTestimonialTemplateRequest $request): TestimonialTemplateResource
     {
         $schoolId = app('current_school_id');
-        $data     = $request->validated() + ['school_id' => $schoolId];
+        $data = $request->validated() + ['school_id' => $schoolId];
 
         if (! empty($data['is_default'])) {
             TestimonialTemplate::forSchool($schoolId)->update(['is_default' => false]);
@@ -72,7 +72,7 @@ class TestimonialController extends Controller
     public function store(GenerateTestimonialRequest $request, int $studentId): TestimonialResource
     {
         $schoolId = app('current_school_id');
-        $student  = Student::where('school_id', $schoolId)->findOrFail($studentId);
+        $student = Student::where('school_id', $schoolId)->findOrFail($studentId);
 
         $testimonial = $this->service->generate($schoolId, $student, $request->validated(), $request->user());
 
@@ -99,7 +99,7 @@ class TestimonialController extends Controller
     public function preview(int $id): JsonResponse
     {
         $testimonial = Testimonial::forSchool(app('current_school_id'))->findOrFail($id);
-        $html        = $this->service->render($testimonial);
+        $html = $this->service->render($testimonial);
 
         return response()->json(['html' => $html]);
     }

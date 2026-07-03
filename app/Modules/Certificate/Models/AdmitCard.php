@@ -5,6 +5,7 @@ namespace App\Modules\Certificate\Models;
 use App\Models\User;
 use App\Modules\Examination\Models\Exam;
 use App\Modules\Student\Models\Student;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -41,7 +42,7 @@ class AdmitCard extends Model
         return $this->belongsTo(User::class, 'generated_by');
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForSchool($query, int $schoolId): void
     {
         $query->where('school_id', $schoolId);

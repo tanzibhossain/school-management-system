@@ -25,7 +25,7 @@ class AdmitCardService
     public function generate(int $schoolId, Student $student, Exam $exam, User $generatedBy): AdmitCard
     {
         $school = School::findOrFail($schoolId);
-        $html   = $this->buildHtml($school, $student, $exam);
+        $html = $this->buildHtml($school, $student, $exam);
 
         $path = $this->pdf->generateAndStore(
             $html,
@@ -35,12 +35,12 @@ class AdmitCardService
         return DB::transaction(function () use ($schoolId, $student, $exam, $generatedBy, $path): AdmitCard {
             return AdmitCard::updateOrCreate(
                 [
-                    'school_id'  => $schoolId,
+                    'school_id' => $schoolId,
                     'student_id' => $student->id,
-                    'exam_id'    => $exam->id,
+                    'exam_id' => $exam->id,
                 ],
                 [
-                    'file_path'    => $path,
+                    'file_path' => $path,
                     'generated_at' => now(),
                     'generated_by' => $generatedBy->id,
                 ],

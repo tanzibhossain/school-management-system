@@ -34,14 +34,14 @@ class TransferCertificateService
             $tcNumber = $this->generateTcNumber($student->school_id);
 
             return TransferCertificate::create([
-                'school_id'   => $student->school_id,
-                'student_id'  => $student->id,
+                'school_id' => $student->school_id,
+                'student_id' => $student->id,
                 'template_id' => $template?->id,
-                'tc_number'   => $tcNumber,
+                'tc_number' => $tcNumber,
                 'issued_date' => now()->toDateString(),
-                'issued_by'   => $issuedBy?->id,
-                'reason'      => $reason,
-                'status'      => 'draft',
+                'issued_by' => $issuedBy?->id,
+                'reason' => $reason,
+                'status' => 'draft',
             ]);
         });
     }
@@ -62,12 +62,12 @@ class TransferCertificateService
         $replacements = [
             '{{student_name}}' => $tc->student->name,
             '{{admission_number}}' => $tc->student->admission_number,
-            '{{student_id}}'   => $tc->student->student_id ?? '-',
-            '{{class}}'        => $academic?->schoolClass?->name ?? '-',
-            '{{section}}'      => $academic?->section?->name ?? '-',
-            '{{tc_number}}'    => $tc->tc_number,
-            '{{issued_date}}'  => $tc->issued_date->format('d M Y'),
-            '{{reason}}'       => ucfirst($tc->reason),
+            '{{student_id}}' => $tc->student->student_id ?? '-',
+            '{{class}}' => $academic?->schoolClass?->name ?? '-',
+            '{{section}}' => $academic?->section?->name ?? '-',
+            '{{tc_number}}' => $tc->tc_number,
+            '{{issued_date}}' => $tc->issued_date->format('d M Y'),
+            '{{reason}}' => ucfirst($tc->reason),
         ];
 
         return str_replace(
@@ -96,11 +96,11 @@ class TransferCertificateService
 
     private function generateTcNumber(int $schoolId): string
     {
-        $year  = now()->format('Y');
+        $year = now()->format('Y');
         $count = TransferCertificate::where('school_id', $schoolId)
             ->whereYear('created_at', $year)
             ->count() + 1;
 
-        return 'TC/' . $year . '/' . str_pad((string) $count, 3, '0', STR_PAD_LEFT);
+        return 'TC/'.$year.'/'.str_pad((string) $count, 3, '0', STR_PAD_LEFT);
     }
 }

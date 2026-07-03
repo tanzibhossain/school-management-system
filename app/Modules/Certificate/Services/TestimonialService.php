@@ -38,16 +38,16 @@ class TestimonialService
             : TestimonialTemplate::forSchool($schoolId)->default()->first();
 
         return Testimonial::create([
-            'school_id'          => $schoolId,
-            'student_id'         => $student->id,
-            'template_id'        => $template?->id,
-            'exam_id'            => $data['exam_id'] ?? null,
+            'school_id' => $schoolId,
+            'student_id' => $student->id,
+            'template_id' => $template?->id,
+            'exam_id' => $data['exam_id'] ?? null,
             'testimonial_number' => $this->generateNumber($schoolId),
-            'issued_date'        => now()->toDateString(),
-            'issued_by'          => $issuedBy->id,
-            'conduct_remark'     => $data['conduct_remark'],
-            'attendance_from'    => $data['attendance_from'] ?? null,
-            'attendance_to'      => $data['attendance_to'] ?? null,
+            'issued_date' => now()->toDateString(),
+            'issued_by' => $issuedBy->id,
+            'conduct_remark' => $data['conduct_remark'],
+            'attendance_from' => $data['attendance_from'] ?? null,
+            'attendance_to' => $data['attendance_to'] ?? null,
         ]);
     }
 
@@ -60,9 +60,9 @@ class TestimonialService
             return "Testimonial #{$testimonial->testimonial_number} — no template assigned.";
         }
 
-        $school   = School::findOrFail($testimonial->school_id);
+        $school = School::findOrFail($testimonial->school_id);
         $academic = $testimonial->student->currentAcademic;
-        $result   = $testimonial->exam_id
+        $result = $testimonial->exam_id
             ? ExamResult::forSchool($testimonial->school_id)
                 ->where('student_id', $testimonial->student_id)
                 ->where('exam_id', $testimonial->exam_id)
@@ -77,20 +77,20 @@ class TestimonialService
                 $testimonial->attendance_from->toDateString(),
                 $testimonial->attendance_to->toDateString(),
             );
-            $attendancePercentage = $summary['percentage'] . '%';
+            $attendancePercentage = $summary['percentage'].'%';
         }
 
         $replacements = [
-            '{{student_name}}'         => $testimonial->student->name,
-            '{{admission_number}}'     => $testimonial->student->admission_number,
-            '{{class}}'                => $academic?->schoolClass?->name ?? '-',
-            '{{conduct_remark}}'       => $testimonial->conduct_remark,
-            '{{grade}}'                => $result?->grade ?? 'N/A',
-            '{{gpa}}'                  => $result?->gpa ?? 'N/A',
-            '{{percentage}}'           => $result?->percentage !== null ? "{$result->percentage}%" : 'N/A',
+            '{{student_name}}' => $testimonial->student->name,
+            '{{admission_number}}' => $testimonial->student->admission_number,
+            '{{class}}' => $academic?->schoolClass?->name ?? '-',
+            '{{conduct_remark}}' => $testimonial->conduct_remark,
+            '{{grade}}' => $result?->grade ?? 'N/A',
+            '{{gpa}}' => $result?->gpa ?? 'N/A',
+            '{{percentage}}' => $result?->percentage !== null ? "{$result->percentage}%" : 'N/A',
             '{{attendance_percentage}}' => $attendancePercentage,
-            '{{issued_date}}'          => $testimonial->issued_date->format('d M Y'),
-            '{{school_name}}'          => $school->name,
+            '{{issued_date}}' => $testimonial->issued_date->format('d M Y'),
+            '{{school_name}}' => $school->name,
         ];
 
         return str_replace(
@@ -119,9 +119,9 @@ class TestimonialService
 
     private function generateNumber(int $schoolId): string
     {
-        $year  = now()->format('Y');
+        $year = now()->format('Y');
         $count = $this->repository->countForYear($schoolId, (int) $year) + 1;
 
-        return 'TST/' . $year . '/' . str_pad((string) $count, 3, '0', STR_PAD_LEFT);
+        return 'TST/'.$year.'/'.str_pad((string) $count, 3, '0', STR_PAD_LEFT);
     }
 }

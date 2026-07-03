@@ -22,8 +22,8 @@ class AdmitCardController extends Controller
     public function store(GenerateAdmitCardRequest $request, int $studentId): AdmitCardResource
     {
         $schoolId = app('current_school_id');
-        $student  = Student::where('school_id', $schoolId)->findOrFail($studentId);
-        $exam     = Exam::where('school_id', $schoolId)->findOrFail($request->validated('exam_id'));
+        $student = Student::where('school_id', $schoolId)->findOrFail($studentId);
+        $exam = Exam::where('school_id', $schoolId)->findOrFail($request->validated('exam_id'));
 
         $admitCard = $this->service->generate($schoolId, $student, $exam, $request->user());
 
