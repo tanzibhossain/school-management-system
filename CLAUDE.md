@@ -10,6 +10,13 @@ Follow every rule here without exception across all 25 modules.
 Multi-tenant SaaS school management platform.
 Stack: Laravel 13 · PHP 8.3 · MySQL 8 · Redis 7 · Laravel Horizon · MinIO · Sanctum · Spatie Permission
 
+## Model Policy
+
+- **Default: Claude Sonnet 5.** All specs in this file are final — build by mirroring the 11 existing modules; do NOT redesign schemas, strategies, or conventions.
+- **Escalate to Fable 5 only for**: a test failure still unsolved after 2–3 attempts; the Report module's cross-module aggregations; Payroll's salary calculations. Escalate the specific problem, not the whole module.
+- **Haiku 4.5** for renames, formatting, docblock and status-table edits.
+- When in doubt about a design question, the answer is in this file or in an existing module — search before asking, and never invent a new pattern.
+
 
 ---
 

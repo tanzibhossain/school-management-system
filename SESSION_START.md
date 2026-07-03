@@ -1,7 +1,12 @@
 # Session Start — School Management System v2
 
 Paste this file content at the start of every new Cowork or Claude Code session.
-Switch model to Fable 5 first: click the model picker → select **Claude Fable 5**.
+
+**Model: Claude Sonnet 5 by default** (`/model sonnet`). The specs are locked in CLAUDE.md and
+11 modules exist as reference patterns — follow them exactly, do not redesign.
+Escalate to Fable 5 ONLY for: a test failure unsolved after 2–3 attempts, or the marked
+complex modules (Report #16 aggregations, Payroll #21 salary math). Use Haiku for renames,
+Pint runs, and doc-only edits.
 
 **CLAUDE.md is the single source of truth** — specs, global product rules, build order,
 and the Run & Ship checklist all live there. Where anything conflicts with CLAUDE.md, CLAUDE.md wins.
