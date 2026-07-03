@@ -46,6 +46,7 @@ docker compose exec app php artisan <command>
 | 15 | IdCard | `app/Modules/IdCard` | IdCardTemplate, IdCardBatch, IdCardBatchFile — 🔶 code complete 2026-07-03, awaiting Docker test run |
 | 16 | Report | `app/Modules/Report` | No new models — pure aggregation over Payment's schema — 🔶 code complete 2026-07-04, awaiting Docker test run |
 | 17 | Sms | `app/Modules/Sms` | SmsBatch, SmsLog — 🔶 code complete 2026-07-04, awaiting Docker test run |
+| 18 | DataImport | `app/Modules/DataImport` | ImportBatch — 🔶 code complete 2026-07-04, awaiting Docker test run |
 
 ### Key Attendance Details (module 10)
 - Student attendance = once-daily status enum (present|absent|late|half_day|leave), bulk upsert per class/section
@@ -381,6 +382,76 @@ synchronously in the request.
 
 ---
 
+## Module 18: DataImport — code complete 2026-07-04, awaiting Docker test run
+
+**Depends on:** Student (#4), Academic (#2) per CLAUDE.md's dependency line — Staff (#5) is also reused since
+the user chose to include teacher import, even though the build-order table's dependency list doesn't name it.
+
+CLAUDE.md had no dedicated spec for this module — the only mention lives inside the DevPlan docx's "13.11
+School Onboarding" section: student + teacher import via Excel upload, queued job, an import report (success
+count, skipped rows, per-row errors with row numbers), and downloadable sample files. v1's old `DataImport`
+module turned out to be unrelated (a ZKTeco fingerprint-attendance importer with a staging-table + manual
+per-cell-edit UI, Bootstrap-MVC era) — not reused, though its "let a human fix bad rows before committing"
+idea was considered and explicitly rejected in favor of the simpler one-pass flow the DevPlan actually asked
+for. Three decisions confirmed with the user: student **and** teacher import (not student-only), one-pass
+validate-and-insert with a report rather than a staging/review UI, and student rows carry one primary
+guardian's fields rather than being a bare enrollment-only sheet.
+
+### What was built
+- **`import_batches`** — the only new table. `type` enum(student|staff), `status` enum(queued|processing|
+  completed|failed), `original_filename`, `stored_path` (MinIO — the queued job needs to read the file back
+  after the request ends), `total_rows`, `success_count`, `skipped_count`, **`errors` as a JSON column**
+  (array of `{row, messages}`) rather than a child table like Sms's per-recipient logs — an import error
+  isn't individually actionable (no per-row "resend"), it's read-only report output bounded by the file's
+  row count. `error_message` is separate and only used for a whole-file failure (e.g. an unreadable file).
+- **Row processing reuses the existing services rather than duplicating create logic**: each row is resolved
+  and validated by `StudentImportRowService`/`StaffImportRowService`, then handed to the *same*
+  `StudentService::enrol()` / `StaffService::hire()` the normal API controllers call — so an imported student
+  or teacher is created under identical business rules (ID generation, section capacity checks) instead of a
+  second code path that could drift out of sync.
+- Text → ID resolution (no composite lookup exists on the Academic/Staff models): `class_name`/`section_name`
+  matched by exact name scoped to `school_id` (section further scoped to the resolved class); `academic_year`
+  resolved by year value if given, else falls back to the school's current year; `designation_name`/
+  `department_name` (staff only) resolved the same way. Any unresolved name, missing required field, invalid
+  enum value (gender/blood_group/guardian_relation/employment_type), unparseable date, or duplicate
+  `admission_number` throws `RowImportException` (array of messages) — caught per-row by the job, which
+  increments `skipped_count` and appends `{row, messages}` to the batch's `errors` array, then **continues to
+  the next row** rather than aborting the batch.
+- **`ImportBatchJob implements ShouldQueue`** — same shape as `GenerateIdCardBatchJob`/`SendSmsBatchJob`:
+  downloads the stored file from MinIO to a local temp path (`maatwebsite/excel`'s `Excel::import()` needs a
+  real path, not a cloud-disk stream), reads it via a small `RowCollectionImport` (`ToCollection` +
+  `WithHeadingRow` — headers auto-slug to snake_case, e.g. "Admission Number" → `admission_number`, so the
+  downloadable template's human headers map straight onto the row-service field names with no manual column
+  mapping step), loops rows with a per-row try/catch, and only a whole-file exception (outer try/catch, same
+  swallow-don't-rethrow reasoning as IdCard/Sms) marks the batch itself `failed`. Temp file always cleaned up
+  in a `finally` block.
+- **Sample templates**: `StudentImportTemplateExport`/`StaffImportTemplateExport` (`FromArray` + `WithHeadings`,
+  one example row each) served via `GET /v2/data-imports/template?type=student|staff`.
+- **Access**: admin-only across the board (upload, history, template download) — bulk data creation is
+  high-risk, same posture as IdCard's template management.
+- Dates: Excel cells can arrive as either a numeric Excel serial date (real date-formatted cell) or a plain
+  text string (CSV, or a text-formatted cell) — a small `ParsesExcelDates` trait handles both rather than
+  assuming one, using `PhpOffice\PhpSpreadsheet\Shared\Date` for the numeric case and `Carbon::parse()` for text.
+- Tests: `tests/Feature/DataImport/{DataImportStudentTest,DataImportStaffTest}.php` — build a *real* .xlsx via
+  PhpSpreadsheet directly (not `UploadedFile::fake()`, which has no parseable content) so the job's
+  `Excel::import()` call exercises genuine spreadsheet bytes end-to-end under `QUEUE_CONNECTION=sync`. Covers
+  successful student import with a guardian, unknown-class row skipped and reported, same-file duplicate
+  admission numbers (first row succeeds, second is skipped since the check runs after the first row's insert
+  commits), staff import with designation/department resolution, invalid gender / unknown designation
+  skipped and reported, batch history, template download, and access control.
+
+### Known gaps / follow-ups
+- No PHP available to run `php artisan test` in this session — run the Docker test command below before merging.
+- No staging/review UI — a row with any error is simply skipped and reported; there's no way to fix and
+  re-submit just the bad rows short of re-uploading a corrected file.
+- Staff import doesn't include class/subject teaching assignment (`StaffService::assign()`) — matches how
+  manual hiring via the API also treats that as a separate step, out of scope here.
+- No sibling-linking or address import for students — only the fields in CLAUDE.md's row-field decision
+  (core student fields + one primary guardian). Multiple guardians, addresses, and sibling links must be
+  added afterward via the normal Student API.
+
+---
+
 ## Architecture Rules (summary — full rules in CLAUDE.md)
 
 - Module path: `app/Modules/{ModuleName}/` — 10-step pattern, one commit per step
@@ -397,25 +468,25 @@ synchronously in the request.
 ## Git Convention
 
 ```
-feat(sms): description   # current module
-fix(sms): description
-test(sms): description
+feat(data-import): description   # current module
+fix(data-import): description
+test(data-import): description
 ```
 
 ## Run & Ship (full checklist in CLAUDE.md)
 
 ```bash
 docker compose exec app php artisan migrate
-docker compose exec app php artisan test tests/Feature/Leave/ tests/Unit/Loan/ tests/Feature/Loan/ tests/Feature/Certificate/ tests/Feature/Student/TransferCertificateTest.php tests/Feature/IdCard/ tests/Feature/Report/ tests/Unit/Sms/ tests/Feature/Sms/ --no-coverage
+docker compose exec app php artisan test tests/Feature/Leave/ tests/Unit/Loan/ tests/Feature/Loan/ tests/Feature/Certificate/ tests/Feature/Student/TransferCertificateTest.php tests/Feature/IdCard/ tests/Feature/Report/ tests/Unit/Sms/ tests/Feature/Sms/ tests/Feature/DataImport/ --no-coverage
 
 git checkout dev && git pull origin dev
-git checkout -b feature/sms-module
+git checkout -b feature/data-import-module
 # ... commits ...
 git checkout dev
-git merge --no-ff feature/sms-module
+git merge --no-ff feature/data-import-module
 git push origin dev
-git branch -d feature/sms-module
+git branch -d feature/data-import-module
 ```
 
-Note: Report has no migrations (no new tables); Sms does (the schools.sms_cost_per_segment column +
-sms_batches/sms_logs) — run migrate before Sms's tests.
+Note: Report has no migrations (no new tables); Sms and DataImport both do (Sms: schools.sms_cost_per_segment
++ sms_batches/sms_logs; DataImport: import_batches only) — run migrate before either module's tests.

@@ -8,6 +8,8 @@ use App\Modules\Sms\Models\SmsBatch;
 use App\Modules\Sms\Models\SmsLog;
 use App\Modules\Sms\Observers\SmsBatchObserver;
 use App\Modules\Sms\Observers\SmsLogObserver;
+use App\Modules\DataImport\Models\ImportBatch;
+use App\Modules\DataImport\Observers\ImportBatchObserver;
 use App\Models\User;
 use App\Modules\Academic\Models\AcademicYear;
 use App\Modules\Academic\Models\ClassRoutine;
@@ -132,5 +134,8 @@ class AppServiceProvider extends ServiceProvider
         // ── Sms module observers ──────────────────────────────────────────────
         SmsBatch::observe(SmsBatchObserver::class);
         SmsLog::observe(SmsLogObserver::class);
+
+        // ── DataImport module observers ───────────────────────────────────────
+        ImportBatch::observe(ImportBatchObserver::class);
     }
 }
