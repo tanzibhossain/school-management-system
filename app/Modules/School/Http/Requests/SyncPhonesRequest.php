@@ -14,9 +14,9 @@ class SyncPhonesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phones'             => ['required', 'array'],
-            'phones.*.phone'     => ['required', 'string', 'max:20'],
-            'phones.*.label'     => ['sometimes', 'nullable', 'string', 'max:50'],
+            'phones' => ['required', 'array'],
+            'phones.*.phone' => ['required', 'string', 'max:20'],
+            'phones.*.label' => ['sometimes', 'nullable', 'string', 'max:50'],
             'phones.*.is_primary' => ['sometimes', 'boolean'],
         ];
     }

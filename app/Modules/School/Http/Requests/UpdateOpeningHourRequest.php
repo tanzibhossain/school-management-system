@@ -14,8 +14,8 @@ class UpdateOpeningHourRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'is_open'    => ['required', 'boolean'],
-            'open_time'  => ['required_if:is_open,true', 'nullable', 'date_format:H:i'],
+            'is_open' => ['required', 'boolean'],
+            'open_time' => ['required_if:is_open,true', 'nullable', 'date_format:H:i'],
             'close_time' => [
                 'required_if:is_open,true',
                 'nullable',

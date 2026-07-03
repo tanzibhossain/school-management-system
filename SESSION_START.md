@@ -45,6 +45,7 @@ docker compose exec app php artisan <command>
 | 14 | Certificate | `app/Modules/Certificate` | AdmitCard, TestimonialTemplate, Testimonial — ✅ tests green 2026-07-03 (incl. Transfer Certificate PDF retrofit) |
 | 15 | IdCard | `app/Modules/IdCard` | IdCardTemplate, IdCardBatch, IdCardBatchFile — 🔶 code complete 2026-07-03, awaiting Docker test run |
 | 16 | Report | `app/Modules/Report` | No new models — pure aggregation over Payment's schema — 🔶 code complete 2026-07-04, awaiting Docker test run |
+| 17 | Sms | `app/Modules/Sms` | SmsBatch, SmsLog — 🔶 code complete 2026-07-04, awaiting Docker test run |
 
 ### Key Attendance Details (module 10)
 - Student attendance = once-daily status enum (present|absent|late|half_day|leave), bulk upsert per class/section
@@ -306,6 +307,80 @@ reports read already-persisted Payment data live.
 
 ---
 
+## Module 17: Sms — code complete 2026-07-04, awaiting Docker test run
+
+**Depends on:** Student (#4), Payment (#8) — both complete.
+
+CLAUDE.md's only spec was the encoding-aware cost note. A real contradiction surfaced during design: the
+DevPlan docx explicitly states SMS/email are billed at a single **platform-level** account ("schools do NOT
+have their own SMS accounts"), and v1's actual code backs that up (one global `sms_api`/`sms_sid` pair in
+`config/app.php`) — but the already-built School module (#1) has per-school `sms_api_key`/`sms_sender_id`
+columns sitting unused. Confirmed with the user: **per-school credentials** (using those existing columns),
+which meant this module's only migration work was adding the missing piece (`sms_cost_per_segment`) rather
+than a full config table. Two more decisions: a stub `LogGateway` behind a real `SmsGatewayContract` interface
+(no SMS provider package exists in composer.json, no live credentials to test against either way — swapping
+in a real provider later means implementing the interface, nothing else changes), and — after the user asked
+"can this go on a queue so it doesn't get stuck processing" — every send request (1 recipient or 500) goes
+through Horizon via `SendSmsBatchJob`, mirroring IdCard's batch pattern exactly, rather than sending
+synchronously in the request.
+
+### What was built
+- **Schools migration**: adds `sms_cost_per_segment` (nullable decimal) alongside the pre-existing
+  `sms_api_key`/`sms_sender_id` — completes the per-school SMS config set. Wired into School's model
+  fillable/casts, `SchoolResource`, and `UpdateSchoolRequest`.
+- `sms_batches` (school_id, purpose enum(manual|due_reminder), scope enum(single|class|all) + class_id/
+  section_id/academic_year_id/target_ids — same targeting shape as `id_card_batches`, message_body nullable
+  (only used for purpose=manual — due_reminder computes a personalized body per recipient instead), status,
+  total_count, error_message, requested_by nullable/nullOnDelete, completed_at)
+- `sms_logs` (school_id, batch_id, student_id, guardian_id nullable/nullOnDelete, recipient_phone
+  denormalized, body, encoding enum(gsm7|unicode), segment_count, cost nullable — null when
+  `sms_cost_per_segment` isn't configured, status enum(sent|failed), error_message, purpose, sent_by
+  nullable/nullOnDelete, **resent_from_id** self-referencing nullable FK — a resend creates a NEW row
+  pointing at the original rather than mutating failed history, sent_at)
+- **`SmsSegmentCalculator`** (`app/Modules/Sms/Services`) — pure, unit-tested class (mirrors Loan's
+  `LoanScheduleCalculator`). Detects GSM 03.38 basic/extended character sets; ANY character outside that
+  alphabet (Bangla, emoji, accented Latin not in the GSM extension table) forces the whole message to
+  unicode. Segment math uses the real telecom thresholds: GSM-7 is 160 chars single-part but only
+  **153/part concatenated** (7 septets reserved for the UDH header); unicode is 70 single-part but
+  **67/part concatenated** (3 UCS-2 units reserved). Extended-table GSM-7 characters (`{}[]|\^~€`) cost
+  2 septets each, not 1, since they need an escape sequence.
+- **`SmsGatewayContract`** (interface) + **`LogGateway`** (stub, bound in `AppServiceProvider::register()`)
+  — records that a send was attempted without any network call. The one realistic failure mode (no guardian
+  phone on file) is caught in `SmsBatchService::sendAndLog()` BEFORE the gateway is ever invoked — logged as
+  `failed` with an explicit error message, never silently skipped.
+- **`SendSmsBatchJob implements ShouldQueue`** — resolves targets (student list for manual, students-with-
+  unpaid/partial-invoices for reminders), and for each one calls `SmsBatchService::sendAndLog()` — the single
+  choke point that resolves the primary guardian's phone (Student itself has no phone column — matches how
+  v1 also texted guardians, not students), computes segments/cost, calls the gateway, and writes the SmsLog
+  row. Same non-rethrowing exception handling as IdCard's job (batch row carries the failure signal), same
+  `QUEUE_CONNECTION=sync`-runs-inline behavior in tests.
+- **Due reminders** are NOT a stored template — the message is composed per-recipient from
+  `resources/lang/en/sms.php`'s `due_reminder` key (`:student`/`:amount`/`:currency` placeholders) — the
+  first lang file in v2, per the Global Product Rules' "translation keys, never hardcoded" requirement.
+  Amount is aggregated directly against Payment's `invoices` table (NOT via the Report module — each module
+  stands alone, no cross-module service dependency).
+- **Resend** re-sends the exact original body verbatim to a freshly re-resolved phone number, creating a new
+  `sms_logs` row with `resent_from_id` pointing at the original — implemented as a direct synchronous call
+  through `sendAndLog()`, not re-queued (a single retry doesn't need batching).
+- **Access**: manual sends `admin:*,teacher:*` (a teacher texting their own class is normal); due reminders
+  `admin:*,accountant:*` (financial trigger, matches Report's gating); batch/log history and resend are
+  admin-only.
+- Tests: `tests/Unit/Sms/SmsSegmentCalculatorTest.php` (GSM-7/unicode boundary math, extended-character
+  cost, Bangla/emoji forcing unicode) + `tests/Feature/Sms/{SmsManualTest,SmsDueReminderTest,SmsResendTest,
+  SmsBatchHistoryTest}.php` (class/single scope targeting, missing-phone failure logging, due-reminder
+  amount/currency rendering, resend creating a new row with the right `resent_from_id`, access control, auth).
+
+### Known gaps / follow-ups
+- No PHP available to run `php artisan test` in this session — run the Docker test command below before merging.
+- No real SMS provider is wired up — `LogGateway` is a stub. Swapping one in means writing a class that
+  implements `SmsGatewayContract` and rebinding it in `AppServiceProvider::register()`; nothing else changes.
+- No per-school SMS template system (a "SMS templates with placeholders" feature was explicitly not scoped
+  for this pass) — manual sends are always free-typed text.
+- `sms_cost_per_segment` must be configured per school for `cost` to be populated on logs; it stays `null`
+  otherwise (segments are still always computed regardless).
+
+---
+
 ## Architecture Rules (summary — full rules in CLAUDE.md)
 
 - Module path: `app/Modules/{ModuleName}/` — 10-step pattern, one commit per step
@@ -322,23 +397,25 @@ reports read already-persisted Payment data live.
 ## Git Convention
 
 ```
-feat(report): description   # current module
-fix(report): description
-test(report): description
+feat(sms): description   # current module
+fix(sms): description
+test(sms): description
 ```
 
 ## Run & Ship (full checklist in CLAUDE.md)
 
 ```bash
-docker compose exec app php artisan test tests/Feature/Leave/ tests/Unit/Loan/ tests/Feature/Loan/ tests/Feature/Certificate/ tests/Feature/Student/TransferCertificateTest.php tests/Feature/IdCard/ tests/Feature/Report/ --no-coverage
+docker compose exec app php artisan migrate
+docker compose exec app php artisan test tests/Feature/Leave/ tests/Unit/Loan/ tests/Feature/Loan/ tests/Feature/Certificate/ tests/Feature/Student/TransferCertificateTest.php tests/Feature/IdCard/ tests/Feature/Report/ tests/Unit/Sms/ tests/Feature/Sms/ --no-coverage
 
 git checkout dev && git pull origin dev
-git checkout -b feature/report-module
+git checkout -b feature/sms-module
 # ... commits ...
 git checkout dev
-git merge --no-ff feature/report-module
+git merge --no-ff feature/sms-module
 git push origin dev
-git branch -d feature/report-module
+git branch -d feature/sms-module
 ```
 
-Note: Report has no migrations to run (no new tables) — skip `php artisan migrate` for this module specifically.
+Note: Report has no migrations (no new tables); Sms does (the schools.sms_cost_per_segment column +
+sms_batches/sms_logs) — run migrate before Sms's tests.

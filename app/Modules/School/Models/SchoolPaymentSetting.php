@@ -32,9 +32,9 @@ class SchoolPaymentSetting extends Model
     ];
 
     protected $casts = [
-        'online_payment_enabled'  => 'boolean',
+        'online_payment_enabled' => 'boolean',
         'offline_payment_enabled' => 'boolean',
-        'sandbox_mode'            => 'boolean',
+        'sandbox_mode' => 'boolean',
     ];
 
     /** @return BelongsTo<School, SchoolPaymentSetting> */
