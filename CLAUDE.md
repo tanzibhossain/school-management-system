@@ -118,7 +118,7 @@ Build in dependency order — never start a module before its dependencies are c
 | 20 | Website | — | ✅ done 2026-07-04 — `app/Modules/Website` (Page, PageRedirect, PageLayout, SiteLayout, SiteSetting, Menu, MenuItem, PageTemplate, WebsiteMedia — full DevPlan Sprint-1 backend scope, 9 tables); layout stored as an opaque `layout_json` LONGTEXT blob on both `page_layouts` and `site_layouts` (Next.js/Craft.js owns block structure, Laravel never parses it); every layout save is a NEW row (`const UPDATED_AT = null;`, never an update) — versioned revisions, `PageService::restore()` copies an old row's json into a new row rather than rewinding; slug change on `PageService::update()` auto-creates a `page_redirects` row inside `DB::transaction()`; `MenuService::replaceItems()` is delete-all-then-recreate for the whole tree (one level of nesting only — grandchildren rejected in `ReplaceMenuItemsRequest::withValidator()`); `SiteSetting` is a one-row-per-school singleton via `forSchool()`/`firstOrCreate` (mirrors `AttendanceSetting`); admin:* only for all `/v2/website/*` write endpoints; public unauthenticated `/public/*` routes (`throttle:60,1`) serve dynamic blocks — Notice Board reuses `AnnouncementRepository::listVisible()` as-is, Staff/Teacher List filters by `designation_id`/`department_id` (documented gap: no subject-relation filter, Staff has none), Class Routine joins `class_routines`, Stats Counter counts active students/staff, and Result Checker is entirely NEW code inside `PublicPortalService::checkResult()` (roll-number + exam lookup, only returns `is_locked=true` results, published exams only — Mark's own `ExamResultController` was NOT touched); tests in `tests/Feature/Website/` (Page, Menu, SiteSetting, SiteLayout, PageTemplate, WebsiteMedia, PublicPortal); tests green |
 | 21 | Payroll *(optional)* | Staff | ✅ done 2026-07-04 — `app/Modules/Payroll` (SalaryComponent, StaffSalaryValue, PayrollRun, PayrollEntry, SalaryCertificateRequest); gated `admin:*,accountant:*` (the DevPlan's "Finance"/"Head Teacher" roles don't exist in `RoleSeeder`, same resolution as every other module); default earning/deduction components (`config/payroll.php`, seed data not logic) lazily seeded per school on first access, editable/trashable (never hard-deleted, so historic breakdowns stay meaningful); calculation is flat component sums only (`gross = Σearnings`, `net = gross − Σdeductions`) — no attendance proration, matching the DevPlan's `calculateGrossAndNet` exactly; `PayrollEntry.breakdown` JSON snapshots every earning/deduction/loan line at process time (mirrors Mark's snapshot-marks-at-entry-time rule) so later component/loan edits never silently alter an already-processed run; `PayrollService::processRun()` is idempotent (reprocessing a still-draft run wipes and regenerates entries, like Attendance's daily register) and pulls due, unpaid `LoanSchedule` installments in as an extra deduction line, marking them `is_paid`/`paid_amount`/`paid_at` on `approveRun()` — fulfilling what Loan's own docblocks said they were waiting for; no endpoint transitions a run to `paid` (the DevPlan's own ROUTES list never defines one — documented gap); payslips/salary certificates render via the shared `PdfRenderingService` (same heredoc-HTML-string pattern as Certificate, no Blade views); self-service (`GET /v2/payroll/staff/me/payslips`, `/me/certificates`, `POST /salary-certificate`) required fixing a pre-existing bug in `User::abilitiesForRole()` — Sanctum's `tokenCan()` is a literal string match, so `ability:staff:*`/`teacher:*` route gates never actually matched a real login's narrow-scoped abilities (only hand-crafted test tokens passed); fixed by adding matching wildcards (`teacher:*`, `staff:*`, `accountant:*`, etc.) per role, which also retroactively un-breaks the same latent gap in Leave and Loan's staff self-service routes; school_module_settings/`CheckModuleEnabled` toggle (DevPlan's generic optional-module gate) deliberately deferred — better designed once, for all of Payroll/LMS/Library/Transport/Messaging together; tests in `tests/Feature/Payroll/` (SalaryComponent, StaffSalary, PayrollRun incl. loan-deduction integration, Payslip, SalaryCertificate); tests green 2026-07-04 (after module.enabled:payroll retrofit) |
 | 22 | LMS *(optional)* | Academic, Student | ✅ done 2026-07-04 — `app/Modules/LMS` (Course, Lesson, Assignment, Submission, SubmissionAiCheck); real Anthropic API integration (not stubbed — see decisions below); gated by the new `school_module_settings` toggle (retrofitted onto Payroll too); tests green after fixing missing `$table` declarations, wrong exception class, and job exception handling |
-| 23 | Platform | — | ⬜ pending — added 2026-07-04 (not in the original 25-module list); vendor-level plans/billing/provisioning/Super Admin portal — see full design section below |
+| 23 | Platform | — | 🔶 code complete 2026-07-04 — `app/Modules/Platform` (Plan, PendingSchoolSignup, SubscriptionReminder); adds `subdomain` + plan/subscription fields to `schools`; Stripe checkout (raw Http-facade calls, no SDK, mirrors AnthropicAiChecker), webhook-driven provisioning idempotent on retry, Super Admin offline creation + plan changes gated by a NEW `role:super_admin` Spatie-role middleware (NOT `ability:`, since `admin` tokens' bare `*` would otherwise satisfy any ability gate — see notes below), signed-URL "set password" email (no plaintext passwords), demo school reset job (`platform:demo-reset`, 00:00/14:00 cron ≈ every 14h), daily subscription reminder job; `PlanLimitService` hook added to `StudentService::enrol()`/`StaffService::hire()` (shared-file edits); tests in `tests/Feature/Platform/`; awaiting Docker test run |
 | 24 | Library *(optional)* | Student, Staff | ⬜ pending |
 | 25 | Transport *(optional)* | Student, Payment | ⬜ pending |
 | 26 | Messaging *(optional)* | User | ⬜ pending |
@@ -273,9 +273,53 @@ this one assumed an already-resolved `current_school_id`).
    (BDT 30k–50k/year flat-license) market rates, deliberately undercutting BD competitors slightly. Stored
    entirely in the `plans` table so Super Admin can change them without a code deploy.
 
-### Not yet built (design only, as of 2026-07-04)
-Everything above is schema + decisions. Migrations/models/services/controllers/tests are the next actual
-build steps — see the Build Order table's row 23 for live status.
+### Implementation notes (added once built, 2026-07-04)
+- **`role:super_admin` middleware, not `ability:super_admin:*`** — a real problem surfaced while building the
+  Super Admin portal: `User::abilitiesForRole()` gives BOTH `admin` and `super_admin` a bare `'*'` Sanctum
+  ability, and Sanctum's `tokenCan()` special-cases bare `'*'` to satisfy ANY ability check. That means an
+  ordinary school admin's token would ALSO pass an `ability:super_admin:*` gate — there was no way to
+  distinguish them via abilities alone. Changing `admin`'s abilities away from `'*'` was rejected (the User
+  module's `/v2/admin` route group is itself gated on literal `ability:*`, and every one of the 22 modules'
+  existing tests already depends on admin's blanket access). Fix: added a `role` middleware alias
+  (`Spatie\Permission\Middleware\RoleMiddleware`) and gate Platform's Super Admin routes on
+  `role:super_admin` — a real Spatie role check, completely independent of Sanctum abilities. Zero changes to
+  `User::abilitiesForRole()` or any other module. `SuperAdminSchoolTest::test_regular_admin_token_is_forbidden_from_super_admin_routes`
+  is the regression test for this.
+- **`schools.subdomain` added here, not earlier** — nothing before this module needed one; it didn't exist
+  anywhere despite CLAUDE.md's Frontend Architecture section already assuming subdomain-per-school routing.
+  Added as part of the same migration that adds plan/subscription fields.
+- **Stripe integration is raw Http-facade calls**, not the `stripe-php` SDK — same pattern as
+  `AnthropicAiChecker` (LMS) and `BkashGateway`/`SslcommerzGateway` (Payment): no new Composer dependency,
+  `Http::fake(['api.stripe.com/*' => ...])` in tests. Webhook signature verification is plain
+  `hash_hmac('sha256', ...)` against Stripe's documented `t=...,v1=...` header scheme — no SDK needed for that
+  either.
+- **`PendingSchoolSignup` → School provisioning is idempotent on webhook retry** — Stripe redelivers
+  `checkout.session.completed` on any non-2xx response; a second delivery for an already-`completed` signup is
+  a silent no-op, never a duplicate school (mirrors the DataImport/Sms/IdCard "swallow, don't rethrow"
+  discipline, applied here to duplicate-delivery instead of exceptions).
+- **Demo reset is intentionally narrow** — `DemoResetService` wipes/reseeds only Student and Staff rows for
+  the one `is_demo` school (relying on each module's existing FK `cascadeOnDelete` to clean up dependents). A
+  full synthetic dataset across all 22+ modules was judged out of proportion to this pass; the demo school's
+  own academic structure (year/class/section) is assumed pre-seeded once, not rebuilt every reset — flagged as
+  a follow-up (a `DemoSchoolSeeder` was NOT written).
+- **Credential emails have no Blade views** — `SetPasswordMail`/`SubscriptionExpiringMail` use
+  `Content::htmlString()` directly, same heredoc-HTML convention already established for PDFs in
+  `PdfRenderingService`.
+
+### Known gaps / follow-ups
+- No `DemoSchoolSeeder` — the one `is_demo=true` school (with its academic structure + a fixed-password admin
+  matching `config('platform.demo_password')`) must still be created once, manually or via a seeder not yet
+  written. `DemoResetService`/`platform:demo-reset` only wipe+reseed its Student/Staff rows on schedule —
+  they don't create the school itself if it's missing (logs a warning and no-ops).
+- No admin UI/endpoint to browse `pending_school_signups` (e.g. a stuck/abandoned Stripe checkout) — only
+  the webhook path reads them today.
+- `SubscriptionReminderService` looks up "the school's admin" via `User::role('admin')->first()` — if a
+  school has multiple admin users, only one (the first by default ordering) receives the reminder.
+- Plan pricing/caps in `config/platform.php` are placeholders (see the pricing table above) — Super Admin can
+  edit them via `PUT /v2/platform/admin/plans/{id}` without a deploy, but no currency-conversion or
+  country-specific pricing exists yet (global USD via Stripe only, per the confirmed decision).
+
+Everything above is now built — see the Build Order table's row 23 for test status once Docker confirms.
 
 ---
 
