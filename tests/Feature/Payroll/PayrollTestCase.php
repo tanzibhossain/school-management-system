@@ -3,6 +3,7 @@
 namespace Tests\Feature\Payroll;
 
 use App\Models\User;
+use App\Modules\School\Models\ModuleSetting;
 use App\Modules\School\Models\School;
 use App\Modules\Staff\Models\Staff;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -27,6 +28,11 @@ abstract class PayrollTestCase extends TestCase
         $this->seed(\Database\Seeders\RoleSeeder::class);
 
         $this->school = School::create(['name' => 'Test School', 'timezone' => 'UTC', 'currency' => 'USD', 'is_active' => true]);
+
+        // Payroll now sits behind the school_module_settings toggle (retrofitted
+        // alongside LMS) — enable it here so every pre-existing Payroll test
+        // keeps exercising the routes instead of hitting a 403 from the new gate.
+        ModuleSetting::create(['school_id' => $this->school->id, 'module' => 'payroll', 'is_enabled' => true]);
 
         $this->admin = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
         $this->admin->assignRole('admin');

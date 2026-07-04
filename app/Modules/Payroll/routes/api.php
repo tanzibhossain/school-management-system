@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 | fix in app/Models/User.php.
 */
 
-Route::middleware(['auth:sanctum', 'ability:admin:*,accountant:*'])->prefix('v2/payroll')->group(function (): void {
+Route::middleware(['auth:sanctum', 'ability:admin:*,accountant:*', 'module.enabled:payroll'])->prefix('v2/payroll')->group(function (): void {
     // Salary components
     Route::get('/components', [SalaryComponentController::class, 'index']);
     Route::post('/components', [SalaryComponentController::class, 'store']);
@@ -45,7 +45,7 @@ Route::middleware(['auth:sanctum', 'ability:admin:*,accountant:*'])->prefix('v2/
 });
 
 // Self-service — own record only, any Staff-backed role (teacher/accountant/librarian/receptionist) or admin.
-Route::middleware(['auth:sanctum', 'ability:admin:*,accountant:*,teacher:*,staff:*,librarian:*,receptionist:*'])
+Route::middleware(['auth:sanctum', 'ability:admin:*,accountant:*,teacher:*,staff:*,librarian:*,receptionist:*', 'module.enabled:payroll'])
     ->prefix('v2/payroll')
     ->group(function (): void {
         Route::get('/staff/me/payslips', [PayslipController::class, 'myPayslips']);
