@@ -62,18 +62,29 @@ class User extends Authenticatable
     /**
      * Token abilities granted to each role.
      *
+     * NOTE: the wildcard entries (e.g. 'teacher:*') were added alongside the
+     * pre-existing narrow ones — Sanctum's tokenCan() is a literal string match
+     * (only the bare '*' ability is special-cased), so a route gated on
+     * `ability:teacher:*` never actually matched a token that only carried
+     * 'teacher:marks' etc. That silently broke every teacher/staff self-service
+     * route in Leave and Loan for real logins (only test tokens created directly
+     * via createToken(['teacher:*']) ever passed). 'staff:*' is granted to every
+     * employee-type role (teacher/accountant/librarian/receptionist) since all
+     * of them are backed by a Staff row and are the intended audience for
+     * Staff-module and Payroll-module self-service ("own record") endpoints.
+     *
      * @return array<int, string>
      */
     public static function abilitiesForRole(string $role): array
     {
         return match ($role) {
             'super_admin', 'admin' => ['*'],
-            'teacher'              => ['teacher:marks', 'teacher:routine', 'teacher:leave', 'teacher:profile'],
-            'accountant'           => ['accountant:payment', 'accountant:report', 'accountant:profile'],
-            'librarian'            => ['librarian:books', 'librarian:profile'],
-            'receptionist'         => ['receptionist:admission', 'receptionist:profile'],
-            'student'              => ['student:profile', 'student:result', 'student:routine'],
-            'parent'               => ['parent:view'],
+            'teacher'              => ['teacher:*', 'staff:*', 'teacher:marks', 'teacher:routine', 'teacher:leave', 'teacher:profile'],
+            'accountant'           => ['accountant:*', 'staff:*', 'accountant:payment', 'accountant:report', 'accountant:profile'],
+            'librarian'            => ['librarian:*', 'staff:*', 'librarian:books', 'librarian:profile'],
+            'receptionist'         => ['receptionist:*', 'staff:*', 'receptionist:admission', 'receptionist:profile'],
+            'student'              => ['student:*', 'student:profile', 'student:result', 'student:routine'],
+            'parent'               => ['parent:*', 'parent:view'],
             default                => ['student:profile'],
         };
     }
