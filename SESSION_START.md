@@ -39,18 +39,18 @@ docker compose exec app php artisan <command>
 | 8 | Payment | `app/Modules/Payment` | Invoice, Payment (multi-currency), Refund, StudentCredit, PaymentConfig (per-school gateway creds), gateways declare SUPPORTED_CURRENCIES |
 | 9 | Examination | `app/Modules/Examination` | ExamType, Exam, ExamSubject (+combined_group), ExamHall, ExamSeating |
 | 10 | Attendance | `app/Modules/Attendance` | StudentAttendance, StaffAttendance, AttendanceSetting, Holiday — ✅ tests green |
-| 11 | Mark | `app/Modules/Mark` | MarkDivision, MarkSetting, GradeBoundary, Mark, ExamResult, ExamWeight — 🔶 tests fixed, confirm green then merge |
+| 11 | Mark | `app/Modules/Mark` | MarkDivision, MarkSetting, GradeBoundary, Mark, ExamResult, ExamWeight — ✅ tests green |
 | 12 | Leave | `app/Modules/Leave` | LeaveType, StudentLeaveRequest, StaffLeaveRequest — ✅ tests green (2026-07-03, after guard-caching + SQLite date-format fixes) |
 | 13 | Loan | `app/Modules/Loan` | StaffLoan, LoanSchedule — ✅ tests green 2026-07-03 |
 | 14 | Certificate | `app/Modules/Certificate` | AdmitCard, TestimonialTemplate, Testimonial — ✅ tests green 2026-07-03 (incl. Transfer Certificate PDF retrofit) |
-| 15 | IdCard | `app/Modules/IdCard` | IdCardTemplate, IdCardBatch, IdCardBatchFile — 🔶 code complete 2026-07-03, awaiting Docker test run |
-| 16 | Report | `app/Modules/Report` | No new models — pure aggregation over Payment's schema — 🔶 code complete 2026-07-04, awaiting Docker test run |
-| 17 | Sms | `app/Modules/Sms` | SmsBatch, SmsLog — 🔶 code complete 2026-07-04, awaiting Docker test run |
-| 18 | DataImport | `app/Modules/DataImport` | ImportBatch — 🔶 code complete 2026-07-04, awaiting Docker test run |
-| 19 | OnlineAdmission | `app/Modules/OnlineAdmission` | AdmissionApplication — 🔶 code complete 2026-07-04, awaiting Docker test run |
-| 20 | Website | `app/Modules/Website` | 🔶 **code complete 2026-07-04** — see section below; awaiting Docker test run |
-| 21 | Payroll *(optional)* | `app/Modules/Payroll` | 🔶 **code complete 2026-07-04** — see section below; now gated by `school_module_settings` (retrofitted); awaiting Docker test run |
-| 22 | LMS *(optional)* | `app/Modules/LMS` | Course, Lesson, Assignment, Submission, SubmissionAiCheck — 🔶 **code complete 2026-07-04** — see section below; awaiting Docker test run |
+| 15 | IdCard | `app/Modules/IdCard` | IdCardTemplate, IdCardBatch, IdCardBatchFile — ✅ tests green |
+| 16 | Report | `app/Modules/Report` | No new models — pure aggregation over Payment's schema — ✅ tests green |
+| 17 | Sms | `app/Modules/Sms` | SmsBatch, SmsLog — ✅ tests green |
+| 18 | DataImport | `app/Modules/DataImport` | ImportBatch — ✅ tests green |
+| 19 | OnlineAdmission | `app/Modules/OnlineAdmission` | AdmissionApplication — ✅ tests green |
+| 20 | Website | `app/Modules/Website` | ✅ **tests green** — see section below |
+| 21 | Payroll *(optional)* | `app/Modules/Payroll` | ✅ **tests green** — see section below; gated by `school_module_settings` (retrofitted) |
+| 22 | LMS *(optional)* | `app/Modules/LMS` | Course, Lesson, Assignment, Submission, SubmissionAiCheck — ✅ **tests green** — see section below |
 
 ### Key Attendance Details (module 10)
 - Student attendance = once-daily status enum (present|absent|late|half_day|leave), bulk upsert per class/section
@@ -70,7 +70,7 @@ docker compose exec app php artisan <command>
 
 ---
 
-## Module 12: Leave — code complete 2026-07-03, awaiting Docker test run
+## Module 12: Leave — tests green 2026-07-03
 
 **Depends on:** Student (#4), Staff (#5) — both complete. Integrates with Attendance (#10).
 
@@ -87,7 +87,7 @@ docker compose exec app php artisan <command>
 - Tests: `tests/Feature/Leave/` — `LeaveTypeTest`, `StudentLeaveRequestTest`, `StaffLeaveRequestTest` (working-day counting incl. holiday + closed-weekday exclusion, attachment requirement, balance enforcement, class-teacher-only approval, attendance override behavior, cancellation, auth)
 
 ### Known gaps / follow-ups
-- No PHP available to run `php artisan test` in this session — run the Docker test command below before merging.
+- Docker test run confirmed green (2026-07-04).
 - Staff leave approval delegation (line manager) deferred — admin-only for now.
 
 ### Global product reminders
@@ -97,7 +97,7 @@ docker compose exec app php artisan <command>
 
 ---
 
-## Module 13: Loan — code complete 2026-07-03, awaiting Docker test run
+## Module 13: Loan — tests green 2026-07-03
 
 **Depends on:** Staff (#5) — complete. No dependency on Payroll (#21, optional/unbuilt).
 
@@ -134,14 +134,14 @@ weren't trustworthy to mirror directly, so the design below was confirmed with t
   auth) — written with the Sanctum guard-caching (`forgetGuards()`) fix already applied from the Leave rework.
 
 ### Known gaps / follow-ups
-- No PHP available to run `php artisan test` in this session — run the Docker test command before merging.
+- Docker test run confirmed green (2026-07-04).
 - No loan-type/eligibility-cap entity (unlike Leave's `LeaveType`) — amount is admin/accountant discretion,
   no automatic cap against `staff.basic_salary`. Flagged, not solved.
 - Repayment/installment-paid tracking is a placeholder pending Payroll (#21).
 
 ---
 
-## Module 14: Certificate — code complete 2026-07-03, awaiting Docker test run
+## Module 14: Certificate — tests green 2026-07-03
 
 **Depends on:** Student (#4), Mark (#11) — both complete.
 
@@ -183,7 +183,7 @@ HTML, never a stored PDF), Testimonial = conduct remark + academic summary from 
   executed, not a stub) rather than parsing PDF content.
 
 ### Known gaps / follow-ups
-- No PHP available to run `php artisan test` in this session — run the Docker test command before merging.
+- Docker test run confirmed green (2026-07-04).
 - Admit Card has no per-school customizable template (unlike Testimonial/TC) — fixed layout, by design
   (content is tabular, not prose). Revisit if schools want branded admit cards later.
 - Testimonial's academic summary only pulls ONE exam's result (admin picks which) — no auto-detection of
@@ -191,7 +191,7 @@ HTML, never a stored PDF), Testimonial = conduct remark + academic summary from 
 
 ---
 
-## Module 15: IdCard — code complete 2026-07-03, awaiting Docker test run
+## Module 15: IdCard — tests green 2026-07-03
 
 **Depends on:** Student (#4), Staff (#5) — both complete.
 
@@ -240,7 +240,7 @@ auto-splitting larger batches into multiple files rather than one unbounded PDF.
   ones, auth.
 
 ### Known gaps / follow-ups
-- No PHP available to run `php artisan test` in this session — run the Docker test command below before merging.
+- Docker test run confirmed green (2026-07-04).
 - Guardian ID cards excluded per the Q&A decision — v1 had them (via `student_guardians` now), can be added
   later as a third `type` reusing the same template/batch infrastructure.
 - Only 2 of 5 DevPlan layouts are coded (`horizontal_classic`, `vertical`); `horizontal_modern`, `dual_stripe`,
@@ -250,7 +250,7 @@ auto-splitting larger batches into multiple files rather than one unbounded PDF.
 
 ---
 
-## Module 16: Report — code complete 2026-07-04, awaiting Docker test run
+## Module 16: Report — tests green 2026-07-04
 
 **Depends on:** Payment (#8), Student (#4) — both complete. Mark (#11) is listed as a CLAUDE.md dependency
 but ISN'T actually touched by this pass — see scope note below.
@@ -303,7 +303,7 @@ reports read already-persisted Payment data live.
   the ledger, PDF export (`%PDF` header check, same pattern as Certificate/IdCard), access control, auth.
 
 ### Known gaps / follow-ups
-- No PHP available to run `php artisan test` in this session — run the Docker test command below before merging.
+- Docker test run confirmed green (2026-07-04).
 - Mark integration (the "Combined Student Report Card" joining academic result + fee status) was explicitly
   deferred by the user, not attempted — CLAUDE.md's Mark dependency for this module isn't yet exercised.
 - No Excel/CSV export (no package was added) — JSON + PDF only.
@@ -312,7 +312,7 @@ reports read already-persisted Payment data live.
 
 ---
 
-## Module 17: Sms — code complete 2026-07-04, awaiting Docker test run
+## Module 17: Sms — tests green 2026-07-04
 
 **Depends on:** Student (#4), Payment (#8) — both complete.
 
@@ -376,7 +376,7 @@ synchronously in the request.
   amount/currency rendering, resend creating a new row with the right `resent_from_id`, access control, auth).
 
 ### Known gaps / follow-ups
-- No PHP available to run `php artisan test` in this session — run the Docker test command below before merging.
+- Docker test run confirmed green (2026-07-04).
 - No real SMS provider is wired up — `LogGateway` is a stub. Swapping one in means writing a class that
   implements `SmsGatewayContract` and rebinding it in `AppServiceProvider::register()`; nothing else changes.
 - No per-school SMS template system (a "SMS templates with placeholders" feature was explicitly not scoped
@@ -386,7 +386,7 @@ synchronously in the request.
 
 ---
 
-## Module 18: DataImport — code complete 2026-07-04, awaiting Docker test run
+## Module 18: DataImport — tests green 2026-07-04
 
 **Depends on:** Student (#4), Academic (#2) per CLAUDE.md's dependency line — Staff (#5) is also reused since
 the user chose to include teacher import, even though the build-order table's dependency list doesn't name it.
@@ -445,7 +445,7 @@ guardian's fields rather than being a bare enrollment-only sheet.
   skipped and reported, batch history, template download, and access control.
 
 ### Known gaps / follow-ups
-- No PHP available to run `php artisan test` in this session — run the Docker test command below before merging.
+- Docker test run confirmed green (2026-07-04).
 - No staging/review UI — a row with any error is simply skipped and reported; there's no way to fix and
   re-submit just the bad rows short of re-uploading a corrected file.
 - Staff import doesn't include class/subject teaching assignment (`StaffService::assign()`) — matches how
@@ -456,7 +456,7 @@ guardian's fields rather than being a bare enrollment-only sheet.
 
 ---
 
-## Module 19: OnlineAdmission — code complete 2026-07-04, awaiting Docker test run
+## Module 19: OnlineAdmission — tests green 2026-07-04
 
 **Depends on:** Academic (#2), Student (#4) — both complete.
 
@@ -507,7 +507,7 @@ would mean altering an already-shipped module's schema, which wasn't worth it fo
   rejected with 422, non-admin forbidden, unauthenticated admin routes rejected.
 
 ### Known gaps / follow-ups
-- No PHP available to run `php artisan test` in this session — run the Docker test command below before merging.
+- Docker test run confirmed green (2026-07-04).
 - No status notifications (SMS/email on approval/rejection) — explicitly deferred; applicant checks status
   via the public reference+phone lookup endpoint instead.
 - No CAPTCHA on the public submit endpoint — only a basic `throttle:10,1` rate limit. Revisit if spam becomes
@@ -519,7 +519,7 @@ would mean altering an already-shipped module's schema, which wasn't worth it fo
 
 ---
 
-## Module 20: Website — code complete 2026-07-04, awaiting Docker test run
+## Module 20: Website — tests green 2026-07-04
 
 **Depends on:** none — CLAUDE.md and the DevPlan both explicitly call it "fully independent — build last."
 The design below was locked in first (research + three clarifying-question rounds), then built in full —
@@ -650,7 +650,7 @@ filter, class routine, stats, result-check including the not-locked/404 case) �
 also assert teacher-forbidden and unauthenticated-rejected.
 
 ### Known gaps / follow-ups
-- No PHP available to run `php artisan test` in this session — run the Docker test command below before merging.
+- Docker test run confirmed green (2026-07-04).
 - Staff/Teacher List public block has no subject-relation filter (Staff has none) — documented, accepted gap,
   matches the original design note above.
 - `PublicPortalService` reads are uncached (the DevPlan's suggested 6hr TTL + `PortalAssetObserver` was
@@ -660,7 +660,7 @@ also assert teacher-forbidden and unauthenticated-rejected.
 
 ---
 
-## Module 21: Payroll — code complete 2026-07-04, awaiting Docker test run
+## Module 21: Payroll — tests green 2026-07-04
 
 **Depends on:** Staff (#5) — complete. Also touches Loan (#13, finalizes deferred repayment tracking).
 
@@ -745,7 +745,7 @@ installment appears as a breakdown line and reduces net pay, then gets marked pa
 admin/accountant-gated endpoints also assert teacher-forbidden and unauthenticated-rejected.
 
 ### Known gaps / follow-ups
-- No PHP available to run `php artisan test` in this session — run the Docker test command below before merging.
+- Docker test run confirmed green (2026-07-04).
 - No endpoint transitions a `payroll_runs.status` to `paid` — the DevPlan's own ROUTES list never defines one;
   `draft` → `approved` is as far as this pass goes.
 - Attendance-based salary proration is out of scope — flat component sums only, matching the DevPlan exactly.
@@ -757,7 +757,7 @@ admin/accountant-gated endpoints also assert teacher-forbidden and unauthenticat
 
 ---
 
-## Module 22: LMS — code complete 2026-07-04, awaiting Docker test run
+## Module 22: LMS — tests green 2026-07-04
 
 **Depends on:** Academic (#2), Student (#4) — both complete.
 
