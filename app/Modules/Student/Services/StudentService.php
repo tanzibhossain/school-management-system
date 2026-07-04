@@ -13,6 +13,7 @@ use App\Modules\Student\Models\StudentAcademic;
 use App\Modules\Student\Models\StudentGuardian;
 use App\Modules\Student\Models\StudentSibling;
 use App\Modules\Student\Repositories\StudentRepository;
+use App\Modules\Platform\Services\PlanLimitService;
 use App\Services\BaseService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +25,7 @@ class StudentService extends BaseService
     public function __construct(
         StudentRepository $repository,
         private readonly StudentIdGeneratorService $idGenerator,
+        private readonly PlanLimitService $planLimit,
     ) {
         parent::__construct($repository);
     }
@@ -42,6 +44,10 @@ class StudentService extends BaseService
         array $guardianData = [],
     ): Student {
         return DB::transaction(function () use ($schoolId, $studentData, $academicData, $guardianData): Student {
+            // Platform module (#23) — plan cap check (no-op for legacy/grandfathered
+            // schools with plan_id = null).
+            $this->planLimit->assertCanAddStudent($schoolId);
+
             // Capacity check
             $sectionId = $academicData['section_id'];
             $yearId    = $academicData['academic_year_id'];

@@ -14,6 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withCommands([
         \App\Modules\Attendance\Console\AutoCloseStaffAttendance::class,
+        \App\Modules\Platform\Console\ResetDemoSchool::class,
+        \App\Modules\Platform\Console\SendSubscriptionReminders::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->appendToGroup('api', \App\Http\Middleware\ResolveSchool::class);
@@ -22,6 +24,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'ability'    => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
             'abilities'  => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
             'module.enabled' => \App\Http\Middleware\CheckModuleEnabled::class,
+            // Platform module (#23) — a REAL Spatie role check, not a Sanctum
+            // ability check. 'admin' tokens carry a bare '*' ability that would
+            // otherwise satisfy ANY ability-based gate (including one meant to be
+            // super_admin-exclusive), so Super Admin-only routes are gated on the
+            // actual role instead.
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
