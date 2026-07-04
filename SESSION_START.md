@@ -51,7 +51,7 @@ docker compose exec app php artisan <command>
 | 20 | Website | `app/Modules/Website` | ✅ **tests green** — see section below |
 | 21 | Payroll *(optional)* | `app/Modules/Payroll` | ✅ **tests green** — see section below; gated by `school_module_settings` (retrofitted) |
 | 22 | LMS *(optional)* | `app/Modules/LMS` | Course, Lesson, Assignment, Submission, SubmissionAiCheck — ✅ **tests green** — see section below |
-| 23 | Platform | `app/Modules/Platform` | Plan, PendingSchoolSignup, SubscriptionReminder — 🔶 code complete 2026-07-04, awaiting Docker test run — see section below (added outside original 25-module list) |
+| 23 | Platform | `app/Modules/Platform` | Plan, PendingSchoolSignup, SubscriptionReminder — ✅ tests green — see section below (added outside original 25-module list) |
 | 24 | Library *(optional)* | — | ⬜ pending |
 | 25 | Transport *(optional)* | — | ⬜ pending |
 | 26 | Messaging *(optional)* | — | ⬜ pending |
@@ -911,7 +911,7 @@ Four real forks were resolved with the user before/during building (none answere
 
 ---
 
-## Module 23: Platform — code complete 2026-07-04, awaiting Docker test run
+## Module 23: Platform — tests green 2026-07-05
 
 **Depends on:** none (platform-level). Added outside the original 25-module list — see CLAUDE.md's full
 "Platform Module — Agreed Spec" section for the complete design record (plans schema, decisions, pricing
@@ -946,7 +946,17 @@ research). Summary here for quick reference:
   convention as PdfRenderingService), 6 FormRequests, 2 Resources, 8 controllers (4 public, 1 webhook, 2
   Super Admin, all in `app/Modules/Platform/Http/Controllers`), 2 scheduled console commands
   (`platform:demo-reset` at 00:00/14:00, `platform:subscription-reminders` daily), tests in
-  `tests/Feature/Platform/` (7 files).
+  `tests/Feature/Platform/` (7 files). Tests green 2026-07-05 after fixing two real Docker-run bugs:
+  (1) `SetPasswordMail`/`SubscriptionExpiringMail` implement `ShouldQueue`, so `Mail::send()` silently
+  redirects through `queue()` — under `Mail::fake()` that's tracked as "queued," not "sent," so the three
+  affected tests needed `Mail::assertQueued()` instead of `assertSent()` (no production code changed);
+  (2) `SetPasswordController::store()` originally type-hinted BOTH `SetPasswordRequest $request` and a plain
+  `Request $rawRequest` — since `FormRequest` extends `Illuminate\Http\Request`, Laravel's controller
+  dependency resolver treats the second `Request` param as already satisfied by the first and silently skips
+  injecting it, causing an `ArgumentCountError` at call time. Fixed by dropping the second parameter and using
+  `$request` directly (it inherits every `Request` method). Worth remembering for any future controller: never
+  type-hint a second `Illuminate\Http\Request $x` alongside a `FormRequest` subclass in the same method
+  signature.
 - **Key fix discovered while building**: `role:super_admin` middleware (new Spatie `RoleMiddleware` alias),
   NOT `ability:super_admin:*` — `admin` and `super_admin` both carry a bare Sanctum `'*'` ability which
   auto-satisfies any ability check, so an ordinary school admin's token would otherwise pass a
