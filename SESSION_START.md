@@ -49,6 +49,7 @@ docker compose exec app php artisan <command>
 | 18 | DataImport | `app/Modules/DataImport` | ImportBatch — 🔶 code complete 2026-07-04, awaiting Docker test run |
 | 19 | OnlineAdmission | `app/Modules/OnlineAdmission` | AdmissionApplication — 🔶 code complete 2026-07-04, awaiting Docker test run |
 | 20 | Website | `app/Modules/Website` | 🔶 **code complete 2026-07-04** — see section below; awaiting Docker test run |
+| 21 | Payroll *(optional)* | `app/Modules/Payroll` | 🔶 **code complete 2026-07-04** — see section below; awaiting Docker test run |
 
 ### Key Attendance Details (module 10)
 - Student attendance = once-daily status enum (present|absent|late|half_day|leave), bulk upsert per class/section
@@ -655,6 +656,100 @@ also assert teacher-forbidden and unauthenticated-rejected.
   deliberately deferred — not required for a correct first pass, worth adding once this is proven out).
 - Header/footer builder, block library, and the actual Next.js drag-and-drop editor (DevPlan sprints 2–8) are
   out of scope — this module is the Sprint-1 Laravel backend only, per CLAUDE.md's frontend-comes-last rule.
+
+---
+
+## Module 21: Payroll — code complete 2026-07-04, awaiting Docker test run
+
+**Depends on:** Staff (#5) — complete. Also touches Loan (#13, finalizes deferred repayment tracking).
+
+**Scope resolved with the user before building** (three real forks, none answered by the DevPlan alone):
+1. **Role gating**: `admin:*,accountant:*` — the DevPlan's "Finance"/"Head Teacher" roles don't exist in
+   `RoleSeeder` (same gap OnlineAdmission hit with "moderator"). Matches Payment/Report/Loan's convention exactly.
+2. **Loan integration**: built now, not deferred further. `LoanSchedule.is_paid/paid_amount/paid_at` were
+   explicitly left unwritten with a docblock saying "reserved for the future Payroll integration" — this module
+   is that integration. `PayrollService::processRun()` pulls due, unpaid installments in as an extra deduction
+   line; `approveRun()` marks them paid.
+3. **Calculation**: flat component sums only, matching the DevPlan's `calculateGrossAndNet` exactly — no
+   attendance-based proration. Both the half_day/leave/auto-closed-hours policy questions that proration would
+   require are unanswered anywhere in this codebase; inventing them was explicitly out of scope for this pass.
+   A school wanting an absence deduction can model it as its own manually-valued component instead.
+4. **Module toggle** (`school_module_settings`/`CheckModuleEnabled`, DevPlan's generic gate for modules 20–24):
+   skipped. Better designed once, when it can be applied uniformly to Payroll + the four other unbuilt optional
+   modules, rather than half-built against just this one.
+
+**A genuine pre-existing bug surfaced during design, and was fixed as part of this module**: the DevPlan wants
+staff self-service (view own salary breakdown, download own payslips, request salary certificate). Checking how
+Sanctum tokens actually get their abilities revealed `app/Models/User.php`'s `abilitiesForRole()` never emitted
+a `staff:*` or `teacher:*` wildcard — only narrow strings like `teacher:leave`. Since `tokenCan()` is a literal
+string match (not a prefix/glob match), routes gated `ability:teacher:*,staff:*` (already present in Leave and
+Loan for their own staff self-service routes) never actually matched a *real* login — only hand-crafted test
+tokens (`createToken('test', ['staff:*'])`) ever passed, meaning Leave's and Loan's staff self-service endpoints
+were unreachable in production. Fixed by adding matching wildcard abilities per role (`teacher:*`, `staff:*` for
+every Staff-backed role, `accountant:*`, etc.) alongside the pre-existing narrow ones — this retroactively fixes
+the same latent gap in Leave and Loan, not just Payroll.
+
+### Schema (5 tables)
+- `salary_components` (school_id, name, component_type enum(earning|deduction), is_default, sort_order,
+  is_trash). Never hard-deleted — "remove" = `is_trash=true` — so `staff_salary_values` rows and already-processed
+  `payroll_entries.breakdown` snapshots referencing an old component stay meaningful.
+- `staff_salary_values` (school_id, staff_id, salary_component_id, amount) — one row per staff per component;
+  a missing row means 0, not an error ("staff with no salary values returns gross=0, not crash", per spec).
+- `payroll_runs` (school_id, month, year, status enum(draft|approved|paid), notes, processed_by/processed_at,
+  approved_by/approved_at). Unique per (school_id, month, year).
+- `payroll_entries` (school_id, payroll_run_id, staff_id, gross_salary, total_deductions, net_salary,
+  breakdown json, payslip_path, payslip_generated_at). `breakdown` snapshots every earning/deduction/loan line
+  at process time — `[{label, type: earning|deduction|loan_deduction, amount, loan_schedule_id?}]` — same
+  snapshot principle Mark uses for `marks_obtained` so a later component/loan edit never silently changes an
+  already-processed run.
+- `salary_certificate_requests` (school_id, staff_id, purpose, status enum(pending|generated), certificate_path,
+  requested_at, generated_at, generated_by).
+
+### Services
+- `SalaryComponentService` — `forSchool()` lazily seeds `config('payroll.default_components')` (seed data, not
+  logic, same pattern as `config/grading.php`) the first time a school has zero components; `create()`,
+  `update()`, `trash()` (soft only).
+- `StaffSalaryValueService` — `breakdown()` (every active component + this staff's amount, 0 if unset),
+  `setValues()` (upsert), `calculateGrossAndNet()` (flat sums + a `lines` array feeding the entry snapshot).
+- `PayrollService` — `createRun()` (guards duplicate month/year), `processRun()` (idempotent — resubmitting a
+  still-draft run wipes and regenerates its entries, same idea as Attendance's daily register upsert; loops
+  active Staff, computes components, adds due `LoanSchedule` lines), `approveRun()` (guards processed-first and
+  draft-only; marks every `loan_deduction` breakdown line's `LoanSchedule` paid). No endpoint reaches `paid` —
+  the DevPlan's own ROUTES list never defines one; documented gap below.
+- `PayslipService` — on-demand PDF via the shared `PdfRenderingService` (heredoc HTML string, same pattern as
+  Certificate's `AdmitCardService`/`TestimonialService` — no Blade views anywhere in this codebase), stored at
+  `{school_id}/payroll/{year}/{month}/{staffId}.pdf`.
+- `SalaryCertificateService` — `request()` (staff submits), `generate()` (Finance-equivalent PDF: name,
+  designation, department, current gross salary, employment duration via `joining_date`), stored at
+  `{school_id}/payroll/certificates/{staffId}_{requestId}.pdf`.
+
+### API
+- **Admin/accountant** (`admin:*,accountant:*`): full CRUD for components; `GET/POST /staff/{staffId}/salary`;
+  `GET/POST /runs`, `GET /runs/{id}`, `POST /runs/{id}/process`, `POST /runs/{id}/approve`;
+  `POST /entries/{id}/payslip`; `GET /salary-certificate` (pending list), `POST /salary-certificate/{id}/generate`.
+- **Self-service** (`admin:*,accountant:*,teacher:*,staff:*,librarian:*,receptionist:*` — any Staff-backed
+  login): `GET /staff/me/payslips`, `GET /staff/me/certificates`, `POST /salary-certificate` (request own).
+  Ownership resolved via `Staff::where('user_id', $request->user()->id)`, mirroring the Staff module's own
+  `/v2/staff/me/profile` pattern (the cleanest existing precedent — cleaner than Leave/Loan's `{staffId}`-in-URL
+  approach, which has its own unfixed ownership-check gap, not something worth imitating here).
+
+### Tests (`tests/Feature/Payroll/`)
+`SalaryComponentTest` (lazy-seed 7 defaults, add/rename/reorder/trash, teacher-forbidden), `StaffSalaryTest`
+(zero-by-default, set values, adding a new component doesn't disturb existing values), `PayrollRunTest`
+(duplicate month/year rejected, gross/net calculation, idempotent reprocessing, approve-requires-processed,
+approve locks and rejects a second approval, **the loan-deduction integration**: a due unpaid `LoanSchedule`
+installment appears as a breakdown line and reduces net pay, then gets marked paid only on approval),
+`PayslipTest` (generate + `Storage::fake('minio')` assertion, staff sees only their own payslips),
+`SalaryCertificateTest` (self-request, admin list+generate, staff sees only their own history) — all
+admin/accountant-gated endpoints also assert teacher-forbidden and unauthenticated-rejected.
+
+### Known gaps / follow-ups
+- No PHP available to run `php artisan test` in this session — run the Docker test command below before merging.
+- No endpoint transitions a `payroll_runs.status` to `paid` — the DevPlan's own ROUTES list never defines one;
+  `draft` → `approved` is as far as this pass goes.
+- `school_module_settings`/`CheckModuleEnabled` (generic optional-module toggle) deliberately deferred — see
+  the resolved-forks list above.
+- Attendance-based salary proration is out of scope — flat component sums only, matching the DevPlan exactly.
 
 ---
 

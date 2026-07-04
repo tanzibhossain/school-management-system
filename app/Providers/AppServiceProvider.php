@@ -63,6 +63,16 @@ use App\Modules\Loan\Models\LoanSchedule;
 use App\Modules\Loan\Models\StaffLoan;
 use App\Modules\Loan\Observers\LoanScheduleObserver;
 use App\Modules\Loan\Observers\StaffLoanObserver;
+use App\Modules\Payroll\Models\PayrollEntry;
+use App\Modules\Payroll\Models\PayrollRun;
+use App\Modules\Payroll\Models\SalaryCertificateRequest;
+use App\Modules\Payroll\Models\SalaryComponent;
+use App\Modules\Payroll\Models\StaffSalaryValue;
+use App\Modules\Payroll\Observers\PayrollEntryObserver;
+use App\Modules\Payroll\Observers\PayrollRunObserver;
+use App\Modules\Payroll\Observers\SalaryCertificateRequestObserver;
+use App\Modules\Payroll\Observers\SalaryComponentObserver;
+use App\Modules\Payroll\Observers\StaffSalaryValueObserver;
 use App\Modules\Mark\Models\Mark;
 use App\Modules\Mark\Observers\MarkObserver;
 use App\Modules\FeeItem\Models\FeeItem;
@@ -171,5 +181,12 @@ class AppServiceProvider extends ServiceProvider
         MenuItem::observe(MenuItemObserver::class);
         PageTemplate::observe(PageTemplateObserver::class);
         WebsiteMedia::observe(WebsiteMediaObserver::class);
+
+        // ── Payroll module observers ──────────────────────────────────────────
+        SalaryComponent::observe(SalaryComponentObserver::class);
+        StaffSalaryValue::observe(StaffSalaryValueObserver::class);
+        PayrollRun::observe(PayrollRunObserver::class);
+        PayrollEntry::observe(PayrollEntryObserver::class);
+        SalaryCertificateRequest::observe(SalaryCertificateRequestObserver::class);
     }
 }
