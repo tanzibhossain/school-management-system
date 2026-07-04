@@ -51,7 +51,7 @@ docker compose exec app php artisan <command>
 | 20 | Website | `app/Modules/Website` | ✅ **tests green** — see section below |
 | 21 | Payroll *(optional)* | `app/Modules/Payroll` | ✅ **tests green** — see section below; gated by `school_module_settings` (retrofitted) |
 | 22 | LMS *(optional)* | `app/Modules/LMS` | Course, Lesson, Assignment, Submission, SubmissionAiCheck — ✅ **tests green** — see section below |
-| 23 | Platform | `app/Modules/Platform` | Plan, PendingSchoolSignup, SubscriptionReminder — ⬜ design locked, not yet built — see section below (added outside original 25-module list) |
+| 23 | Platform | `app/Modules/Platform` | Plan, PendingSchoolSignup, SubscriptionReminder — 🔶 code complete 2026-07-04, awaiting Docker test run — see section below (added outside original 25-module list) |
 | 24 | Library *(optional)* | — | ⬜ pending |
 | 25 | Transport *(optional)* | — | ⬜ pending |
 | 26 | Messaging *(optional)* | — | ⬜ pending |
@@ -911,7 +911,7 @@ Four real forks were resolved with the user before/during building (none answere
 
 ---
 
-## Module 23: Platform — design locked 2026-07-04, not yet built
+## Module 23: Platform — code complete 2026-07-04, awaiting Docker test run
 
 **Depends on:** none (platform-level). Added outside the original 25-module list — see CLAUDE.md's full
 "Platform Module — Agreed Spec" section for the complete design record (plans schema, decisions, pricing
@@ -938,7 +938,24 @@ research). Summary here for quick reference:
   replaces any "request a demo" contact form entirely; plan caps are ENFORCED via a `PlanLimitService` hook
   added into the existing `StudentService::enrol()`/`StaffService::hire()` (shared-file edits, same pattern as
   Payroll's abilities fix).
-- **Not yet built**: this is the design record only — migrations/models/services/controllers/tests come next.
+- **Built**: all 10 steps done — 4 migrations (plans, schools additions incl. `subdomain`, pending_school_signups,
+  subscription_reminders), 3 models + School updated, PlanRepository/PlanObserver, 7 services
+  (PlanService, SchoolProvisioningService, SelfServeSignupService, StripeWebhookService,
+  SuperAdminSchoolService, DemoResetService, SubscriptionReminderService, PlanLimitService), Stripe gateway
+  (raw Http-facade, no SDK — mirrors AnthropicAiChecker), 2 Mailables (no Blade views, same heredoc-HTML
+  convention as PdfRenderingService), 6 FormRequests, 2 Resources, 8 controllers (4 public, 1 webhook, 2
+  Super Admin, all in `app/Modules/Platform/Http/Controllers`), 2 scheduled console commands
+  (`platform:demo-reset` at 00:00/14:00, `platform:subscription-reminders` daily), tests in
+  `tests/Feature/Platform/` (7 files).
+- **Key fix discovered while building**: `role:super_admin` middleware (new Spatie `RoleMiddleware` alias),
+  NOT `ability:super_admin:*` — `admin` and `super_admin` both carry a bare Sanctum `'*'` ability which
+  auto-satisfies any ability check, so an ordinary school admin's token would otherwise pass a
+  `super_admin`-only gate. Zero changes to `User::abilitiesForRole()`; see CLAUDE.md's Platform spec for the
+  full reasoning and the regression test that covers it.
+- **Known gaps**: no `DemoSchoolSeeder` yet (the demo school itself — academic structure + fixed-password
+  admin — must still be created once, manually or via a seeder not written in this pass); demo reset only
+  wipes/reseeds Student/Staff (not a full 22-module synthetic dataset); subscription reminders email only the
+  first admin user found per school; plan pricing/caps are placeholders in `config/platform.php`.
 
 ---
 
@@ -967,23 +984,30 @@ test(lms): description
 
 ```bash
 docker compose exec app php artisan migrate
-docker compose exec app php artisan test tests/Feature/Leave/ tests/Unit/Loan/ tests/Feature/Loan/ tests/Feature/Certificate/ tests/Feature/Student/TransferCertificateTest.php tests/Feature/IdCard/ tests/Feature/Report/ tests/Unit/Sms/ tests/Feature/Sms/ tests/Feature/DataImport/ tests/Feature/OnlineAdmission/ tests/Feature/Website/ tests/Feature/Payroll/ tests/Feature/School/ModuleSettingTest.php tests/Feature/LMS/ tests/Unit/LMS/ --no-coverage
-
-git checkout dev && git pull origin dev
-git checkout -b feature/lms-module
-# ... commits ...
-git checkout dev
-git merge --no-ff feature/lms-module
-git push origin dev
-git branch -d feature/lms-module
+docker compose exec app php artisan test tests/Feature/Platform/ --no-coverage
 ```
 
-Note: this pass touches shared files outside `app/Modules/LMS` too — `bootstrap/app.php` (new `module.enabled`
-middleware alias), `app/Providers/AppServiceProvider.php` (ModuleSetting + LMS observers, AiCheckerContract
-binding), `app/Modules/School/**` (new ModuleSetting model/repo/service/controller/migration),
-`app/Modules/Payroll/routes/api.php` + `tests/Feature/Payroll/PayrollTestCase.php` (module-toggle retrofit),
-`app/Modules/School/Models/School.php` + its Request/Resource (`lms_ai_api_key`) — include all of these in the
-LMS module's commits per CLAUDE.md's "shared-file edits belong in the module's commits" rule. Report has no
-migrations (no new tables); Sms, DataImport, and OnlineAdmission all do (Sms:
-schools.sms_cost_per_segment + sms_batches/sms_logs; DataImport: import_batches; OnlineAdmission:
-admission_applications) — run migrate before any of their tests.
+Note: this pass touches shared files outside `app/Modules/Platform` too — `bootstrap/app.php` (new `role`
+middleware alias for `Spatie\Permission\Middleware\RoleMiddleware`, plus the two new console commands
+registered in `withCommands`), `routes/console.php` (the two `Schedule::command()` entries), `config/platform.php`
+(new file — Stripe keys, seed plan data, demo cadence/password, reminder days),
+`app/Providers/AppServiceProvider.php` (Plan observer, `PaymentGatewayContract` binding),
+`app/Modules/School/Models/School.php` (new fillable/casts/`plan()` relationship + `subdomain` column),
+`app/Modules/Student/Services/StudentService.php` + `app/Modules/Staff/Services/StaffService.php` (new
+`PlanLimitService` constructor dependency + cap-check call at the top of `enrol()`/`hire()`) — include all of
+these in the Platform module's commits per CLAUDE.md's "shared-file edits belong in the module's commits" rule.
+Also needs `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` env vars set for real Stripe use (tests fake
+`api.stripe.com/*` entirely, so they run fine without real keys).
+
+For the previous module (LMS) and everything before it:
+```bash
+docker compose exec app php artisan test tests/Feature/Leave/ tests/Unit/Loan/ tests/Feature/Loan/ tests/Feature/Certificate/ tests/Feature/Student/TransferCertificateTest.php tests/Feature/IdCard/ tests/Feature/Report/ tests/Unit/Sms/ tests/Feature/Sms/ tests/Feature/DataImport/ tests/Feature/OnlineAdmission/ tests/Feature/Website/ tests/Feature/Payroll/ tests/Feature/School/ModuleSettingTest.php tests/Feature/LMS/ tests/Unit/LMS/ tests/Feature/Platform/ --no-coverage
+
+git checkout dev && git pull origin dev
+git checkout -b feature/platform-module
+# ... commits ...
+git checkout dev
+git merge --no-ff feature/platform-module
+git push origin dev
+git branch -d feature/platform-module
+```

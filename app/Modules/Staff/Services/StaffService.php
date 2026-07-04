@@ -9,6 +9,7 @@ use App\Modules\Staff\Events\StaffTerminated;
 use App\Modules\Staff\Models\Staff;
 use App\Modules\Staff\Models\StaffAcademic;
 use App\Modules\Staff\Repositories\StaffRepository;
+use App\Modules\Platform\Services\PlanLimitService;
 use App\Services\BaseService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,7 @@ class StaffService extends BaseService
     public function __construct(
         StaffRepository $repository,
         private readonly StaffIdGeneratorService $idGenerator,
+        private readonly PlanLimitService $planLimit,
     ) {
         parent::__construct($repository);
     }
@@ -31,6 +33,10 @@ class StaffService extends BaseService
     public function hire(int $schoolId, array $data): Staff
     {
         return DB::transaction(function () use ($schoolId, $data): Staff {
+            // Platform module (#23) — plan cap check (no-op for legacy/grandfathered
+            // schools with plan_id = null).
+            $this->planLimit->assertCanAddStaff($schoolId);
+
             $employeeId = $this->idGenerator->generate($schoolId);
 
             $staff = Staff::create(array_merge($data, [

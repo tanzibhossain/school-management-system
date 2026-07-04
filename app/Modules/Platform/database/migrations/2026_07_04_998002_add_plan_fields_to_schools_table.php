@@ -13,6 +13,10 @@ return new class extends Migration
         // — unrestricted, never capped by PlanLimitService. Every NEW school created
         // through Platform's provisioning flow always gets a real plan_id.
         Schema::table('schools', function (Blueprint $table): void {
+            // Needed for the frontend's subdomain-per-school tenant routing
+            // (CLAUDE.md's Frontend Architecture decision) — nothing before this
+            // module ever captured one. Nullable: legacy schools have none yet.
+            $table->string('subdomain')->nullable()->unique()->after('name');
             $table->foreignId('plan_id')->nullable()->after('is_active')
                 ->constrained('plans')->nullOnDelete();
             $table->timestamp('trial_ends_at')->nullable()->after('plan_id');
@@ -39,6 +43,7 @@ return new class extends Migration
         Schema::table('schools', function (Blueprint $table): void {
             $table->dropConstrainedForeignId('plan_id');
             $table->dropColumn([
+                'subdomain',
                 'trial_ends_at',
                 'subscription_expires_at',
                 'is_demo',
