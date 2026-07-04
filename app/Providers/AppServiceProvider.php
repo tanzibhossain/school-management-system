@@ -35,9 +35,11 @@ use App\Modules\Academic\Models\AcademicYear;
 use App\Modules\Academic\Models\ClassRoutine;
 use App\Modules\Academic\Observers\AcademicYearObserver;
 use App\Modules\Academic\Observers\ClassRoutineObserver;
+use App\Modules\School\Models\ModuleSetting;
 use App\Modules\School\Models\School;
 use App\Modules\School\Models\SchoolOpeningHour;
 use App\Modules\School\Models\SchoolPhone;
+use App\Modules\School\Observers\ModuleSettingObserver;
 use App\Modules\School\Observers\SchoolObserver;
 use App\Modules\School\Observers\SchoolOpeningHourObserver;
 use App\Modules\School\Observers\SchoolPhoneObserver;
@@ -75,6 +77,18 @@ use App\Modules\Payroll\Observers\SalaryComponentObserver;
 use App\Modules\Payroll\Observers\StaffSalaryValueObserver;
 use App\Modules\Mark\Models\Mark;
 use App\Modules\Mark\Observers\MarkObserver;
+use App\Modules\LMS\Gateways\AiCheckerContract;
+use App\Modules\LMS\Gateways\AnthropicAiChecker;
+use App\Modules\LMS\Models\Assignment;
+use App\Modules\LMS\Models\Course;
+use App\Modules\LMS\Models\Lesson;
+use App\Modules\LMS\Models\Submission;
+use App\Modules\LMS\Models\SubmissionAiCheck;
+use App\Modules\LMS\Observers\AssignmentObserver;
+use App\Modules\LMS\Observers\CourseObserver;
+use App\Modules\LMS\Observers\LessonObserver;
+use App\Modules\LMS\Observers\SubmissionAiCheckObserver;
+use App\Modules\LMS\Observers\SubmissionObserver;
 use App\Modules\FeeItem\Models\FeeItem;
 use App\Modules\FeeItem\Observers\FeeItemObserver;
 use App\Modules\IdCard\Models\IdCardBatch;
@@ -101,6 +115,11 @@ class AppServiceProvider extends ServiceProvider
         // Sms module — bind the stub gateway; swap for a real provider implementation
         // of SmsGatewayContract here once one is chosen, nothing else changes.
         $this->app->bind(SmsGatewayContract::class, LogGateway::class);
+
+        // LMS module — real Anthropic API integration (per the confirmed decision,
+        // unlike Sms's stub gateway). Swap this binding for a different provider
+        // by implementing AiCheckerContract; nothing else in the module changes.
+        $this->app->bind(AiCheckerContract::class, AnthropicAiChecker::class);
     }
 
     public function boot(): void
@@ -109,6 +128,7 @@ class AppServiceProvider extends ServiceProvider
         School::observe(SchoolObserver::class);
         SchoolPhone::observe(SchoolPhoneObserver::class);
         SchoolOpeningHour::observe(SchoolOpeningHourObserver::class);
+        ModuleSetting::observe(ModuleSettingObserver::class);
 
         // ── Academic module observers ─────────────────────────────────────────
         AcademicYear::observe(AcademicYearObserver::class);
@@ -188,5 +208,12 @@ class AppServiceProvider extends ServiceProvider
         PayrollRun::observe(PayrollRunObserver::class);
         PayrollEntry::observe(PayrollEntryObserver::class);
         SalaryCertificateRequest::observe(SalaryCertificateRequestObserver::class);
+
+        // ── LMS module observers ──────────────────────────────────────────────
+        Course::observe(CourseObserver::class);
+        Lesson::observe(LessonObserver::class);
+        Assignment::observe(AssignmentObserver::class);
+        Submission::observe(SubmissionObserver::class);
+        SubmissionAiCheck::observe(SubmissionAiCheckObserver::class);
     }
 }

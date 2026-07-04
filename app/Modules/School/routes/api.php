@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\School\Http\Controllers\ModuleSettingController;
 use App\Modules\School\Http\Controllers\SchoolController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,4 +14,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/v2/school/phones/sync', [SchoolController::class, 'syncPhones']);
     Route::put('/v2/school/hours/{day}', [SchoolController::class, 'updateHour'])
         ->whereNumber('day');
+});
+
+// Optional-module toggle (Payroll/LMS/Library/Transport/Messaging) — admin only.
+Route::middleware(['auth:sanctum', 'ability:admin:*'])->prefix('v2/school/modules')->group(function (): void {
+    Route::get('/', [ModuleSettingController::class, 'index']);
+    Route::put('/{module}', [ModuleSettingController::class, 'update']);
 });
