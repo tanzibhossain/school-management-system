@@ -31,6 +31,7 @@ class UpdateSchoolRequest extends FormRequest
             'sms_api_key' => ['sometimes', 'nullable', 'string'],
             'sms_sender_id' => ['sometimes', 'nullable', 'string', 'max:20'],
             'sms_cost_per_segment' => ['sometimes', 'nullable', 'numeric', 'min:0'],
+            'lms_ai_api_key' => ['sometimes', 'nullable', 'string'],
             'auto_due_enabled' => ['sometimes', 'boolean'],
             'fine_per_day' => ['sometimes', 'numeric', 'min:0'],
             'quick_payment_process' => ['sometimes', 'nullable', 'string'],

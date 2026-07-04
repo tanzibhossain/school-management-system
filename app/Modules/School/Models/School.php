@@ -25,19 +25,23 @@ class School extends Model
         'sms_api_key',
         'sms_sender_id',
         'sms_cost_per_segment',
+        'lms_ai_api_key',
         'auto_due_enabled',
         'fine_per_day',
         'quick_payment_process',
         'is_active',
     ];
 
-    protected $hidden = ['sms_api_key'];
+    protected $hidden = ['sms_api_key', 'lms_ai_api_key'];
 
     protected $casts = [
         'established' => 'date',
         'auto_due_enabled' => 'boolean',
         'fine_per_day' => 'decimal:2',
         'sms_cost_per_segment' => 'decimal:4',
+        // DevPlan: "Stored encrypted" — same treatment as Payment's gateway
+        // credentials on PaymentConfig.
+        'lms_ai_api_key' => 'encrypted',
         'is_active' => 'boolean',
     ];
 
