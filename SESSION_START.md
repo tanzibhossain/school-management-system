@@ -51,6 +51,10 @@ docker compose exec app php artisan <command>
 | 20 | Website | `app/Modules/Website` | ✅ **tests green** — see section below |
 | 21 | Payroll *(optional)* | `app/Modules/Payroll` | ✅ **tests green** — see section below; gated by `school_module_settings` (retrofitted) |
 | 22 | LMS *(optional)* | `app/Modules/LMS` | Course, Lesson, Assignment, Submission, SubmissionAiCheck — ✅ **tests green** — see section below |
+| 23 | Platform | `app/Modules/Platform` | Plan, PendingSchoolSignup, SubscriptionReminder — ⬜ design locked, not yet built — see section below (added outside original 25-module list) |
+| 24 | Library *(optional)* | — | ⬜ pending |
+| 25 | Transport *(optional)* | — | ⬜ pending |
+| 26 | Messaging *(optional)* | — | ⬜ pending |
 
 ### Key Attendance Details (module 10)
 - Student attendance = once-daily status enum (present|absent|late|half_day|leave), bulk upsert per class/section
@@ -904,6 +908,37 @@ Four real forks were resolved with the user before/during building (none answere
   schema).
 - No resubmission flow — `lms_submissions` is unique on `(assignment_id, student_id)`; a second submit attempt
   is rejected outright rather than replacing the first.
+
+---
+
+## Module 23: Platform — design locked 2026-07-04, not yet built
+
+**Depends on:** none (platform-level). Added outside the original 25-module list — see CLAUDE.md's full
+"Platform Module — Agreed Spec" section for the complete design record (plans schema, decisions, pricing
+research). Summary here for quick reference:
+
+- **Why it exists**: the marketing site (`apps/marketing`) needs a real "buy a package → pay → get logged in"
+  flow. Nothing in this codebase creates a School + admin User together, bills the vendor's OWN customers (as
+  opposed to Payment module billing a school's own students), or manages plan tiers — this was in the original
+  DevPlan (§13.10/§13.11, a "Super Admin Portal") but silently dropped from CLAUDE.md's build order.
+- **Not tenant-scoped**: unlike every module 1–22, most of this runs OUTSIDE `current_school_id` — Super Admin
+  endpoints see all schools; public signup/checkout run before a school exists.
+- **Plans** (seed data, editable later): Demo (free, 20/10 caps, the one shared `is_demo` school, prefilled
+  public login, resets every 14h), Trial (free 30 days, 100/15 caps, self-serve no card), Basic ($19/mo,
+  500/40 caps, Stripe), Pro ($49/mo, unlimited, Stripe).
+- **New tables**: `plans` (platform-level, no school_id), `pending_school_signups` (platform-level — staging
+  row for the Stripe round-trip, mirrors `AdmissionApplication`'s pattern but triggered by webhook not admin
+  decision), `subscription_reminders` (school-scoped, day_7/day_1 email reminders, idempotent).
+- **`schools` table gets**: `plan_id`, `trial_ends_at`, `subscription_expires_at`, `is_demo`,
+  `provisioning_type` enum(self_service/offline_manual/super_admin), `stripe_customer_id`,
+  `stripe_subscription_id`, `subscription_status`.
+- **Key decisions**: Stripe globally for self-serve billing (separate from Payment module's per-school student
+  gateways); Super Admin can also manually create offline-paid schools with an explicit expiry + reminders;
+  credentials delivered via a secure signed "set your password" link, never a plaintext password; Demo
+  replaces any "request a demo" contact form entirely; plan caps are ENFORCED via a `PlanLimitService` hook
+  added into the existing `StudentService::enrol()`/`StaffService::hire()` (shared-file edits, same pattern as
+  Payroll's abilities fix).
+- **Not yet built**: this is the design record only — migrations/models/services/controllers/tests come next.
 
 ---
 
