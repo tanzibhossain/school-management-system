@@ -10,6 +10,28 @@ Follow every rule here without exception across all 25 modules.
 Multi-tenant SaaS school management platform.
 Stack: Laravel 13 · PHP 8.3 · MySQL 8 · Redis 7 · Laravel Horizon · MinIO · Sanctum · Spatie Permission
 
+## Frontend Architecture (decided 2026-07-04, not yet built)
+
+Frontend work has not started (backend modules #23–25 still pending). Decided ahead of time so the eventual
+build doesn't improvise:
+
+- **Three Next.js 15 apps in one monorepo** (Turborepo-style: `apps/marketing`, `apps/school-site`, `apps/dashboard`,
+  shared UI/components package). Not three separate repos, not one merged app.
+- **`apps/marketing`** — single-tenant vendor site: features, pricing, contact form, demo request. Not
+  school-specific, not behind `ResolveSchool`.
+- **`apps/school-site`** — per-school public site, consumes the Website module's (#20) `/public/*` endpoints
+  (pages, menus, notices, admission form, results checker, staff list, stats).
+- **`apps/dashboard`** — per-school logged-in app (admin/teacher/student/parent) consuming every other module's API.
+- **Tenant routing: subdomain per school** — e.g. `{school}.yourapp.com` for the public site,
+  `app.{school}.yourapp.com` (or `/app` under the same subdomain) for the dashboard. School resolution on the
+  frontend reads the subdomain and forwards it so Laravel's `ResolveSchool` middleware can resolve
+  `current_school_id` the same way it does today — no backend change needed for this, just confirm
+  `ResolveSchool` accepts a school-identifying header/param the frontend can set from the subdomain.
+- **Known gap**: the marketing site's "demo request" / contact form has no backend endpoint yet — none of the
+  25 modules cover lead capture for the vendor itself (as opposed to a school's own admission applications).
+  Needs a small addition (new lightweight module, or extend Announcement) before `apps/marketing` can go live.
+  Not built yet — flagged for when frontend work starts.
+
 ## Model Policy
 
 - **Default: Claude Sonnet 5.** All specs in this file are final — build by mirroring the 11 existing modules; do NOT redesign schemas, strategies, or conventions.
@@ -94,11 +116,12 @@ Build in dependency order — never start a module before its dependencies are c
 | 18 | DataImport | Student, Academic | ✅ done 2026-07-04 — `app/Modules/DataImport` (ImportBatch only, no per-row child table — errors stored as JSON on the batch); student **and** staff/teacher import in scope (Staff module reused even though not in this row's dependency list); one-pass validate-and-insert with a report (success/skipped counts + per-row `{row, messages}` errors), not a staging-table review UI; each row calls the *existing* `StudentService::enrol()` / `StaffService::hire()` directly rather than duplicating create logic; class/section/academic-year/designation/department resolved from text by name, scoped to `school_id`; uploaded sheet stored in MinIO before the queued job (Horizon `ImportBatchJob`, same swallow-don't-rethrow pattern as IdCard/Sms) reads it back via `maatwebsite/excel` (already a dependency); downloadable sample templates at `GET /v2/data-imports/template?type=`; admin-only; tests green |
 | 19 | OnlineAdmission | Academic, Student | ✅ done 2026-07-04 — `app/Modules/OnlineAdmission` (AdmissionApplication — its own table, never a half-formed Student row); public unauthenticated `POST /v2/admission-applications` (throttled) + public `GET .../status?reference=&guardian_phone=` (reference number alone is guessable, so phone must also match); no `section_id` captured at application (placement decided at approval, when capacity is known); `approve()` takes `admission_number` (never auto-generated anywhere in this codebase) + `section_id` and calls the *existing* `StudentService::enrol()` in the same action — same reuse pattern as DataImport; admin-only for review/approve/reject (the DevPlan's "moderator" role/ability was never actually built — real roles are `super_admin, admin, teacher, accountant, librarian, receptionist, student, parent` per `RoleSeeder`, and every other module gates on `admin:*`); status notifications (SMS/email) explicitly deferred; tests green |
 | 20 | Website | — | ✅ done 2026-07-04 — `app/Modules/Website` (Page, PageRedirect, PageLayout, SiteLayout, SiteSetting, Menu, MenuItem, PageTemplate, WebsiteMedia — full DevPlan Sprint-1 backend scope, 9 tables); layout stored as an opaque `layout_json` LONGTEXT blob on both `page_layouts` and `site_layouts` (Next.js/Craft.js owns block structure, Laravel never parses it); every layout save is a NEW row (`const UPDATED_AT = null;`, never an update) — versioned revisions, `PageService::restore()` copies an old row's json into a new row rather than rewinding; slug change on `PageService::update()` auto-creates a `page_redirects` row inside `DB::transaction()`; `MenuService::replaceItems()` is delete-all-then-recreate for the whole tree (one level of nesting only — grandchildren rejected in `ReplaceMenuItemsRequest::withValidator()`); `SiteSetting` is a one-row-per-school singleton via `forSchool()`/`firstOrCreate` (mirrors `AttendanceSetting`); admin:* only for all `/v2/website/*` write endpoints; public unauthenticated `/public/*` routes (`throttle:60,1`) serve dynamic blocks — Notice Board reuses `AnnouncementRepository::listVisible()` as-is, Staff/Teacher List filters by `designation_id`/`department_id` (documented gap: no subject-relation filter, Staff has none), Class Routine joins `class_routines`, Stats Counter counts active students/staff, and Result Checker is entirely NEW code inside `PublicPortalService::checkResult()` (roll-number + exam lookup, only returns `is_locked=true` results, published exams only — Mark's own `ExamResultController` was NOT touched); tests in `tests/Feature/Website/` (Page, Menu, SiteSetting, SiteLayout, PageTemplate, WebsiteMedia, PublicPortal); tests green |
-| 21 | Payroll *(optional)* | Staff | 🔶 code complete 2026-07-04 — `app/Modules/Payroll` (SalaryComponent, StaffSalaryValue, PayrollRun, PayrollEntry, SalaryCertificateRequest); gated `admin:*,accountant:*` (the DevPlan's "Finance"/"Head Teacher" roles don't exist in `RoleSeeder`, same resolution as every other module); default earning/deduction components (`config/payroll.php`, seed data not logic) lazily seeded per school on first access, editable/trashable (never hard-deleted, so historic breakdowns stay meaningful); calculation is flat component sums only (`gross = Σearnings`, `net = gross − Σdeductions`) — no attendance proration, matching the DevPlan's `calculateGrossAndNet` exactly; `PayrollEntry.breakdown` JSON snapshots every earning/deduction/loan line at process time (mirrors Mark's snapshot-marks-at-entry-time rule) so later component/loan edits never silently alter an already-processed run; `PayrollService::processRun()` is idempotent (reprocessing a still-draft run wipes and regenerates entries, like Attendance's daily register) and pulls due, unpaid `LoanSchedule` installments in as an extra deduction line, marking them `is_paid`/`paid_amount`/`paid_at` on `approveRun()` — fulfilling what Loan's own docblocks said they were waiting for; no endpoint transitions a run to `paid` (the DevPlan's own ROUTES list never defines one — documented gap); payslips/salary certificates render via the shared `PdfRenderingService` (same heredoc-HTML-string pattern as Certificate, no Blade views); self-service (`GET /v2/payroll/staff/me/payslips`, `/me/certificates`, `POST /salary-certificate`) required fixing a pre-existing bug in `User::abilitiesForRole()` — Sanctum's `tokenCan()` is a literal string match, so `ability:staff:*`/`teacher:*` route gates never actually matched a real login's narrow-scoped abilities (only hand-crafted test tokens passed); fixed by adding matching wildcards (`teacher:*`, `staff:*`, `accountant:*`, etc.) per role, which also retroactively un-breaks the same latent gap in Leave and Loan's staff self-service routes; school_module_settings/`CheckModuleEnabled` toggle (DevPlan's generic optional-module gate) deliberately deferred — better designed once, for all of Payroll/LMS/Library/Transport/Messaging together; tests in `tests/Feature/Payroll/` (SalaryComponent, StaffSalary, PayrollRun incl. loan-deduction integration, Payslip, SalaryCertificate); tests green 2026-07-04 (after module.enabled:payroll retrofit) |
+| 21 | Payroll *(optional)* | Staff | ✅ done 2026-07-04 — `app/Modules/Payroll` (SalaryComponent, StaffSalaryValue, PayrollRun, PayrollEntry, SalaryCertificateRequest); gated `admin:*,accountant:*` (the DevPlan's "Finance"/"Head Teacher" roles don't exist in `RoleSeeder`, same resolution as every other module); default earning/deduction components (`config/payroll.php`, seed data not logic) lazily seeded per school on first access, editable/trashable (never hard-deleted, so historic breakdowns stay meaningful); calculation is flat component sums only (`gross = Σearnings`, `net = gross − Σdeductions`) — no attendance proration, matching the DevPlan's `calculateGrossAndNet` exactly; `PayrollEntry.breakdown` JSON snapshots every earning/deduction/loan line at process time (mirrors Mark's snapshot-marks-at-entry-time rule) so later component/loan edits never silently alter an already-processed run; `PayrollService::processRun()` is idempotent (reprocessing a still-draft run wipes and regenerates entries, like Attendance's daily register) and pulls due, unpaid `LoanSchedule` installments in as an extra deduction line, marking them `is_paid`/`paid_amount`/`paid_at` on `approveRun()` — fulfilling what Loan's own docblocks said they were waiting for; no endpoint transitions a run to `paid` (the DevPlan's own ROUTES list never defines one — documented gap); payslips/salary certificates render via the shared `PdfRenderingService` (same heredoc-HTML-string pattern as Certificate, no Blade views); self-service (`GET /v2/payroll/staff/me/payslips`, `/me/certificates`, `POST /salary-certificate`) required fixing a pre-existing bug in `User::abilitiesForRole()` — Sanctum's `tokenCan()` is a literal string match, so `ability:staff:*`/`teacher:*` route gates never actually matched a real login's narrow-scoped abilities (only hand-crafted test tokens passed); fixed by adding matching wildcards (`teacher:*`, `staff:*`, `accountant:*`, etc.) per role, which also retroactively un-breaks the same latent gap in Leave and Loan's staff self-service routes; school_module_settings/`CheckModuleEnabled` toggle (DevPlan's generic optional-module gate) deliberately deferred — better designed once, for all of Payroll/LMS/Library/Transport/Messaging together; tests in `tests/Feature/Payroll/` (SalaryComponent, StaffSalary, PayrollRun incl. loan-deduction integration, Payslip, SalaryCertificate); tests green 2026-07-04 (after module.enabled:payroll retrofit) |
 | 22 | LMS *(optional)* | Academic, Student | ✅ done 2026-07-04 — `app/Modules/LMS` (Course, Lesson, Assignment, Submission, SubmissionAiCheck); real Anthropic API integration (not stubbed — see decisions below); gated by the new `school_module_settings` toggle (retrofitted onto Payroll too); tests green after fixing missing `$table` declarations, wrong exception class, and job exception handling |
-| 23 | Library *(optional)* | Student, Staff | ⬜ pending |
-| 24 | Transport *(optional)* | Student, Payment | ⬜ pending |
-| 25 | Messaging *(optional)* | User | ⬜ pending |
+| 23 | Platform | — | ⬜ pending — added 2026-07-04 (not in the original 25-module list); vendor-level plans/billing/provisioning/Super Admin portal — see full design section below |
+| 24 | Library *(optional)* | Student, Staff | ⬜ pending |
+| 25 | Transport *(optional)* | Student, Payment | ⬜ pending |
+| 26 | Messaging *(optional)* | User | ⬜ pending |
 
 **Prerequisite before Mark:** add `student_subjects` table (school_id, student_id, subject_relation_id, academic_year_id, is_optional) to the Academic or Student module — required for optional (4th) subjects, N/A handling, and teacher mark-entry scoping.
 
@@ -179,6 +202,80 @@ Decisions reconciled from v1 code + DevPlan + review (2026-07-02). Where the Dev
 - **Grace marks (decided 2026-07-02)**: separate audited `grace_marks` column on `marks` (never mixed into `marks_obtained`), `grace_given_by` audit, per-school cap in mark settings. Applied before pass/grade calculation.
 - **Re-exams/improvement (decided 2026-07-02)**: DEFERRED. Keep ExamType flexible so a retake exam type can reference an original exam later.
 - **No cache on mark write operations** (same rule as Payment).
+
+---
+
+## Platform Module — Agreed Spec (Module 23)
+
+Added 2026-07-04 — not in the original 25-module list. The DevPlan docx had a "§13.10 SaaS Plans & Demo
+Mode" + "§13.11 School Onboarding" section (a "Super Admin Portal," DevPlan roadmap Weeks 26–27) that was
+silently dropped when CLAUDE.md superseded the DevPlan. It resurfaced because the marketing site
+(`apps/marketing`) needs a real "buy a package → get logged in" flow, which needs backend support that has
+never existed: nothing in this codebase creates a School + admin User together, no `plans` table exists
+despite CLAUDE.md's schema rule already carving out an exception for one, and no vendor-side billing exists
+at all (Payment module's gateways are entirely about a school billing ITS OWN students, never about billing
+a school for the platform itself). Confirmed with the user via three rounds of decisions — see below.
+
+**This module is platform-level, not tenant-level.** Most of it does NOT go through `ResolveSchool`/
+`current_school_id` scoping — Super Admin endpoints operate across every school, and the public
+signup/checkout endpoints run before a school even exists yet. This is a new precedent (every module before
+this one assumed an already-resolved `current_school_id`).
+
+### Plans (seed data, editable later by Super Admin — these are placeholder defaults, not final pricing)
+| Plan | Price | Caps | Notes |
+|---|---|---|---|
+| Demo | Free, not purchasable | 20 students / 10 staff | The ONE shared `is_demo=true` school; login credentials are shown prefilled on a public demo login page (no signup flow); resets every **14 hours** (DevPlan said 24h — user overrode to 14h) |
+| Trial | Free, 30 days | 100 students / 15 staff | Self-serve signup, no payment, all optional modules (`school_module_settings`) left off by default like any new school |
+| Basic | $19/mo or $190/yr | 500 students / 40 staff | Self-serve Stripe Checkout |
+| Pro | $49/mo or $490/yr | Unlimited | Self-serve Stripe Checkout |
+
+### Schema
+- `plans` (platform-level, no `school_id` — same exception CLAUDE.md already carves out for `schools`): name,
+  slug, price_monthly/price_yearly nullable, currency default USD, max_students/max_staff nullable (null =
+  unlimited), trial_days nullable, is_self_serve boolean, is_active boolean, sort_order.
+- `schools` table additions (migration lives in Platform, same pattern as Sms adding `sms_cost_per_segment`):
+  `plan_id` nullable FK (null = legacy/grandfathered, unrestricted — every NEW school always gets one),
+  `trial_ends_at`, `subscription_expires_at` (paid-plan renewal date; also used as the hard expiry for
+  Super-Admin-created offline/manual accounts), `is_demo` boolean default false, `provisioning_type` enum
+  (self_service, offline_manual, super_admin) nullable, `stripe_customer_id`, `stripe_subscription_id`,
+  `subscription_status` enum(trialing, active, past_due, canceled, expired) nullable.
+- `pending_school_signups` (platform-level, no `school_id` — the school doesn't exist yet): school_name,
+  desired_subdomain, plan_id, admin_name, admin_email, country_code, stripe_checkout_session_id, status
+  enum(pending, completed, failed, expired), created_school_id nullable — same "own staging table, converted
+  only on confirmation" pattern as `AdmissionApplication`, except the trigger here is a Stripe webhook (paid
+  path) rather than an admin decision; Trial signups skip this table entirely and provision immediately (no
+  payment round-trip to survive).
+- `subscription_reminders` (HAS `school_id` — this one is genuinely school-scoped, just queried/created by a
+  platform-level job rather than through `current_school_id`): school_id, milestone enum(day_7, day_1),
+  sent_at — unique per (school_id, milestone) so the daily reminder job never double-sends.
+
+### Decisions confirmed with the user
+1. **Vendor payment gateway: Stripe globally** for self-serve Basic/Pro checkout — one processor regardless of
+   school country, entirely separate from Payment module's per-school bKash/SSLCommerz/Stripe/PayPal gateways
+   (those bill a school's own students; this bills the school itself). New `StripeCheckoutService`.
+2. **Super Admin can ALSO manually create a school** for an offline-paid customer (bank transfer, cash,
+   whatever) — no Stripe involved, sets `provisioning_type=offline_manual`, an explicit
+   `subscription_expires_at`, and any plan. A daily job emails the school's admin a renewal reminder at 7 days
+   and 1 day before `subscription_expires_at` (`subscription_reminders` makes this idempotent). Same
+   reminder job also covers self-serve subscriptions nearing Stripe renewal, though Stripe itself handles the
+   actual charge retry.
+3. **Credential delivery: secure "set your password" link**, not a plaintext emailed password — standard
+   Laravel signed-URL reset-style flow. Account is created with an unusable random password; the admin sets
+   their own on first visit.
+4. **Demo replaces the "request a demo" contact-sales form entirely** — no lead-capture table, no sales
+   pipeline. One permanent shared school (`is_demo=true`) with fixed seed data and prefilled, publicly visible
+   login credentials at a demo login page; a scheduled job wipes and reseeds it every 14 hours.
+5. **Plan caps are enforced, not just stored** — `PlanLimitService` is called from the existing
+   `StudentService::enrol()` and `StaffService::hire()` (shared-file edits, same as Payroll's abilities fix)
+   and throws a 422 once `max_students`/`max_staff` is reached for schools that have a plan. Schools with
+   `plan_id = null` (legacy/grandfathered) are never capped.
+6. **Pricing/caps are placeholders** — informed by researching global ($2–15/student/year) and Bangladesh
+   (BDT 30k–50k/year flat-license) market rates, deliberately undercutting BD competitors slightly. Stored
+   entirely in the `plans` table so Super Admin can change them without a code deploy.
+
+### Not yet built (design only, as of 2026-07-04)
+Everything above is schema + decisions. Migrations/models/services/controllers/tests are the next actual
+build steps — see the Build Order table's row 23 for live status.
 
 ---
 
