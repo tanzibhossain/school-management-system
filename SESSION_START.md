@@ -48,7 +48,7 @@ docker compose exec app php artisan <command>
 | 17 | Sms | `app/Modules/Sms` | SmsBatch, SmsLog — 🔶 code complete 2026-07-04, awaiting Docker test run |
 | 18 | DataImport | `app/Modules/DataImport` | ImportBatch — 🔶 code complete 2026-07-04, awaiting Docker test run |
 | 19 | OnlineAdmission | `app/Modules/OnlineAdmission` | AdmissionApplication — 🔶 code complete 2026-07-04, awaiting Docker test run |
-| 20 | Website | `app/Modules/Website` | ⬜ **design locked 2026-07-04, not yet built** — see section below before starting |
+| 20 | Website | `app/Modules/Website` | 🔶 **code complete 2026-07-04** — see section below; awaiting Docker test run |
 
 ### Key Attendance Details (module 10)
 - Student attendance = once-daily status enum (present|absent|late|half_day|leave), bulk upsert per class/section
@@ -517,11 +517,12 @@ would mean altering an already-shipped module's schema, which wasn't worth it fo
 
 ---
 
-## Module 20: Website — design locked 2026-07-04, NOT YET BUILT
+## Module 20: Website — code complete 2026-07-04, awaiting Docker test run
 
 **Depends on:** none — CLAUDE.md and the DevPlan both explicitly call it "fully independent — build last."
-When picking this up, read this whole section first — the research and three clarifying-question rounds
-that produced this design are already done; don't repeat them.
+The design below was locked in first (research + three clarifying-question rounds), then built in full —
+this section is kept as the design record; the "What was built" and "Known gaps" notes at the end reflect
+the actual code.
 
 **Why this is different from every module so far**: the DevPlan devotes an entire top-level section ("9.
 Website Page Builder — Elementor-Style Visual Editor") to this — a full drag-and-drop CMS: pages with
@@ -629,6 +630,31 @@ item-by-item CRUD), `PageLayout`, `SiteLayout`, `PageRedirect`.
 - **Admin** (`admin:*`): full `apiResource` for pages + `/layout /publish /duplicate /revisions /restore/{lid}
   /set-homepage`; `apiResource` for menus + `PUT /menus/{id}/items`; `GET/PUT /site-layouts/{type}` +
   `/publish`; `GET/PUT /site-settings`; `GET/POST /page-templates`; `GET/POST/DELETE /website/media`.
+
+### What was built (2026-07-04)
+All 9 tables/models/repositories/services/observers/FormRequests/Resources/controllers/routes exist exactly as
+designed above, in `app/Modules/Website`. Nine observers registered in `AppServiceProvider`, each flushing its
+own cache tag (`MenuItemObserver` flushes both `menu` and `menuitem` since an item change must invalidate the
+parent menu's cached list too). `PublicPortalService::checkResult()` is the one genuinely new cross-module
+query in this module — `Exam` (published, scoped to school) → `StudentAcademic` (matching `class_id` +
+`academic_year_id` + `roll_number`) → `ExamResult` (matching `student_id`, `is_locked=true` only) — Mark's own
+`ExamResultController` was not touched. Tests live in `tests/Feature/Website/`: `PageTest` (auto-slug, dedup,
+reserved slugs, slug-change redirect, layout save+publish, duplicate, revisions+restore, set-homepage sync),
+`MenuTest` (one-level nesting, grandchildren rejected, full-tree replace), `SiteSettingTest` (lazy-create,
+update), `SiteLayoutTest` (header/footer independence), `PageTemplateTest` (save-as-template, global +
+school-owned templates), `WebsiteMediaTest` (upload with dimension extraction via `Storage::fake('minio')`,
+delete, index), `PublicPortalTest` (page-by-slug, site-chrome, multi-hop redirect, notices visibility, staff
+filter, class routine, stats, result-check including the not-locked/404 case) — all admin-gated write paths
+also assert teacher-forbidden and unauthenticated-rejected.
+
+### Known gaps / follow-ups
+- No PHP available to run `php artisan test` in this session — run the Docker test command below before merging.
+- Staff/Teacher List public block has no subject-relation filter (Staff has none) — documented, accepted gap,
+  matches the original design note above.
+- `PublicPortalService` reads are uncached (the DevPlan's suggested 6hr TTL + `PortalAssetObserver` was
+  deliberately deferred — not required for a correct first pass, worth adding once this is proven out).
+- Header/footer builder, block library, and the actual Next.js drag-and-drop editor (DevPlan sprints 2–8) are
+  out of scope — this module is the Sprint-1 Laravel backend only, per CLAUDE.md's frontend-comes-last rule.
 
 ---
 

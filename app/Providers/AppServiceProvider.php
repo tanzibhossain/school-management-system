@@ -12,6 +12,24 @@ use App\Modules\DataImport\Models\ImportBatch;
 use App\Modules\DataImport\Observers\ImportBatchObserver;
 use App\Modules\OnlineAdmission\Models\AdmissionApplication;
 use App\Modules\OnlineAdmission\Observers\AdmissionApplicationObserver;
+use App\Modules\Website\Models\Menu;
+use App\Modules\Website\Models\MenuItem;
+use App\Modules\Website\Models\Page;
+use App\Modules\Website\Models\PageLayout;
+use App\Modules\Website\Models\PageRedirect;
+use App\Modules\Website\Models\PageTemplate;
+use App\Modules\Website\Models\SiteLayout;
+use App\Modules\Website\Models\SiteSetting;
+use App\Modules\Website\Models\WebsiteMedia;
+use App\Modules\Website\Observers\MenuItemObserver;
+use App\Modules\Website\Observers\MenuObserver;
+use App\Modules\Website\Observers\PageLayoutObserver;
+use App\Modules\Website\Observers\PageObserver;
+use App\Modules\Website\Observers\PageRedirectObserver;
+use App\Modules\Website\Observers\PageTemplateObserver;
+use App\Modules\Website\Observers\SiteLayoutObserver;
+use App\Modules\Website\Observers\SiteSettingObserver;
+use App\Modules\Website\Observers\WebsiteMediaObserver;
 use App\Models\User;
 use App\Modules\Academic\Models\AcademicYear;
 use App\Modules\Academic\Models\ClassRoutine;
@@ -142,5 +160,16 @@ class AppServiceProvider extends ServiceProvider
 
         // ── OnlineAdmission module observers ──────────────────────────────────
         AdmissionApplication::observe(AdmissionApplicationObserver::class);
+
+        // ── Website module observers ──────────────────────────────────────────
+        Page::observe(PageObserver::class);
+        PageLayout::observe(PageLayoutObserver::class);
+        PageRedirect::observe(PageRedirectObserver::class);
+        SiteLayout::observe(SiteLayoutObserver::class);
+        SiteSetting::observe(SiteSettingObserver::class);
+        Menu::observe(MenuObserver::class);
+        MenuItem::observe(MenuItemObserver::class);
+        PageTemplate::observe(PageTemplateObserver::class);
+        WebsiteMedia::observe(WebsiteMediaObserver::class);
     }
 }
