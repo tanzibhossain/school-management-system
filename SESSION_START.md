@@ -49,7 +49,8 @@ docker compose exec app php artisan <command>
 | 18 | DataImport | `app/Modules/DataImport` | ImportBatch — 🔶 code complete 2026-07-04, awaiting Docker test run |
 | 19 | OnlineAdmission | `app/Modules/OnlineAdmission` | AdmissionApplication — 🔶 code complete 2026-07-04, awaiting Docker test run |
 | 20 | Website | `app/Modules/Website` | 🔶 **code complete 2026-07-04** — see section below; awaiting Docker test run |
-| 21 | Payroll *(optional)* | `app/Modules/Payroll` | 🔶 **code complete 2026-07-04** — see section below; awaiting Docker test run |
+| 21 | Payroll *(optional)* | `app/Modules/Payroll` | 🔶 **code complete 2026-07-04** — see section below; now gated by `school_module_settings` (retrofitted); awaiting Docker test run |
+| 22 | LMS *(optional)* | `app/Modules/LMS` | Course, Lesson, Assignment, Submission, SubmissionAiCheck — 🔶 **code complete 2026-07-04** — see section below; awaiting Docker test run |
 
 ### Key Attendance Details (module 10)
 - Student attendance = once-daily status enum (present|absent|late|half_day|leave), bulk upsert per class/section
@@ -747,9 +748,162 @@ admin/accountant-gated endpoints also assert teacher-forbidden and unauthenticat
 - No PHP available to run `php artisan test` in this session — run the Docker test command below before merging.
 - No endpoint transitions a `payroll_runs.status` to `paid` — the DevPlan's own ROUTES list never defines one;
   `draft` → `approved` is as far as this pass goes.
-- `school_module_settings`/`CheckModuleEnabled` (generic optional-module toggle) deliberately deferred — see
-  the resolved-forks list above.
 - Attendance-based salary proration is out of scope — flat component sums only, matching the DevPlan exactly.
+- **Update (2026-07-04, during LMS build)**: `school_module_settings`/`CheckModuleEnabled` was built as part of
+  LMS (see Module 22 below) rather than deferred further, and retrofitted onto Payroll's own routes
+  (`module.enabled:payroll` added to both Payroll route groups). `PayrollTestCase` now creates a
+  `ModuleSetting` row (`is_enabled: true`) for its test school in `setUp()` so every pre-existing Payroll test
+  keeps passing against the new gate instead of hitting a 403.
+
+---
+
+## Module 22: LMS — code complete 2026-07-04, awaiting Docker test run
+
+**Depends on:** Academic (#2), Student (#4) — both complete.
+
+CLAUDE.md had no dedicated spec for this module (optional, module 22 in the build order). The DevPlan docx's
+LMS section is a single "Claude Code Prompt — LMS Module" block: `lms_courses`, `lms_lessons`,
+`lms_assignments`, `lms_submissions`, `lms_submission_ai_checks` tables; `publishLesson()` /
+`submitAssignment()` / `gradeSubmission()` service methods; an `AssignmentAiCheckJob` that calls an external
+LLM to assess likely-AI-generation; and seven routes (list courses, list/view lessons, submit, list
+submissions, grade, own submission history) — no course/lesson/assignment CREATE routes are actually listed
+there, so full admin/teacher CRUD for those three was added to make the module usable at all, matching every
+other module's precedent of filling in DevPlan gaps with the established CRUD conventions.
+
+Four real forks were resolved with the user before/during building (none answered by the DevPlan alone):
+1. **Module toggle**: DevPlan ties a generic `school_module_settings`/`CheckModuleEnabled` gate to modules
+   20–24. Payroll (#21) deliberately deferred it ("build once, for all five"). Decided to build it now instead
+   of deferring further — see the new **School module additions** section below — and retrofit it onto
+   Payroll's routes in the same pass, rather than leaving Payroll AND LMS both ungated.
+2. **AI checker**: unlike Sms's stub `LogGateway` (no live SMS credentials to test against), the user chose a
+   **real Anthropic API integration** — `AnthropicAiChecker` calls the real Messages API using each school's
+   own encrypted `lms_ai_api_key`. Tests fake this via `Http::fake(['api.anthropic.com/*' => ...])`, never
+   hitting the real API.
+3. **File storage**: MinIO, matching every other file-bearing module (Certificate, IdCard, DataImport, Website
+   media).
+4. **"Notify teacher of new submission"** (DevPlan spec): explicitly deferred, not built. No
+   notification/messaging infrastructure exists yet (Messaging is module #25, still pending) and the user
+   agreed a real notification system is better built once the Next.js frontend exists and there's an actual UI
+   to notify into — same resolution pattern as OnlineAdmission's deferred status notifications. A submission
+   still creates its row and dispatches the AI-check job exactly as before; only the "ping the teacher" step is
+   the documented gap.
+
+### School module additions (shared, not LMS-specific)
+- `school_module_settings` (school_id, module enum('payroll','lms','library','transport','messaging'),
+  is_enabled default false) + `ModuleSetting` model/repository/service, all in `app/Modules/School` (a
+  cross-cutting registry, not owned by any one optional module). Absence of a row means disabled — matches
+  the DevPlan's "Head Teacher enables it" opt-in framing.
+- `App\Http\Middleware\CheckModuleEnabled` (aliased `module.enabled`, registered in `bootstrap/app.php`
+  alongside `ability`/`abilities`) — `->middleware('module.enabled:lms')` aborts 403 with
+  `'This module is not enabled for your school.'` if disabled.
+- `GET/PUT /v2/school/modules(/{module})` — admin-only toggle endpoint, `ModuleSettingController`.
+- Retrofitted onto **Payroll**: both of Payroll's route groups now also require `module.enabled:payroll`.
+- `schools.lms_ai_api_key` (new column, `text`, `encrypted` cast, hidden — same treatment as
+  `PaymentConfig`'s gateway credentials) added via an LMS-module migration extending the shared `schools`
+  table, mirroring Sms's `sms_cost_per_segment` precedent exactly (the owning feature's migration touches the
+  shared table, not a School-module migration). `SchoolResource` exposes only
+  `lms_ai_checker_configured: bool`, never the key itself.
+
+### What was built
+- `lms_courses` (school_id, class_id, subject_id — literal DevPlan schema, not `subject_relation_id`, no
+  conflict surfaced so followed as specified — teacher_id nullable, title, description, is_active),
+  `lms_lessons` (course_id, content_type enum(text|video|file), body_text/video_url/file_path, sort_order,
+  is_published), `lms_assignments` (course_id, due_date **datetime** not date — late/on-time is a
+  time-of-day cutoff, max_marks, allow_late_submission), `lms_submissions` (assignment_id + student_id
+  **unique together** — no resubmission flow was scoped, file_path, submitted_at, late_submission,
+  marks_awarded/teacher_feedback/graded_at nullable), `lms_submission_ai_checks` (submission_id **unique** —
+  one check per submission, status enum(pending|completed|failed), ai_score, likely_ai_generated,
+  originality_note, raw_response json, error_message, checked_at).
+- **`CourseRepository`** (cache-aside, mirrors `StudentRepository`) is the only entity with its own
+  Repository; Lesson/Assignment/Submission/SubmissionAiCheck are managed directly by their Services (same
+  "child entity, no separate Repository" precedent as `PageLayout`/`IdCardBatchFile`) — all five still get an
+  Observer regardless, for consistency with every other model in this codebase (`PayrollEntry` also has one
+  despite no Repository).
+- **`AiCheckerContract`** + **`AnthropicAiChecker`** (real implementation, bound directly in
+  `AppServiceProvider::register()` — unlike Sms's stub, there is no `LogAiChecker` placeholder since the user
+  chose real integration). Prompts Claude for strict JSON (`ai_score`/`likely_ai_generated`/`originality_note`)
+  and parses `response.content[0].text`; any HTTP failure or unparseable response throws.
+- **`SubmissionContentExtractor`** — extracts text from `.txt` (direct read) and `.docx` (via PHP's built-in
+  `ZipArchive` reading `word/document.xml` and stripping tags — avoids adding a new composer dependency this
+  session can't `composer require`/test anyway). **`.pdf` is a documented, deliberate gap**: no PDF-text-read
+  package exists in `composer.json` (`barryvdh/laravel-dompdf` only *writes* PDFs) — a PDF submission is still
+  accepted and stored fine, only its AI check fails with a clear message pointing at adding
+  `smalot/pdfparser` (or similar) later.
+- **`AssignmentAiCheckJob implements ShouldQueue`** (`tries = 3`, `backoff() = [10, 30, 60]`, declared for a
+  real Horizon worker). **Correction made after the first Docker test run**: the initial version let the
+  Anthropic API call's exception propagate out of `handle()`, assuming the queue would catch it and retry the
+  way it does under a real worker. That assumption was wrong for `QUEUE_CONNECTION=sync` — the exception
+  actually surfaced as a real 500 on the submit endpoint (confirmed by the test run, not by re-reading
+  framework source). Fixed by wrapping BOTH extraction and the AI API call in one try/catch inside `handle()`,
+  writing `status: failed` and never rethrowing — the exact same "swallow, don't rethrow" pattern
+  Sms/IdCard/DataImport's batch jobs already use for identical reasons. `tries`/`backoff()` remain declared as
+  intended metadata for a real Horizon-processed queue; they don't do anything under sync, same as every other
+  job in this codebase.
+- **`SubmissionService::submitAssignment()`** rejects a duplicate submission (422) and rejects a late
+  submission when `allow_late_submission` is false (422); otherwise stores the file in MinIO
+  (`{school_id}/lms/submissions/{assignmentId}/{studentId}.{ext}`), creates the row, and dispatches
+  `AssignmentAiCheckJob` **after** the row is committed — same "job failure can never roll back a successful
+  submission" ordering as Sms/IdCard's batch jobs.
+- **Ownership model**: a non-admin teacher can only manage (create lessons/assignments under, edit, delete)
+  courses where `teacher_id` matches their own `Staff` row — enforced in the controllers
+  (`assertCanManage()`), not the FormRequests. Creating/editing a course as a non-admin teacher always forces
+  `teacher_id` to their own Staff id, even if a different id is posted. A genuine bug was caught and fixed
+  during review: `CourseController::update()` only ran this ownership check when the payload happened to
+  include `teacher_id` — a non-owning teacher could otherwise edit any course's `title`/`description`
+  undetected. Fixed by always calling `assertCanManage()` regardless of payload shape.
+- **Sanctum wildcard caveat**: an admin token's `'*'` ability makes `tokenCan('student:*')` (and every other
+  ability string) return true, since Sanctum's `tokenCan()` treats `'*'` as matching anything. Any controller
+  branch that needs to detect "this is actually a student" (course listing, lesson visibility, submission
+  ownership) explicitly excludes `tokenCan('admin:*')` first — documented inline in each controller — rather
+  than trusting `tokenCan('student:*')` alone, which would otherwise misroute an admin into the
+  narrower student-only code path.
+- Routes: public-ish reads (`GET /courses`, `/courses/{id}/lessons`, `/lessons/{id}`,
+  `/courses/{id}/assignments` — the last one isn't in the DevPlan's route list either, but without it a
+  student would have no way to discover an assignment's id/due date at all) open to admin/teacher/student
+  (ownership/visibility enforced in controllers); course/lesson/assignment CRUD + grading admin/teacher;
+  submit + own-submission-history student-only; single-submission view shared with an ownership check. Every
+  route also carries `module.enabled:lms`.
+- Tests: `tests/Feature/LMS/` (`CourseTest`, `LessonTest`, `AssignmentTest`, `SubmissionTest` — covering all
+  five DevPlan-specified cases: submit before due date, late-flagging, AI job failure not affecting the
+  submission record, student-cannot-view-another-student's-submission, plus duplicate-submission and
+  grade-exceeds-max-marks guards) + `tests/Unit/LMS/` (`AssignmentAiCheckJobTest` — tries/backoff properties,
+  `SubmissionContentExtractorTest` — txt/docx/pdf-gap, `AnthropicAiCheckerTest` — success/failure/unparseable
+  response parsing via `Http::fake`) + `tests/Feature/School/ModuleSettingTest.php` (list/toggle, disabled
+  module 403s, enabling unblocks, non-admin forbidden).
+
+### Bugs found and fixed by the first real Docker test run (not caught by static review)
+- None of the 6 new models (`ModuleSetting`, `Course`, `Lesson`, `Assignment`, `Submission`,
+  `SubmissionAiCheck`) declared `protected $table` — Eloquent's default pluralized-class-name guess doesn't
+  match this module's actual table names (`school_module_settings`, `lms_courses`, `lms_lessons`,
+  `lms_assignments`, `lms_submissions`, `lms_submission_ai_checks`). Every test failed with "no such table"
+  until all six got an explicit `$table`.
+- Controllers referenced `Symfony\Component\HttpKernel\Exception\ForbiddenHttpException`, which doesn't
+  exist — Symfony's 403 exception class is `AccessDeniedHttpException`. Fixed across all four LMS controllers.
+- `ModuleSettingController::update()` returned 201 instead of 200 the first time a school's row for a module
+  was actually inserted (the "fresh-model resource returns 201" gotcha this codebase already knew about, missed
+  here since a PUT toggle reads as "should always be 200"). Forced 200 explicitly.
+- `AssignmentAiCheckJob` — see the correction noted above; an incorrect assumption about sync-queue exception
+  handling caused a real 500 on submit until the AI-call exception was also caught, not just extraction
+  failures.
+- `LessonTest::test_unpublished_lesson_is_hidden_from_students` (and the publish counterpart) switched from a
+  teacher token to a student token without `$this->app['auth']->forgetGuards()` — the exact Sanctum
+  guard-caching gotcha already documented below, reproduced here because a new test file didn't carry the
+  lesson forward. Fixed.
+
+### Known gaps / follow-ups
+- No PHP available to run `php artisan test` directly in the coding session — every fix above was verified by
+  the user running the Docker test command, not by this session's own static review, which missed all five
+  bugs listed above. Re-run the Docker test command below to confirm they're actually resolved before merging.
+- PDF text extraction unsupported (see `SubmissionContentExtractor` above) — AI checking silently fails for
+  PDF submissions specifically until a PDF-parsing package is added.
+- "Notify teacher of new submission" deliberately deferred — no notification infrastructure exists yet;
+  revisit once the frontend exists and there's a real UI to notify into.
+- No subject-relation scoping on course visibility — a student sees every active course for their current
+  class, not narrowed by `StudentSubject`/optional-subject enrollment (the DevPlan's course schema uses a
+  literal `subject_id`, not `subject_relation_id`, so there's no clean join to narrow by without changing that
+  schema).
+- No resubmission flow — `lms_submissions` is unique on `(assignment_id, student_id)`; a second submit attempt
+  is rejected outright rather than replacing the first.
 
 ---
 
@@ -769,26 +923,32 @@ admin/accountant-gated endpoints also assert teacher-forbidden and unauthenticat
 ## Git Convention
 
 ```
-feat(online-admission): description   # current module
-fix(online-admission): description
-test(online-admission): description
+feat(lms): description   # current module
+fix(lms): description
+test(lms): description
 ```
 
 ## Run & Ship (full checklist in CLAUDE.md)
 
 ```bash
 docker compose exec app php artisan migrate
-docker compose exec app php artisan test tests/Feature/Leave/ tests/Unit/Loan/ tests/Feature/Loan/ tests/Feature/Certificate/ tests/Feature/Student/TransferCertificateTest.php tests/Feature/IdCard/ tests/Feature/Report/ tests/Unit/Sms/ tests/Feature/Sms/ tests/Feature/DataImport/ tests/Feature/OnlineAdmission/ --no-coverage
+docker compose exec app php artisan test tests/Feature/Leave/ tests/Unit/Loan/ tests/Feature/Loan/ tests/Feature/Certificate/ tests/Feature/Student/TransferCertificateTest.php tests/Feature/IdCard/ tests/Feature/Report/ tests/Unit/Sms/ tests/Feature/Sms/ tests/Feature/DataImport/ tests/Feature/OnlineAdmission/ tests/Feature/Website/ tests/Feature/Payroll/ tests/Feature/School/ModuleSettingTest.php tests/Feature/LMS/ tests/Unit/LMS/ --no-coverage
 
 git checkout dev && git pull origin dev
-git checkout -b feature/online-admission-module
+git checkout -b feature/lms-module
 # ... commits ...
 git checkout dev
-git merge --no-ff feature/online-admission-module
+git merge --no-ff feature/lms-module
 git push origin dev
-git branch -d feature/online-admission-module
+git branch -d feature/lms-module
 ```
 
-Note: Report has no migrations (no new tables); Sms, DataImport, and OnlineAdmission all do (Sms:
+Note: this pass touches shared files outside `app/Modules/LMS` too — `bootstrap/app.php` (new `module.enabled`
+middleware alias), `app/Providers/AppServiceProvider.php` (ModuleSetting + LMS observers, AiCheckerContract
+binding), `app/Modules/School/**` (new ModuleSetting model/repo/service/controller/migration),
+`app/Modules/Payroll/routes/api.php` + `tests/Feature/Payroll/PayrollTestCase.php` (module-toggle retrofit),
+`app/Modules/School/Models/School.php` + its Request/Resource (`lms_ai_api_key`) — include all of these in the
+LMS module's commits per CLAUDE.md's "shared-file edits belong in the module's commits" rule. Report has no
+migrations (no new tables); Sms, DataImport, and OnlineAdmission all do (Sms:
 schools.sms_cost_per_segment + sms_batches/sms_logs; DataImport: import_batches; OnlineAdmission:
 admission_applications) — run migrate before any of their tests.
