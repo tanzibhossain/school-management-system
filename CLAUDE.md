@@ -66,7 +66,7 @@ Build in dependency order.
 | 21 | Payroll *(optional)* | Staff | ✅ tests green | SalaryComponent, StaffSalaryValue, PayrollRun, PayrollEntry, SalaryCertificateRequest. Flat component sums only (no attendance proration). Integrates Loan's deferred repayment. Fixed a real bug: `User::abilitiesForRole()` never emitted `teacher:*`/`staff:*` wildcards, so those ability-gated routes never matched a real login |
 | 22 | LMS *(optional)* | Academic, Student | ✅ tests green | Course, Lesson, Assignment, Submission, SubmissionAiCheck. Real Anthropic API integration (`AnthropicAiChecker`, Http-facade, no SDK). Introduced `school_module_settings`/`CheckModuleEnabled` (`module.enabled:{name}` middleware) — also retrofitted onto Payroll |
 | 23 | Platform | — | ✅ tests green | Plan, PendingSchoolSignup, SubscriptionReminder. Platform-level (not tenant-scoped) — see spec below |
-| 24 | Library *(optional)* | Student, Staff | ⬜ pending |
+| 24 | Library *(optional)* | Student, Staff | ✅ tests green | Book, LibraryMember, BorrowRecord, borrow/return workflow |
 | 25 | Transport *(optional)* | Student, Payment | ⬜ pending |
 | 26 | Messaging *(optional)* | User | ⬜ pending |
 
