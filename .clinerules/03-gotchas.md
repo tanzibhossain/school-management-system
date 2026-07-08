@@ -1,6 +1,6 @@
 # Gotchas Learned + Key Code Patterns
 
-Hard-won lessons from building modules 1–24. Check this before writing new code — most of these bugs have
+Hard-won lessons from building modules 1–25. Check this before writing new code — most of these bugs have
 already been hit once.
 
 ## Gotchas
@@ -35,6 +35,11 @@ already been hit once.
   `returned_at IS NULL AND due_at < now()` (a `scopeOverdue`), computed on read. Library once wrote
   `status = 'overdue'` on a late *return*, which made returned and still-outstanding records
   indistinguishable and corrupted every status filter. A late return is still `returned`.
+- **When one value lives in two enum columns, widen both in lockstep.** `purpose` is an enum on BOTH
+  `sms_batches` and `sms_logs`. Adding `transport_alert` to only the parent let the batch insert but made the
+  per-recipient `SmsLog` insert fail its CHECK constraint. On the sync queue the failing job swallows the
+  error, so the symptom is a created batch with *zero logs*, not a 500 — silent. Alter every table carrying
+  the enum in the same migration.
 
 ## Key Code Patterns
 
