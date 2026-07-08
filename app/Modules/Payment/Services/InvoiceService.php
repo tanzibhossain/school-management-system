@@ -50,12 +50,24 @@ class InvoiceService
         return DB::transaction(function () use ($schoolId, $yearId, $month, $studentId, $classId, $discountId, $dueDate, $issuedBy): Invoice {
             $invoiceNumber = $this->numberGenerator->nextInvoiceNumber($schoolId);
 
-            // Pull active fee items for this class + year
+            // Pull active fee items for this class + year. Transport fee items
+            // (transport_route_id set, class_id null) must NOT leak to the whole
+            // class — they apply only to students actively assigned to that route.
             $feeItems = FeeItem::where('school_id', $schoolId)
                 ->where('academic_year_id', $yearId)
                 ->where('is_active', true)
-                ->where(function ($q) use ($classId): void {
-                    $q->whereNull('class_id')->orWhere('class_id', $classId);
+                ->where(function ($q) use ($classId, $studentId): void {
+                    $q->where(function ($normal) use ($classId): void {
+                        $normal->whereNull('transport_route_id')
+                            ->where(function ($c) use ($classId): void {
+                                $c->whereNull('class_id')->orWhere('class_id', $classId);
+                            });
+                    })->orWhereIn('transport_route_id', function ($sub) use ($studentId): void {
+                        $sub->select('transport_route_id')
+                            ->from('student_transport_assignments')
+                            ->where('student_id', $studentId)
+                            ->where('status', 'active');
+                    });
                 })
                 ->get();
 

@@ -36,11 +36,27 @@ class SendSmsBatchJob implements ShouldQueue
         try {
             $school = School::findOrFail($batch->school_id);
 
-            $targets = $batch->purpose === 'manual'
+            // manual + transport_alert both target an explicit student list with a
+            // fixed body; only due_reminder computes per-recipient text.
+            $targets = in_array($batch->purpose, ['manual', 'transport_alert'], true)
                 ? $this->manualTargets($service, $batch)
                 : $this->dueReminderTargets($service, $batch);
 
             foreach ($targets as $target) {
+                if ($batch->purpose === 'transport_alert') {
+                    // Reaches both the student and the primary guardian.
+                    $service->sendAndLogDual(
+                        $school,
+                        $batch->id,
+                        $batch->purpose,
+                        $target['student'],
+                        $batch->requested_by,
+                        $target['body'],
+                    );
+
+                    continue;
+                }
+
                 $service->sendAndLog(
                     $school,
                     $batch->id,

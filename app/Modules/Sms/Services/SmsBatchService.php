@@ -82,6 +82,32 @@ class SmsBatchService
     }
 
     /**
+     * Transport-module vehicle-swap alert. purpose = 'transport_alert', scope =
+     * single (explicit rider student IDs). Unlike manual/due_reminder sends (which
+     * reach the guardian only), this purpose delivers to BOTH the student and the
+     * primary guardian — see sendAndLogDual().
+     *
+     * @param array<int> $studentIds
+     */
+    public function requestTransportAlert(int $schoolId, array $studentIds, string $body, ?int $actingUserId): SmsBatch
+    {
+        $batch = SmsBatch::create([
+            'school_id' => $schoolId,
+            'purpose' => 'transport_alert',
+            'scope' => 'single',
+            'target_ids' => array_values($studentIds),
+            'message_body' => $body,
+            'total_count' => count($studentIds),
+            'status' => 'queued',
+            'requested_by' => $actingUserId,
+        ]);
+
+        SendSmsBatchJob::dispatch($batch->id);
+
+        return $batch->fresh(['logs']);
+    }
+
+    /**
      * @param  array{class_id?: int|null, section_id?: int|null, target_ids?: array<int>|null}  $filters
      * @return Collection<int, Student>
      */
@@ -209,6 +235,78 @@ class SmsBatchService
             'status' => $result->success ? 'sent' : 'failed',
             'error_message' => $result->errorMessage,
         ]);
+    }
+
+    /**
+     * Dual-recipient send for transport alerts: reaches BOTH the primary guardian
+     * and the student's own number (their linked User's phone). Emits one SmsLog
+     * per distinct phone (guardian_id set for the guardian row, null for the
+     * student row). The student number is best-effort — most students have no
+     * User/phone, so a missing student number is simply skipped, not logged as a
+     * failure. If neither number exists, one failed log records why.
+     *
+     * @return Collection<int, SmsLog>
+     */
+    public function sendAndLogDual(
+        School $school,
+        int $batchId,
+        string $purpose,
+        Student $student,
+        ?int $sentBy,
+        string $body,
+    ): Collection {
+        $guardian = StudentGuardian::where('student_id', $student->id)->primary()->first()
+            ?? StudentGuardian::where('student_id', $student->id)->first();
+
+        // phone => guardian_id (null for the student's own line); dedupes by phone.
+        $recipients = [];
+        if ($guardian?->phone) {
+            $recipients[$guardian->phone] = $guardian->id;
+        }
+        $studentPhone = $student->user?->phone;
+        if ($studentPhone && ! array_key_exists($studentPhone, $recipients)) {
+            $recipients[$studentPhone] = null;
+        }
+
+        $segments = $this->calculator->calculate($body);
+        $cost = $school->sms_cost_per_segment !== null
+            ? round($segments['segment_count'] * (float) $school->sms_cost_per_segment, 4)
+            : null;
+
+        $base = [
+            'school_id' => $school->id,
+            'batch_id' => $batchId,
+            'student_id' => $student->id,
+            'body' => $body,
+            'encoding' => $segments['encoding'],
+            'segment_count' => $segments['segment_count'],
+            'cost' => $cost,
+            'purpose' => $purpose,
+            'sent_by' => $sentBy,
+            'sent_at' => now(),
+        ];
+
+        if ($recipients === []) {
+            return collect([SmsLog::create($base + [
+                'guardian_id' => null,
+                'recipient_phone' => null,
+                'status' => 'failed',
+                'error_message' => 'No student or guardian phone number on file.',
+            ])]);
+        }
+
+        $logs = collect();
+        foreach ($recipients as $phone => $guardianId) {
+            $result = $this->gateway->send($school, (string) $phone, $body);
+            $logs->push(SmsLog::create($base + [
+                'guardian_id' => $guardianId,
+                'recipient_phone' => (string) $phone,
+                'status' => $result->success ? 'sent' : 'failed',
+                'error_message' => $result->errorMessage,
+            ]));
+        }
+
+        return $logs;
     }
 
     /** Re-attempt a failed (or any) log entry verbatim — same body, freshly resolved phone. */

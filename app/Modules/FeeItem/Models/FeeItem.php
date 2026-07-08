@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class FeeItem extends Model
 {
     protected $fillable = [
-        'school_id', 'category_id', 'academic_year_id', 'class_id',
+        'school_id', 'category_id', 'academic_year_id', 'class_id', 'transport_route_id',
         'name', 'amount', 'frequency', 'due_day', 'is_mandatory', 'is_active',
     ];
 
