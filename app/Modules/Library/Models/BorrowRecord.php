@@ -40,4 +40,25 @@ class BorrowRecord extends Model
     {
         return $query->where('school_id', $schoolId);
     }
+
+    /**
+     * Still-out loans (not yet returned).
+     *
+     * @param Builder<BorrowRecord> $query
+     */
+    public function scopeOutstanding(Builder $query): Builder
+    {
+        return $query->whereNull('returned_at');
+    }
+
+    /**
+     * Outstanding loans whose due date has passed — the real "overdue" set.
+     * Derived from the data, never stored as a terminal status.
+     *
+     * @param Builder<BorrowRecord> $query
+     */
+    public function scopeOverdue(Builder $query): Builder
+    {
+        return $query->whereNull('returned_at')->where('due_at', '<', now());
+    }
 }

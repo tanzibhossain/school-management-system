@@ -34,7 +34,6 @@ class SubmissionService
 
         $path = "{$assignment->school_id}/lms/submissions/{$assignment->id}";
         $filename = "{$student->id}." . $file->getClientOriginalExtension();
-        Storage::disk('minio')->putFileAs($path, $file, $filename);
 
         $submission = Submission::create([
             'school_id' => $assignment->school_id,
@@ -45,9 +44,15 @@ class SubmissionService
             'late_submission' => $isLate,
         ]);
 
+        // Upload only after the row exists — a failed insert must not leave an
+        // orphaned MinIO object behind.
+        Storage::disk('minio')->putFileAs($path, $file, $filename);
+
         AssignmentAiCheckJob::dispatch($submission->id);
 
-        return $submission->fresh();
+        // load(), not fresh(): fresh() re-queries and discards wasRecentlyCreated,
+        // which JsonResource relies on to auto-return 201 instead of 200.
+        return $submission->load('aiCheck');
     }
 
     public function gradeSubmission(Submission $submission, int $marksAwarded, ?string $feedback): Submission
