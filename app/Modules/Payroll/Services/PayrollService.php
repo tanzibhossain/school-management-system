@@ -110,11 +110,13 @@ class PayrollService
                         continue;
                     }
 
-                    LoanSchedule::whereKey($line['loan_schedule_id'])->update([
-                        'is_paid' => true,
-                        'paid_amount' => $line['amount'],
-                        'paid_at' => now(),
-                    ]);
+                    LoanSchedule::where('school_id', $schoolId)
+                        ->whereKey($line['loan_schedule_id'])
+                        ->update([
+                            'is_paid' => true,
+                            'paid_amount' => $line['amount'],
+                            'paid_at' => now(),
+                        ]);
                 }
             }
 
