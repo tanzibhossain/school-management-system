@@ -5,6 +5,7 @@ namespace App\Modules\Platform\Services;
 use App\Modules\Platform\Gateways\PaymentGatewayContract;
 use App\Modules\Platform\Models\PendingSchoolSignup;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
@@ -44,37 +45,44 @@ class StripeWebhookService
             return;
         }
 
-        $signup = PendingSchoolSignup::find($pendingSignupId);
+        // Whole completion runs in one transaction with the signup row locked, so
+        // two near-simultaneous duplicate deliveries can't both clear the status
+        // guard and both provision. The second blocks on lockForUpdate, then reads
+        // status = 'completed' and no-ops. (The subdomain unique index was the only
+        // prior safeguard — this makes idempotency explicit rather than incidental.)
+        DB::transaction(function () use ($pendingSignupId, $session): void {
+            $signup = PendingSchoolSignup::whereKey($pendingSignupId)->lockForUpdate()->first();
 
-        // Idempotent: Stripe retries webhook delivery — a second delivery for an
-        // already-completed signup is a silent no-op, never a duplicate school.
-        if (! $signup || $signup->status === 'completed') {
-            return;
-        }
+            // Idempotent: Stripe retries webhook delivery — a second delivery for an
+            // already-completed signup is a silent no-op, never a duplicate school.
+            if (! $signup || $signup->status === 'completed') {
+                return;
+            }
 
-        $plan = $this->plans->findOrFail($signup->plan_id);
+            $plan = $this->plans->findOrFail($signup->plan_id);
 
-        $school = $this->provisioning->provision(
-            [
-                'school_name' => $signup->school_name,
-                'subdomain' => $signup->desired_subdomain,
-                'admin_name' => $signup->admin_name,
-                'admin_email' => $signup->admin_email,
-                'country_code' => $signup->country_code,
-            ],
-            $plan,
-            'self_service',
-            subscriptionExpiresAt: now()->addMonth(),
-        );
+            $school = $this->provisioning->provision(
+                [
+                    'school_name' => $signup->school_name,
+                    'subdomain' => $signup->desired_subdomain,
+                    'admin_name' => $signup->admin_name,
+                    'admin_email' => $signup->admin_email,
+                    'country_code' => $signup->country_code,
+                ],
+                $plan,
+                'self_service',
+                subscriptionExpiresAt: now()->addMonth(),
+            );
 
-        $school->update([
-            'stripe_customer_id' => $session['customer'] ?? null,
-            'stripe_subscription_id' => $session['subscription'] ?? null,
-        ]);
+            $school->update([
+                'stripe_customer_id' => $session['customer'] ?? null,
+                'stripe_subscription_id' => $session['subscription'] ?? null,
+            ]);
 
-        $signup->update([
-            'status' => 'completed',
-            'created_school_id' => $school->id,
-        ]);
+            $signup->update([
+                'status' => 'completed',
+                'created_school_id' => $school->id,
+            ]);
+        });
     }
 }
