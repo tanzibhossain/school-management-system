@@ -1,6 +1,6 @@
 # Gotchas Learned + Key Code Patterns
 
-Hard-won lessons from building modules 1–25. Check this before writing new code — most of these bugs have
+Hard-won lessons from building modules 1–26. Check this before writing new code — most of these bugs have
 already been hit once.
 
 ## Gotchas
