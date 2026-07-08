@@ -67,7 +67,7 @@ Build in dependency order.
 | 22 | LMS *(optional)* | Academic, Student | ✅ tests green | Course, Lesson, Assignment, Submission, SubmissionAiCheck. Real Anthropic API integration (`AnthropicAiChecker`, Http-facade, no SDK). Introduced `school_module_settings`/`CheckModuleEnabled` (`module.enabled:{name}` middleware) — also retrofitted onto Payroll |
 | 23 | Platform | — | ✅ tests green | Plan, PendingSchoolSignup, SubscriptionReminder. Platform-level (not tenant-scoped) — see spec below |
 | 24 | Library *(optional)* | Student, Staff | ✅ tests green | Book, LibraryMember, BorrowRecord, borrow/return workflow. Borrow/return are `DB::transaction`+`lockForUpdate` on `books.available_copies` (no oversell); "overdue" is derived (`returned_at` null AND `due_at` past, `scopeOverdue`), never a stored status |
-| 25 | Transport *(optional)* | Student, Payment | ⬜ pending |
+| 25 | Transport *(optional)* | Student, Payment, Sms, Academic | ✅ tests green | TransportRoute, TransportVehicle, TransportDriver, StudentTransportAssignment. Vehicle serves a route; swap pulls a pool vehicle (old→`out_of_service`, new→`in_service`) under `lockForUpdate`+seat-capacity, driver stays with the route. Route fee is a `FeeItem` billed only to active riders (guarded `InvoiceService` query). Swap SMS-alerts student + primary guardian via new Sms `transport_alert` purpose. Academic `transports` fare synced one-way (not dropped) |
 | 26 | Messaging *(optional)* | User | ⬜ pending |
 
 ## The 10-Step Pattern (one commit per step)
@@ -228,6 +228,11 @@ DB::transaction(function () use ($data) {
   `returned_at IS NULL AND due_at < now()` (a `scopeOverdue`), computed on read. Library once wrote
   `status = 'overdue'` on a late *return*, which made returned and still-outstanding records
   indistinguishable and corrupted every status filter — a late return is still `returned`.
+- **When one value lives in two enum columns, widen both in lockstep.** `purpose` is an enum on BOTH
+  `sms_batches` and `sms_logs`. Adding `transport_alert` to only the parent let the batch insert but made the
+  per-recipient `SmsLog` insert fail its CHECK constraint. On the sync queue the failing job swallows the
+  error, so the symptom is a created batch with *zero logs*, not a 500 — silent. Alter every table carrying
+  the enum in the same migration.
 
 ## Git Commit Convention
 ```
