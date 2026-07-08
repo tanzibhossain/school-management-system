@@ -1,6 +1,6 @@
 # Gotchas Learned + Key Code Patterns
 
-Hard-won lessons from building modules 1–23. Check this before writing new code — most of these bugs have
+Hard-won lessons from building modules 1–24. Check this before writing new code — most of these bugs have
 already been hit once.
 
 ## Gotchas
@@ -26,6 +26,15 @@ already been hit once.
 - **`ForbiddenHttpException` doesn't exist** in Symfony — the 403 exception is `AccessDeniedHttpException`.
 - Date-range queries: use `whereDate`, not `whereBetween`, against a `date`-cast column; use the full
   `Y-m-d H:i:s` string in `assertDatabaseHas` (SQLite stores `date` casts as datetime).
+- **Shared-counter mutations need `DB::transaction` + `lockForUpdate`, not just "financial" writes** — any
+  read-check-then-write on a shared count (stock, seats, quota) races under concurrency. Library `borrow()`
+  originally checked `available_copies < 1` then decremented with no lock, so two borrows of the last copy
+  both passed and both decremented — overselling and driving the `unsignedInteger` column below zero (a DB
+  error → 500). Lock the row inside a transaction, same as `Payment/CreditService`.
+- **Derive transient states at read time; never store them as a terminal status** — "overdue" is
+  `returned_at IS NULL AND due_at < now()` (a `scopeOverdue`), computed on read. Library once wrote
+  `status = 'overdue'` on a late *return*, which made returned and still-outstanding records
+  indistinguishable and corrupted every status filter. A late return is still `returned`.
 
 ## Key Code Patterns
 

@@ -66,7 +66,7 @@ Build in dependency order.
 | 21 | Payroll *(optional)* | Staff | ✅ tests green | SalaryComponent, StaffSalaryValue, PayrollRun, PayrollEntry, SalaryCertificateRequest. Flat component sums only (no attendance proration). Integrates Loan's deferred repayment. Fixed a real bug: `User::abilitiesForRole()` never emitted `teacher:*`/`staff:*` wildcards, so those ability-gated routes never matched a real login |
 | 22 | LMS *(optional)* | Academic, Student | ✅ tests green | Course, Lesson, Assignment, Submission, SubmissionAiCheck. Real Anthropic API integration (`AnthropicAiChecker`, Http-facade, no SDK). Introduced `school_module_settings`/`CheckModuleEnabled` (`module.enabled:{name}` middleware) — also retrofitted onto Payroll |
 | 23 | Platform | — | ✅ tests green | Plan, PendingSchoolSignup, SubscriptionReminder. Platform-level (not tenant-scoped) — see spec below |
-| 24 | Library *(optional)* | Student, Staff | ✅ tests green | Book, LibraryMember, BorrowRecord, borrow/return workflow |
+| 24 | Library *(optional)* | Student, Staff | ✅ tests green | Book, LibraryMember, BorrowRecord, borrow/return workflow. Borrow/return are `DB::transaction`+`lockForUpdate` on `books.available_copies` (no oversell); "overdue" is derived (`returned_at` null AND `due_at` past, `scopeOverdue`), never a stored status |
 | 25 | Transport *(optional)* | Student, Payment | ⬜ pending |
 | 26 | Messaging *(optional)* | User | ⬜ pending |
 
@@ -219,6 +219,15 @@ DB::transaction(function () use ($data) {
 - **`ForbiddenHttpException` doesn't exist** in Symfony — the 403 exception is `AccessDeniedHttpException`.
 - Date-range queries: use `whereDate`, not `whereBetween`, against a `date`-cast column; use the full
   `Y-m-d H:i:s` string in `assertDatabaseHas` (SQLite stores `date` casts as datetime).
+- **Shared-counter mutations need `DB::transaction` + `lockForUpdate` — not just "financial" writes.** Any
+  read-check-then-write on a shared count (stock, seats, quota) races under concurrency. Library `borrow()`
+  originally checked `available_copies < 1` then decremented with no lock, so two borrows of the last copy
+  both passed and both decremented — overselling and driving the `unsignedInteger` column below zero (a DB
+  error → 500). Lock the row inside a transaction, exactly like `Payment/CreditService`.
+- **Derive transient states at read time; never store them as a terminal status.** "Overdue" is
+  `returned_at IS NULL AND due_at < now()` (a `scopeOverdue`), computed on read. Library once wrote
+  `status = 'overdue'` on a late *return*, which made returned and still-outstanding records
+  indistinguishable and corrupted every status filter — a late return is still `returned`.
 
 ## Git Commit Convention
 ```
