@@ -27,6 +27,6 @@ Build in dependency order — never start a module before its dependencies are c
 | 21 | Payroll *(optional)* | Staff | ✅ tests green | SalaryComponent, StaffSalaryValue, PayrollRun, PayrollEntry, SalaryCertificateRequest. Flat component sums only (no attendance proration). Integrates Loan's deferred repayment. Fixed a real bug: `User::abilitiesForRole()` never emitted `teacher:*`/`staff:*` wildcards, so those ability-gated routes never matched a real login |
 | 22 | LMS *(optional)* | Academic, Student | ✅ tests green | Course, Lesson, Assignment, Submission, SubmissionAiCheck. Real Anthropic API integration (`AnthropicAiChecker`, Http-facade, no SDK). Introduced `school_module_settings`/`CheckModuleEnabled` (`module.enabled:{name}` middleware) — also retrofitted onto Payroll |
 | 23 | Platform | — | ✅ tests green | Plan, PendingSchoolSignup, SubscriptionReminder. Platform-level (not tenant-scoped) — see `02-module-specs.md` |
-| 24 | Library *(optional)* | Student, Staff | ⬜ pending |
+| 24 | Library *(optional)* | Student, Staff | ✅ tests green | Book, LibraryMember, BorrowRecord, borrow/return workflow. Borrow/return run in `DB::transaction`+`lockForUpdate` on `books.available_copies` (no oversell); "overdue" is derived (`returned_at` null AND `due_at` past, `scopeOverdue`), never a stored status |
 | 25 | Transport *(optional)* | Student, Payment | ⬜ pending |
 | 26 | Messaging *(optional)* | User | ⬜ pending |
