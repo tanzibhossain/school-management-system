@@ -22,10 +22,20 @@ class SchoolRepository extends BaseRepository
      */
     public function getCurrent(): ?School
     {
-        return $this->remember(
-            $this->cacheKey('current'),
-            fn () => School::with(['phones', 'openingHours'])->first(),
-        );
+        $fetch = fn () => School::with(['phones', 'openingHours'])->first();
+
+        $school = $this->remember($this->cacheKey('current'), $fetch);
+
+        // Self-heal against a stale/incompatible cached entry — an old serialized
+        // model can come back from Redis as __PHP_Incomplete_Class, which would
+        // otherwise violate the ?School return type and 500. Drop it and re-read.
+        if ($school !== null && ! $school instanceof School) {
+            $this->flush();
+
+            return $fetch();
+        }
+
+        return $school;
     }
 
     public function getPhones(int $schoolId): Collection
