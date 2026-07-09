@@ -18,7 +18,6 @@ class UpdateSchoolClassRequest extends FormRequest
     {
         return [
             'name' => 'sometimes|required|string|max:100',
-            'weight' => 'sometimes|nullable|integer|min:0|max:255',
         ];
     }
 }

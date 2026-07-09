@@ -52,7 +52,7 @@ class AcademicRepository extends BaseRepository
     {
         return $this->remember(
             $this->cacheKey("school:{$schoolId}:classes"),
-            fn () => SchoolClass::where('school_id', $schoolId)->active()->orderBy('weight')->orderBy('name')->get(),
+            fn () => SchoolClass::where('school_id', $schoolId)->active()->orderBy('name')->get(),
         );
     }
 

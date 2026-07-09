@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('school_id');
             $table->string('name', 100);
-            $table->unsignedTinyInteger('weight')->default(0);
             $table->boolean('is_trash')->default(false);
             $table->timestamps();
 

@@ -10,10 +10,9 @@ class SchoolClass extends Model
 {
     protected $table = 'classes';
 
-    protected $fillable = ['school_id', 'name', 'weight', 'is_trash'];
+    protected $fillable = ['school_id', 'name', 'is_trash'];
 
     protected $casts = [
-        'weight'   => 'integer',
         'is_trash' => 'boolean',
     ];
 

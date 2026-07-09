@@ -13,7 +13,6 @@ return new class extends Migration
             $table->unsignedBigInteger('school_id');
             $table->string('name', 150);
             $table->string('sub_code', 30)->nullable();
-            $table->unsignedTinyInteger('weight')->default(0);
             $table->boolean('is_trash')->default(false);
             $table->timestamps();
 

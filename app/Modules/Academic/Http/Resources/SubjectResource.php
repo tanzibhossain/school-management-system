@@ -16,7 +16,6 @@ class SubjectResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'sub_code' => $this->sub_code,
-            'weight' => $this->weight,
             'is_trash' => $this->is_trash,
         ];
     }

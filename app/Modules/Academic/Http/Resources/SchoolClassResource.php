@@ -15,7 +15,6 @@ class SchoolClassResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'weight' => $this->weight,
             'is_trash' => $this->is_trash,
         ];
     }

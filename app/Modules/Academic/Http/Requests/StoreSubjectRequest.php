@@ -19,7 +19,6 @@ class StoreSubjectRequest extends FormRequest
         return [
             'name'     => 'required|string|max:150',
             'sub_code' => 'nullable|string|max:30',
-            'weight'   => 'nullable|integer|min:0|max:255',
         ];
     }
 }

@@ -18,7 +18,6 @@ class StoreSchoolClassRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:100',
-            'weight' => 'nullable|integer|min:0|max:255',
         ];
     }
 }

@@ -19,7 +19,6 @@ class UpdateSubjectRequest extends FormRequest
         return [
             'name'     => 'sometimes|string|max:150',
             'sub_code' => 'sometimes|nullable|string|max:30',
-            'weight'   => 'sometimes|nullable|integer|min:0|max:255',
         ];
     }
 }
