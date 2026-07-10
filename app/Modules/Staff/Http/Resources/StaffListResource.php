@@ -19,8 +19,12 @@ class StaffListResource extends JsonResource
             'employment_type' => $this->employment_type,
             'status'          => $this->status,
             'rfid_number'     => $this->rfid_number,
-            'designation'     => $this->whenLoaded('designation', fn () => $this->designation?->name),
-            'department'      => $this->whenLoaded('department', fn () => $this->department?->name),
+            'designation'     => $this->whenLoaded('designation', fn () => $this->designation
+                ? ['id' => $this->designation->id, 'name' => $this->designation->name]
+                : null),
+            'department'      => $this->whenLoaded('department', fn () => $this->department
+                ? ['id' => $this->department->id, 'name' => $this->department->name]
+                : null),
         ];
     }
 }
