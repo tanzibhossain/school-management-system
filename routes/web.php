@@ -1,7 +1,12 @@
 <?php
 
-use App\Http\Controllers\Admin\Auth\LoginController;
+
+oginController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\People\StaffController;
+use App\Http\Controllers\Admin\People\StaffReferenceController;
+use App\Http\Controllers\Admin\People\StudentController;
+use App\Http\Controllers\Admin\People\UserController;
 use App\Http\Controllers\Admin\Setup\AcademicYearController;
 use App\Http\Controllers\Admin\Setup\ClassController;
 use App\Http\Controllers\Admin\Setup\ModuleController;
@@ -11,7 +16,7 @@ use App\Http\Controllers\Admin\Setup\SectionController;
 use App\Http\Controllers\Admin\Setup\SubjectController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => redirect()->route('admin.dashboard'));
+Route::get('/', fn() => redirect()->route('admin.dashboard'));
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
@@ -64,4 +69,33 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::put("/{$type}/{id}", [ReferenceController::class, 'update'])->defaults('type', $type)->name("{$type}.update");
         Route::delete("/{$type}/{id}", [ReferenceController::class, 'destroy'])->defaults('type', $type)->name("{$type}.destroy");
     }
+
+    // ── People ───────────────────────────────────────────────────────────────
+    // Students
+    Route::get('/students', [StudentController::class, 'index'])->name('students.index');
+    Route::get('/students/create', [StudentController::class, 'create'])->name('students.create');
+    Route::post('/students', [StudentController::class, 'store'])->name('students.store');
+    Route::put('/students/{id}', [StudentController::class, 'update'])->name('students.update');
+    Route::patch('/students/{id}/deactivate', [StudentController::class, 'deactivate'])->name('students.deactivate');
+
+    // Staff
+    Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
+    Route::post('/staff', [StaffController::class, 'store'])->name('staff.store');
+    Route::put('/staff/{id}', [StaffController::class, 'update'])->name('staff.update');
+    Route::patch('/staff/{id}/deactivate', [StaffController::class, 'deactivate'])->name('staff.deactivate');
+
+    // Designations / Departments (one controller, {type} via defaults)
+    foreach (['designations', 'departments'] as $type) {
+        Route::get("/{$type}", [StaffReferenceController::class, 'index'])->defaults('type', $type)->name("{$type}.index");
+        Route::post("/{$type}", [StaffReferenceController::class, 'store'])->defaults('type', $type)->name("{$type}.store");
+        Route::put("/{$type}/{id}", [StaffReferenceController::class, 'update'])->defaults('type', $type)->name("{$type}.update");
+        Route::delete("/{$type}/{id}", [StaffReferenceController::class, 'destroy'])->defaults('type', $type)->name("{$type}.destroy");
+    }
+
+    // Users & roles
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::post('/users', [UserController::class, 'store'])->name('users.store');
+    Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
+    Route::patch('/users/{id}/role', [UserController::class, 'changeRole'])->name('users.change-role');
+    Route::patch('/users/{id}/deactivate', [UserController::class, 'deactivate'])->name('users.deactivate');
 });

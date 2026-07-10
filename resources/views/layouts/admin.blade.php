@@ -43,6 +43,13 @@
       <li><a class="nav-link {{ request()->routeIs('admin.groups.*') ? 'active' : '' }}" href="{{ route('admin.groups.index') }}"><i class="bi bi-people"></i> Groups</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.versions.*') ? 'active' : '' }}" href="{{ route('admin.versions.index') }}"><i class="bi bi-translate"></i> Versions</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.shifts.*') ? 'active' : '' }}" href="{{ route('admin.shifts.index') }}"><i class="bi bi-clock-history"></i> Shifts</a></li>
+
+      <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">People</li>
+      <li><a class="nav-link {{ request()->routeIs('admin.students.*') ? 'active' : '' }}" href="{{ route('admin.students.index') }}"><i class="bi bi-people-fill"></i> Students</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.staff.*') ? 'active' : '' }}" href="{{ route('admin.staff.index') }}"><i class="bi bi-person-badge"></i> Staff</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.designations.*') ? 'active' : '' }}" href="{{ route('admin.designations.index') }}"><i class="bi bi-award"></i> Designations</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.departments.*') ? 'active' : '' }}" href="{{ route('admin.departments.index') }}"><i class="bi bi-building"></i> Departments</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}"><i class="bi bi-person-gear"></i> Users &amp; roles</a></li>
     </ul>
   </nav>
 

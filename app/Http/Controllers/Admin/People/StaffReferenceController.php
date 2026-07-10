@@ -1,11 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Setup;
+namespace App\Http\Controllers\Admin\People;
 
-use App\Modules\Academic\Models\AcademicGroup;
-use App\Modules\Academic\Models\AcademicShift;
-use App\Modules\Academic\Models\AcademicVersion;
-use App\Modules\Academic\Repositories\AcademicRepository;
+use App\Modules\Staff\Models\Department;
+use App\Modules\Staff\Models\Designation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,35 +11,33 @@ use Illuminate\Routing\Controller;
 use Illuminate\View\View;
 
 /**
- * One controller for the three name-only academic reference lists
- * (groups, versions, shifts). The {type} comes from the route's ->defaults(),
- * read via $request->route()->parameter() — NOT a method arg: a defaulted param
- * mixed with a URL {id} binds positionally and would swap the two.
+ * Designations and Departments — simple per-school name lists on the Staff
+ * module. Both are `['school_id', 'name']` with a `staff()` relation, so one
+ * controller serves both. The {type} comes from the route's ->defaults(), read
+ * via $request->route()->parameter() (not a method arg — mixing a defaulted
+ * param with a URL {id} binds positionally and swaps the two).
  */
-class ReferenceController extends Controller
+class StaffReferenceController extends Controller
 {
     /** @var array<string, array{model: class-string<Model>, table: string, label: string, singular: string}> */
     private const TYPES = [
-        'groups'   => ['model' => AcademicGroup::class,   'table' => 'groups',   'label' => 'Groups',   'singular' => 'Group'],
-        'versions' => ['model' => AcademicVersion::class, 'table' => 'versions', 'label' => 'Versions', 'singular' => 'Version'],
-        'shifts'   => ['model' => AcademicShift::class,   'table' => 'shifts',   'label' => 'Shifts',   'singular' => 'Shift'],
+        'designations' => ['model' => Designation::class, 'table' => 'designations', 'label' => 'Designations', 'singular' => 'Designation'],
+        'departments'  => ['model' => Department::class,  'table' => 'departments',  'label' => 'Departments',  'singular' => 'Department'],
     ];
-
-    public function __construct(private readonly AcademicRepository $academic) {}
 
     public function index(Request $request): View
     {
         $meta = $this->meta($request);
         $items = $meta['model']::where('school_id', app('current_school_id'))
-            ->where('is_trash', false)
+            ->withCount('staff')
             ->orderBy('name')
             ->get();
 
-        return view('admin.setup.reference.index', [
-            'type'  => $request->route()->parameter('type'),
-            'label' => $meta['label'],
+        return view('admin.people.reference.index', [
+            'type'     => $request->route()->parameter('type'),
+            'label'    => $meta['label'],
             'singular' => $meta['singular'],
-            'items' => $items,
+            'items'    => $items,
         ]);
     }
 
@@ -50,7 +46,6 @@ class ReferenceController extends Controller
         $meta = $this->meta($request);
         $schoolId = app('current_school_id');
         $meta['model']::create($this->validated($request, $meta['table'], $schoolId, null) + ['school_id' => $schoolId]);
-        $this->academic->flush();
 
         return back()->with('status', "{$meta['singular']} created.");
     }
@@ -61,7 +56,6 @@ class ReferenceController extends Controller
         $schoolId = app('current_school_id');
         $item = $meta['model']::where('school_id', $schoolId)->findOrFail($id);
         $item->update($this->validated($request, $meta['table'], $schoolId, $id));
-        $this->academic->flush();
 
         return back()->with('status', "{$meta['singular']} updated.");
     }
@@ -69,9 +63,13 @@ class ReferenceController extends Controller
     public function destroy(Request $request, int $id): RedirectResponse
     {
         $meta = $this->meta($request);
-        $item = $meta['model']::where('school_id', app('current_school_id'))->findOrFail($id);
-        $item->update(['is_trash' => true]);
-        $this->academic->flush();
+        $item = $meta['model']::where('school_id', app('current_school_id'))->withCount('staff')->findOrFail($id);
+
+        if ($item->staff_count > 0) {
+            return back()->with('error', "Cannot delete a {$meta['singular']} that still has staff assigned.");
+        }
+
+        $item->delete();
 
         return back()->with('status', "{$meta['singular']} deleted.");
     }
@@ -95,7 +93,7 @@ class ReferenceController extends Controller
         $ignore = $id ?? 'NULL';
 
         return $request->validate([
-            'name' => ['required', 'string', 'max:100', "unique:{$table},name,{$ignore},id,school_id,{$schoolId},is_trash,0"],
+            'name' => ['required', 'string', 'max:100', "unique:{$table},name,{$ignore},id,school_id,{$schoolId}"],
         ]);
     }
 }

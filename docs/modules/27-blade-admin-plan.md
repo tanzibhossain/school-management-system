@@ -121,7 +121,7 @@ Each resource area repeats the same shape so screens are predictable:
 |---|---|---|---|
 | 0 | **Foundation** | `layouts/admin.blade.php` (BS5 + DataTables shell, sidebar, topbar), login, dashboard, `SetCurrentSchoolFromSession`, Classes reference CRUD | ✅ done |
 | 1 | **Setup** | School settings, module toggles, academic years, classes & sections, subjects, groups/versions/shifts (routine still TODO) | ✅ done · `tests/Feature/Admin/SetupAreaTest.php` |
-| 2 | **People** | Students (enrol + detail tabs), staff, designations/departments, users & roles | ⬜ |
+| 2 | **People** | Students (enrol + edit + deactivate), staff (hire/edit/deactivate), designations/departments, users & roles | ✅ done · `tests/Feature/Admin/PeopleAreaTest.php` |
 | 3 | **Finance** | Fee items/discounts, invoices (single + bulk), payments, refunds/credit, gateway config | ⬜ |
 | 4 | **Academics** | Attendance register + corrections, exams/halls/seating, mark entry, results lock | ⬜ |
 | 5 | **Comms + Reports** | Announcements, SMS, Messaging; Report screens linking existing PDF endpoints | ⬜ |
