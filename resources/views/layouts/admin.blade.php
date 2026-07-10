@@ -50,6 +50,15 @@
       <li><a class="nav-link {{ request()->routeIs('admin.designations.*') ? 'active' : '' }}" href="{{ route('admin.designations.index') }}"><i class="bi bi-award"></i> Designations</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.departments.*') ? 'active' : '' }}" href="{{ route('admin.departments.index') }}"><i class="bi bi-building"></i> Departments</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}"><i class="bi bi-person-gear"></i> Users &amp; roles</a></li>
+
+      <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">Finance</li>
+      <li><a class="nav-link {{ request()->routeIs('admin.fee-categories.*') ? 'active' : '' }}" href="{{ route('admin.fee-categories.index') }}"><i class="bi bi-tags"></i> Fee categories</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.fee-items.*') ? 'active' : '' }}" href="{{ route('admin.fee-items.index') }}"><i class="bi bi-cash-stack"></i> Fee items</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.fee-discounts.*') ? 'active' : '' }}" href="{{ route('admin.fee-discounts.index') }}"><i class="bi bi-percent"></i> Discounts</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.invoices.*') ? 'active' : '' }}" href="{{ route('admin.invoices.index') }}"><i class="bi bi-receipt"></i> Invoices</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}" href="{{ route('admin.payments.index') }}"><i class="bi bi-credit-card"></i> Payments</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.refunds.*') ? 'active' : '' }}" href="{{ route('admin.refunds.index') }}"><i class="bi bi-arrow-return-left"></i> Refunds</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.payment-config.*') ? 'active' : '' }}" href="{{ route('admin.payment-config.edit') }}"><i class="bi bi-gear"></i> Payment config</a></li>
     </ul>
   </nav>
 

@@ -2,7 +2,9 @@
 
 namespace App\Modules\Payment\Models;
 
+use App\Modules\Student\Models\Student;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
@@ -23,6 +25,12 @@ class Invoice extends Model
         'due_date'       => 'date',
         'month'          => 'integer',
     ];
+
+    /** @return BelongsTo<Student, Invoice> */
+    public function student(): BelongsTo
+    {
+        return $this->belongsTo(Student::class);
+    }
 
     public function items(): HasMany
     {

@@ -1,8 +1,14 @@
 <?php
 
-
-oginController;
+use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\Finance\FeeCategoryController;
+use App\Http\Controllers\Admin\Finance\FeeDiscountController;
+use App\Http\Controllers\Admin\Finance\FeeItemController;
+use App\Http\Controllers\Admin\Finance\InvoiceController;
+use App\Http\Controllers\Admin\Finance\PaymentConfigController;
+use App\Http\Controllers\Admin\Finance\PaymentController;
+use App\Http\Controllers\Admin\Finance\RefundController;
 use App\Http\Controllers\Admin\People\StaffController;
 use App\Http\Controllers\Admin\People\StaffReferenceController;
 use App\Http\Controllers\Admin\People\StudentController;
@@ -98,4 +104,43 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
     Route::put('/users/{id}', [UserController::class, 'update'])->name('users.update');
     Route::patch('/users/{id}/role', [UserController::class, 'changeRole'])->name('users.change-role');
     Route::patch('/users/{id}/deactivate', [UserController::class, 'deactivate'])->name('users.deactivate');
+
+    // ── Finance ──────────────────────────────────────────────────────────────
+    // Fee categories
+    Route::get('/fee-categories', [FeeCategoryController::class, 'index'])->name('fee-categories.index');
+    Route::post('/fee-categories', [FeeCategoryController::class, 'store'])->name('fee-categories.store');
+    Route::put('/fee-categories/{id}', [FeeCategoryController::class, 'update'])->name('fee-categories.update');
+    Route::delete('/fee-categories/{id}', [FeeCategoryController::class, 'destroy'])->name('fee-categories.destroy');
+
+    // Fee items
+    Route::get('/fee-items', [FeeItemController::class, 'index'])->name('fee-items.index');
+    Route::post('/fee-items', [FeeItemController::class, 'store'])->name('fee-items.store');
+    Route::put('/fee-items/{id}', [FeeItemController::class, 'update'])->name('fee-items.update');
+    Route::patch('/fee-items/{id}/deactivate', [FeeItemController::class, 'deactivate'])->name('fee-items.deactivate');
+
+    // Fee discounts
+    Route::get('/fee-discounts', [FeeDiscountController::class, 'index'])->name('fee-discounts.index');
+    Route::post('/fee-discounts', [FeeDiscountController::class, 'store'])->name('fee-discounts.store');
+    Route::put('/fee-discounts/{id}', [FeeDiscountController::class, 'update'])->name('fee-discounts.update');
+    Route::patch('/fee-discounts/{id}/deactivate', [FeeDiscountController::class, 'deactivate'])->name('fee-discounts.deactivate');
+
+    // Invoices
+    Route::get('/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+    Route::post('/invoices/generate-single', [InvoiceController::class, 'generateSingle'])->name('invoices.generate-single');
+    Route::post('/invoices/generate-bulk', [InvoiceController::class, 'generateBulk'])->name('invoices.generate-bulk');
+    Route::get('/invoices/{id}', [InvoiceController::class, 'show'])->name('invoices.show');
+    Route::patch('/invoices/{id}/cancel', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
+    Route::patch('/invoices/{id}/waive', [InvoiceController::class, 'waive'])->name('invoices.waive');
+
+    // Payments
+    Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::post('/invoices/{invoiceId}/payments', [PaymentController::class, 'store'])->name('payments.store');
+
+    // Refunds
+    Route::get('/refunds', [RefundController::class, 'index'])->name('refunds.index');
+    Route::post('/refunds', [RefundController::class, 'store'])->name('refunds.store');
+
+    // Payment config
+    Route::get('/payment-config', [PaymentConfigController::class, 'edit'])->name('payment-config.edit');
+    Route::put('/payment-config', [PaymentConfigController::class, 'update'])->name('payment-config.update');
 });
