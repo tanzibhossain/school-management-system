@@ -6,12 +6,21 @@ Read automatically at the start of every session. Follow every rule here across 
 Multi-tenant SaaS school management platform.
 Stack: Laravel 13 · PHP 8.3 · MySQL 8 · Redis 7 · Laravel Horizon · MinIO · Sanctum · Spatie Permission
 
-## Frontend (decided, not yet built — starts only after all backend modules are done)
-- Monorepo, 3 Next.js 15 apps: `apps/marketing` (vendor site, not tenant-scoped, features/pricing/contact/demo
-  request — no backend endpoint yet for the contact form), `apps/school-site` (per-school public site, consumes
-  Website module's `/public/*`), `apps/dashboard` (per-school logged-in app, consumes every other module's API).
-- Tenant routing: subdomain per school (`{school}.yourapp.com` public site, `app.{school}.yourapp.com` or `/app`
-  for dashboard). `schools.subdomain` column exists (Platform module).
+## Frontend (Laravel Blade + Bootstrap admin — in this repo; superseded the Next.js SPA)
+- **Decision:** the school-facing admin UI is **server-rendered Laravel Blade + Bootstrap 5**, living in THIS
+  backend repo — not a separate Next.js/Turborepo app. Reuses the module Services and **session auth** (`web`
+  guard), no API tokens / BFF proxy / CORS. Full plan: `docs/modules/27-blade-admin-plan.md`.
+- **Reference:** the v1 build in `old/` (SmartAdmin/Bootstrap 4) is the layout + IA reference — reproduce its
+  sidebar grouping and panel/breadcrumb structure, **modernized** to BS 5.3, DataTables 2 (bootstrap5 skin),
+  native BS modals, and inline FormRequest validation (no Laravel Collective / bootbox / select2).
+- **Where:** controllers `app/Http/Controllers/Admin/{Area}/`; views `resources/views/admin/`; layout
+  `resources/views/layouts/admin.blade.php`; routes `routes/web.php` (`middleware(['auth','school'])`, prefix
+  `admin`). `SetCurrentSchoolFromSession` (alias `school`) sets `app('current_school_id')` from `Auth::user()`.
+- Admin controllers stay thin and call existing Services (never `DB::table()`); admin writes reuse module
+  FormRequest `rules()`. CDN assets (Bootstrap 5.3.3, DataTables 2.1.8, jQuery 3.7.1, Tom Select) — no build step.
+- Tenant routing: subdomain per school still applies for public sites (`{school}.yourapp.com`); the admin runs
+  under the app host with session auth. `schools.subdomain` column exists (Platform module). Teacher/student/
+  guardian areas and the public school site are later phases of this same Blade app.
 
 ## Architecture Rules
 - Module path: `app/Modules/{ModuleName}/Http/{Controllers,Requests,Resources}`, `Models/`, `Repositories/`,

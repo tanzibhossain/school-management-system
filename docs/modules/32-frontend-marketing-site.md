@@ -1,3 +1,7 @@
+> ⛔ **SUPERSEDED — no separate Next.js app.** The vendor marketing site is deferred; when built it will be a
+> Blade (or lightweight static) site, not a Next.js `apps/marketing`. See `docs/modules/27-blade-admin-plan.md`
+> for the current frontend direction. Kept for historical scope reference only.
+
 # 32 — Marketing Site Frontend (Planned)
 
 **Status:** ⬜ Planned · **Depends on:** Frontend Platform · **Path:** `apps/marketing`

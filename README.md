@@ -1,13 +1,13 @@
 # School Management System v2
 
-A multi-tenant SaaS school management platform built with Laravel 13 and Next.js 15. Each school gets its own subdomain or custom domain. Everything runs self-hosted in Docker on a single Ubuntu VPS.
+A multi-tenant SaaS school management platform built with Laravel 13, with a server-rendered Laravel Blade + Bootstrap 5 admin UI. Each school gets its own subdomain or custom domain. Everything runs self-hosted in Docker on a single Ubuntu VPS.
 
 ---
 
 ## Tech Stack
 
 - **Backend:** Laravel 13 · PHP 8.3 · MySQL 8 · Redis 7 · Laravel Horizon
-- **Frontend:** Next.js 15 (App Router) · React Query · Tailwind CSS
+- **Admin UI:** Laravel Blade · Bootstrap 5.3 · DataTables 2 · session auth (in this repo; see `docs/modules/27-blade-admin-plan.md`)
 - **File Storage:** MinIO (self-hosted, S3-compatible)
 - **Auth:** Laravel Sanctum · Spatie Laravel Permission
 - **Email:** Resend (platform-level)
@@ -22,7 +22,7 @@ A multi-tenant SaaS school management platform built with Laravel 13 and Next.js
 - Git
 - [Composer](https://getcomposer.org/download/) (for the initial project creation only)
 - A code editor (VS Code recommended)
-- Node.js 20+ (for the Next.js frontend only)
+- (No Node toolchain needed — the Blade admin loads Bootstrap/DataTables/jQuery from CDN)
 
 After the initial setup, all `composer` and `php artisan` commands run **inside the Docker container** — no local PHP needed day-to-day.
 
@@ -89,7 +89,7 @@ docker compose exec app bash                             # open shell in contain
 |---------|-----|-------|
 | Laravel API | http://localhost:8080 | Nginx → PHP-FPM |
 | Health Check | http://localhost:8080/api/v2/health | First thing to verify |
-| Next.js Frontend | http://localhost:3000 | Run separately with `npm run dev` |
+| Admin UI (Blade) | http://localhost:8080/login | Served by Laravel; log in with a school admin account |
 | MinIO Console | http://localhost:9001 | File storage browser UI |
 | Horizon Dashboard | http://localhost:8080/horizon | Queue monitoring |
 | MySQL | localhost:3307 | Connect via TablePlus or DBeaver |

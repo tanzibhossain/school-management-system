@@ -1,3 +1,7 @@
+> ⛔ **SUPERSEDED — no separate Next.js app.** The per-school public site is now a **later phase of the Laravel
+> Blade app** in this repo, consuming the Website module's `/public/*` endpoints — not a Next.js `apps/school-
+> site`. See `docs/modules/27-blade-admin-plan.md`. Kept for historical scope reference only.
+
 # 33 — School Site Frontend (Planned)
 
 **Status:** ⬜ Planned · **Depends on:** Frontend Platform, Website API · **Path:** `apps/school-site`

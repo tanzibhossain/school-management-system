@@ -3,12 +3,17 @@
 Multi-tenant SaaS school management platform.
 Stack: Laravel 13 · PHP 8.3 · MySQL 8 · Redis 7 · Laravel Horizon · MinIO · Sanctum · Spatie Permission
 
-## Frontend (decided, not yet built — starts only after all backend modules are done)
-- Monorepo, 3 Next.js 15 apps: `apps/marketing` (vendor site, not tenant-scoped, features/pricing/contact/demo
-  request — no backend endpoint yet for the contact form), `apps/school-site` (per-school public site, consumes
-  Website module's `/public/*`), `apps/dashboard` (per-school logged-in app, consumes every other module's API).
-- Tenant routing: subdomain per school (`{school}.yourapp.com` public site, `app.{school}.yourapp.com` or `/app`
-  for dashboard). `schools.subdomain` column exists (Platform module).
+## Frontend (Laravel Blade + Bootstrap admin — in this repo; superseded the Next.js SPA)
+- The school-facing admin UI is **server-rendered Laravel Blade + Bootstrap 5**, in THIS backend repo — not a
+  separate Next.js app. Session auth (`web` guard), reuses module Services, no tokens/BFF/CORS. Plan:
+  `docs/modules/27-blade-admin-plan.md`. v1 build in `old/` (SmartAdmin/BS4) is the layout + IA reference,
+  modernized to BS 5.3 + DataTables 2.
+- Controllers `app/Http/Controllers/Admin/`; views `resources/views/admin/`; routes `routes/web.php`
+  (`middleware(['auth','school'])`, prefix `admin`). `SetCurrentSchoolFromSession` (alias `school`) sets
+  `app('current_school_id')` from `Auth::user()`.
+- Tenant routing: subdomain per school still applies for public sites (`{school}.yourapp.com`).
+  `schools.subdomain` column exists (Platform module). Teacher/student/guardian areas + public school site are
+  later phases of the same Blade app.
 
 ## Architecture Rules
 - Module path: `app/Modules/{ModuleName}/Http/{Controllers,Requests,Resources}`, `Models/`, `Repositories/`,

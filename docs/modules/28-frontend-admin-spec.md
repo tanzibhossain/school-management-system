@@ -1,3 +1,6 @@
+> ⛔ **SUPERSEDED — the Next.js frontend was dropped.** The admin UI is now Laravel Blade + Bootstrap 5 in
+> this repo. See `docs/modules/27-blade-admin-plan.md`. This spec is kept for historical context only.
+
 # Module 28 — Admin Frontend · Implementation Spec (for review, no code yet)
 
 **Status:** 🟡 Spec / awaiting approval · **Depends on:** #27 Frontend Platform, Backend API · **Path:** `apps/dashboard` (in `school-management-frontend`)

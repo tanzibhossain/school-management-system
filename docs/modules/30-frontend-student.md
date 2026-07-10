@@ -1,3 +1,7 @@
+> ⛔ **SUPERSEDED — no separate Next.js app.** The student experience is now a **later, role-scoped phase of
+> the Laravel Blade + Bootstrap admin** in this repo. See `docs/modules/27-blade-admin-plan.md`. Kept for
+> historical scope reference only.
+
 # 30 — Student Frontend (Planned)
 
 **Status:** ⬜ Planned · **Depends on:** Frontend Platform, Backend API · **Path:** `apps/dashboard`

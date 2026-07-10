@@ -1,29 +1,15 @@
-# 27 — Frontend Platform (Planned)
+# 27 — Frontend Platform (SUPERSEDED)
 
-**Status:** ⬜ Planned · **Depends on:** All backend modules · **Path:** `apps/`
+**Status:** ⛔ Superseded · **Replaced by:** `docs/modules/27-blade-admin-plan.md`
 
-## Scope
-Planned monorepo frontend layer for the product, including the marketing site, school public site, and the authenticated dashboard used by school admins, teachers, students, and guardians.
+> The original plan here — a separate Next.js 15 / Turborepo monorepo (`apps/marketing`, `apps/school-site`,
+> `apps/dashboard`) with a BFF token-in-HttpOnly-cookie auth model — was **dropped**. The hand-built
+> DataTable/filter layer came out misaligned, and the second repo/runtime/CORS/BFF added cost without much
+> benefit for a forms-over-data admin.
 
-## Planned Applications
-| App | Purpose | Audience |
-|---|---|---|
-| `apps/marketing` | vendor/public marketing site | visitors, prospects |
-| `apps/school-site` | per-school public website | parents, students, general visitors |
-| `apps/dashboard` | per-school authenticated dashboard | admin, teacher, student, guardian |
+The school-facing UI is now a **server-rendered Laravel Blade + Bootstrap 5 admin in this backend repo**, using
+session auth and reusing the module Services. It takes the v1 build in `old/` (SmartAdmin/Bootstrap 4) as its
+layout + IA reference, modernized to Bootstrap 5.3 + DataTables 2.
 
-## Planned Roles / Experience Areas
-- `admin` dashboard: school operations, finance, attendance, exams, marks, reports, users, announcements
-- `teacher` dashboard: class routines, attendance, marks, leave, announcements
-- `student` dashboard: profile, attendance, marks, invoices, announcements, leave requests
-- `guardian` dashboard: child profile, attendance, marks, fees, announcements
-- `super_admin` portal: platform-level plan and school provisioning management
-
-## Planned Frontend Responsibilities
-- Consume the Laravel API via Sanctum-authenticated sessions
-- Support tenant routing by school/subdomain
-- Share design system, form patterns, and API clients across apps
-- Provide public pages for admissions, school site content, and product marketing
-
-## Notes
-This frontend layer is explicitly called out in the project plan but is not yet built in the current workspace. It should be treated as a major planned module with its own app-level architecture and delivery milestones.
+**See `docs/modules/27-blade-admin-plan.md` for the authoritative plan.** This file is kept for historical
+context only.
