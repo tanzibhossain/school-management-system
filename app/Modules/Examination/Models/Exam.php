@@ -44,6 +44,12 @@ class Exam extends Model
         return $this->belongsTo(ExamType::class);
     }
 
+    /** @return BelongsTo<\App\Modules\Academic\Models\SchoolClass, Exam> */
+    public function schoolClass(): BelongsTo
+    {
+        return $this->belongsTo(\App\Modules\Academic\Models\SchoolClass::class, 'class_id');
+    }
+
     /** @return HasMany<ExamSubject> */
     public function subjects(): HasMany
     {

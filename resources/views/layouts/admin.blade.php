@@ -59,6 +59,11 @@
       <li><a class="nav-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}" href="{{ route('admin.payments.index') }}"><i class="bi bi-credit-card"></i> Payments</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.refunds.*') ? 'active' : '' }}" href="{{ route('admin.refunds.index') }}"><i class="bi bi-arrow-return-left"></i> Refunds</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.payment-config.*') ? 'active' : '' }}" href="{{ route('admin.payment-config.edit') }}"><i class="bi bi-gear"></i> Payment config</a></li>
+
+      <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">Academics</li>
+      <li><a class="nav-link {{ request()->routeIs('admin.attendance.*') ? 'active' : '' }}" href="{{ route('admin.attendance.index') }}"><i class="bi bi-calendar-check"></i> Attendance</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.exam-types.*') ? 'active' : '' }}" href="{{ route('admin.exam-types.index') }}"><i class="bi bi-card-list"></i> Exam types</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.exams.*') ? 'active' : '' }}" href="{{ route('admin.exams.index') }}"><i class="bi bi-journal-text"></i> Exams</a></li>
     </ul>
   </nav>
 

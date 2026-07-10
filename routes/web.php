@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\Academics\AttendanceController;
+use App\Http\Controllers\Admin\Academics\ExamController;
+use App\Http\Controllers\Admin\Academics\ExamTypeController;
 use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\Finance\FeeCategoryController;
@@ -143,4 +146,24 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
     // Payment config
     Route::get('/payment-config', [PaymentConfigController::class, 'edit'])->name('payment-config.edit');
     Route::put('/payment-config', [PaymentConfigController::class, 'update'])->name('payment-config.update');
+
+    // ── Academics ────────────────────────────────────────────────────────────
+    // Attendance register
+    Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::post('/attendance', [AttendanceController::class, 'store'])->name('attendance.store');
+
+    // Exam types
+    Route::get('/exam-types', [ExamTypeController::class, 'index'])->name('exam-types.index');
+    Route::post('/exam-types', [ExamTypeController::class, 'store'])->name('exam-types.store');
+    Route::put('/exam-types/{id}', [ExamTypeController::class, 'update'])->name('exam-types.update');
+    Route::delete('/exam-types/{id}', [ExamTypeController::class, 'destroy'])->name('exam-types.destroy');
+
+    // Exams
+    Route::get('/exams', [ExamController::class, 'index'])->name('exams.index');
+    Route::post('/exams', [ExamController::class, 'store'])->name('exams.store');
+    Route::get('/exams/{id}', [ExamController::class, 'show'])->name('exams.show');
+    Route::patch('/exams/{id}/publish', [ExamController::class, 'publish'])->name('exams.publish');
+    Route::patch('/exams/{id}/complete', [ExamController::class, 'complete'])->name('exams.complete');
+    Route::post('/exams/{id}/subjects', [ExamController::class, 'addSubject'])->name('exams.subjects.store');
+    Route::delete('/exams/{id}/subjects/{subjectId}', [ExamController::class, 'removeSubject'])->name('exams.subjects.destroy');
 });
