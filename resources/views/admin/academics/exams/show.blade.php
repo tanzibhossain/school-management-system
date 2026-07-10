@@ -13,6 +13,7 @@
       <div class="text-muted small mt-1">{{ $exam->examType?->name }} · {{ $exam->schoolClass?->name }} · {{ optional($exam->start_date)->format('d M') }}–{{ optional($exam->end_date)->format('d M Y') }}</div>
     </div>
     <div class="d-flex gap-2">
+      <a class="btn btn-outline-primary" href="{{ route('admin.exam-marks.index', $exam->id) }}"><i class="bi bi-pencil-square"></i> Marks</a>
       @if ($exam->status === 'draft')
         <form method="POST" action="{{ route('admin.exams.publish', $exam->id) }}" onsubmit="return confirm('Publish this exam?')">@csrf @method('PATCH')<button class="btn btn-primary"><i class="bi bi-send"></i> Publish</button></form>
       @elseif ($exam->status === 'published')

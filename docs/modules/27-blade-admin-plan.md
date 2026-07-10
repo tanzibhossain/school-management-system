@@ -123,7 +123,7 @@ Each resource area repeats the same shape so screens are predictable:
 | 1 | **Setup** | School settings, module toggles, academic years, classes & sections, subjects, groups/versions/shifts (routine still TODO) | ✅ done · `tests/Feature/Admin/SetupAreaTest.php` |
 | 2 | **People** | Students (enrol + edit + deactivate), staff (hire/edit/deactivate), designations/departments, users & roles | ✅ done · `tests/Feature/Admin/PeopleAreaTest.php` |
 | 3 | **Finance** | Fee categories/items/discounts, invoices (single + bulk + show), record payment, refunds, payment config | ✅ done · `tests/Feature/Admin/FinanceAreaTest.php` |
-| 4 | **Academics** | Attendance register (bulk mark + corrections), exam types, exams (create/publish/complete) + subjects — mark entry & seating still TODO | 🟡 partial · `tests/Feature/Admin/AcademicsAreaTest.php` |
+| 4 | **Academics** | Attendance register; exam types; exams + subjects; mark settings + grade templates; divisions; mark-entry grid; result calculate/lock/tabulation (exam seating still TODO) | ✅ done · `tests/Feature/Admin/AcademicsAreaTest.php`, `MarksAreaTest.php` |
 | 5 | **Comms + Reports** | Announcements, SMS, Messaging; Report screens linking existing PDF endpoints | ⬜ |
 | 6 | **Optional modules** | Payroll, LMS, Library, Transport areas (module-gated) | ⬜ |
 

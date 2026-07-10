@@ -63,7 +63,8 @@
       <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">Academics</li>
       <li><a class="nav-link {{ request()->routeIs('admin.attendance.*') ? 'active' : '' }}" href="{{ route('admin.attendance.index') }}"><i class="bi bi-calendar-check"></i> Attendance</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.exam-types.*') ? 'active' : '' }}" href="{{ route('admin.exam-types.index') }}"><i class="bi bi-card-list"></i> Exam types</a></li>
-      <li><a class="nav-link {{ request()->routeIs('admin.exams.*') ? 'active' : '' }}" href="{{ route('admin.exams.index') }}"><i class="bi bi-journal-text"></i> Exams</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.exams.*') || request()->routeIs('admin.exam-marks.*') ? 'active' : '' }}" href="{{ route('admin.exams.index') }}"><i class="bi bi-journal-text"></i> Exams</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.mark-settings.*') ? 'active' : '' }}" href="{{ route('admin.mark-settings.index') }}"><i class="bi bi-sliders"></i> Mark settings</a></li>
     </ul>
   </nav>
 

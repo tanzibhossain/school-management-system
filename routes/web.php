@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Admin\Academics\AttendanceController;
 use App\Http\Controllers\Admin\Academics\ExamController;
+use App\Http\Controllers\Admin\Academics\ExamMarkController;
 use App\Http\Controllers\Admin\Academics\ExamTypeController;
+use App\Http\Controllers\Admin\Academics\MarkSettingController;
 use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\Finance\FeeCategoryController;
@@ -166,4 +168,19 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
     Route::patch('/exams/{id}/complete', [ExamController::class, 'complete'])->name('exams.complete');
     Route::post('/exams/{id}/subjects', [ExamController::class, 'addSubject'])->name('exams.subjects.store');
     Route::delete('/exams/{id}/subjects/{subjectId}', [ExamController::class, 'removeSubject'])->name('exams.subjects.destroy');
+
+    // Mark settings (per class) + grade templates
+    Route::get('/mark-settings', [MarkSettingController::class, 'index'])->name('mark-settings.index');
+    Route::put('/mark-settings/{classId}', [MarkSettingController::class, 'update'])->name('mark-settings.update');
+    Route::post('/mark-settings/{classId}/grade-template', [MarkSettingController::class, 'applyTemplate'])->name('mark-settings.apply-template');
+
+    // Exam marks — divisions, entry, calculate, lock, tabulation
+    Route::get('/exams/{examId}/marks', [ExamMarkController::class, 'index'])->name('exam-marks.index');
+    Route::post('/exams/{examId}/marks/divisions', [ExamMarkController::class, 'storeDivision'])->name('exam-marks.divisions.store');
+    Route::delete('/exams/{examId}/marks/divisions/{divisionId}', [ExamMarkController::class, 'destroyDivision'])->name('exam-marks.divisions.destroy');
+    Route::get('/exams/{examId}/marks/divisions/{divisionId}/entry', [ExamMarkController::class, 'entry'])->name('exam-marks.entry');
+    Route::post('/exams/{examId}/marks/divisions/{divisionId}/entry', [ExamMarkController::class, 'saveEntry'])->name('exam-marks.entry.save');
+    Route::post('/exams/{examId}/marks/calculate', [ExamMarkController::class, 'calculate'])->name('exam-marks.calculate');
+    Route::patch('/exams/{examId}/marks/lock', [ExamMarkController::class, 'lock'])->name('exam-marks.lock');
+    Route::get('/exams/{examId}/marks/results', [ExamMarkController::class, 'results'])->name('exam-marks.results');
 });
