@@ -66,6 +66,11 @@
       <li><a class="nav-link {{ request()->routeIs('admin.exams.*') || request()->routeIs('admin.exam-marks.*') ? 'active' : '' }}" href="{{ route('admin.exams.index') }}"><i class="bi bi-journal-text"></i> Exams</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.mark-settings.*') ? 'active' : '' }}" href="{{ route('admin.mark-settings.index') }}"><i class="bi bi-sliders"></i> Mark settings</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.exam-halls.*') ? 'active' : '' }}" href="{{ route('admin.exam-halls.index') }}"><i class="bi bi-grid-3x3"></i> Exam halls</a></li>
+
+      <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">Comms &amp; reports</li>
+      <li><a class="nav-link {{ request()->routeIs('admin.announcements.*') ? 'active' : '' }}" href="{{ route('admin.announcements.index') }}"><i class="bi bi-megaphone"></i> Announcements</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.sms.*') ? 'active' : '' }}" href="{{ route('admin.sms.index') }}"><i class="bi bi-chat-dots"></i> SMS</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}" href="{{ route('admin.reports.fee-collection') }}"><i class="bi bi-file-earmark-bar-graph"></i> Reports</a></li>
     </ul>
   </nav>
 

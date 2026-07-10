@@ -8,6 +8,9 @@ use App\Http\Controllers\Admin\Academics\ExamTypeController;
 use App\Http\Controllers\Admin\Academics\HallController;
 use App\Http\Controllers\Admin\Academics\MarkSettingController;
 use App\Http\Controllers\Admin\Auth\LoginController;
+use App\Http\Controllers\Admin\Comms\AnnouncementController;
+use App\Http\Controllers\Admin\Comms\ReportController;
+use App\Http\Controllers\Admin\Comms\SmsController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\Finance\FeeCategoryController;
 use App\Http\Controllers\Admin\Finance\FeeDiscountController;
@@ -198,4 +201,23 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
     Route::get('/exams/{examId}/seating', [ExamSeatingController::class, 'index'])->name('exam-seating.index');
     Route::post('/exams/{examId}/seating', [ExamSeatingController::class, 'assign'])->name('exam-seating.assign');
     Route::delete('/exams/{examId}/seating', [ExamSeatingController::class, 'clear'])->name('exam-seating.clear');
+
+    // ── Comms & reports ──────────────────────────────────────────────────────
+    // Announcements
+    Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+    Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
+    Route::put('/announcements/{id}', [AnnouncementController::class, 'update'])->name('announcements.update');
+    Route::patch('/announcements/{id}/publish', [AnnouncementController::class, 'publish'])->name('announcements.publish');
+    Route::patch('/announcements/{id}/expire', [AnnouncementController::class, 'expire'])->name('announcements.expire');
+    Route::delete('/announcements/{id}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+
+    // SMS
+    Route::get('/sms', [SmsController::class, 'index'])->name('sms.index');
+    Route::post('/sms', [SmsController::class, 'store'])->name('sms.store');
+    Route::get('/sms/{id}', [SmsController::class, 'show'])->name('sms.show');
+
+    // Reports
+    Route::get('/reports/fee-collection', [ReportController::class, 'feeCollection'])->name('reports.fee-collection');
+    Route::get('/reports/outstanding-dues', [ReportController::class, 'outstandingDues'])->name('reports.outstanding-dues');
+    Route::get('/reports/student-ledger', [ReportController::class, 'studentLedger'])->name('reports.student-ledger');
 });
