@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ability'    => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
             'abilities'  => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,
             'module.enabled' => \App\Http\Middleware\CheckModuleEnabled::class,
+            'school' => \App\Http\Middleware\SetCurrentSchoolFromSession::class,
             // Platform module (#23) — a REAL Spatie role check, not a Sanctum
             // ability check. 'admin' tokens carry a bare '*' ability that would
             // otherwise satisfy ANY ability-based gate (including one meant to be
