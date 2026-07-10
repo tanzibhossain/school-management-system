@@ -65,6 +65,7 @@
       <li><a class="nav-link {{ request()->routeIs('admin.exam-types.*') ? 'active' : '' }}" href="{{ route('admin.exam-types.index') }}"><i class="bi bi-card-list"></i> Exam types</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.exams.*') || request()->routeIs('admin.exam-marks.*') ? 'active' : '' }}" href="{{ route('admin.exams.index') }}"><i class="bi bi-journal-text"></i> Exams</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.mark-settings.*') ? 'active' : '' }}" href="{{ route('admin.mark-settings.index') }}"><i class="bi bi-sliders"></i> Mark settings</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.exam-halls.*') ? 'active' : '' }}" href="{{ route('admin.exam-halls.index') }}"><i class="bi bi-grid-3x3"></i> Exam halls</a></li>
     </ul>
   </nav>
 

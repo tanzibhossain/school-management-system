@@ -3,7 +3,9 @@
 use App\Http\Controllers\Admin\Academics\AttendanceController;
 use App\Http\Controllers\Admin\Academics\ExamController;
 use App\Http\Controllers\Admin\Academics\ExamMarkController;
+use App\Http\Controllers\Admin\Academics\ExamSeatingController;
 use App\Http\Controllers\Admin\Academics\ExamTypeController;
+use App\Http\Controllers\Admin\Academics\HallController;
 use App\Http\Controllers\Admin\Academics\MarkSettingController;
 use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -183,4 +185,17 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
     Route::post('/exams/{examId}/marks/calculate', [ExamMarkController::class, 'calculate'])->name('exam-marks.calculate');
     Route::patch('/exams/{examId}/marks/lock', [ExamMarkController::class, 'lock'])->name('exam-marks.lock');
     Route::get('/exams/{examId}/marks/results', [ExamMarkController::class, 'results'])->name('exam-marks.results');
+
+    // Exam halls + seat map
+    Route::get('/exam-halls', [HallController::class, 'index'])->name('exam-halls.index');
+    Route::post('/exam-halls', [HallController::class, 'store'])->name('exam-halls.store');
+    Route::get('/exam-halls/{id}', [HallController::class, 'show'])->name('exam-halls.show');
+    Route::put('/exam-halls/{id}', [HallController::class, 'regenerate'])->name('exam-halls.regenerate');
+    Route::patch('/exam-halls/{id}/seats/{seatId}/toggle', [HallController::class, 'toggleSeat'])->name('exam-halls.seats.toggle');
+    Route::delete('/exam-halls/{id}', [HallController::class, 'destroy'])->name('exam-halls.destroy');
+
+    // Per-exam seat assignment
+    Route::get('/exams/{examId}/seating', [ExamSeatingController::class, 'index'])->name('exam-seating.index');
+    Route::post('/exams/{examId}/seating', [ExamSeatingController::class, 'assign'])->name('exam-seating.assign');
+    Route::delete('/exams/{examId}/seating', [ExamSeatingController::class, 'clear'])->name('exam-seating.clear');
 });

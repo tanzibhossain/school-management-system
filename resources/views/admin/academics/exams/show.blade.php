@@ -14,6 +14,7 @@
     </div>
     <div class="d-flex gap-2">
       <a class="btn btn-outline-primary" href="{{ route('admin.exam-marks.index', $exam->id) }}"><i class="bi bi-pencil-square"></i> Marks</a>
+      <a class="btn btn-outline-primary" href="{{ route('admin.exam-seating.index', $exam->id) }}"><i class="bi bi-grid-3x3-gap"></i> Seating</a>
       @if ($exam->status === 'draft')
         <form method="POST" action="{{ route('admin.exams.publish', $exam->id) }}" onsubmit="return confirm('Publish this exam?')">@csrf @method('PATCH')<button class="btn btn-primary"><i class="bi bi-send"></i> Publish</button></form>
       @elseif ($exam->status === 'published')
