@@ -125,7 +125,7 @@ Each resource area repeats the same shape so screens are predictable:
 | 3 | **Finance** | Fee categories/items/discounts, invoices (single + bulk + show), record payment, refunds, payment config | ✅ done · `tests/Feature/Admin/FinanceAreaTest.php` |
 | 4 | **Academics** | Attendance register; exam types; exams + subjects; mark settings + grade templates; divisions; mark-entry grid; result calculate/lock/tabulation; exam halls + seat map; per-exam seat assignment | ✅ done · `AcademicsAreaTest.php`, `MarksAreaTest.php`, `ExamSeatingAreaTest.php` |
 | 5 | **Comms + Reports** | Announcements (draft/publish/schedule/expire); SMS compose + batch history; Reports (Fee Collection / Outstanding Dues / Student Ledger) with inline PDF — **Messaging deferred** (large REST-polling threaded UI) | ✅ done · `tests/Feature/Admin/CommsReportsAreaTest.php` |
-| 6 | **Optional modules** | Payroll, LMS, Library, Transport areas (module-gated) | ⬜ |
+| 6 | **Optional modules** | Module-gated sidebar + routes (`module.enabled:*`). **Library** ✅ (books, members, borrow/return · `LibraryModuleTest.php`). Payroll / LMS / Transport ⬜ | 🟡 in progress |
 
 Foundation is the true unlock; 1–6 repeat the §5 pattern against each module's existing Service.
 

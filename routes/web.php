@@ -12,6 +12,9 @@ use App\Http\Controllers\Admin\Comms\AnnouncementController;
 use App\Http\Controllers\Admin\Comms\ReportController;
 use App\Http\Controllers\Admin\Comms\SmsController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\Modules\Library\BookController;
+use App\Http\Controllers\Admin\Modules\Library\BorrowController;
+use App\Http\Controllers\Admin\Modules\Library\MemberController;
 use App\Http\Controllers\Admin\Finance\FeeCategoryController;
 use App\Http\Controllers\Admin\Finance\FeeDiscountController;
 use App\Http\Controllers\Admin\Finance\FeeItemController;
@@ -220,4 +223,22 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
     Route::get('/reports/fee-collection', [ReportController::class, 'feeCollection'])->name('reports.fee-collection');
     Route::get('/reports/outstanding-dues', [ReportController::class, 'outstandingDues'])->name('reports.outstanding-dues');
     Route::get('/reports/student-ledger', [ReportController::class, 'studentLedger'])->name('reports.student-ledger');
+
+    // ── Optional modules (gated by module.enabled) ───────────────────────────
+    // Library
+    Route::middleware('module.enabled:library')->prefix('library')->name('library.')->group(function (): void {
+        Route::get('/books', [BookController::class, 'index'])->name('books.index');
+        Route::post('/books', [BookController::class, 'store'])->name('books.store');
+        Route::put('/books/{id}', [BookController::class, 'update'])->name('books.update');
+        Route::patch('/books/{id}/deactivate', [BookController::class, 'deactivate'])->name('books.deactivate');
+
+        Route::get('/members', [MemberController::class, 'index'])->name('members.index');
+        Route::post('/members', [MemberController::class, 'store'])->name('members.store');
+        Route::put('/members/{id}', [MemberController::class, 'update'])->name('members.update');
+        Route::patch('/members/{id}/deactivate', [MemberController::class, 'deactivate'])->name('members.deactivate');
+
+        Route::get('/borrow', [BorrowController::class, 'index'])->name('borrow.index');
+        Route::post('/borrow', [BorrowController::class, 'store'])->name('borrow.store');
+        Route::patch('/borrow/{id}/return', [BorrowController::class, 'markReturned'])->name('borrow.return');
+    });
 });

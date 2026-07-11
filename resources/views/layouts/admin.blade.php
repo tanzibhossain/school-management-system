@@ -28,7 +28,12 @@
   </style>
 </head>
 <body>
-  @php $u = auth()->user(); @endphp
+  @php
+    $u = auth()->user();
+    $enabledModules = collect(app(\App\Modules\School\Services\ModuleSettingService::class)
+        ->allForSchool(app('current_school_id')))
+        ->filter(fn ($m) => $m['is_enabled'])->pluck('module')->all();
+  @endphp
   <nav class="sidebar bg-white border-end position-fixed p-3">
     <div class="brand fs-5 mb-3 px-2 d-flex align-items-center gap-2"><i class="bi bi-mortarboard-fill"></i> School Admin</div>
     <ul class="nav nav-pills flex-column gap-1">
@@ -71,6 +76,13 @@
       <li><a class="nav-link {{ request()->routeIs('admin.announcements.*') ? 'active' : '' }}" href="{{ route('admin.announcements.index') }}"><i class="bi bi-megaphone"></i> Announcements</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.sms.*') ? 'active' : '' }}" href="{{ route('admin.sms.index') }}"><i class="bi bi-chat-dots"></i> SMS</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}" href="{{ route('admin.reports.fee-collection') }}"><i class="bi bi-file-earmark-bar-graph"></i> Reports</a></li>
+
+      @if ($enabledModules)
+        <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">Optional</li>
+        @if (in_array('library', $enabledModules))
+          <li><a class="nav-link {{ request()->routeIs('admin.library.*') ? 'active' : '' }}" href="{{ route('admin.library.books.index') }}"><i class="bi bi-book-half"></i> Library</a></li>
+        @endif
+      @endif
     </ul>
   </nav>
 
