@@ -82,6 +82,9 @@
         @if (in_array('library', $enabledModules))
           <li><a class="nav-link {{ request()->routeIs('admin.library.*') ? 'active' : '' }}" href="{{ route('admin.library.books.index') }}"><i class="bi bi-book-half"></i> Library</a></li>
         @endif
+        @if (in_array('transport', $enabledModules))
+          <li><a class="nav-link {{ request()->routeIs('admin.transport.*') ? 'active' : '' }}" href="{{ route('admin.transport.routes.index') }}"><i class="bi bi-bus-front"></i> Transport</a></li>
+        @endif
       @endif
     </ul>
   </nav>

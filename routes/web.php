@@ -15,6 +15,9 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\Modules\Library\BookController;
 use App\Http\Controllers\Admin\Modules\Library\BorrowController;
 use App\Http\Controllers\Admin\Modules\Library\MemberController;
+use App\Http\Controllers\Admin\Modules\Transport\DriverController;
+use App\Http\Controllers\Admin\Modules\Transport\RouteController;
+use App\Http\Controllers\Admin\Modules\Transport\VehicleController;
 use App\Http\Controllers\Admin\Finance\FeeCategoryController;
 use App\Http\Controllers\Admin\Finance\FeeDiscountController;
 use App\Http\Controllers\Admin\Finance\FeeItemController;
@@ -240,5 +243,24 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::get('/borrow', [BorrowController::class, 'index'])->name('borrow.index');
         Route::post('/borrow', [BorrowController::class, 'store'])->name('borrow.store');
         Route::patch('/borrow/{id}/return', [BorrowController::class, 'markReturned'])->name('borrow.return');
+    });
+
+    // Transport
+    Route::middleware('module.enabled:transport')->prefix('transport')->name('transport.')->group(function (): void {
+        Route::get('/drivers', [DriverController::class, 'index'])->name('drivers.index');
+        Route::post('/drivers', [DriverController::class, 'store'])->name('drivers.store');
+        Route::put('/drivers/{id}', [DriverController::class, 'update'])->name('drivers.update');
+
+        Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index');
+        Route::post('/vehicles', [VehicleController::class, 'store'])->name('vehicles.store');
+        Route::put('/vehicles/{id}', [VehicleController::class, 'update'])->name('vehicles.update');
+
+        Route::get('/routes', [RouteController::class, 'index'])->name('routes.index');
+        Route::post('/routes', [RouteController::class, 'store'])->name('routes.store');
+        Route::put('/routes/{id}', [RouteController::class, 'update'])->name('routes.update');
+        Route::get('/routes/{id}', [RouteController::class, 'show'])->name('routes.show');
+        Route::patch('/routes/{id}/vehicle', [RouteController::class, 'setVehicle'])->name('routes.set-vehicle');
+        Route::post('/routes/{id}/riders', [RouteController::class, 'assign'])->name('routes.riders.assign');
+        Route::patch('/routes/{id}/riders/{assignmentId}/end', [RouteController::class, 'endAssignment'])->name('routes.riders.end');
     });
 });
