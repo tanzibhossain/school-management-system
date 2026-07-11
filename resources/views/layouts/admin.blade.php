@@ -85,6 +85,9 @@
         @if (in_array('transport', $enabledModules))
           <li><a class="nav-link {{ request()->routeIs('admin.transport.*') ? 'active' : '' }}" href="{{ route('admin.transport.routes.index') }}"><i class="bi bi-bus-front"></i> Transport</a></li>
         @endif
+        @if (in_array('payroll', $enabledModules))
+          <li><a class="nav-link {{ request()->routeIs('admin.payroll.*') ? 'active' : '' }}" href="{{ route('admin.payroll.runs.index') }}"><i class="bi bi-cash-coin"></i> Payroll</a></li>
+        @endif
       @endif
     </ul>
   </nav>

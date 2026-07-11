@@ -15,6 +15,9 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\Modules\Library\BookController;
 use App\Http\Controllers\Admin\Modules\Library\BorrowController;
 use App\Http\Controllers\Admin\Modules\Library\MemberController;
+use App\Http\Controllers\Admin\Modules\Payroll\PayrollRunController;
+use App\Http\Controllers\Admin\Modules\Payroll\SalaryComponentController;
+use App\Http\Controllers\Admin\Modules\Payroll\StaffSalaryController;
 use App\Http\Controllers\Admin\Modules\Transport\DriverController;
 use App\Http\Controllers\Admin\Modules\Transport\RouteController;
 use App\Http\Controllers\Admin\Modules\Transport\VehicleController;
@@ -262,5 +265,23 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::patch('/routes/{id}/vehicle', [RouteController::class, 'setVehicle'])->name('routes.set-vehicle');
         Route::post('/routes/{id}/riders', [RouteController::class, 'assign'])->name('routes.riders.assign');
         Route::patch('/routes/{id}/riders/{assignmentId}/end', [RouteController::class, 'endAssignment'])->name('routes.riders.end');
+    });
+
+    // Payroll
+    Route::middleware('module.enabled:payroll')->prefix('payroll')->name('payroll.')->group(function (): void {
+        Route::get('/components', [SalaryComponentController::class, 'index'])->name('components.index');
+        Route::post('/components', [SalaryComponentController::class, 'store'])->name('components.store');
+        Route::put('/components/{id}', [SalaryComponentController::class, 'update'])->name('components.update');
+        Route::delete('/components/{id}', [SalaryComponentController::class, 'destroy'])->name('components.destroy');
+
+        Route::get('/staff-salaries', [StaffSalaryController::class, 'index'])->name('staff-salaries.index');
+        Route::get('/staff-salaries/{staffId}', [StaffSalaryController::class, 'edit'])->name('staff-salaries.edit');
+        Route::put('/staff-salaries/{staffId}', [StaffSalaryController::class, 'update'])->name('staff-salaries.update');
+
+        Route::get('/runs', [PayrollRunController::class, 'index'])->name('runs.index');
+        Route::post('/runs', [PayrollRunController::class, 'store'])->name('runs.store');
+        Route::get('/runs/{id}', [PayrollRunController::class, 'show'])->name('runs.show');
+        Route::patch('/runs/{id}/process', [PayrollRunController::class, 'process'])->name('runs.process');
+        Route::patch('/runs/{id}/approve', [PayrollRunController::class, 'approve'])->name('runs.approve');
     });
 });
