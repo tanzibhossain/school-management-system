@@ -15,6 +15,10 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\Modules\Library\BookController;
 use App\Http\Controllers\Admin\Modules\Library\BorrowController;
 use App\Http\Controllers\Admin\Modules\Library\MemberController;
+use App\Http\Controllers\Admin\Modules\Lms\AssignmentController as LmsAssignmentController;
+use App\Http\Controllers\Admin\Modules\Lms\CourseController as LmsCourseController;
+use App\Http\Controllers\Admin\Modules\Lms\LessonController as LmsLessonController;
+use App\Http\Controllers\Admin\Modules\Lms\SubmissionController as LmsSubmissionController;
 use App\Http\Controllers\Admin\Modules\Payroll\PayrollRunController;
 use App\Http\Controllers\Admin\Modules\Payroll\SalaryComponentController;
 use App\Http\Controllers\Admin\Modules\Payroll\StaffSalaryController;
@@ -283,5 +287,24 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::get('/runs/{id}', [PayrollRunController::class, 'show'])->name('runs.show');
         Route::patch('/runs/{id}/process', [PayrollRunController::class, 'process'])->name('runs.process');
         Route::patch('/runs/{id}/approve', [PayrollRunController::class, 'approve'])->name('runs.approve');
+    });
+
+    // LMS
+    Route::middleware('module.enabled:lms')->prefix('lms')->name('lms.')->group(function (): void {
+        Route::get('/courses', [LmsCourseController::class, 'index'])->name('courses.index');
+        Route::post('/courses', [LmsCourseController::class, 'store'])->name('courses.store');
+        Route::get('/courses/{id}', [LmsCourseController::class, 'show'])->name('courses.show');
+        Route::put('/courses/{id}', [LmsCourseController::class, 'update'])->name('courses.update');
+        Route::delete('/courses/{id}', [LmsCourseController::class, 'destroy'])->name('courses.destroy');
+
+        Route::post('/courses/{courseId}/lessons', [LmsLessonController::class, 'store'])->name('courses.lessons.store');
+        Route::patch('/courses/{courseId}/lessons/{lessonId}/publish', [LmsLessonController::class, 'publish'])->name('courses.lessons.publish');
+        Route::delete('/courses/{courseId}/lessons/{lessonId}', [LmsLessonController::class, 'destroy'])->name('courses.lessons.destroy');
+
+        Route::post('/courses/{courseId}/assignments', [LmsAssignmentController::class, 'store'])->name('courses.assignments.store');
+        Route::get('/courses/{courseId}/assignments/{assignmentId}', [LmsAssignmentController::class, 'show'])->name('courses.assignments.show');
+        Route::delete('/courses/{courseId}/assignments/{assignmentId}', [LmsAssignmentController::class, 'destroy'])->name('courses.assignments.destroy');
+
+        Route::patch('/submissions/{id}/grade', [LmsSubmissionController::class, 'grade'])->name('submissions.grade');
     });
 });
