@@ -129,6 +129,12 @@ Each resource area repeats the same shape so screens are predictable:
 
 Foundation is the true unlock; 1–6 repeat the §5 pattern against each module's existing Service.
 
+**Remaining work → see `27-blade-admin-phase2-plan.md`.** A post-Phase-1 audit found: (A) in-scope gaps —
+role gating (not yet enforced), class-routine editor, student detail tabs, school opening-hours editor,
+student-credit ledger, Messaging (deferred); and (B) backend modules with no admin UI yet — Leave, Loan,
+Certificate, IdCard, DataImport, OnlineAdmission, Website, and the super-admin Platform portal. Phase 2 plans
+each with the Services to reuse, gotchas, and a test sketch.
+
 The other roles (teacher / student / guardian) and the public school site are **later phases** of this same
 Blade admin (role-scoped areas + a public Blade site consuming the Website module's `/public/*`), not separate
 Next.js apps. They inherit this shell and pattern.
