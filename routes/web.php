@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\Comms\SmsController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\Hr\LeaveTypeController;
 use App\Http\Controllers\Admin\Hr\StaffLeaveController;
+use App\Http\Controllers\Admin\Hr\StaffLoanController;
 use App\Http\Controllers\Admin\Hr\StudentLeaveController;
 use App\Http\Controllers\Admin\Finance\FeeCategoryController;
 use App\Http\Controllers\Admin\Finance\FeeDiscountController;
@@ -238,6 +239,14 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::patch('/staff-leave/{id}/approve', [StaffLeaveController::class, 'approve'])->name('staff-leave.approve');
         Route::patch('/staff-leave/{id}/reject', [StaffLeaveController::class, 'reject'])->name('staff-leave.reject');
         Route::patch('/staff-leave/{id}/cancel', [StaffLeaveController::class, 'cancel'])->name('staff-leave.cancel');
+
+        // ── HR: Staff loans ──────────────────────────────────────────────────────
+        Route::get('/staff-loans', [StaffLoanController::class, 'index'])->name('staff-loans.index');
+        Route::post('/staff-loans', [StaffLoanController::class, 'store'])->name('staff-loans.store');
+        Route::get('/staff-loans/{id}', [StaffLoanController::class, 'show'])->name('staff-loans.show');
+        Route::patch('/staff-loans/{id}/approve', [StaffLoanController::class, 'approve'])->name('staff-loans.approve');
+        Route::patch('/staff-loans/{id}/reject', [StaffLoanController::class, 'reject'])->name('staff-loans.reject');
+        Route::patch('/staff-loans/{id}/cancel', [StaffLoanController::class, 'cancel'])->name('staff-loans.cancel');
 
         // ── Optional modules (gated by module.enabled) ─────────────────────────
         Route::middleware('module.enabled:library')->prefix('library')->name('library.')->group(function (): void {

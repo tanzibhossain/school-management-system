@@ -101,7 +101,9 @@ HR sidebar section. *Original scope below.*
   token-gated → **TransientToken**. Staff approval is admin-only.
 - **Test:** submit (or seed) a request → approve → status `approved`; reject with reason; can't approve twice.
 
-### B2. Loan *(small)*
+### B2. Loan ✅ DONE (`tests/Feature/Admin/LoanAreaTest.php`)
+Staff loans: create (submit on behalf), detail with repayment schedule, approve (generates schedule)/reject/
+cancel — TransientToken; under HR sidebar. *Original scope below.*
 - **Screens:** staff loans list + create (amount, installments → preview schedule) + approve/reject/cancel;
   loan detail with `LoanSchedule` rows.
 - **Reuse:** `StaffLoanService::submit/approve/reject/cancel`, `LoanScheduleCalculator::calculateSchedule`,

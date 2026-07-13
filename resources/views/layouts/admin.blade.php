@@ -87,6 +87,7 @@
       <li><a class="nav-link {{ request()->routeIs('admin.leave-types.*') ? 'active' : '' }}" href="{{ route('admin.leave-types.index') }}"><i class="bi bi-card-checklist"></i> Leave types</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.student-leave.*') ? 'active' : '' }}" href="{{ route('admin.student-leave.index') }}"><i class="bi bi-person-vcard"></i> Student leave</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.staff-leave.*') ? 'active' : '' }}" href="{{ route('admin.staff-leave.index') }}"><i class="bi bi-person-workspace"></i> Staff leave</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.staff-loans.*') ? 'active' : '' }}" href="{{ route('admin.staff-loans.index') }}"><i class="bi bi-cash-stack"></i> Staff loans</a></li>
       @endif
 
       @if ($canFinance)
