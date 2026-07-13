@@ -51,6 +51,7 @@
       <li><a class="nav-link {{ request()->routeIs('admin.groups.*') ? 'active' : '' }}" href="{{ route('admin.groups.index') }}"><i class="bi bi-people"></i> Groups</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.versions.*') ? 'active' : '' }}" href="{{ route('admin.versions.index') }}"><i class="bi bi-translate"></i> Versions</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.shifts.*') ? 'active' : '' }}" href="{{ route('admin.shifts.index') }}"><i class="bi bi-clock-history"></i> Shifts</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.routine.*') || request()->routeIs('admin.routine-setup.*') ? 'active' : '' }}" href="{{ route('admin.routine.index') }}"><i class="bi bi-calendar3-week"></i> Class routine</a></li>
 
       <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">People</li>
       <li><a class="nav-link {{ request()->routeIs('admin.students.*') ? 'active' : '' }}" href="{{ route('admin.students.index') }}"><i class="bi bi-people-fill"></i> Students</a></li>

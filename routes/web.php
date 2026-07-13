@@ -52,6 +52,8 @@ use App\Http\Controllers\Admin\Setup\AcademicYearController;
 use App\Http\Controllers\Admin\Setup\ClassController;
 use App\Http\Controllers\Admin\Setup\ModuleController;
 use App\Http\Controllers\Admin\Setup\ReferenceController;
+use App\Http\Controllers\Admin\Setup\RoutineController;
+use App\Http\Controllers\Admin\Setup\RoutineSetupController;
 use App\Http\Controllers\Admin\Setup\SchoolController;
 use App\Http\Controllers\Admin\Setup\SectionController;
 use App\Http\Controllers\Admin\Setup\SubjectController;
@@ -158,6 +160,17 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
             Route::put("/{$type}/{id}", [ReferenceController::class, 'update'])->defaults('type', $type)->name("{$type}.update");
             Route::delete("/{$type}/{id}", [ReferenceController::class, 'destroy'])->defaults('type', $type)->name("{$type}.destroy");
         }
+
+        // Class routine + routine setup (periods/rooms)
+        Route::get('/routine', [RoutineController::class, 'index'])->name('routine.index');
+        Route::post('/routine', [RoutineController::class, 'store'])->name('routine.store');
+        Route::delete('/routine/{id}', [RoutineController::class, 'destroy'])->name('routine.destroy');
+
+        Route::get('/routine-setup', [RoutineSetupController::class, 'index'])->name('routine-setup.index');
+        Route::post('/routine-setup/periods', [RoutineSetupController::class, 'storePeriod'])->name('routine-setup.periods.store');
+        Route::delete('/routine-setup/periods/{id}', [RoutineSetupController::class, 'destroyPeriod'])->name('routine-setup.periods.destroy');
+        Route::post('/routine-setup/rooms', [RoutineSetupController::class, 'storeRoom'])->name('routine-setup.rooms.store');
+        Route::delete('/routine-setup/rooms/{id}', [RoutineSetupController::class, 'destroyRoom'])->name('routine-setup.rooms.destroy');
 
         // ── People ─────────────────────────────────────────────────────────────
         Route::get('/students', [StudentController::class, 'index'])->name('students.index');

@@ -45,7 +45,9 @@ Implemented: `routes/web.php` split into `role:admin,accountant` (Finance + Repo
 - **Test:** an `accountant` user gets 200 on `/admin/invoices`, 403 on `/admin/students` (write) and
   `/admin/exams`.
 
-### A2. Class routine editor *(Setup)*
+### A2. Class routine editor ✅ DONE (`tests/Feature/Admin/RoutineAreaTest.php`)
+Periods & rooms CRUD; per class/section weekly grid (periods × Mon–Fri) with conflict-checked add/remove
+(`RoutineSchedulingService::hasConflict`). Under Setup sidebar. *Original scope below.*
 - **Build:** per class+section weekly grid (periods × days → subject/room). Screens: routine index (pick
   class/section), grid editor.
 - **Reuse:** `Academic\Services\RoutineSchedulingService`, `AcademicRepository::getRoutineForClass/getPeriods/
