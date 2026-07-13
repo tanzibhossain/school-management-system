@@ -81,7 +81,7 @@ Finance screen: pick a student → balance + `CreditTransaction` history + manua
 - **Test:** credit a student, assert balance; it auto-applies on the next invoice (already covered by
   InvoiceService).
 
-### A6. Messaging *(Comms — deferred in Phase 1)*
+### A6. Messaging *(Comms — deferred in Phase 1)* ✅ DONE
 - **Build:** threads inbox, thread view (poll `?after=`), compose (policy-gated participants), admin oversight
   (read + lock). Optional module (`module.enabled:messaging`).
 - **Reuse:** `Messaging` module's `ThreadService`, `MessageService`, `MessagingPolicyService`,

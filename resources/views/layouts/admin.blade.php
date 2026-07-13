@@ -91,6 +91,7 @@
       <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">Comms</li>
       <li><a class="nav-link {{ request()->routeIs('admin.announcements.*') ? 'active' : '' }}" href="{{ route('admin.announcements.index') }}"><i class="bi bi-megaphone"></i> Announcements</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.sms.*') ? 'active' : '' }}" href="{{ route('admin.sms.index') }}"><i class="bi bi-chat-dots"></i> SMS</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.messages.*') ? 'active' : '' }}" href="{{ route('admin.messages.index') }}"><i class="bi bi-chat-left-text"></i> Messages</a></li>
 
       <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">HR</li>
       <li><a class="nav-link {{ request()->routeIs('admin.leave-types.*') ? 'active' : '' }}" href="{{ route('admin.leave-types.index') }}"><i class="bi bi-card-checklist"></i> Leave types</a></li>

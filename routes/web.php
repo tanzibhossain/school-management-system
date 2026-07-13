@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\Certificates\IdCardTemplateController;
 use App\Http\Controllers\Admin\Certificates\TemplateController as CertTemplateController;
 use App\Http\Controllers\Admin\Certificates\TestimonialController;
 use App\Http\Controllers\Admin\Comms\AnnouncementController;
+use App\Http\Controllers\Admin\Comms\MessageController;
 use App\Http\Controllers\Admin\Comms\ReportController;
 use App\Http\Controllers\Admin\Comms\SmsController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -297,6 +298,14 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::get('/sms', [SmsController::class, 'index'])->name('sms.index');
         Route::post('/sms', [SmsController::class, 'store'])->name('sms.store');
         Route::get('/sms/{id}', [SmsController::class, 'show'])->name('sms.show');
+
+        // Messaging (admin = staff participant + oversight)
+        Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+        Route::get('/messages/all', [MessageController::class, 'all'])->name('messages.all');
+        Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
+        Route::get('/messages/{id}', [MessageController::class, 'show'])->whereNumber('id')->name('messages.show');
+        Route::post('/messages/{id}/reply', [MessageController::class, 'reply'])->whereNumber('id')->name('messages.reply');
+        Route::patch('/messages/{id}/lock', [MessageController::class, 'lock'])->whereNumber('id')->name('messages.lock');
 
         // ── HR: Leave ──────────────────────────────────────────────────────────
         Route::get('/leave-types', [LeaveTypeController::class, 'index'])->name('leave-types.index');
