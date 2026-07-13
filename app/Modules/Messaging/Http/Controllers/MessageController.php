@@ -75,7 +75,7 @@ class MessageController extends Controller
         $thread = MessageThread::forSchool($schoolId)->findOrFail($attachment->message->thread_id);
 
         $user = $request->user();
-        if (! $user->hasRole(['admin', 'super_admin'])) {
+        if (! $user->hasRole('admin')) {
             $this->messages->assertParticipant($schoolId, $thread, $user->id);
         }
 

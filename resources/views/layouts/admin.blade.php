@@ -35,15 +35,11 @@
         ->filter(fn ($m) => $m['is_enabled'])->pluck('module')->all();
     $isAdmin = $u->hasRole('admin');
     $canFinance = $isAdmin || $u->hasRole('accountant');
-    $isSuperAdmin = $u->hasRole('super_admin');
   @endphp
   <nav class="sidebar bg-white border-end position-fixed p-3">
     <div class="brand fs-5 mb-3 px-2 d-flex align-items-center gap-2"><i class="bi bi-mortarboard-fill"></i> School Admin</div>
     <ul class="nav nav-pills flex-column gap-1">
       <li><a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
-      @if ($isSuperAdmin)
-        <li><a class="nav-link" href="{{ route('platform.schools.index') }}"><i class="bi bi-shield-lock"></i> Platform admin</a></li>
-      @endif
 
       @if ($isAdmin)
       <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">Setup</li>

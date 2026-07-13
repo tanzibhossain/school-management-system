@@ -181,7 +181,7 @@ class AuthService
 
     private function tokenExpiry(string $role, bool $rememberMe): \Carbon\Carbon
     {
-        if (in_array($role, ['super_admin', 'admin']) && ! $rememberMe) {
+        if ($role === 'admin' && ! $rememberMe) {
             return now()->addHours(self::EXPIRY_SUPER_ADMIN);
         }
 

@@ -99,10 +99,6 @@ use App\Modules\IdCard\Observers\IdCardBatchObserver;
 use App\Modules\IdCard\Observers\IdCardTemplateObserver;
 use App\Modules\Payment\Models\Invoice;
 use App\Modules\Payment\Observers\InvoiceObserver;
-use App\Modules\Platform\Gateways\PaymentGatewayContract;
-use App\Modules\Platform\Gateways\StripeGateway;
-use App\Modules\Platform\Models\Plan;
-use App\Modules\Platform\Observers\PlanObserver;
 use App\Modules\Staff\Models\Staff;
 use App\Modules\Staff\Observers\StaffObserver;
 use App\Modules\Examination\Models\Exam;
@@ -124,12 +120,6 @@ class AppServiceProvider extends ServiceProvider
         // unlike Sms's stub gateway). Swap this binding for a different provider
         // by implementing AiCheckerContract; nothing else in the module changes.
         $this->app->bind(AiCheckerContract::class, AnthropicAiChecker::class);
-
-        // Platform module — vendor-side billing gateway (Stripe globally, per the
-        // confirmed decision). Entirely separate from Payment module's per-school
-        // student-fee gateways (bKash/SSLCommerz/Stripe/PayPal) — this one bills the
-        // SCHOOL for using the platform, not a school's own students.
-        $this->app->bind(PaymentGatewayContract::class, StripeGateway::class);
     }
 
     public function boot(): void
@@ -225,8 +215,5 @@ class AppServiceProvider extends ServiceProvider
         Assignment::observe(AssignmentObserver::class);
         Submission::observe(SubmissionObserver::class);
         SubmissionAiCheck::observe(SubmissionAiCheckObserver::class);
-
-        // ── Platform module observers ─────────────────────────────────────────
-        Plan::observe(PlanObserver::class);
     }
 }

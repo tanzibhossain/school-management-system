@@ -13,7 +13,7 @@ use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
  */
 class MessagingPolicyService
 {
-    public const STAFF_ROLES = ['super_admin', 'admin', 'teacher', 'accountant', 'librarian', 'receptionist'];
+    public const STAFF_ROLES = ['admin', 'teacher', 'accountant', 'librarian', 'receptionist'];
 
     public function isStaff(User $user): bool
     {

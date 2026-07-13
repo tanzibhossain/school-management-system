@@ -78,7 +78,7 @@ class User extends Authenticatable
     public static function abilitiesForRole(string $role): array
     {
         return match ($role) {
-            'super_admin', 'admin' => ['*'],
+            'admin'                => ['*'],
             'teacher'              => ['teacher:*', 'staff:*', 'teacher:marks', 'teacher:routine', 'teacher:leave', 'teacher:profile'],
             'accountant'           => ['accountant:*', 'staff:*', 'accountant:payment', 'accountant:report', 'accountant:profile'],
             'librarian'            => ['librarian:*', 'staff:*', 'librarian:books', 'librarian:profile'],

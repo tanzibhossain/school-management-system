@@ -12,7 +12,7 @@ use Illuminate\View\View;
 
 class UserController extends Controller
 {
-    /** Roles an admin may assign from this screen (super_admin is platform-only). */
+    /** Roles an admin may assign from this screen. */
     private const ASSIGNABLE_ROLES = ['admin', 'teacher', 'accountant', 'librarian', 'receptionist', 'student', 'parent'];
 
     public function __construct(private readonly UserService $users) {}

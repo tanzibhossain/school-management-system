@@ -49,9 +49,6 @@ use App\Http\Controllers\Admin\People\StaffController;
 use App\Http\Controllers\Admin\People\StaffReferenceController;
 use App\Http\Controllers\Admin\People\StudentController;
 use App\Http\Controllers\Admin\People\UserController;
-use App\Http\Controllers\Admin\Platform\PlanController as PlatformPlanController;
-use App\Http\Controllers\Admin\Platform\SchoolController as PlatformSchoolController;
-use App\Http\Controllers\Admin\Platform\SignupController as PlatformSignupController;
 use App\Http\Controllers\Admin\Setup\AcademicYearController;
 use App\Http\Controllers\Admin\Setup\ClassController;
 use App\Http\Controllers\Admin\Setup\ModuleController;
@@ -63,14 +60,7 @@ use App\Http\Controllers\Admin\Setup\SectionController;
 use App\Http\Controllers\Admin\Setup\SubjectController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    $u = auth()->user();
-    if ($u && $u->hasRole('super_admin') && ! $u->hasRole('admin')) {
-        return redirect()->route('platform.schools.index');
-    }
-
-    return redirect()->route('admin.dashboard');
-});
+Route::get('/', fn () => redirect()->route('admin.dashboard'));
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
@@ -401,22 +391,4 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
             Route::patch('/submissions/{id}/grade', [LmsSubmissionController::class, 'grade'])->name('submissions.grade');
         });
     });
-});
-
-// ── Super Admin portal (Platform module #23) ────────────────────────────────
-// Cross-school — deliberately NOT under the `school` tenant middleware. Gated by a
-// real Spatie role check (role:super_admin), NOT a Sanctum ability: 'admin' and
-// 'super_admin' both carry a bare '*' ability, so only a role check distinguishes them.
-Route::middleware(['auth', 'role:super_admin'])->prefix('platform')->name('platform.')->group(function (): void {
-    Route::get('/schools', [PlatformSchoolController::class, 'index'])->name('schools.index');
-    Route::get('/schools/create', [PlatformSchoolController::class, 'create'])->name('schools.create');
-    Route::post('/schools', [PlatformSchoolController::class, 'store'])->name('schools.store');
-    Route::get('/schools/{id}', [PlatformSchoolController::class, 'show'])->whereNumber('id')->name('schools.show');
-    Route::patch('/schools/{id}/plan', [PlatformSchoolController::class, 'updatePlan'])->whereNumber('id')->name('schools.plan');
-
-    Route::get('/plans', [PlatformPlanController::class, 'index'])->name('plans.index');
-    Route::post('/plans', [PlatformPlanController::class, 'store'])->name('plans.store');
-    Route::put('/plans/{id}', [PlatformPlanController::class, 'update'])->whereNumber('id')->name('plans.update');
-
-    Route::get('/signups', [PlatformSignupController::class, 'index'])->name('signups.index');
 });
