@@ -33,12 +33,15 @@
     $enabledModules = collect(app(\App\Modules\School\Services\ModuleSettingService::class)
         ->allForSchool(app('current_school_id')))
         ->filter(fn ($m) => $m['is_enabled'])->pluck('module')->all();
+    $isAdmin = $u->hasRole('admin');
+    $canFinance = $isAdmin || $u->hasRole('accountant');
   @endphp
   <nav class="sidebar bg-white border-end position-fixed p-3">
     <div class="brand fs-5 mb-3 px-2 d-flex align-items-center gap-2"><i class="bi bi-mortarboard-fill"></i> School Admin</div>
     <ul class="nav nav-pills flex-column gap-1">
       <li><a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
 
+      @if ($isAdmin)
       <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">Setup</li>
       <li><a class="nav-link {{ request()->routeIs('admin.school.*') ? 'active' : '' }}" href="{{ route('admin.school.edit') }}"><i class="bi bi-building-gear"></i> School settings</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.modules.*') ? 'active' : '' }}" href="{{ route('admin.modules.index') }}"><i class="bi bi-toggles"></i> Modules</a></li>
@@ -55,7 +58,9 @@
       <li><a class="nav-link {{ request()->routeIs('admin.designations.*') ? 'active' : '' }}" href="{{ route('admin.designations.index') }}"><i class="bi bi-award"></i> Designations</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.departments.*') ? 'active' : '' }}" href="{{ route('admin.departments.index') }}"><i class="bi bi-building"></i> Departments</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}"><i class="bi bi-person-gear"></i> Users &amp; roles</a></li>
+      @endif
 
+      @if ($canFinance)
       <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">Finance</li>
       <li><a class="nav-link {{ request()->routeIs('admin.fee-categories.*') ? 'active' : '' }}" href="{{ route('admin.fee-categories.index') }}"><i class="bi bi-tags"></i> Fee categories</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.fee-items.*') ? 'active' : '' }}" href="{{ route('admin.fee-items.index') }}"><i class="bi bi-cash-stack"></i> Fee items</a></li>
@@ -64,7 +69,9 @@
       <li><a class="nav-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}" href="{{ route('admin.payments.index') }}"><i class="bi bi-credit-card"></i> Payments</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.refunds.*') ? 'active' : '' }}" href="{{ route('admin.refunds.index') }}"><i class="bi bi-arrow-return-left"></i> Refunds</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.payment-config.*') ? 'active' : '' }}" href="{{ route('admin.payment-config.edit') }}"><i class="bi bi-gear"></i> Payment config</a></li>
+      @endif
 
+      @if ($isAdmin)
       <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">Academics</li>
       <li><a class="nav-link {{ request()->routeIs('admin.attendance.*') ? 'active' : '' }}" href="{{ route('admin.attendance.index') }}"><i class="bi bi-calendar-check"></i> Attendance</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.exam-types.*') ? 'active' : '' }}" href="{{ route('admin.exam-types.index') }}"><i class="bi bi-card-list"></i> Exam types</a></li>
@@ -72,12 +79,22 @@
       <li><a class="nav-link {{ request()->routeIs('admin.mark-settings.*') ? 'active' : '' }}" href="{{ route('admin.mark-settings.index') }}"><i class="bi bi-sliders"></i> Mark settings</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.exam-halls.*') ? 'active' : '' }}" href="{{ route('admin.exam-halls.index') }}"><i class="bi bi-grid-3x3"></i> Exam halls</a></li>
 
-      <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">Comms &amp; reports</li>
+      <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">Comms</li>
       <li><a class="nav-link {{ request()->routeIs('admin.announcements.*') ? 'active' : '' }}" href="{{ route('admin.announcements.index') }}"><i class="bi bi-megaphone"></i> Announcements</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.sms.*') ? 'active' : '' }}" href="{{ route('admin.sms.index') }}"><i class="bi bi-chat-dots"></i> SMS</a></li>
-      <li><a class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}" href="{{ route('admin.reports.fee-collection') }}"><i class="bi bi-file-earmark-bar-graph"></i> Reports</a></li>
 
-      @if ($enabledModules)
+      <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">HR</li>
+      <li><a class="nav-link {{ request()->routeIs('admin.leave-types.*') ? 'active' : '' }}" href="{{ route('admin.leave-types.index') }}"><i class="bi bi-card-checklist"></i> Leave types</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.student-leave.*') ? 'active' : '' }}" href="{{ route('admin.student-leave.index') }}"><i class="bi bi-person-vcard"></i> Student leave</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.staff-leave.*') ? 'active' : '' }}" href="{{ route('admin.staff-leave.index') }}"><i class="bi bi-person-workspace"></i> Staff leave</a></li>
+      @endif
+
+      @if ($canFinance)
+      <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">Reports</li>
+      <li><a class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}" href="{{ route('admin.reports.fee-collection') }}"><i class="bi bi-file-earmark-bar-graph"></i> Reports</a></li>
+      @endif
+
+      @if ($isAdmin && $enabledModules)
         <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">Optional</li>
         @if (in_array('library', $enabledModules))
           <li><a class="nav-link {{ request()->routeIs('admin.library.*') ? 'active' : '' }}" href="{{ route('admin.library.books.index') }}"><i class="bi bi-book-half"></i> Library</a></li>
