@@ -1,0 +1,102 @@
+<?php
+
+/*
+|--------------------------------------------------------------------------
+| Geo / locale reference data
+|--------------------------------------------------------------------------
+| Self-contained lists (no intl extension dependency) used to populate the
+| Country (ISO 3166-1 alpha-2), Currency (ISO 4217), and Language dropdowns
+| in School settings. Extend as needed.
+*/
+
+return [
+
+    'countries' => [
+        'AF' => 'Afghanistan', 'AX' => 'Åland Islands', 'AL' => 'Albania', 'DZ' => 'Algeria',
+        'AS' => 'American Samoa', 'AD' => 'Andorra', 'AO' => 'Angola', 'AI' => 'Anguilla',
+        'AQ' => 'Antarctica', 'AG' => 'Antigua and Barbuda', 'AR' => 'Argentina', 'AM' => 'Armenia',
+        'AW' => 'Aruba', 'AU' => 'Australia', 'AT' => 'Austria', 'AZ' => 'Azerbaijan',
+        'BS' => 'Bahamas', 'BH' => 'Bahrain', 'BD' => 'Bangladesh', 'BB' => 'Barbados',
+        'BY' => 'Belarus', 'BE' => 'Belgium', 'BZ' => 'Belize', 'BJ' => 'Benin', 'BM' => 'Bermuda',
+        'BT' => 'Bhutan', 'BO' => 'Bolivia', 'BA' => 'Bosnia and Herzegovina', 'BW' => 'Botswana',
+        'BR' => 'Brazil', 'IO' => 'British Indian Ocean Territory', 'BN' => 'Brunei', 'BG' => 'Bulgaria',
+        'BF' => 'Burkina Faso', 'BI' => 'Burundi', 'CV' => 'Cabo Verde', 'KH' => 'Cambodia',
+        'CM' => 'Cameroon', 'CA' => 'Canada', 'KY' => 'Cayman Islands', 'CF' => 'Central African Republic',
+        'TD' => 'Chad', 'CL' => 'Chile', 'CN' => 'China', 'CO' => 'Colombia', 'KM' => 'Comoros',
+        'CG' => 'Congo', 'CD' => 'Congo (DRC)', 'CK' => 'Cook Islands', 'CR' => 'Costa Rica',
+        'CI' => "Côte d'Ivoire", 'HR' => 'Croatia', 'CU' => 'Cuba', 'CW' => 'Curaçao', 'CY' => 'Cyprus',
+        'CZ' => 'Czechia', 'DK' => 'Denmark', 'DJ' => 'Djibouti', 'DM' => 'Dominica',
+        'DO' => 'Dominican Republic', 'EC' => 'Ecuador', 'EG' => 'Egypt', 'SV' => 'El Salvador',
+        'GQ' => 'Equatorial Guinea', 'ER' => 'Eritrea', 'EE' => 'Estonia', 'SZ' => 'Eswatini',
+        'ET' => 'Ethiopia', 'FJ' => 'Fiji', 'FI' => 'Finland', 'FR' => 'France', 'GF' => 'French Guiana',
+        'PF' => 'French Polynesia', 'GA' => 'Gabon', 'GM' => 'Gambia', 'GE' => 'Georgia',
+        'DE' => 'Germany', 'GH' => 'Ghana', 'GI' => 'Gibraltar', 'GR' => 'Greece', 'GL' => 'Greenland',
+        'GD' => 'Grenada', 'GP' => 'Guadeloupe', 'GU' => 'Guam', 'GT' => 'Guatemala', 'GG' => 'Guernsey',
+        'GN' => 'Guinea', 'GW' => 'Guinea-Bissau', 'GY' => 'Guyana', 'HT' => 'Haiti', 'HN' => 'Honduras',
+        'HK' => 'Hong Kong', 'HU' => 'Hungary', 'IS' => 'Iceland', 'IN' => 'India', 'ID' => 'Indonesia',
+        'IR' => 'Iran', 'IQ' => 'Iraq', 'IE' => 'Ireland', 'IM' => 'Isle of Man', 'IL' => 'Israel',
+        'IT' => 'Italy', 'JM' => 'Jamaica', 'JP' => 'Japan', 'JE' => 'Jersey', 'JO' => 'Jordan',
+        'KZ' => 'Kazakhstan', 'KE' => 'Kenya', 'KI' => 'Kiribati', 'KW' => 'Kuwait', 'KG' => 'Kyrgyzstan',
+        'LA' => 'Laos', 'LV' => 'Latvia', 'LB' => 'Lebanon', 'LS' => 'Lesotho', 'LR' => 'Liberia',
+        'LY' => 'Libya', 'LI' => 'Liechtenstein', 'LT' => 'Lithuania', 'LU' => 'Luxembourg',
+        'MO' => 'Macao', 'MG' => 'Madagascar', 'MW' => 'Malawi', 'MY' => 'Malaysia', 'MV' => 'Maldives',
+        'ML' => 'Mali', 'MT' => 'Malta', 'MH' => 'Marshall Islands', 'MQ' => 'Martinique',
+        'MR' => 'Mauritania', 'MU' => 'Mauritius', 'MX' => 'Mexico', 'FM' => 'Micronesia',
+        'MD' => 'Moldova', 'MC' => 'Monaco', 'MN' => 'Mongolia', 'ME' => 'Montenegro', 'MS' => 'Montserrat',
+        'MA' => 'Morocco', 'MZ' => 'Mozambique', 'MM' => 'Myanmar', 'NA' => 'Namibia', 'NR' => 'Nauru',
+        'NP' => 'Nepal', 'NL' => 'Netherlands', 'NC' => 'New Caledonia', 'NZ' => 'New Zealand',
+        'NI' => 'Nicaragua', 'NE' => 'Niger', 'NG' => 'Nigeria', 'NU' => 'Niue', 'MK' => 'North Macedonia',
+        'NO' => 'Norway', 'OM' => 'Oman', 'PK' => 'Pakistan', 'PW' => 'Palau', 'PS' => 'Palestine',
+        'PA' => 'Panama', 'PG' => 'Papua New Guinea', 'PY' => 'Paraguay', 'PE' => 'Peru',
+        'PH' => 'Philippines', 'PL' => 'Poland', 'PT' => 'Portugal', 'PR' => 'Puerto Rico', 'QA' => 'Qatar',
+        'RE' => 'Réunion', 'RO' => 'Romania', 'RU' => 'Russia', 'RW' => 'Rwanda',
+        'KN' => 'Saint Kitts and Nevis', 'LC' => 'Saint Lucia', 'VC' => 'Saint Vincent and the Grenadines',
+        'WS' => 'Samoa', 'SM' => 'San Marino', 'ST' => 'São Tomé and Príncipe', 'SA' => 'Saudi Arabia',
+        'SN' => 'Senegal', 'RS' => 'Serbia', 'SC' => 'Seychelles', 'SL' => 'Sierra Leone', 'SG' => 'Singapore',
+        'SK' => 'Slovakia', 'SI' => 'Slovenia', 'SB' => 'Solomon Islands', 'SO' => 'Somalia',
+        'ZA' => 'South Africa', 'KR' => 'South Korea', 'SS' => 'South Sudan', 'ES' => 'Spain',
+        'LK' => 'Sri Lanka', 'SD' => 'Sudan', 'SR' => 'Suriname', 'SE' => 'Sweden', 'CH' => 'Switzerland',
+        'SY' => 'Syria', 'TW' => 'Taiwan', 'TJ' => 'Tajikistan', 'TZ' => 'Tanzania', 'TH' => 'Thailand',
+        'TL' => 'Timor-Leste', 'TG' => 'Togo', 'TO' => 'Tonga', 'TT' => 'Trinidad and Tobago',
+        'TN' => 'Tunisia', 'TR' => 'Türkiye', 'TM' => 'Turkmenistan', 'TV' => 'Tuvalu', 'UG' => 'Uganda',
+        'UA' => 'Ukraine', 'AE' => 'United Arab Emirates', 'GB' => 'United Kingdom', 'US' => 'United States',
+        'UY' => 'Uruguay', 'UZ' => 'Uzbekistan', 'VU' => 'Vanuatu', 'VE' => 'Venezuela', 'VN' => 'Vietnam',
+        'YE' => 'Yemen', 'ZM' => 'Zambia', 'ZW' => 'Zimbabwe',
+    ],
+
+    'currencies' => [
+        'AED' => 'UAE Dirham', 'AFN' => 'Afghan Afghani', 'ALL' => 'Albanian Lek', 'AMD' => 'Armenian Dram',
+        'ARS' => 'Argentine Peso', 'AUD' => 'Australian Dollar', 'AZN' => 'Azerbaijani Manat',
+        'BDT' => 'Bangladeshi Taka', 'BGN' => 'Bulgarian Lev', 'BHD' => 'Bahraini Dinar',
+        'BND' => 'Brunei Dollar', 'BOB' => 'Bolivian Boliviano', 'BRL' => 'Brazilian Real',
+        'BWP' => 'Botswana Pula', 'BYN' => 'Belarusian Ruble', 'CAD' => 'Canadian Dollar',
+        'CHF' => 'Swiss Franc', 'CLP' => 'Chilean Peso', 'CNY' => 'Chinese Yuan', 'COP' => 'Colombian Peso',
+        'CRC' => 'Costa Rican Colón', 'CZK' => 'Czech Koruna', 'DKK' => 'Danish Krone',
+        'DOP' => 'Dominican Peso', 'DZD' => 'Algerian Dinar', 'EGP' => 'Egyptian Pound', 'ETB' => 'Ethiopian Birr',
+        'EUR' => 'Euro', 'GBP' => 'Pound Sterling', 'GEL' => 'Georgian Lari', 'GHS' => 'Ghanaian Cedi',
+        'HKD' => 'Hong Kong Dollar', 'HUF' => 'Hungarian Forint', 'IDR' => 'Indonesian Rupiah',
+        'ILS' => 'Israeli New Shekel', 'INR' => 'Indian Rupee', 'IQD' => 'Iraqi Dinar', 'IRR' => 'Iranian Rial',
+        'ISK' => 'Icelandic Króna', 'JOD' => 'Jordanian Dinar', 'JPY' => 'Japanese Yen', 'KES' => 'Kenyan Shilling',
+        'KHR' => 'Cambodian Riel', 'KRW' => 'South Korean Won', 'KWD' => 'Kuwaiti Dinar', 'KZT' => 'Kazakhstani Tenge',
+        'LAK' => 'Lao Kip', 'LKR' => 'Sri Lankan Rupee', 'MAD' => 'Moroccan Dirham', 'MMK' => 'Myanmar Kyat',
+        'MVR' => 'Maldivian Rufiyaa', 'MXN' => 'Mexican Peso', 'MYR' => 'Malaysian Ringgit', 'NGN' => 'Nigerian Naira',
+        'NOK' => 'Norwegian Krone', 'NPR' => 'Nepalese Rupee', 'NZD' => 'New Zealand Dollar', 'OMR' => 'Omani Rial',
+        'PHP' => 'Philippine Peso', 'PKR' => 'Pakistani Rupee', 'PLN' => 'Polish Złoty', 'QAR' => 'Qatari Riyal',
+        'RON' => 'Romanian Leu', 'RSD' => 'Serbian Dinar', 'RUB' => 'Russian Ruble', 'SAR' => 'Saudi Riyal',
+        'SEK' => 'Swedish Krona', 'SGD' => 'Singapore Dollar', 'THB' => 'Thai Baht', 'TND' => 'Tunisian Dinar',
+        'TRY' => 'Turkish Lira', 'TWD' => 'New Taiwan Dollar', 'TZS' => 'Tanzanian Shilling', 'UAH' => 'Ukrainian Hryvnia',
+        'UGX' => 'Ugandan Shilling', 'USD' => 'US Dollar', 'UYU' => 'Uruguayan Peso', 'UZS' => 'Uzbekistani Som',
+        'VND' => 'Vietnamese Đồng', 'YER' => 'Yemeni Rial', 'ZAR' => 'South African Rand', 'ZMW' => 'Zambian Kwacha',
+    ],
+
+    'languages' => [
+        'en' => 'English', 'bn' => 'Bangla', 'hi' => 'Hindi', 'ur' => 'Urdu', 'ar' => 'Arabic',
+        'es' => 'Spanish', 'fr' => 'French', 'pt' => 'Portuguese', 'de' => 'German', 'it' => 'Italian',
+        'nl' => 'Dutch', 'ru' => 'Russian', 'tr' => 'Turkish', 'fa' => 'Persian', 'id' => 'Indonesian',
+        'ms' => 'Malay', 'th' => 'Thai', 'vi' => 'Vietnamese', 'zh' => 'Chinese', 'ja' => 'Japanese',
+        'ko' => 'Korean', 'ta' => 'Tamil', 'te' => 'Telugu', 'ml' => 'Malayalam', 'mr' => 'Marathi',
+        'gu' => 'Gujarati', 'pa' => 'Punjabi', 'ne' => 'Nepali', 'si' => 'Sinhala', 'my' => 'Burmese',
+        'km' => 'Khmer', 'sw' => 'Swahili', 'am' => 'Amharic', 'ha' => 'Hausa', 'yo' => 'Yoruba',
+        'uk' => 'Ukrainian', 'pl' => 'Polish', 'ro' => 'Romanian', 'el' => 'Greek', 'cs' => 'Czech',
+    ],
+];

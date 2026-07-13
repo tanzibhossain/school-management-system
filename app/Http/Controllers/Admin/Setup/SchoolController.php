@@ -18,9 +18,12 @@ class SchoolController extends Controller
         $school = School::with(['phones', 'openingHours'])->findOrFail(app('current_school_id'));
 
         return view('admin.setup.school.edit', [
-            'school'    => $school,
-            'timezones' => \DateTimeZone::listIdentifiers(),
-            'patterns'  => [
+            'school'     => $school,
+            'timezones'  => \DateTimeZone::listIdentifiers(),
+            'countries'  => config('geo.countries'),
+            'currencies' => config('geo.currencies'),
+            'languages'  => config('geo.languages'),
+            'patterns'   => [
                 'jan_dec' => 'January – December',
                 'apr_mar' => 'April – March',
                 'jul_jun' => 'July – June',
@@ -33,22 +36,30 @@ class SchoolController extends Controller
     {
         $school = School::findOrFail(app('current_school_id'));
 
+        // Country/currency codes are stored uppercase — normalise before validating
+        // against the geo lists (dropdowns already send uppercase; this covers any
+        // manual/lowercase input too).
+        $request->merge([
+            'currency'     => strtoupper((string) $request->input('currency')),
+            'country_code' => $request->filled('country_code') ? strtoupper((string) $request->input('country_code')) : null,
+        ]);
+
         $data = $request->validate([
             'name'                   => ['required', 'string', 'max:255'],
             'email'                  => ['nullable', 'email'],
             'institution_code'       => ['nullable', 'string', 'max:50'],
             'institution_code_label' => ['nullable', 'string', 'max:50'],
-            'established'            => ['nullable', 'date'],
+            'established'            => ['nullable', 'integer', 'min:1800', 'max:' . date('Y')],
             'address'               => ['nullable', 'string', 'max:2000'],
-            'country_code'          => ['nullable', 'string', 'size:2', 'alpha'],
-            'currency'              => ['required', 'string', 'size:3', 'alpha'],
+            'country_code'          => ['nullable', 'string', 'size:2', 'in:' . implode(',', array_keys(config('geo.countries')))],
+            'currency'              => ['required', 'string', 'size:3', 'in:' . implode(',', array_keys(config('geo.currencies')))],
             'timezone'              => ['required', 'string', 'timezone:all'],
-            'locale'                => ['required', 'string', 'max:10'],
+            'locale'                => ['required', 'string', 'in:' . implode(',', array_keys(config('geo.languages')))],
             'academic_year_pattern' => ['required', 'string', 'in:jan_dec,apr_mar,jul_jun,sep_aug'],
         ]);
 
-        $data['country_code'] = filled($data['country_code'] ?? null) ? strtoupper($data['country_code']) : null;
-        $data['currency'] = strtoupper($data['currency']);
+        // "established" is entered as a plain year; the column stores a date.
+        $data['established'] = filled($data['established'] ?? null) ? $data['established'] . '-01-01' : null;
 
         $this->schools->updateSettings($school, $data);
 

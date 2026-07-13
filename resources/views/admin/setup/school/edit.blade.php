@@ -12,7 +12,7 @@
             <div class="col-md-8"><label class="form-label">School name <span class="text-danger">*</span></label>
               <input name="name" class="form-control" value="{{ old('name', $school->name) }}" required></div>
             <div class="col-md-4"><label class="form-label">Established</label>
-              <input type="date" name="established" class="form-control" value="{{ old('established', optional($school->established)->format('Y-m-d')) }}"></div>
+              <input type="number" name="established" class="form-control" min="1800" max="{{ date('Y') }}" value="{{ old('established', optional($school->established)->format('Y')) }}" placeholder="e.g. 1942"></div>
             <div class="col-md-6"><label class="form-label">Email</label>
               <input type="email" name="email" class="form-control" value="{{ old('email', $school->email) }}"></div>
             <div class="col-md-3"><label class="form-label">Code label</label>
@@ -46,18 +46,31 @@
 
       <div class="col-lg-5">
         <div class="card"><div class="card-header">Locale</div><div class="card-body">
-          <div class="mb-3"><label class="form-label">Country code (ISO-2)</label>
-            <input name="country_code" maxlength="2" class="form-control text-uppercase" value="{{ old('country_code', $school->country_code) }}" placeholder="e.g. BD"></div>
-          <div class="mb-3"><label class="form-label">Currency (ISO-3) <span class="text-danger">*</span></label>
-            <input name="currency" maxlength="3" class="form-control text-uppercase" value="{{ old('currency', $school->currency) }}" placeholder="e.g. BDT" required></div>
+          <div class="mb-3"><label class="form-label">Country</label>
+            <select name="country_code" class="form-select js-select">
+              <option value="">— Select country —</option>
+              @foreach ($countries as $code => $name)
+                <option value="{{ $code }}" @selected(old('country_code', $school->country_code) === $code)>{{ $name }} ({{ $code }})</option>
+              @endforeach
+            </select></div>
+          <div class="mb-3"><label class="form-label">Currency <span class="text-danger">*</span></label>
+            <select name="currency" class="form-select js-select" required>
+              @foreach ($currencies as $code => $name)
+                <option value="{{ $code }}" @selected(old('currency', $school->currency) === $code)>{{ $code }} — {{ $name }}</option>
+              @endforeach
+            </select></div>
           <div class="mb-3"><label class="form-label">Timezone <span class="text-danger">*</span></label>
             <select name="timezone" class="form-select js-select" required>
               @foreach ($timezones as $tz)
                 <option value="{{ $tz }}" @selected(old('timezone', $school->timezone) === $tz)>{{ $tz }}</option>
               @endforeach
             </select></div>
-          <div class="mb-3"><label class="form-label">Locale <span class="text-danger">*</span></label>
-            <input name="locale" class="form-control" value="{{ old('locale', $school->locale) }}" placeholder="e.g. en" required></div>
+          <div class="mb-3"><label class="form-label">Language <span class="text-danger">*</span></label>
+            <select name="locale" class="form-select js-select" required>
+              @foreach ($languages as $code => $name)
+                <option value="{{ $code }}" @selected(old('locale', $school->locale) === $code)>{{ $name }}</option>
+              @endforeach
+            </select></div>
           <div><label class="form-label">Academic year pattern <span class="text-danger">*</span></label>
             <select name="academic_year_pattern" class="form-select" required>
               @foreach ($patterns as $val => $lbl)

@@ -149,15 +149,18 @@ class SetupAreaTest extends TestCase
         $this->put('/admin/school', [
             'name'                  => 'Renamed School',
             'currency'              => 'usd',
+            'country_code'          => 'bd',
+            'established'            => '1942',
             'timezone'              => 'Asia/Dhaka',
             'locale'                => 'en',
             'academic_year_pattern' => 'jul_jun',
             'phones'                => [['phone' => '01700000000', 'label' => 'Office']],
             'primary_phone'         => 0,
-        ])->assertRedirect();
+        ])->assertSessionHasNoErrors()->assertRedirect();
 
-        $this->assertDatabaseHas('schools', ['id' => $this->school->id, 'name' => 'Renamed School', 'currency' => 'USD']);
+        $this->assertDatabaseHas('schools', ['id' => $this->school->id, 'name' => 'Renamed School', 'currency' => 'USD', 'country_code' => 'BD']);
         $this->assertDatabaseHas('school_phones', ['school_id' => $this->school->id, 'phone' => '01700000000', 'is_primary' => true]);
+        $this->assertSame('1942', $this->school->fresh()->established->format('Y'));
     }
 
     public function test_can_toggle_optional_modules(): void
