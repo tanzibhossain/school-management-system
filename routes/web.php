@@ -176,8 +176,10 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::get('/students', [StudentController::class, 'index'])->name('students.index');
         Route::get('/students/create', [StudentController::class, 'create'])->name('students.create');
         Route::post('/students', [StudentController::class, 'store'])->name('students.store');
+        Route::get('/students/{id}', [StudentController::class, 'show'])->name('students.show');
         Route::put('/students/{id}', [StudentController::class, 'update'])->name('students.update');
         Route::patch('/students/{id}/deactivate', [StudentController::class, 'deactivate'])->name('students.deactivate');
+        Route::patch('/students/{id}/transfer', [StudentController::class, 'transfer'])->name('students.transfer');
 
         Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
         Route::post('/staff', [StaffController::class, 'store'])->name('staff.store');

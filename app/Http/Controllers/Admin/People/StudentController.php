@@ -145,4 +145,38 @@ class StudentController extends Controller
 
         return back()->with('status', 'Student deactivated.');
     }
+
+    public function show(int $id): View
+    {
+        $schoolId = app('current_school_id');
+        $student = Student::where('school_id', $schoolId)
+            ->with([
+                'academics.schoolClass:id,name', 'academics.section:id,name',
+                'guardians',
+            ])->findOrFail($id);
+
+        $years = AcademicYear::where('school_id', $schoolId)->pluck('year', 'id');
+
+        $subjects = \App\Modules\Student\Models\StudentSubject::where('school_id', $schoolId)
+            ->where('student_id', $student->id)
+            ->with('subjectRelation.subject:id,name')
+            ->get();
+
+        $invoices = \App\Modules\Payment\Models\Invoice::where('school_id', $schoolId)
+            ->where('student_id', $student->id)
+            ->orderByDesc('id')->limit(200)->get();
+
+        return view('admin.people.students.show', compact('student', 'years', 'subjects', 'invoices'));
+    }
+
+    public function transfer(Request $request, int $id): RedirectResponse
+    {
+        $schoolId = app('current_school_id');
+        $student = Student::where('school_id', $schoolId)->findOrFail($id);
+        $reason = $request->validate(['reason' => ['nullable', 'string', 'max:255']])['reason'] ?? 'transfer';
+
+        $this->students->transfer($student, $reason);
+
+        return back()->with('status', 'Student marked transferred.');
+    }
 }

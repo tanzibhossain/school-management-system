@@ -56,7 +56,7 @@ Periods & rooms CRUD; per class/section weekly grid (periods × Mon–Fri) with 
   and surface. Largest single screen in Setup; consider a full page, not a modal.
 - **Test:** create period + room, place a routine cell, assert the `class_routines` row; double-book → error.
 
-### A3. Student detail tabs *(People)*
+### A3. Student detail tabs *(People)* ✅ DONE
 - **Build:** `students/{id}` detail page with tabs: Academics (current + history), Guardians, Subjects
   (optional/4th), Invoices. Add "promote", "transfer", "link sibling" actions.
 - **Reuse:** `StudentService::promote/transfer/reAdmit/linkSiblings`, `StudentRepository`, relations

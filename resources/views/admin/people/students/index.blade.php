@@ -40,6 +40,7 @@
               <span class="badge {{ $st->status === 'active' ? 'text-bg-success' : 'text-bg-secondary' }}">{{ ucfirst($st->status) }}</span>
             </td>
             <td class="text-end">
+              <a class="btn btn-sm btn-outline-primary" href="{{ route('admin.students.show', $st->id) }}">View</a>
               <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ $st->id }}">Edit</button>
               @if ($st->status === 'active')
                 <form method="POST" action="{{ route('admin.students.deactivate', $st->id) }}" class="d-inline" onsubmit="return confirm('Deactivate {{ $st->name }}?')">
