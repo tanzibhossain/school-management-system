@@ -18,6 +18,8 @@ use App\Http\Controllers\Admin\Comms\MessageController;
 use App\Http\Controllers\Admin\Comms\ReportController;
 use App\Http\Controllers\Admin\Comms\SmsController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\PageController as PublicPageController;
 use App\Http\Controllers\Admin\Hr\LeaveTypeController;
 use App\Http\Controllers\Admin\Hr\StaffLeaveController;
 use App\Http\Controllers\Admin\Hr\StaffLoanController;
@@ -50,6 +52,7 @@ use App\Http\Controllers\Admin\People\StaffReferenceController;
 use App\Http\Controllers\Admin\People\StudentController;
 use App\Http\Controllers\Admin\People\UserController;
 use App\Http\Controllers\Admin\Setup\AcademicYearController;
+use App\Http\Controllers\Admin\Setup\AppearanceController;
 use App\Http\Controllers\Admin\Setup\ClassController;
 use App\Http\Controllers\Admin\Setup\ModuleController;
 use App\Http\Controllers\Admin\Setup\ReferenceController;
@@ -60,7 +63,8 @@ use App\Http\Controllers\Admin\Setup\SectionController;
 use App\Http\Controllers\Admin\Setup\SubjectController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => redirect()->route('admin.dashboard'));
+// Public school homepage.
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
@@ -133,6 +137,9 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
 
         Route::get('/modules', [ModuleController::class, 'index'])->name('modules.index');
         Route::put('/modules', [ModuleController::class, 'update'])->name('modules.update');
+
+        Route::get('/appearance', [AppearanceController::class, 'edit'])->name('appearance.edit');
+        Route::put('/appearance', [AppearanceController::class, 'update'])->name('appearance.update');
 
         Route::get('/academic-years', [AcademicYearController::class, 'index'])->name('academic-years.index');
         Route::post('/academic-years', [AcademicYearController::class, 'store'])->name('academic-years.store');
@@ -392,3 +399,10 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         });
     });
 });
+
+// Public website pages by slug — registered LAST so the admin/login/home routes
+// above always win. Single path segment only (no slashes); reserved slugs like
+// "admin"/"login" are already blocked at page-creation time (PageService).
+Route::get('/{slug}', [PublicPageController::class, 'show'])
+    ->where('slug', '[A-Za-z0-9\-]+')
+    ->name('page.show');

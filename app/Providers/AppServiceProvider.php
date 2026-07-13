@@ -215,5 +215,14 @@ class AppServiceProvider extends ServiceProvider
         Assignment::observe(AssignmentObserver::class);
         Submission::observe(SubmissionObserver::class);
         SubmissionAiCheck::observe(SubmissionAiCheckObserver::class);
+
+        // Public site header — share the notice ticker (latest visible announcements)
+        // with the shared header partial, so every controller needn't pass it.
+        \Illuminate\Support\Facades\View::composer('public.partials.header', function ($view): void {
+            $school = \App\Modules\School\Models\School::current();
+            $view->with('ticker', $school
+                ? app(\App\Modules\Website\Services\PublicPortalService::class)->notices($school->id)->take(8)
+                : collect());
+        });
     }
 }

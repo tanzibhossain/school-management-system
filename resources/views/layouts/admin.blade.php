@@ -45,6 +45,7 @@
       <li class="nav-section text-uppercase text-muted px-2 pt-3 pb-1">Setup</li>
       <li><a class="nav-link {{ request()->routeIs('admin.school.*') ? 'active' : '' }}" href="{{ route('admin.school.edit') }}"><i class="bi bi-building-gear"></i> School settings</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.modules.*') ? 'active' : '' }}" href="{{ route('admin.modules.index') }}"><i class="bi bi-toggles"></i> Modules</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.appearance.*') ? 'active' : '' }}" href="{{ route('admin.appearance.edit') }}"><i class="bi bi-palette"></i> Website appearance</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.academic-years.*') ? 'active' : '' }}" href="{{ route('admin.academic-years.index') }}"><i class="bi bi-calendar3"></i> Academic years</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*') ? 'active' : '' }}" href="{{ route('admin.classes.index') }}"><i class="bi bi-diagram-3"></i> Classes &amp; sections</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.subjects.*') ? 'active' : '' }}" href="{{ route('admin.subjects.index') }}"><i class="bi bi-book"></i> Subjects</a></li>

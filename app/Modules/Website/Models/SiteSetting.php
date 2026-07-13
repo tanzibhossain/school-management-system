@@ -17,7 +17,8 @@ class SiteSetting extends Model
         'btn_radius', 'btn_font_weight', 'btn_transition_ms',
         'btn_filled_json', 'btn_outline_json',
         'global_bg_type', 'global_bg_color', 'global_bg_image', 'global_bg_overlay',
-        'site_name', 'favicon', 'homepage_page_id', 'maintenance_mode',
+        'site_name', 'topbar_welcome', 'topbar_phone', 'topbar_text_color',
+        'favicon', 'homepage_page_id', 'maintenance_mode',
         'cookie_banner_text', 'ga4_id', 'fb_pixel_id', 'custom_css',
     ];
 

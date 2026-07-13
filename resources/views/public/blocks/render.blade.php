@@ -1,0 +1,160 @@
+@php
+  $contained = $contained ?? false;
+  $open = $contained ? '<div class="mb-4">' : '<section class="py-4 py-lg-5"><div class="container">';
+  $close = $contained ? '</div>' : '</div></section>';
+@endphp
+@switch($type)
+  @case('hero')
+    <header class="hero py-5" @if(!empty($d['image'])) style="background-image:linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.45)),url('{{ $d['image'] }}');background-size:cover;background-position:center;" @endif>
+      <div class="container py-4 py-lg-5 text-center">
+        <h1 class="display-5 mb-3">{{ $d['title'] ?? '' }}</h1>
+        @if(!empty($d['subtitle']))<p class="lead text-white-50 mx-auto" style="max-width:42rem;">{{ $d['subtitle'] }}</p>@endif
+        @if(!empty($d['button_text']))<a href="{{ $d['button_url'] ?? '#' }}" class="btn btn-light btn-lg mt-2 px-4">{{ $d['button_text'] }}</a>@endif
+      </div>
+    </header>
+    @break
+
+  @case('heading')
+    {!! $open !!}
+      <h2 class="section-title h3 text-{{ $d['align'] ?? 'start' }} mb-0">{{ $d['text'] ?? '' }}</h2>
+    {!! $close !!}
+    @break
+
+  @case('richtext')
+    {!! $open !!}
+      @if(!empty($d['heading']))<h2 class="section-title h3 mb-3">{{ $d['heading'] }}</h2>@endif
+      <div class="lh-lg">{!! $d['html'] ?? '' !!}</div>
+    {!! $close !!}
+    @break
+
+  @case('image')
+    {!! $open !!}
+      <figure class="text-center mb-0">
+        <img src="{{ $d['url'] ?? '' }}" class="img-fluid rounded-3" alt="{{ $d['caption'] ?? '' }}">
+        @if(!empty($d['caption']))<figcaption class="text-muted small mt-2">{{ $d['caption'] }}</figcaption>@endif
+      </figure>
+    {!! $close !!}
+    @break
+
+  @case('image_text')
+    {!! $open !!}
+      <div class="row g-4 align-items-center {{ ($d['image_side'] ?? 'left') === 'right' ? 'flex-row-reverse' : '' }}">
+        <div class="col-md-5"><img src="{{ $d['image'] ?? '' }}" class="img-fluid rounded-3" alt=""></div>
+        <div class="col-md-7">
+          @if(!empty($d['heading']))<h2 class="section-title h4 mb-3">{{ $d['heading'] }}</h2>@endif
+          <div class="lh-lg">{!! $d['html'] ?? '' !!}</div>
+        </div>
+      </div>
+    {!! $close !!}
+    @break
+
+  @case('staff')
+    {!! $open !!}
+      @if(!empty($d['heading']))<h2 class="section-title h3 mb-4">{{ $d['heading'] }}</h2>@endif
+      <div class="row g-3">
+        @forelse($d['members'] ?? [] as $m)
+          <div class="col-6 col-md-3">
+            <div class="card h-100 text-center"><div class="card-body">
+              <div class="rounded-circle bg-light border d-inline-flex align-items-center justify-content-center mb-2" style="width:64px;height:64px;">
+                @if($m->photo)<img src="{{ $m->photo }}" class="rounded-circle" style="width:64px;height:64px;object-fit:cover;" alt="">
+                @else<span class="text-brand fw-bold fs-4">{{ strtoupper(mb_substr($m->name, 0, 1)) }}</span>@endif
+              </div>
+              <div class="fw-semibold small">{{ $m->name }}</div>
+              <div class="text-muted small">{{ $m->designation?->name ?? 'Staff' }}</div>
+            </div></div>
+          </div>
+        @empty
+          <p class="text-muted mb-0">No staff to show.</p>
+        @endforelse
+      </div>
+    {!! $close !!}
+    @break
+
+  @case('notices')
+    {!! $open !!}
+      <h2 class="section-title h3 mb-4">{{ $d['heading'] ?? 'Notices' }}</h2>
+      <div class="row g-3">
+        @forelse(($d['notices'] ?? collect())->take($d['limit'] ?? 6) as $n)
+          <div class="col-md-6 col-lg-4"><div class="card h-100"><div class="card-body">
+            <div class="small text-muted mb-1"><i class="bi bi-megaphone-fill text-brand"></i> {{ optional($n->publish_at ?? $n->created_at)->format('d M Y') }}</div>
+            <h3 class="h6 fw-semibold">{{ $n->title }}</h3>
+            <p class="text-muted small mb-0">{{ \Illuminate\Support\Str::limit(strip_tags($n->body), 110) }}</p>
+          </div></div></div>
+        @empty
+          <p class="text-muted mb-0">No notices published.</p>
+        @endforelse
+      </div>
+    {!! $close !!}
+    @break
+
+  @case('stats')
+    {!! $open !!}
+      <div class="row g-3 text-center">
+        <div class="col-6 col-md-3"><div class="p-3 bg-light rounded-3"><div class="stat-num">{{ number_format($d['stats']['active_students'] ?? 0) }}</div><div class="text-muted small mt-1">Students</div></div></div>
+        <div class="col-6 col-md-3"><div class="p-3 bg-light rounded-3"><div class="stat-num">{{ number_format($d['stats']['active_staff'] ?? 0) }}</div><div class="text-muted small mt-1">Teachers &amp; staff</div></div></div>
+        @foreach($d['items'] ?? [] as $it)
+          <div class="col-6 col-md-3"><div class="p-3 bg-light rounded-3"><div class="stat-num">{{ $it['value'] ?? '' }}</div><div class="text-muted small mt-1">{{ $it['label'] ?? '' }}</div></div></div>
+        @endforeach
+      </div>
+    {!! $close !!}
+    @break
+
+  @case('gallery_photo')
+    {!! $open !!}
+      @if(!empty($d['heading']))<h2 class="section-title h3 mb-4">{{ $d['heading'] }}</h2>@endif
+      <div class="row g-3">
+        @forelse($d['images'] ?? [] as $img)
+          <div class="col-6 col-md-4 col-lg-3"><a href="{{ is_array($img) ? ($img['url'] ?? '#') : $img }}" target="_blank"><img src="{{ is_array($img) ? ($img['url'] ?? '') : $img }}" class="img-fluid rounded-3" style="aspect-ratio:1;object-fit:cover;width:100%;" alt=""></a></div>
+        @empty
+          <p class="text-muted mb-0">No photos yet.</p>
+        @endforelse
+      </div>
+    {!! $close !!}
+    @break
+
+  @case('gallery_video')
+    {!! $open !!}
+      @if(!empty($d['heading']))<h2 class="section-title h3 mb-4">{{ $d['heading'] }}</h2>@endif
+      <div class="row g-3">
+        @forelse($d['videos'] ?? [] as $v)
+          <div class="col-md-6"><div class="ratio ratio-16x9"><iframe src="{{ is_array($v) ? ($v['url'] ?? '') : $v }}" allowfullscreen loading="lazy"></iframe></div></div>
+        @empty
+          <p class="text-muted mb-0">No videos yet.</p>
+        @endforelse
+      </div>
+    {!! $close !!}
+    @break
+
+  @case('admission_form')
+    {!! $open !!}
+      <div class="card"><div class="card-body p-4 p-lg-5 text-center">
+        <h2 class="section-title h4 mb-2">{{ $d['heading'] ?? 'Online admission' }}</h2>
+        <p class="text-muted mb-3">{{ $d['intro'] ?? 'Apply online for admission to our school.' }}</p>
+        <a href="{{ $d['action_url'] ?? '#' }}" class="btn btn-brand btn-lg px-4"><i class="bi bi-pencil-square"></i> Open admission form</a>
+      </div></div>
+    {!! $close !!}
+    @break
+
+  @case('contact')
+    {!! $open !!}
+      <div class="row g-4">
+        <div class="col-md-6">
+          <h2 class="section-title h4 mb-3">{{ $d['heading'] ?? 'Get in touch' }}</h2>
+          <ul class="list-unstyled">
+            @if(($d['address'] ?? null) || ($d['school']->address ?? null))<li class="mb-2"><i class="bi bi-geo-alt text-brand"></i> {{ $d['address'] ?? $d['school']->address }}</li>@endif
+            @if($d['phone'] ?? null)<li class="mb-2"><i class="bi bi-telephone text-brand"></i> {{ $d['phone'] }}</li>@endif
+            @if(($d['email'] ?? null) || ($d['school']->email ?? null))<li class="mb-2"><i class="bi bi-envelope text-brand"></i> {{ $d['email'] ?? $d['school']->email }}</li>@endif
+          </ul>
+          @if(!empty($d['map_embed']))<div class="ratio ratio-4x3 mt-3 rounded-3 overflow-hidden"><iframe src="{{ $d['map_embed'] }}" loading="lazy" style="border:0;"></iframe></div>@endif
+        </div>
+        <div class="col-md-6"><div class="card"><div class="card-body">
+          <div class="mb-2"><input class="form-control" placeholder="Your name"></div>
+          <div class="mb-2"><input class="form-control" placeholder="Email"></div>
+          <div class="mb-2"><textarea class="form-control" rows="4" placeholder="Message"></textarea></div>
+          <button type="button" class="btn btn-brand">Send message</button>
+          <div class="form-text mt-1">Contact form delivery is configured by the school.</div>
+        </div></div></div>
+      </div>
+    {!! $close !!}
+    @break
+@endswitch
