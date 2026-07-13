@@ -8,6 +8,9 @@ use App\Http\Controllers\Admin\Academics\ExamTypeController;
 use App\Http\Controllers\Admin\Academics\HallController;
 use App\Http\Controllers\Admin\Academics\MarkSettingController;
 use App\Http\Controllers\Admin\Auth\LoginController;
+use App\Http\Controllers\Admin\Certificates\AdmitCardController;
+use App\Http\Controllers\Admin\Certificates\TemplateController as CertTemplateController;
+use App\Http\Controllers\Admin\Certificates\TestimonialController;
 use App\Http\Controllers\Admin\Comms\AnnouncementController;
 use App\Http\Controllers\Admin\Comms\ReportController;
 use App\Http\Controllers\Admin\Comms\SmsController;
@@ -177,6 +180,20 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::get('/admissions/{id}', [AdmissionController::class, 'show'])->name('admissions.show');
         Route::patch('/admissions/{id}/approve', [AdmissionController::class, 'approve'])->name('admissions.approve');
         Route::patch('/admissions/{id}/reject', [AdmissionController::class, 'reject'])->name('admissions.reject');
+
+        // Certificates: testimonial templates, testimonials, admit cards
+        Route::get('/cert-templates', [CertTemplateController::class, 'index'])->name('cert-templates.index');
+        Route::post('/cert-templates', [CertTemplateController::class, 'store'])->name('cert-templates.store');
+        Route::put('/cert-templates/{id}', [CertTemplateController::class, 'update'])->name('cert-templates.update');
+        Route::delete('/cert-templates/{id}', [CertTemplateController::class, 'destroy'])->name('cert-templates.destroy');
+
+        Route::get('/testimonials', [TestimonialController::class, 'index'])->name('testimonials.index');
+        Route::post('/testimonials', [TestimonialController::class, 'store'])->name('testimonials.store');
+        Route::get('/testimonials/{id}/download', [TestimonialController::class, 'download'])->name('testimonials.download');
+
+        Route::get('/admit-cards', [AdmitCardController::class, 'index'])->name('admit-cards.index');
+        Route::post('/admit-cards', [AdmitCardController::class, 'store'])->name('admit-cards.store');
+        Route::get('/admit-cards/{id}/download', [AdmitCardController::class, 'download'])->name('admit-cards.download');
 
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');

@@ -116,7 +116,9 @@ cancel — TransientToken; under HR sidebar. *Original scope below.*
   may be token-gated → TransientToken.
 - **Test:** create loan → schedule rows generated; approve → status `approved`.
 
-### B3. Certificate *(small–medium; PDF)*
+### B3. Certificate ✅ DONE (`tests/Feature/Admin/CertificateAreaTest.php`)
+Testimonial templates CRUD; issue testimonial (generate+issue, PDF via `render()`); admit-card generate
+(MinIO) + download. New Certificates sidebar entry with tabs. *Original scope below.*
 - **Screens:** Testimonial templates CRUD; issue a testimonial for a student (render PDF); generate an
   **admit card** for a student+exam (PDF). Transfer Certificate lives in the Student module (add to A3 detail).
 - **Reuse:** `TestimonialTemplateService`, `TestimonialService::generate/render/issue`,

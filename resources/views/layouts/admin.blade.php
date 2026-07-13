@@ -59,6 +59,7 @@
       <li><a class="nav-link {{ request()->routeIs('admin.departments.*') ? 'active' : '' }}" href="{{ route('admin.departments.index') }}"><i class="bi bi-building"></i> Departments</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.admissions.*') ? 'active' : '' }}" href="{{ route('admin.admissions.index') }}"><i class="bi bi-clipboard-check"></i> Admissions</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}"><i class="bi bi-person-gear"></i> Users &amp; roles</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.testimonials.*') || request()->routeIs('admin.admit-cards.*') || request()->routeIs('admin.cert-templates.*') ? 'active' : '' }}" href="{{ route('admin.testimonials.index') }}"><i class="bi bi-file-earmark-medical"></i> Certificates</a></li>
       @endif
 
       @if ($canFinance)
