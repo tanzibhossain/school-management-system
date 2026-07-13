@@ -149,7 +149,9 @@ People sidebar. *Original scope below.*
   is a public endpoint (not admin).
 - **Test:** seed an application → approve with class/section/year → `students` row created; reject sets status.
 
-### B6. DataImport *(small; file upload + queued job)*
+### B6. DataImport ✅ DONE (`tests/Feature/Admin/DataImportAreaTest.php`)
+Student/staff Excel/CSV upload (`ImportBatchService::request` → MinIO + sync job); batch list with counts +
+detail with per-row errors. Under People sidebar. *Original scope below.*
 - **Screens:** upload a student or staff Excel/CSV → creates an `ImportBatch`; list batches with row
   counts/errors; view per-row errors (JSON).
 - **Reuse:** `ImportBatchService::request` (dispatches the Horizon import job reading MinIO via

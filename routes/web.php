@@ -43,6 +43,7 @@ use App\Http\Controllers\Admin\Modules\Transport\DriverController;
 use App\Http\Controllers\Admin\Modules\Transport\RouteController;
 use App\Http\Controllers\Admin\Modules\Transport\VehicleController;
 use App\Http\Controllers\Admin\People\AdmissionController;
+use App\Http\Controllers\Admin\People\DataImportController;
 use App\Http\Controllers\Admin\People\StaffController;
 use App\Http\Controllers\Admin\People\StaffReferenceController;
 use App\Http\Controllers\Admin\People\StudentController;
@@ -182,6 +183,11 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::get('/admissions/{id}', [AdmissionController::class, 'show'])->name('admissions.show');
         Route::patch('/admissions/{id}/approve', [AdmissionController::class, 'approve'])->name('admissions.approve');
         Route::patch('/admissions/{id}/reject', [AdmissionController::class, 'reject'])->name('admissions.reject');
+
+        // Data import (student/staff bulk upload)
+        Route::get('/data-import', [DataImportController::class, 'index'])->name('data-import.index');
+        Route::post('/data-import', [DataImportController::class, 'store'])->name('data-import.store');
+        Route::get('/data-import/{id}', [DataImportController::class, 'show'])->name('data-import.show');
 
         // Certificates: testimonial templates, testimonials, admit cards
         Route::get('/cert-templates', [CertTemplateController::class, 'index'])->name('cert-templates.index');
