@@ -3,17 +3,17 @@
 namespace App\Modules\Website\Observers;
 
 use App\Modules\Website\Models\PageLayout;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class PageLayoutObserver
 {
     public function saved(PageLayout $layout): void
     {
-        Cache::tags(['page'])->flush();
+        CacheTags::flush(['page']);
     }
 
     public function deleted(PageLayout $layout): void
     {
-        Cache::tags(['page'])->flush();
+        CacheTags::flush(['page']);
     }
 }

@@ -9,7 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class FeeCategoryController extends Controller
 {
@@ -30,7 +30,7 @@ class FeeCategoryController extends Controller
             ['school_id' => app('current_school_id')],
         ));
 
-        Cache::tags(['fee-item'])->flush();
+        CacheTags::flush(['fee-item']);
 
         return (new FeeCategoryResource($category))->response()->setStatusCode(201);
     }
@@ -39,7 +39,7 @@ class FeeCategoryController extends Controller
     {
         $category = FeeCategory::where('school_id', app('current_school_id'))->findOrFail($id);
         $category->update($request->validated());
-        Cache::tags(['fee-item'])->flush();
+        CacheTags::flush(['fee-item']);
 
         return new FeeCategoryResource($category->fresh());
     }
@@ -48,7 +48,7 @@ class FeeCategoryController extends Controller
     {
         $category = FeeCategory::where('school_id', app('current_school_id'))->findOrFail($id);
         $category->delete();
-        Cache::tags(['fee-item'])->flush();
+        CacheTags::flush(['fee-item']);
 
         return response()->json(['message' => 'Category deleted.']);
     }

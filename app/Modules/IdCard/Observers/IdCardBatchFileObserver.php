@@ -3,17 +3,17 @@
 namespace App\Modules\IdCard\Observers;
 
 use App\Modules\IdCard\Models\IdCardBatchFile;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class IdCardBatchFileObserver
 {
     public function saved(IdCardBatchFile $file): void
     {
-        Cache::tags(['idcardbatchfile'])->flush();
+        CacheTags::flush(['idcardbatchfile']);
     }
 
     public function deleted(IdCardBatchFile $file): void
     {
-        Cache::tags(['idcardbatchfile'])->flush();
+        CacheTags::flush(['idcardbatchfile']);
     }
 }

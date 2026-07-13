@@ -57,6 +57,7 @@ class AnnouncementRepository extends BaseRepository
      */
     public function listVisible(int $schoolId, array $audiences): Collection
     {
+        // Corrupt/incomplete cache entries are handled centrally in BaseRepository::remember().
         return $this->remember(
             $this->cacheKey("school:{$schoolId}:visible:" . implode(',', $audiences)),
             fn () => Announcement::where('school_id', $schoolId)

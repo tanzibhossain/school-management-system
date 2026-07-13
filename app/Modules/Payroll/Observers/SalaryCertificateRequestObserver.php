@@ -3,17 +3,17 @@
 namespace App\Modules\Payroll\Observers;
 
 use App\Modules\Payroll\Models\SalaryCertificateRequest;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class SalaryCertificateRequestObserver
 {
     public function saved(SalaryCertificateRequest $request): void
     {
-        Cache::tags(['salarycertificaterequest'])->flush();
+        CacheTags::flush(['salarycertificaterequest']);
     }
 
     public function deleted(SalaryCertificateRequest $request): void
     {
-        Cache::tags(['salarycertificaterequest'])->flush();
+        CacheTags::flush(['salarycertificaterequest']);
     }
 }

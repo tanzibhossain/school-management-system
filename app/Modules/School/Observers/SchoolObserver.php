@@ -3,17 +3,17 @@
 namespace App\Modules\School\Observers;
 
 use App\Modules\School\Models\School;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class SchoolObserver
 {
     public function saved(School $school): void
     {
-        Cache::tags(['school', 'config'])->flush();
+        CacheTags::flush(['school', 'config']);
     }
 
     public function deleted(School $school): void
     {
-        Cache::tags(['school', 'config'])->flush();
+        CacheTags::flush(['school', 'config']);
     }
 }

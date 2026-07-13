@@ -3,17 +3,17 @@
 namespace App\Modules\Website\Observers;
 
 use App\Modules\Website\Models\PageTemplate;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class PageTemplateObserver
 {
     public function saved(PageTemplate $template): void
     {
-        Cache::tags(['pagetemplate'])->flush();
+        CacheTags::flush(['pagetemplate']);
     }
 
     public function deleted(PageTemplate $template): void
     {
-        Cache::tags(['pagetemplate'])->flush();
+        CacheTags::flush(['pagetemplate']);
     }
 }

@@ -3,17 +3,17 @@
 namespace App\Modules\Payroll\Observers;
 
 use App\Modules\Payroll\Models\SalaryComponent;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class SalaryComponentObserver
 {
     public function saved(SalaryComponent $component): void
     {
-        Cache::tags(['salarycomponent'])->flush();
+        CacheTags::flush(['salarycomponent']);
     }
 
     public function deleted(SalaryComponent $component): void
     {
-        Cache::tags(['salarycomponent'])->flush();
+        CacheTags::flush(['salarycomponent']);
     }
 }

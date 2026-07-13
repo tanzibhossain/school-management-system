@@ -3,17 +3,17 @@
 namespace App\Modules\Sms\Observers;
 
 use App\Modules\Sms\Models\SmsBatch;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class SmsBatchObserver
 {
     public function saved(SmsBatch $batch): void
     {
-        Cache::tags(['smsbatch'])->flush();
+        CacheTags::flush(['smsbatch']);
     }
 
     public function deleted(SmsBatch $batch): void
     {
-        Cache::tags(['smsbatch'])->flush();
+        CacheTags::flush(['smsbatch']);
     }
 }

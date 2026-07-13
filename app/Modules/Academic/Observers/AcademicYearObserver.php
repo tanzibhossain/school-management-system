@@ -3,17 +3,17 @@
 namespace App\Modules\Academic\Observers;
 
 use App\Modules\Academic\Models\AcademicYear;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class AcademicYearObserver
 {
     public function saved(AcademicYear $year): void
     {
-        Cache::tags(['academic', 'reference'])->flush();
+        CacheTags::flush(['academic', 'reference']);
     }
 
     public function deleted(AcademicYear $year): void
     {
-        Cache::tags(['academic', 'reference'])->flush();
+        CacheTags::flush(['academic', 'reference']);
     }
 }

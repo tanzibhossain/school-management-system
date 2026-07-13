@@ -3,17 +3,17 @@
 namespace App\Modules\Website\Observers;
 
 use App\Modules\Website\Models\PageRedirect;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class PageRedirectObserver
 {
     public function saved(PageRedirect $redirect): void
     {
-        Cache::tags(['pageredirect'])->flush();
+        CacheTags::flush(['pageredirect']);
     }
 
     public function deleted(PageRedirect $redirect): void
     {
-        Cache::tags(['pageredirect'])->flush();
+        CacheTags::flush(['pageredirect']);
     }
 }

@@ -3,17 +3,17 @@
 namespace App\Modules\IdCard\Observers;
 
 use App\Modules\IdCard\Models\IdCardBatch;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class IdCardBatchObserver
 {
     public function saved(IdCardBatch $batch): void
     {
-        Cache::tags(['idcardbatch'])->flush();
+        CacheTags::flush(['idcardbatch']);
     }
 
     public function deleted(IdCardBatch $batch): void
     {
-        Cache::tags(['idcardbatch'])->flush();
+        CacheTags::flush(['idcardbatch']);
     }
 }

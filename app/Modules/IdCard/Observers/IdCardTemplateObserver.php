@@ -3,17 +3,17 @@
 namespace App\Modules\IdCard\Observers;
 
 use App\Modules\IdCard\Models\IdCardTemplate;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class IdCardTemplateObserver
 {
     public function saved(IdCardTemplate $template): void
     {
-        Cache::tags(['idcardtemplate'])->flush();
+        CacheTags::flush(['idcardtemplate']);
     }
 
     public function deleted(IdCardTemplate $template): void
     {
-        Cache::tags(['idcardtemplate'])->flush();
+        CacheTags::flush(['idcardtemplate']);
     }
 }

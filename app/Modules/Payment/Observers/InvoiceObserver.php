@@ -3,17 +3,17 @@
 namespace App\Modules\Payment\Observers;
 
 use App\Modules\Payment\Models\Invoice;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class InvoiceObserver
 {
     public function saved(Invoice $invoice): void
     {
-        Cache::tags(['invoice'])->flush();
+        CacheTags::flush(['invoice']);
     }
 
     public function deleted(Invoice $invoice): void
     {
-        Cache::tags(['invoice'])->flush();
+        CacheTags::flush(['invoice']);
     }
 }

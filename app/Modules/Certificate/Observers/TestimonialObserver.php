@@ -3,17 +3,17 @@
 namespace App\Modules\Certificate\Observers;
 
 use App\Modules\Certificate\Models\Testimonial;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class TestimonialObserver
 {
     public function saved(Testimonial $testimonial): void
     {
-        Cache::tags(['testimonial'])->flush();
+        CacheTags::flush(['testimonial']);
     }
 
     public function deleted(Testimonial $testimonial): void
     {
-        Cache::tags(['testimonial'])->flush();
+        CacheTags::flush(['testimonial']);
     }
 }

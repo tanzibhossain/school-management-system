@@ -3,17 +3,17 @@
 namespace App\Modules\Loan\Observers;
 
 use App\Modules\Loan\Models\StaffLoan;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class StaffLoanObserver
 {
     public function saved(StaffLoan $loan): void
     {
-        Cache::tags(['staffloan'])->flush();
+        CacheTags::flush(['staffloan']);
     }
 
     public function deleted(StaffLoan $loan): void
     {
-        Cache::tags(['staffloan'])->flush();
+        CacheTags::flush(['staffloan']);
     }
 }

@@ -3,17 +3,17 @@
 namespace App\Modules\School\Observers;
 
 use App\Modules\School\Models\SchoolPhone;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class SchoolPhoneObserver
 {
     public function saved(SchoolPhone $phone): void
     {
-        Cache::tags(['school'])->flush();
+        CacheTags::flush(['school']);
     }
 
     public function deleted(SchoolPhone $phone): void
     {
-        Cache::tags(['school'])->flush();
+        CacheTags::flush(['school']);
     }
 }

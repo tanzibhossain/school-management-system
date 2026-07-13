@@ -3,17 +3,17 @@
 namespace App\Modules\Leave\Observers;
 
 use App\Modules\Leave\Models\LeaveType;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class LeaveTypeObserver
 {
     public function saved(LeaveType $leaveType): void
     {
-        Cache::tags(['leavetype'])->flush();
+        CacheTags::flush(['leavetype']);
     }
 
     public function deleted(LeaveType $leaveType): void
     {
-        Cache::tags(['leavetype'])->flush();
+        CacheTags::flush(['leavetype']);
     }
 }

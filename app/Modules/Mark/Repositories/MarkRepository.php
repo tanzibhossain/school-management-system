@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Collection;
  * Mark reads are intentionally UNCACHED during entry (mid-entry staleness),
  * and there is NO cache on mark writes (CLAUDE.md rule, same as Payment).
  * The only cached read in this module is the tabulation sheet
- * (Cache::tags(['tabulation']) in ResultCalculationService).
+ * (CacheTags::remember(['tabulation'], ...) in ResultCalculationService).
  */
 class MarkRepository extends BaseRepository
 {

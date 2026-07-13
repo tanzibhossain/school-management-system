@@ -3,17 +3,17 @@
 namespace App\Modules\LMS\Observers;
 
 use App\Modules\LMS\Models\Course;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class CourseObserver
 {
     public function saved(Course $course): void
     {
-        Cache::tags(['course'])->flush();
+        CacheTags::flush(['course']);
     }
 
     public function deleted(Course $course): void
     {
-        Cache::tags(['course'])->flush();
+        CacheTags::flush(['course']);
     }
 }

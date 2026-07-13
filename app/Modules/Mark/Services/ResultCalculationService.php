@@ -14,7 +14,7 @@ use App\Modules\Mark\Support\GradeResolver;
 use App\Modules\Student\Models\StudentAcademic;
 use App\Modules\Student\Models\StudentSubject;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -133,7 +133,7 @@ class ResultCalculationService
             }
         });
 
-        Cache::tags(['tabulation'])->flush();
+        CacheTags::flush(['tabulation']);
 
         return $written;
     }
@@ -161,7 +161,7 @@ class ResultCalculationService
     /** Tabulation sheet — persisted results, cached 30 min, flushed by MarkObserver. */
     public function tabulation(int $schoolId, int $examId): Collection
     {
-        return Cache::tags(['tabulation'])->remember(
+        return CacheTags::remember(['tabulation'], 
             "tabulation:school:{$schoolId}:exam:{$examId}",
             1800,
             fn () => ExamResult::forSchool($schoolId)

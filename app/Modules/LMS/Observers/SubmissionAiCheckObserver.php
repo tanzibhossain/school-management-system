@@ -3,17 +3,17 @@
 namespace App\Modules\LMS\Observers;
 
 use App\Modules\LMS\Models\SubmissionAiCheck;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class SubmissionAiCheckObserver
 {
     public function saved(SubmissionAiCheck $check): void
     {
-        Cache::tags(['submissionaicheck'])->flush();
+        CacheTags::flush(['submissionaicheck']);
     }
 
     public function deleted(SubmissionAiCheck $check): void
     {
-        Cache::tags(['submissionaicheck'])->flush();
+        CacheTags::flush(['submissionaicheck']);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Support\CacheTags;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -33,16 +34,42 @@ abstract class BaseRepository
 
     protected function remember(string $key, callable $callback): mixed
     {
-        return $this->cache->tags([$this->cacheTag()])->remember(
-            $key,
-            $this->cacheTtl,
-            $callback,
-        );
+        $tag = $this->cacheTag();
+
+        $value = CacheTags::remember([$tag], $key, $this->cacheTtl, $callback);
+
+        // A cache entry serialized under an older class shape — or one that fails
+        // to rehydrate (e.g. a serializer/compression mismatch, or a flaky mounted
+        // filesystem during class autoload) — deserializes to __PHP_Incomplete_Class.
+        // Detect that, drop the poisoned key, and recompute from source so a bad
+        // cache entry can never surface as a 500. Fresh values still get re-cached.
+        if ($this->isCorruptCacheValue($value)) {
+            CacheTags::forget([$tag], $key);
+            $value = $callback();
+            CacheTags::put([$tag], $key, $value, $this->cacheTtl);
+        }
+
+        return $value;
+    }
+
+    private function isCorruptCacheValue(mixed $value): bool
+    {
+        if ($value instanceof \__PHP_Incomplete_Class) {
+            return true;
+        }
+
+        // Eloquent/Support collections extend Illuminate\Support\Collection; a
+        // collection object rehydrates fine even when its *items* did not.
+        if ($value instanceof \Illuminate\Support\Collection) {
+            return $value->contains(static fn ($item): bool => $item instanceof \__PHP_Incomplete_Class);
+        }
+
+        return false;
     }
 
     public function flush(): void
     {
-        $this->cache->tags([$this->cacheTag()])->flush();
+        CacheTags::flush([$this->cacheTag()]);
     }
 
     // ─── Base CRUD ────────────────────────────────────────────────────────────

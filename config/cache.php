@@ -15,7 +15,10 @@ return [
     |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    // File-based caching is the default — it needs no extra services, so it works
+    // out of the box on cPanel / shared hosting. Tag emulation (App\Support\CacheTags)
+    // means the app also runs on 'database', 'redis', 'array', or LiteSpeed setups.
+    'default' => env('CACHE_STORE', 'file'),
 
     /*
     |--------------------------------------------------------------------------

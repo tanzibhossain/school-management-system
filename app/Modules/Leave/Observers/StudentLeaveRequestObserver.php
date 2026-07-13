@@ -3,17 +3,17 @@
 namespace App\Modules\Leave\Observers;
 
 use App\Modules\Leave\Models\StudentLeaveRequest;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class StudentLeaveRequestObserver
 {
     public function saved(StudentLeaveRequest $request): void
     {
-        Cache::tags(['studentleaverequest'])->flush();
+        CacheTags::flush(['studentleaverequest']);
     }
 
     public function deleted(StudentLeaveRequest $request): void
     {
-        Cache::tags(['studentleaverequest'])->flush();
+        CacheTags::flush(['studentleaverequest']);
     }
 }

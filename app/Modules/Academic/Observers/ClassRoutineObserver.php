@@ -3,19 +3,19 @@
 namespace App\Modules\Academic\Observers;
 
 use App\Modules\Academic\Models\ClassRoutine;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class ClassRoutineObserver
 {
     public function saved(ClassRoutine $routine): void
     {
-        Cache::tags(['routines', "class:{$routine->class_id}"])->flush();
-        Cache::tags(['academic'])->flush();
+        CacheTags::flush(['routines', "class:{$routine->class_id}"]);
+        CacheTags::flush(['academic']);
     }
 
     public function deleted(ClassRoutine $routine): void
     {
-        Cache::tags(['routines', "class:{$routine->class_id}"])->flush();
-        Cache::tags(['academic'])->flush();
+        CacheTags::flush(['routines', "class:{$routine->class_id}"]);
+        CacheTags::flush(['academic']);
     }
 }

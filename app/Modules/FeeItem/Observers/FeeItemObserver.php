@@ -3,17 +3,17 @@
 namespace App\Modules\FeeItem\Observers;
 
 use App\Modules\FeeItem\Models\FeeItem;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class FeeItemObserver
 {
     public function saved(FeeItem $feeItem): void
     {
-        Cache::tags(['fee-item'])->flush();
+        CacheTags::flush(['fee-item']);
     }
 
     public function deleted(FeeItem $feeItem): void
     {
-        Cache::tags(['fee-item'])->flush();
+        CacheTags::flush(['fee-item']);
     }
 }

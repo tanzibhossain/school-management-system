@@ -3,17 +3,17 @@
 namespace App\Modules\Attendance\Observers;
 
 use App\Modules\Attendance\Models\StaffAttendance;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class StaffAttendanceObserver
 {
     public function saved(StaffAttendance $attendance): void
     {
-        Cache::tags(['attendance'])->flush();
+        CacheTags::flush(['attendance']);
     }
 
     public function deleted(StaffAttendance $attendance): void
     {
-        Cache::tags(['attendance'])->flush();
+        CacheTags::flush(['attendance']);
     }
 }

@@ -3,17 +3,17 @@
 namespace App\Modules\Payroll\Observers;
 
 use App\Modules\Payroll\Models\PayrollRun;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 class PayrollRunObserver
 {
     public function saved(PayrollRun $run): void
     {
-        Cache::tags(['payrollrun'])->flush();
+        CacheTags::flush(['payrollrun']);
     }
 
     public function deleted(PayrollRun $run): void
     {
-        Cache::tags(['payrollrun'])->flush();
+        CacheTags::flush(['payrollrun']);
     }
 }

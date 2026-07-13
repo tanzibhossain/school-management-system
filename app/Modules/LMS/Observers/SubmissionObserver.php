@@ -3,7 +3,7 @@
 namespace App\Modules\LMS\Observers;
 
 use App\Modules\LMS\Models\Submission;
-use Illuminate\Support\Facades\Cache;
+use App\Support\CacheTags;
 
 /**
  * Submission has no dedicated cache-aside Repository (grading/AI-check writes
@@ -16,11 +16,11 @@ class SubmissionObserver
 {
     public function saved(Submission $submission): void
     {
-        Cache::tags(['submission'])->flush();
+        CacheTags::flush(['submission']);
     }
 
     public function deleted(Submission $submission): void
     {
-        Cache::tags(['submission'])->flush();
+        CacheTags::flush(['submission']);
     }
 }
