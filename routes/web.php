@@ -37,6 +37,7 @@ use App\Http\Controllers\Admin\Modules\Payroll\StaffSalaryController;
 use App\Http\Controllers\Admin\Modules\Transport\DriverController;
 use App\Http\Controllers\Admin\Modules\Transport\RouteController;
 use App\Http\Controllers\Admin\Modules\Transport\VehicleController;
+use App\Http\Controllers\Admin\People\AdmissionController;
 use App\Http\Controllers\Admin\People\StaffController;
 use App\Http\Controllers\Admin\People\StaffReferenceController;
 use App\Http\Controllers\Admin\People\StudentController;
@@ -170,6 +171,12 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
             Route::put("/{$type}/{id}", [StaffReferenceController::class, 'update'])->defaults('type', $type)->name("{$type}.update");
             Route::delete("/{$type}/{id}", [StaffReferenceController::class, 'destroy'])->defaults('type', $type)->name("{$type}.destroy");
         }
+
+        // Online admission applications
+        Route::get('/admissions', [AdmissionController::class, 'index'])->name('admissions.index');
+        Route::get('/admissions/{id}', [AdmissionController::class, 'show'])->name('admissions.show');
+        Route::patch('/admissions/{id}/approve', [AdmissionController::class, 'approve'])->name('admissions.approve');
+        Route::patch('/admissions/{id}/reject', [AdmissionController::class, 'reject'])->name('admissions.reject');
 
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');

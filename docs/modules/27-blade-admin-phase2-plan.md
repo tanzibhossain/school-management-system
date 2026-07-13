@@ -134,7 +134,9 @@ cancel — TransientToken; under HR sidebar. *Original scope below.*
   everything** (it does). 200-cards-per-PDF chunking; photos inlined as base64. Batch status is the signal.
 - **Test:** request a batch → `id_card_batches` row created (status transitions handled by the job).
 
-### B5. OnlineAdmission *(small–medium)*
+### B5. OnlineAdmission ✅ DONE (`tests/Feature/Admin/AdmissionAreaTest.php`)
+Applications list + detail; approve (admission_number + section → `StudentService::enrol`) / reject; under
+People sidebar. *Original scope below.*
 - **Screens:** admission applications list (filter by status) + detail; approve (→ calls
   `StudentService::enrol`, needs class/section/year decision) + reject (reason). Public submit already exists.
 - **Reuse:** `AdmissionApplicationService::approve/reject`, model `AdmissionApplication`.
