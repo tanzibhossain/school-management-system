@@ -127,7 +127,10 @@ Testimonial templates CRUD; issue testimonial (generate+issue, PDF via `render()
   `ReportController::stream`.
 - **Test:** create template → issue testimonial → row + `certificate_path`; admit card generate for exam.
 
-### B4. IdCard *(medium; queued job)*
+### B4. IdCard ✅ DONE (`tests/Feature/Admin/IdCardAreaTest.php`)
+ID-card templates CRUD (layout/colors/visible fields); request batch (type/template/scope) → sync job renders
+PDFs to MinIO in ≤200-card sheets; batch list/detail + per-file download. Under the Certificates &amp; IDs tab
+group. *Original scope below.*
 - **Screens:** ID-card templates CRUD; request a batch (student/staff, template, scope+filters) → shows batch
   status; download generated PDF.
 - **Reuse:** `IdCardTemplateService`, `IdCardBatchService::request` (dispatches Horizon

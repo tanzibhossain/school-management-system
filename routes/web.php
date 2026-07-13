@@ -9,6 +9,8 @@ use App\Http\Controllers\Admin\Academics\HallController;
 use App\Http\Controllers\Admin\Academics\MarkSettingController;
 use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\Certificates\AdmitCardController;
+use App\Http\Controllers\Admin\Certificates\IdCardBatchController;
+use App\Http\Controllers\Admin\Certificates\IdCardTemplateController;
 use App\Http\Controllers\Admin\Certificates\TemplateController as CertTemplateController;
 use App\Http\Controllers\Admin\Certificates\TestimonialController;
 use App\Http\Controllers\Admin\Comms\AnnouncementController;
@@ -194,6 +196,17 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::get('/admit-cards', [AdmitCardController::class, 'index'])->name('admit-cards.index');
         Route::post('/admit-cards', [AdmitCardController::class, 'store'])->name('admit-cards.store');
         Route::get('/admit-cards/{id}/download', [AdmitCardController::class, 'download'])->name('admit-cards.download');
+
+        // ID card templates + batches (queued generation)
+        Route::get('/id-card-templates', [IdCardTemplateController::class, 'index'])->name('id-card-templates.index');
+        Route::post('/id-card-templates', [IdCardTemplateController::class, 'store'])->name('id-card-templates.store');
+        Route::put('/id-card-templates/{id}', [IdCardTemplateController::class, 'update'])->name('id-card-templates.update');
+        Route::delete('/id-card-templates/{id}', [IdCardTemplateController::class, 'destroy'])->name('id-card-templates.destroy');
+
+        Route::get('/id-cards', [IdCardBatchController::class, 'index'])->name('id-cards.index');
+        Route::post('/id-cards', [IdCardBatchController::class, 'store'])->name('id-cards.store');
+        Route::get('/id-cards/{id}', [IdCardBatchController::class, 'show'])->name('id-cards.show');
+        Route::get('/id-cards/{id}/files/{fileId}/download', [IdCardBatchController::class, 'download'])->name('id-cards.download');
 
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
