@@ -172,7 +172,7 @@ detail with per-row errors. Under People sidebar. *Original scope below.*
   page-builder; scope carefully (start with Pages + Menus + Site settings; defer a visual builder).
 - **Test:** create page → save layout (new revision) → publish; menu replaceItems.
 
-### B8. Platform *(separate `super_admin` portal — different scope)*
+### B8. Platform *(separate `super_admin` portal — different scope)* ✅ DONE
 - **Screens:** Plans CRUD; schools list; provision offline school (expiry + reminders); change plan; view
   signups/subscription status. **Gated by real `role:super_admin`** (not `ability:*`), and it's **platform-
   level (not tenant-scoped)** — lives under a separate `/admin/platform` (or its own host) bypassing
