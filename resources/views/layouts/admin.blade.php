@@ -68,6 +68,7 @@
       <li><a class="nav-link {{ request()->routeIs('admin.invoices.*') ? 'active' : '' }}" href="{{ route('admin.invoices.index') }}"><i class="bi bi-receipt"></i> Invoices</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}" href="{{ route('admin.payments.index') }}"><i class="bi bi-credit-card"></i> Payments</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.refunds.*') ? 'active' : '' }}" href="{{ route('admin.refunds.index') }}"><i class="bi bi-arrow-return-left"></i> Refunds</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.student-credit.*') ? 'active' : '' }}" href="{{ route('admin.student-credit.index') }}"><i class="bi bi-wallet2"></i> Student credit</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.payment-config.*') ? 'active' : '' }}" href="{{ route('admin.payment-config.edit') }}"><i class="bi bi-gear"></i> Payment config</a></li>
       @endif
 

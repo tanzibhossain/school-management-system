@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\Finance\InvoiceController;
 use App\Http\Controllers\Admin\Finance\PaymentConfigController;
 use App\Http\Controllers\Admin\Finance\PaymentController;
 use App\Http\Controllers\Admin\Finance\RefundController;
+use App\Http\Controllers\Admin\Finance\StudentCreditController;
 use App\Http\Controllers\Admin\Modules\Library\BookController;
 use App\Http\Controllers\Admin\Modules\Library\BorrowController;
 use App\Http\Controllers\Admin\Modules\Library\MemberController;
@@ -99,6 +100,10 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::get('/refunds', [RefundController::class, 'index'])->name('refunds.index');
         Route::post('/refunds', [RefundController::class, 'store'])->name('refunds.store');
 
+        // Student credit ledger
+        Route::get('/student-credit', [StudentCreditController::class, 'index'])->name('student-credit.index');
+        Route::post('/student-credit/adjust', [StudentCreditController::class, 'adjust'])->name('student-credit.adjust');
+
         // Payment config
         Route::get('/payment-config', [PaymentConfigController::class, 'edit'])->name('payment-config.edit');
         Route::put('/payment-config', [PaymentConfigController::class, 'update'])->name('payment-config.update');
@@ -114,6 +119,7 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         // ── Setup ──────────────────────────────────────────────────────────────
         Route::get('/school', [SchoolController::class, 'edit'])->name('school.edit');
         Route::put('/school', [SchoolController::class, 'update'])->name('school.update');
+        Route::put('/school/hours', [SchoolController::class, 'updateHours'])->name('school.hours');
 
         Route::get('/modules', [ModuleController::class, 'index'])->name('modules.index');
         Route::put('/modules', [ModuleController::class, 'update'])->name('modules.update');

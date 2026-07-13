@@ -71,6 +71,30 @@
     <div class="mt-4"><button class="btn btn-primary"><i class="bi bi-save"></i> Save settings</button></div>
   </form>
 
+  @php $hours = $school->openingHours->keyBy('day_of_week'); $dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']; @endphp
+  <form method="POST" action="{{ route('admin.school.hours') }}" class="mt-4">
+    @csrf @method('PUT')
+    <div class="card"><div class="card-header">Opening hours <span class="text-muted small">(drives attendance working days)</span></div><div class="card-body">
+      <table class="table align-middle mb-0">
+        <thead><tr><th>Day</th><th style="width:120px">Open</th><th>From</th><th>To</th></tr></thead>
+        <tbody>
+          @foreach ($dayNames as $dow => $name)
+            @php $h = $hours[$dow] ?? null; @endphp
+            <tr>
+              <td class="fw-semibold">{{ $name }}</td>
+              <td>
+                <div class="form-check form-switch mb-0"><input type="hidden" name="days[{{ $dow }}][is_open]" value="0"><input class="form-check-input" type="checkbox" name="days[{{ $dow }}][is_open]" value="1" @checked($h ? $h->is_open : true)></div>
+              </td>
+              <td><input type="time" name="days[{{ $dow }}][open_time]" class="form-control form-control-sm" value="{{ $h && $h->open_time ? \Illuminate\Support\Str::of($h->open_time)->substr(0,5) : '' }}"></td>
+              <td><input type="time" name="days[{{ $dow }}][close_time]" class="form-control form-control-sm" value="{{ $h && $h->close_time ? \Illuminate\Support\Str::of($h->close_time)->substr(0,5) : '' }}"></td>
+            </tr>
+          @endforeach
+        </tbody>
+      </table>
+      <div class="text-end mt-2"><button class="btn btn-primary"><i class="bi bi-save"></i> Save hours</button></div>
+    </div></div>
+  </form>
+
   @push('scripts')
     <script>
       (function () {

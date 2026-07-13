@@ -61,13 +61,17 @@ Implemented: `routes/web.php` split into `role:admin,accountant` (Finance + Repo
   `currentAcademic`, `guardians`, `subjects`; Payment `Invoice` where `student_id`.
 - **Test:** detail page renders tabs; promote moves the student's current academic; guardian add persists.
 
-### A4. School opening-hours / weekend editor *(Setup › School settings)*
+### A4. School opening-hours / weekend editor ✅ DONE (`SchoolHoursCreditTest.php`)
+Per-day (is_open + open/close) editor card on the school-settings page (`PUT /admin/school/hours`,
+`updateOrCreate` per weekday). *Original scope below.*
 - **Build:** a card on the school-settings page to edit each `day_of_week` (is_open, open/close time). This
   drives Attendance working-days.
 - **Reuse:** `SchoolService::updateOpeningHour`, `School->openingHours` (already eager-loaded, just unused).
 - **Test:** toggle a day closed → `school_opening_hours` updated; attendance then treats it as non-working.
 
-### A5. Student-credit ledger *(Finance — the "& credit" half of Refunds)*
+### A5. Student-credit ledger ✅ DONE (`SchoolHoursCreditTest.php`)
+Finance screen: pick a student → balance + `CreditTransaction` history + manual credit/debit
+(`CreditService::credit/debit`; debit throws `RuntimeException` on insufficient balance). *Original scope below.*
 - **Build:** read-only view of a student's `StudentCredit` balance + `CreditTransaction` history; optional
   manual credit/debit.
 - **Reuse:** `Payment\Services\CreditService::balance/credit/debit`, models `StudentCredit`,

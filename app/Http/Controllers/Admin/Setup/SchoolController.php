@@ -65,4 +65,31 @@ class SchoolController extends Controller
 
         return back()->with('status', 'School settings saved.');
     }
+
+    /**
+     * Weekly opening hours — drives Attendance working-days (is_open per day).
+     */
+    public function updateHours(Request $request): RedirectResponse
+    {
+        $schoolId = app('current_school_id');
+
+        $request->validate([
+            'days'              => ['required', 'array'],
+            'days.*.open_time'  => ['nullable', 'date_format:H:i'],
+            'days.*.close_time' => ['nullable', 'date_format:H:i', 'after:days.*.open_time'],
+        ]);
+
+        foreach ((array) $request->input('days', []) as $dow => $row) {
+            \App\Modules\School\Models\SchoolOpeningHour::updateOrCreate(
+                ['school_id' => $schoolId, 'day_of_week' => (int) $dow],
+                [
+                    'is_open'    => (bool) ($row['is_open'] ?? false),
+                    'open_time'  => $row['open_time'] ?? null,
+                    'close_time' => $row['close_time'] ?? null,
+                ],
+            ); // SchoolOpeningHourObserver flushes the school cache
+        }
+
+        return back()->with('status', 'Opening hours saved.');
+    }
 }
