@@ -55,7 +55,7 @@
     .sidebar .nav-link {
       color: var(--sb-text); border-radius: 10px; margin: 1px .5rem; padding: .55rem .7rem;
       font-size: .92rem; font-weight: 500; display: flex; align-items: center; gap: .7rem;
-      white-space: nowrap; transition: background .15s, color .15s;
+      white-space: nowrap; text-transform: capitalize; transition: background .15s, color .15s;
     }
     .sidebar .nav-link:hover { background: var(--sb-hover); color: var(--sb-primary); }
     .sidebar .nav-link.active { background: var(--sb-active-bg); color: var(--sb-primary); font-weight: 600; }
