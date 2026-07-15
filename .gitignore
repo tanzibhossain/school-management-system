@@ -41,7 +41,7 @@ storage/*.key
 /.zed
 /.codex
 /.claude/
-/..clinerules/
+/.clinerules/
 .phpactor.json
 _ide_helper.php
 
