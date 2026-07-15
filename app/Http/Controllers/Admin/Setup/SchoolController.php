@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin\Setup;
 
 use App\Modules\School\Models\School;
 use App\Modules\School\Services\SchoolService;
+use App\Modules\Website\Models\SiteSetting;
+use App\Modules\Website\Services\SiteSettingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -11,14 +13,19 @@ use Illuminate\View\View;
 
 class SchoolController extends Controller
 {
-    public function __construct(private readonly SchoolService $schools) {}
+    public function __construct(
+        private readonly SchoolService $schools,
+        private readonly SiteSettingService $siteSettings,
+    ) {}
 
     public function edit(): View
     {
-        $school = School::with(['phones', 'openingHours'])->findOrFail(app('current_school_id'));
+        $schoolId = app('current_school_id');
+        $school = School::with(['phones', 'openingHours'])->findOrFail($schoolId);
 
         return view('admin.setup.school.edit', [
             'school'     => $school,
+            'settings'   => SiteSetting::forSchool($schoolId),
             'timezones'  => \DateTimeZone::listIdentifiers(),
             'countries'  => config('geo.countries'),
             'currencies' => config('geo.currencies'),
@@ -44,11 +51,17 @@ class SchoolController extends Controller
             'country_code' => $request->filled('country_code') ? strtoupper((string) $request->input('country_code')) : null,
         ]);
 
-        $data = $request->validate([
+        $validated = $request->validate([
+            // Profile
             'name'                   => ['required', 'string', 'max:255'],
             'email'                  => ['nullable', 'email'],
-            'institution_code'       => ['nullable', 'string', 'max:50'],
-            'institution_code_label' => ['nullable', 'string', 'max:50'],
+            // School codes — three configurable label/value pairs
+            'institution_code_label'      => ['nullable', 'string', 'max:50'],
+            'institution_code'            => ['nullable', 'string', 'max:50'],
+            'school_code_label'           => ['nullable', 'string', 'max:50'],
+            'school_code'                 => ['nullable', 'string', 'max:50'],
+            'technical_branch_code_label' => ['nullable', 'string', 'max:50'],
+            'technical_branch_code'       => ['nullable', 'string', 'max:50'],
             'established'            => ['nullable', 'integer', 'min:1800', 'max:' . date('Y')],
             'address'               => ['nullable', 'string', 'max:2000'],
             'country_code'          => ['nullable', 'string', 'size:2', 'in:' . implode(',', array_keys(config('geo.countries')))],
@@ -56,25 +69,70 @@ class SchoolController extends Controller
             'timezone'              => ['required', 'string', 'timezone:all'],
             'locale'                => ['required', 'string', 'in:' . implode(',', array_keys(config('geo.languages')))],
             'academic_year_pattern' => ['required', 'string', 'in:jan_dec,apr_mar,jul_jun,sep_aug'],
+            // Appearance / branding (merged in from the old Appearance page)
+            'primary_color'     => ['nullable', 'string', 'max:20'],
+            'accent_color'      => ['nullable', 'string', 'max:20'],
+            'heading_color'     => ['nullable', 'string', 'max:20'],
+            'topbar_text_color' => ['nullable', 'string', 'max:20'],
+            'ticker_position'   => ['nullable', 'in:above_nav,below_nav,hidden'],
+            'meta_title'        => ['nullable', 'string', 'max:255'],
+            'meta_description'  => ['nullable', 'string', 'max:500'],
+            // Images (uploads)
+            'logo'     => ['nullable', 'image', 'max:2048'],
+            'favicon'  => ['nullable', 'image', 'max:1024'],
+            'og_image' => ['nullable', 'image', 'max:2048'],
         ]);
 
+        // ── School profile ──────────────────────────────────────────────────
+        $schoolData = collect($validated)->only([
+            'name', 'email',
+            'institution_code', 'institution_code_label',
+            'school_code', 'school_code_label',
+            'technical_branch_code', 'technical_branch_code_label',
+            'address', 'country_code', 'currency', 'timezone', 'locale', 'academic_year_pattern',
+        ])->all();
         // "established" is entered as a plain year; the column stores a date.
-        $data['established'] = filled($data['established'] ?? null) ? $data['established'] . '-01-01' : null;
+        $schoolData['established'] = filled($validated['established'] ?? null) ? $validated['established'] . '-01-01' : null;
+        if ($path = $this->storeImage($request, 'logo')) {
+            $schoolData['logo'] = $path;
+        }
+        $this->schools->updateSettings($school, $schoolData);
 
-        $this->schools->updateSettings($school, $data);
+        // ── Appearance / SEO (SiteSetting) ──────────────────────────────────
+        $settingData = collect($validated)->only([
+            'primary_color', 'accent_color', 'heading_color',
+            'topbar_text_color', 'ticker_position', 'meta_title', 'meta_description',
+        ])->all();
+        if ($path = $this->storeImage($request, 'favicon')) {
+            $settingData['favicon'] = $path;
+        }
+        if ($path = $this->storeImage($request, 'og_image')) {
+            $settingData['og_image'] = $path;
+        }
+        $this->siteSettings->update($school->id, $settingData);
 
-        // Phones (optional dynamic list)
+        // ── Phones (dynamic list; each can be flagged to show in the header) ─
         $phones = collect($request->input('phones', []))
             ->filter(fn ($p) => filled($p['phone'] ?? null))
             ->map(fn ($p, $i) => [
-                'phone'      => $p['phone'],
-                'label'      => $p['label'] ?? null,
-                'is_primary' => (int) $request->input('primary_phone', 0) === (int) $i,
+                'phone'          => $p['phone'],
+                'is_primary'     => (int) $request->input('primary_phone', 0) === (int) $i,
+                'show_in_header' => (bool) ($p['show_in_header'] ?? false),
             ])->values()->all();
 
         $this->schools->syncPhones($school->id, $phones);
 
         return back()->with('status', 'School settings saved.');
+    }
+
+    /** Store an uploaded image on the public disk; returns the path or null if none uploaded. */
+    private function storeImage(Request $request, string $field): ?string
+    {
+        if (! $request->hasFile($field)) {
+            return null;
+        }
+
+        return $request->file($field)->store('site', 'public');
     }
 
     /**
