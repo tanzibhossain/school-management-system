@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\Comms\MessageController;
 use App\Http\Controllers\Admin\Comms\ReportController;
 use App\Http\Controllers\Admin\Comms\SmsController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\Website\PageController as WebsitePageController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\PageController as PublicPageController;
 use App\Http\Controllers\Admin\Hr\LeaveTypeController;
@@ -136,6 +137,15 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
 
         Route::get('/modules', [ModuleController::class, 'index'])->name('modules.index');
         Route::put('/modules', [ModuleController::class, 'update'])->name('modules.update');
+
+        // Website page builder
+        Route::get('/pages', [WebsitePageController::class, 'index'])->name('pages.index');
+        Route::get('/pages/create', [WebsitePageController::class, 'create'])->name('pages.create');
+        Route::post('/pages', [WebsitePageController::class, 'store'])->name('pages.store');
+        Route::get('/pages/{id}/edit', [WebsitePageController::class, 'edit'])->whereNumber('id')->name('pages.edit');
+        Route::put('/pages/{id}', [WebsitePageController::class, 'save'])->whereNumber('id')->name('pages.save');
+        Route::post('/pages/{id}/homepage', [WebsitePageController::class, 'setHomepage'])->whereNumber('id')->name('pages.homepage');
+        Route::delete('/pages/{id}', [WebsitePageController::class, 'destroy'])->whereNumber('id')->name('pages.destroy');
 
         Route::get('/academic-years', [AcademicYearController::class, 'index'])->name('academic-years.index');
         Route::post('/academic-years', [AcademicYearController::class, 'store'])->name('academic-years.store');
