@@ -107,7 +107,7 @@
 
         // Setup
         { id: 'school-settings', label: 'School Settings', description: 'Configure school settings', section: 'Setup', icon: 'bi-building-gear', url: '/admin/school', keywords: 'configuration', shortcut: 'g s' },
-        { id: 'modules', label: 'Modules', description: 'Enable/disable modules', section: 'Setup', icon: 'bi-toggles', url: '/admin/modules', keywords: 'features toggle', shortcut: 'g m' },
+        { id: 'modules', label: 'Modules', description: 'Enable/disable modules (in School Settings)', section: 'Setup', icon: 'bi-toggles', url: '/admin/school#modules', keywords: 'features toggle optional', shortcut: 'g m' },
         { id: 'pages', label: 'Website Pages', description: 'Manage website pages', section: 'Setup', icon: 'bi-window', url: '/admin/pages', keywords: 'website content', shortcut: 'g p' },
         { id: 'academic-years', label: 'Academic Years', description: 'Manage academic years', section: 'Setup', icon: 'bi-calendar3', url: '/admin/academic-years', keywords: 'years sessions', shortcut: 'g a' },
         { id: 'classes', label: 'Classes & Sections', description: 'Manage classes and sections', section: 'Setup', icon: 'bi-diagram-3', url: '/admin/classes', keywords: 'classrooms grades', shortcut: 'g c' },
@@ -364,6 +364,11 @@
                 e.preventDefault();
                 if (!isOpen) open();
             }
+        });
+
+        // Let other UI (e.g. the header search box) open the palette.
+        document.addEventListener('command-palette:open', function() {
+            if (!isOpen) open();
         });
 
         // ─── Input Handling ───

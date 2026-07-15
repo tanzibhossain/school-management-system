@@ -33,35 +33,18 @@
 
             <!-- Global Search -->
             @if($searchable)
-                <div class="header-search" style="flex: 1 1 auto; max-width: 420px; margin: 0 1rem;">
-                    <div class="position-relative">
-                        <label for="global-search" class="visually-hidden">Search</label>
-                        <input
-                            type="search"
-                            id="global-search"
-                            class="form-input form-input-sm ps-4"
-                            placeholder="Search... (⌘K)"
-                            autocomplete="off"
-                            aria-label="Search"
-                            aria-expanded="false"
-                            aria-controls="search-results"
-                            data-bs-toggle="dropdown"
-                            data-bs-auto-close="outside"
-                        >
-                        <i class="bi bi-search position-absolute start-0 top-50 translate-middle-y ms-3 text-muted" aria-hidden="true"></i>
-
-                        <!-- Search Results Dropdown -->
-                        <div class="dropdown-menu dropdown-menu-end w-100 mt-2 shadow-lg" id="search-results" style="display: none;">
-                            <div class="dropdown-header">Quick Actions</div>
-                            <a class="dropdown-item" href="{{ route('admin.students.create') }}"><i class="bi bi-person-plus me-2"></i> New Student</a>
-                            <a class="dropdown-item" href="{{ route('admin.staff.index') }}"><i class="bi bi-person-badge me-2"></i> New Staff</a>
-                            <a class="dropdown-item" href="{{ route('admin.admissions.index') }}"><i class="bi bi-clipboard-check me-2"></i> Admissions</a>
-                            <div class="dropdown-divider"></div>
-                            <div class="dropdown-header">Recent</div>
-                            <a class="dropdown-item text-muted" href="#">No recent searches</a>
-                        </div>
-                    </div>
-                </div>
+                {{-- Opens the command palette (the real fuzzy search). ⌘K / Ctrl+K also opens it. --}}
+                <button
+                    type="button"
+                    class="header-search-trigger d-flex align-items-center"
+                    style="flex: 1 1 auto; max-width: 420px; margin: 0 1rem; gap: .55rem; height: 38px; padding: 0 .75rem; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; color: #64748b; cursor: text; text-align: left;"
+                    onclick="document.dispatchEvent(new CustomEvent('command-palette:open'))"
+                    aria-label="Search (Ctrl or Cmd + K)"
+                >
+                    <i class="bi bi-search" style="font-size: .95rem;" aria-hidden="true"></i>
+                    <span style="flex: 1 1 auto; font-size: .9rem;">Search…</span>
+                    <kbd style="font-size: .7rem; background: #e2e8f0; color: #475569; border-radius: 4px; padding: .1rem .4rem; font-family: monospace;">⌘K</kbd>
+                </button>
             @endif
 
             <!-- Right Actions -->
@@ -173,45 +156,8 @@
     @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Global search dropdown
-            var searchInput = document.getElementById('global-search');
-            var searchDropdown = document.getElementById('search-results');
-
-            if (searchInput && searchDropdown) {
-                searchInput.addEventListener('focus', function() {
-                    if (this.value.length === 0) {
-                        searchDropdown.style.display = 'block';
-                    }
-                });
-
-                searchInput.addEventListener('input', function() {
-                    // Here you would filter results based on input
-                    // For now, just show/hide based on input
-                    searchDropdown.style.display = this.value.length > 0 ? 'block' : 'block';
-                });
-
-                searchInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape') {
-                        this.blur();
-                        searchDropdown.style.display = 'none';
-                    }
-                });
-
-                // Close on outside click
-                document.addEventListener('click', function(e) {
-                    if (!e.target.closest('.header-search')) {
-                        searchDropdown.style.display = 'none';
-                    }
-                });
-
-                // Keyboard shortcut ⌘K / Ctrl+K
-                document.addEventListener('keydown', function(e) {
-                    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                        e.preventDefault();
-                        searchInput.focus();
-                    }
-                });
-            }
+            // The header search box is a trigger for the command palette, which owns
+            // the ⌘K / Ctrl+K shortcut and the fuzzy search (see command-palette component).
 
             // Notification dropdown click outside handling
             document.addEventListener('click', function(e) {
