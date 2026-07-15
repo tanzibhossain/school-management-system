@@ -116,7 +116,7 @@
     // Quick actions for mobile header
     $quickActions = [
         ['label' => 'New Student', 'icon' => 'bi-person-plus', 'url' => route('admin.students.create')],
-        ['label' => 'New Staff', 'icon' => 'bi-person-badge-plus', 'url' => route('admin.staff.store')],
+        ['label' => 'New Staff', 'icon' => 'bi-person-badge', 'url' => route('admin.staff.index')],
         ['label' => 'New Admission', 'icon' => 'bi-clipboard-check', 'url' => route('admin.admissions.index')],
     ];
   @endphp
