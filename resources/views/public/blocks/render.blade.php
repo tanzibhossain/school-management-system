@@ -126,13 +126,7 @@
     @break
 
   @case('admission_form')
-    {!! $open !!}
-      <div class="card"><div class="card-body p-4 p-lg-5 text-center">
-        <h2 class="section-title h4 mb-2">{{ $d['heading'] ?? 'Online admission' }}</h2>
-        <p class="text-muted mb-3">{{ $d['intro'] ?? 'Apply online for admission to our school.' }}</p>
-        <a href="{{ $d['action_url'] ?? '#' }}" class="btn btn-brand btn-lg px-4"><i class="bi bi-pencil-square"></i> Open admission form</a>
-      </div></div>
-    {!! $close !!}
+    @include('public.blocks.admission_form')
     @break
 
   @case('contact')
