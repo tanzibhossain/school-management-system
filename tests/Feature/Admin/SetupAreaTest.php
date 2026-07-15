@@ -154,12 +154,24 @@ class SetupAreaTest extends TestCase
             'timezone'              => 'Asia/Dhaka',
             'locale'                => 'en',
             'academic_year_pattern' => 'jul_jun',
-            'phones'                => [['phone' => '01700000000', 'label' => 'Office']],
+            'phones'                => [['phone' => '01700000000', 'show_in_header' => '1']],
             'primary_phone'         => 0,
+            // School codes (three label/value pairs)
+            'institution_code_label' => 'EIIN',
+            'institution_code'       => '115394',
+            'school_code_label'      => 'School code',
+            'school_code'            => '5556',
+            // Appearance / SEO (merged into School settings)
+            'primary_color'         => '#123456',
+            'meta_title'            => 'Welcome to Renamed School',
         ])->assertSessionHasNoErrors()->assertRedirect();
 
-        $this->assertDatabaseHas('schools', ['id' => $this->school->id, 'name' => 'Renamed School', 'currency' => 'USD', 'country_code' => 'BD']);
-        $this->assertDatabaseHas('school_phones', ['school_id' => $this->school->id, 'phone' => '01700000000', 'is_primary' => true]);
+        $this->assertDatabaseHas('schools', [
+            'id' => $this->school->id, 'name' => 'Renamed School', 'currency' => 'USD', 'country_code' => 'BD',
+            'institution_code' => '115394', 'school_code_label' => 'School code', 'school_code' => '5556',
+        ]);
+        $this->assertDatabaseHas('school_phones', ['school_id' => $this->school->id, 'phone' => '01700000000', 'is_primary' => true, 'show_in_header' => true]);
+        $this->assertDatabaseHas('site_settings', ['school_id' => $this->school->id, 'primary_color' => '#123456', 'meta_title' => 'Welcome to Renamed School']);
         $this->assertSame('1942', $this->school->fresh()->established->format('Y'));
     }
 
