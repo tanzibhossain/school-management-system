@@ -65,6 +65,8 @@
     class="bg-white border-end position-fixed"
   />
 
+  <x-command-palette :enabledModules="$enabledModules" />
+
   <div class="content">
     <x-header
         :user="$headerUser"
