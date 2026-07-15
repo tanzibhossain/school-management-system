@@ -104,8 +104,24 @@
     }
 
     $sidebarId = 'sidebar-' . uniqid();
-    // Collapse is client-side (toggle + localStorage); keep $collapsed as a boolean and let
-    // CSS (.sidebar / .sidebar.collapsed) control the width — no inline width to override.
+
+    // Fold the flat nav list into collapsible groups. Items before the first
+    // 'section' marker (i.e. Dashboard) live in an ungrouped, always-visible group.
+    $navGroups = [];
+    $current = ['section' => null, 'items' => []];
+    foreach ($navItems as $it) {
+        if (isset($it['section'])) {
+            if (! empty($current['items'])) {
+                $navGroups[] = $current;
+            }
+            $current = ['section' => $it['section'], 'items' => []];
+        } else {
+            $current['items'][] = $it;
+        }
+    }
+    if (! empty($current['items'])) {
+        $navGroups[] = $current;
+    }
 @endphp
 
 <aside
@@ -132,48 +148,30 @@
 
     <!-- Navigation -->
     <nav class="sidebar-nav flex-grow-1 overflow-y-auto" role="navigation" aria-label="Main navigation">
-        <ul class="nav nav-pills flex-column gap-1 px-2" role="list">
-            @foreach($navItems as $item)
-                @if(isset($item['section']))
-                    <li class="nav-section px-2 py-1">
-                        <span class="text-uppercase text-muted small fw-semibold tracking-wider">
-                            {{ $item['section'] }}
-                        </span>
-                    </li>
-                @else
-                    @php
-                        $itemId = 'nav-' . uniqid();
-                        $isActive = $item['active'] ?? false;
-                        $itemClasses = ['nav-link'];
-                        if ($isActive) $itemClasses[] = 'active';
-                        if (isset($item['disabled']) && $item['disabled']) $itemClasses[] = 'disabled';
-                        $itemClassString = implode(' ', $itemClasses);
+        @foreach($navGroups as $group)
+            @php $hasActive = collect($group['items'])->contains(fn ($i) => $i['active'] ?? false); @endphp
 
-                        $href = $item['href'] ?? '#';
-                        $icon = $item['icon'] ?? 'bi-circle';
-                        $badge = $item['badge'] ?? null;
-                        $tooltip = $item['tooltip'] ?? $item['label'];
-                    @endphp
-                    <li class="nav-item" role="none">
-                        <a
-                            id="{{ $itemId }}"
-                            href="{{ $href }}"
-                            class="{{ $itemClassString }}"
-                            role="menuitem"
-                            aria-current="{{ $isActive ? 'page' : 'false' }}"
-                            aria-disabled="{{ isset($item['disabled']) && $item['disabled'] ? 'true' : 'false' }}"
-                            @if(isset($item['disabled']) && $item['disabled']) tabindex="-1" aria-disabled="true" @endif
-                        >
-                            <i class="bi {{ $icon }} nav-icon" aria-hidden="true"></i>
-                            <span class="nav-label flex-grow-1">{{ $item['label'] }}</span>
-                            @if($badge)
-                                <span class="badge badge-sm ms-auto">{{ $badge }}</span>
-                            @endif
-                        </a>
-                    </li>
-                @endif
-            @endforeach
-        </ul>
+            @if($group['section'] === null)
+                {{-- Ungrouped (Dashboard) — always visible --}}
+                <ul class="nav nav-pills flex-column gap-1 px-2 pt-1" role="list">
+                    @foreach($group['items'] as $item)
+                        @include('components.partials.nav-link', ['item' => $item])
+                    @endforeach
+                </ul>
+            @else
+                <div class="nav-group {{ $hasActive ? 'nav-group-open' : '' }}" data-nav-group="{{ \Illuminate\Support\Str::slug($group['section']) }}">
+                    <button type="button" class="nav-group-toggle" aria-expanded="{{ $hasActive ? 'true' : 'false' }}">
+                        <span class="nav-group-title">{{ $group['section'] }}</span>
+                        <i class="bi bi-chevron-down nav-group-caret" aria-hidden="true"></i>
+                    </button>
+                    <ul class="nav nav-pills flex-column gap-1 px-2 nav-group-items" role="list">
+                        @foreach($group['items'] as $item)
+                            @include('components.partials.nav-link', ['item' => $item])
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+        @endforeach
     </nav>
 
     <!-- Footer / User -->
@@ -251,6 +249,44 @@
         sidebar.querySelectorAll('.nav-link').forEach(function(link) {
             link.addEventListener('click', function() {
                 if (window.innerWidth < 992) closeMobile();
+            });
+        });
+
+        // ── Collapsible section groups (exclusive accordion) ────────────────
+        // Only one section is open at a time. On a section page, the active section
+        // is shown; on Dashboard, the last-opened section is restored.
+        var STORE_KEY = 'sidebar-open-group';
+        var groups = Array.prototype.slice.call(sidebar.querySelectorAll('.nav-group'));
+
+        function setOpen(target) {
+            groups.forEach(function(g) {
+                var on = g === target;
+                g.classList.toggle('nav-group-open', on);
+                var t = g.querySelector('.nav-group-toggle');
+                if (t) t.setAttribute('aria-expanded', on ? 'true' : 'false');
+            });
+        }
+
+        var activeGroup = groups.find(function(g) { return g.querySelector('.nav-link.active'); });
+        if (activeGroup) {
+            setOpen(activeGroup);
+        } else {
+            var savedKey = null;
+            try { savedKey = localStorage.getItem(STORE_KEY); } catch (e) {}
+            var saved = savedKey && groups.find(function(g) { return g.getAttribute('data-nav-group') === savedKey; });
+            setOpen(saved || null);
+        }
+
+        groups.forEach(function(group) {
+            var toggle = group.querySelector('.nav-group-toggle');
+            if (!toggle) return;
+            toggle.addEventListener('click', function() {
+                var willOpen = !group.classList.contains('nav-group-open');
+                setOpen(willOpen ? group : null);
+                try {
+                    if (willOpen) localStorage.setItem(STORE_KEY, group.getAttribute('data-nav-group'));
+                    else localStorage.removeItem(STORE_KEY);
+                } catch (e) {}
             });
         });
     });

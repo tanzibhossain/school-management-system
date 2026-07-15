@@ -50,8 +50,23 @@
     .sidebar-nav::-webkit-scrollbar { width: 6px; }
     .sidebar-nav::-webkit-scrollbar-thumb { background: #d9dee7; border-radius: 3px; }
     .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
-    .sidebar .nav-section { margin-top: .5rem; }
-    .sidebar .nav-section span { font-size: .68rem; letter-spacing: .08em; color: var(--sb-muted); font-weight: 700; }
+    /* Collapsible section groups (accordion) */
+    .sidebar .nav-group { margin-top: .25rem; }
+    .sidebar .nav-group-toggle {
+      width: calc(100% - 1rem); margin: .15rem .5rem; padding: .5rem .6rem;
+      display: flex; align-items: center; justify-content: space-between;
+      border: 0; background: transparent; cursor: pointer; border-radius: 8px;
+      font-size: .86rem; letter-spacing: 0; text-transform: capitalize;
+      color: var(--sb-text); font-weight: 600;
+    }
+    .sidebar .nav-group-toggle:hover { background: var(--sb-hover); color: var(--sb-text); }
+    .sidebar .nav-group-caret { font-size: .7rem; transition: transform .2s; }
+    .sidebar .nav-group.nav-group-open .nav-group-caret { transform: rotate(180deg); }
+    .sidebar .nav-group-items {
+      overflow: hidden; max-height: 0; opacity: 0;
+      transition: max-height .25s ease, opacity .2s ease;
+    }
+    .sidebar .nav-group.nav-group-open .nav-group-items { max-height: 60rem; opacity: 1; }
     .sidebar .nav-link {
       color: var(--sb-text); border-radius: 10px; margin: 1px .5rem; padding: .55rem .7rem;
       font-size: .92rem; font-weight: 500; display: flex; align-items: center; gap: .7rem;
