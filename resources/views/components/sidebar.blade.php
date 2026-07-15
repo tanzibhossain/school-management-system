@@ -25,7 +25,7 @@
     ];
 
     if ($isAdmin) {
-        $navItems[] = ['section' => 'Setup'];
+        $navItems[] = ['section' => 'Setup', 'icon' => 'bi-sliders'];
         $navItems[] = ['label' => 'School settings', 'icon' => 'bi-building-gear', 'href' => route('admin.school.edit'), 'active' => request()->routeIs('admin.school.*') || request()->routeIs('admin.modules.*')];
         $navItems[] = ['label' => 'Website pages', 'icon' => 'bi-window', 'href' => route('admin.pages.index'), 'active' => request()->routeIs('admin.pages.*')];
         $navItems[] = ['label' => 'Academic years', 'icon' => 'bi-calendar3', 'href' => route('admin.academic-years.index'), 'active' => request()->routeIs('admin.academic-years.*')];
@@ -36,7 +36,7 @@
         $navItems[] = ['label' => 'Shifts', 'icon' => 'bi-clock-history', 'href' => route('admin.shifts.index'), 'active' => request()->routeIs('admin.shifts.*')];
         $navItems[] = ['label' => 'Class routine', 'icon' => 'bi-calendar3-week', 'href' => route('admin.routine.index'), 'active' => request()->routeIs('admin.routine.*') || request()->routeIs('admin.routine-setup.*')];
 
-        $navItems[] = ['section' => 'People'];
+        $navItems[] = ['section' => 'People', 'icon' => 'bi-people'];
         $navItems[] = ['label' => 'Students', 'icon' => 'bi-people-fill', 'href' => route('admin.students.index'), 'active' => request()->routeIs('admin.students.*')];
         $navItems[] = ['label' => 'Staff', 'icon' => 'bi-person-badge', 'href' => route('admin.staff.index'), 'active' => request()->routeIs('admin.staff.*')];
         $navItems[] = ['label' => 'Designations', 'icon' => 'bi-award', 'href' => route('admin.designations.index'), 'active' => request()->routeIs('admin.designations.*')];
@@ -49,7 +49,7 @@
 
     // Finance — admin OR accountant (routes are role:admin|accountant)
     if ($canFinance) {
-            $navItems[] = ['section' => 'Finance'];
+            $navItems[] = ['section' => 'Finance', 'icon' => 'bi-cash-coin'];
             $navItems[] = ['label' => 'Fee categories', 'icon' => 'bi-tags', 'href' => route('admin.fee-categories.index'), 'active' => request()->routeIs('admin.fee-categories.*')];
             $navItems[] = ['label' => 'Fee items', 'icon' => 'bi-cash-stack', 'href' => route('admin.fee-items.index'), 'active' => request()->routeIs('admin.fee-items.*')];
             $navItems[] = ['label' => 'Discounts', 'icon' => 'bi-percent', 'href' => route('admin.fee-discounts.index'), 'active' => request()->routeIs('admin.fee-discounts.*')];
@@ -61,20 +61,20 @@
     }
 
     if ($isAdmin) {
-        $navItems[] = ['section' => 'Academics'];
+        $navItems[] = ['section' => 'Academics', 'icon' => 'bi-mortarboard'];
         $navItems[] = ['label' => 'Attendance', 'icon' => 'bi-calendar-check', 'href' => route('admin.attendance.index'), 'active' => request()->routeIs('admin.attendance.*')];
         $navItems[] = ['label' => 'Exam types', 'icon' => 'bi-card-list', 'href' => route('admin.exam-types.index'), 'active' => request()->routeIs('admin.exam-types.*')];
         $navItems[] = ['label' => 'Exams', 'icon' => 'bi-journal-text', 'href' => route('admin.exams.index'), 'active' => request()->routeIs('admin.exams.*') || request()->routeIs('admin.exam-marks.*')];
         $navItems[] = ['label' => 'Mark settings', 'icon' => 'bi-sliders', 'href' => route('admin.mark-settings.index'), 'active' => request()->routeIs('admin.mark-settings.*')];
         $navItems[] = ['label' => 'Exam halls', 'icon' => 'bi-grid-3x3', 'href' => route('admin.exam-halls.index'), 'active' => request()->routeIs('admin.exam-halls.*')];
 
-        $navItems[] = ['section' => 'Comms'];
+        $navItems[] = ['section' => 'Comms', 'icon' => 'bi-chat-dots'];
         $navItems[] = ['label' => 'Announcements', 'icon' => 'bi-megaphone', 'href' => route('admin.announcements.index'), 'active' => request()->routeIs('admin.announcements.*')];
         $navItems[] = ['label' => 'SMS', 'icon' => 'bi-chat-dots', 'href' => route('admin.sms.index'), 'active' => request()->routeIs('admin.sms.*')];
         $navItems[] = ['label' => 'Messages', 'icon' => 'bi-chat-left-text', 'href' => route('admin.messages.index'), 'active' => request()->routeIs('admin.messages.*')];
         $navItems[] = ['label' => 'Enquiries', 'icon' => 'bi-envelope-paper', 'href' => route('admin.enquiries.index'), 'active' => request()->routeIs('admin.enquiries.*')];
 
-        $navItems[] = ['section' => 'HR'];
+        $navItems[] = ['section' => 'HR', 'icon' => 'bi-person-badge'];
         $navItems[] = ['label' => 'Leave types', 'icon' => 'bi-card-checklist', 'href' => route('admin.leave-types.index'), 'active' => request()->routeIs('admin.leave-types.*')];
         $navItems[] = ['label' => 'Student leave', 'icon' => 'bi-person-vcard', 'href' => route('admin.student-leave.index'), 'active' => request()->routeIs('admin.student-leave.*')];
         $navItems[] = ['label' => 'Staff leave', 'icon' => 'bi-person-workspace', 'href' => route('admin.staff-leave.index'), 'active' => request()->routeIs('admin.staff-leave.*')];
@@ -83,12 +83,12 @@
 
     // Reports — admin OR accountant (routes are role:admin|accountant)
     if ($canFinance) {
-        $navItems[] = ['section' => 'Reports'];
+        $navItems[] = ['section' => 'Reports', 'icon' => 'bi-graph-up'];
         $navItems[] = ['label' => 'Reports', 'icon' => 'bi-file-earmark-bar-graph', 'href' => route('admin.reports.fee-collection'), 'active' => request()->routeIs('admin.reports.*')];
     }
 
     if ($isAdmin && $enabledModules) {
-        $navItems[] = ['section' => 'Optional'];
+        $navItems[] = ['section' => 'Optional', 'icon' => 'bi-puzzle'];
         if (in_array('library', $enabledModules)) {
             $navItems[] = ['label' => 'Library', 'icon' => 'bi-book-half', 'href' => route('admin.library.books.index'), 'active' => request()->routeIs('admin.library.*')];
         }
@@ -108,13 +108,13 @@
     // Fold the flat nav list into collapsible groups. Items before the first
     // 'section' marker (i.e. Dashboard) live in an ungrouped, always-visible group.
     $navGroups = [];
-    $current = ['section' => null, 'items' => []];
+    $current = ['section' => null, 'icon' => null, 'items' => []];
     foreach ($navItems as $it) {
         if (isset($it['section'])) {
             if (! empty($current['items'])) {
                 $navGroups[] = $current;
             }
-            $current = ['section' => $it['section'], 'items' => []];
+            $current = ['section' => $it['section'], 'icon' => $it['icon'] ?? 'bi-dot', 'items' => []];
         } else {
             $current['items'][] = $it;
         }
@@ -160,8 +160,9 @@
                 </ul>
             @else
                 <div class="nav-group {{ $hasActive ? 'nav-group-open' : '' }}" data-nav-group="{{ \Illuminate\Support\Str::slug($group['section']) }}">
-                    <button type="button" class="nav-group-toggle" aria-expanded="{{ $hasActive ? 'true' : 'false' }}">
-                        <span class="nav-group-title">{{ $group['section'] }}</span>
+                    <button type="button" class="nav-group-toggle {{ $hasActive ? 'has-active' : '' }}" aria-expanded="{{ $hasActive ? 'true' : 'false' }}">
+                        <i class="bi {{ $group['icon'] }} nav-group-icon" aria-hidden="true"></i>
+                        <span class="nav-group-title flex-grow-1">{{ $group['section'] }}</span>
                         <i class="bi bi-chevron-down nav-group-caret" aria-hidden="true"></i>
                     </button>
                     <ul class="nav nav-pills flex-column gap-1 px-2 nav-group-items" role="list">
