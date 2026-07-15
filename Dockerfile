@@ -2,9 +2,10 @@ FROM php:8.3-fpm
 
 RUN apt-get update && apt-get install -y \
     git curl libpng-dev libonig-dev libxml2-dev zip unzip \
-    libzip-dev libicu-dev
+    libzip-dev libicu-dev libjpeg-dev libfreetype6-dev
 
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
+RUN docker-php-ext-configure gd --with-jpeg --with-freetype && \
+    docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
 
 RUN pecl install redis && docker-php-ext-enable redis
 

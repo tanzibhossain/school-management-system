@@ -10,10 +10,12 @@ class SchoolClass extends Model
 {
     protected $table = 'classes';
 
-    protected $fillable = ['school_id', 'name', 'is_trash'];
+    protected $fillable = ['school_id', 'name', 'min_age', 'max_age', 'is_trash'];
 
     protected $casts = [
         'is_trash' => 'boolean',
+        'min_age' => 'integer',
+        'max_age' => 'integer',
     ];
 
     /** @return HasMany<Section> */

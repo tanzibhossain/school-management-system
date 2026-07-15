@@ -28,7 +28,9 @@ class ClassController extends Controller
     {
         $schoolId = app('current_school_id');
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:100', "unique:classes,name,NULL,id,school_id,{$schoolId},is_trash,0"],
+            'name'    => ['required', 'string', 'max:100', "unique:classes,name,NULL,id,school_id,{$schoolId},is_trash,0"],
+            'min_age' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'max_age' => ['nullable', 'integer', 'min:1', 'max:100', 'gte:min_age'],
         ]);
 
         SchoolClass::create($data + ['school_id' => $schoolId]);
@@ -42,7 +44,9 @@ class ClassController extends Controller
         $schoolId = app('current_school_id');
         $class = SchoolClass::where('school_id', $schoolId)->findOrFail($id);
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:100', "unique:classes,name,{$id},id,school_id,{$schoolId},is_trash,0"],
+            'name'    => ['required', 'string', 'max:100', "unique:classes,name,{$id},id,school_id,{$schoolId},is_trash,0"],
+            'min_age' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'max_age' => ['nullable', 'integer', 'min:1', 'max:100', 'gte:min_age'],
         ]);
 
         $class->update($data);
