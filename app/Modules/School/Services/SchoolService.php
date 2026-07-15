@@ -47,8 +47,8 @@ class SchoolService extends BaseService
                 SchoolPhone::create([
                     'school_id' => $schoolId,
                     'phone' => $phone['phone'],
-                    'label' => $phone['label'] ?? null,
                     'is_primary' => $phone['is_primary'] ?? (! $hasPrimary && $index === 0),
+                    'show_in_header' => $phone['show_in_header'] ?? false,
                 ]);
             }
         });
