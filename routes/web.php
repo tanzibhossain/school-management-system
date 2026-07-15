@@ -52,7 +52,6 @@ use App\Http\Controllers\Admin\People\StaffReferenceController;
 use App\Http\Controllers\Admin\People\StudentController;
 use App\Http\Controllers\Admin\People\UserController;
 use App\Http\Controllers\Admin\Setup\AcademicYearController;
-use App\Http\Controllers\Admin\Setup\AppearanceController;
 use App\Http\Controllers\Admin\Setup\ClassController;
 use App\Http\Controllers\Admin\Setup\ModuleController;
 use App\Http\Controllers\Admin\Setup\ReferenceController;
@@ -137,9 +136,6 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
 
         Route::get('/modules', [ModuleController::class, 'index'])->name('modules.index');
         Route::put('/modules', [ModuleController::class, 'update'])->name('modules.update');
-
-        Route::get('/appearance', [AppearanceController::class, 'edit'])->name('appearance.edit');
-        Route::put('/appearance', [AppearanceController::class, 'update'])->name('appearance.update');
 
         Route::get('/academic-years', [AcademicYearController::class, 'index'])->name('academic-years.index');
         Route::post('/academic-years', [AcademicYearController::class, 'store'])->name('academic-years.store');
