@@ -35,7 +35,12 @@ class AdmissionApplication extends Model
         'guardian_phone',
         'guardian_email',
         'guardian_relation',
+        'birth_certificate_no',
+        'student_phone',
+        'father_nid',
+        'guardian_nid',
         'notes',
+        'form_data',
         'decision_reason',
         'decided_by',
         'decided_at',
@@ -45,6 +50,7 @@ class AdmissionApplication extends Model
     protected $casts = [
         'dob' => 'date',
         'decided_at' => 'datetime',
+        'form_data' => 'array',
     ];
 
     /** @return BelongsTo<School, AdmissionApplication> */
