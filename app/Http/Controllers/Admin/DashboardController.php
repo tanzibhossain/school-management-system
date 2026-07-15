@@ -26,16 +26,15 @@ class DashboardController extends Controller
 
         // Revenue this month
         $revenueThisMonth = Payment::where('school_id', $schoolId)
-            ->where('status', 'completed')
+            ->where('is_reversed', false)
             ->whereBetween('paid_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])
             ->sum('amount');
 
         // Outstanding dues
         $outstandingDues = Invoice::where('school_id', $schoolId)
-            ->where('status', '!=', 'paid')
-            ->where('status', '!=', 'cancelled')
+            ->whereNotIn('status', ['paid', 'cancelled'])
             ->where('due_date', '<', Carbon::today())
-            ->sum('balance');
+            ->sum(\Illuminate\Support\Facades\DB::raw('amount_due - amount_paid - credit_applied'));
 
         // Attendance rate (today)
         $todayAttendance = StudentAttendance::where('school_id', $schoolId)
@@ -57,7 +56,7 @@ class DashboardController extends Controller
 
         // Recent payments
         $recentPayments = Payment::where('school_id', $schoolId)
-            ->where('status', 'completed')
+            ->where('is_reversed', false)
             ->latest('paid_at')
             ->take(5)
             ->get(['id', 'amount', 'paid_at', 'student_id']);
@@ -69,7 +68,7 @@ class DashboardController extends Controller
             $start = $month->copy()->startOfMonth();
             $end = $month->copy()->endOfMonth();
             $amount = Payment::where('school_id', $schoolId)
-                ->where('status', 'completed')
+                ->where('is_reversed', false)
                 ->whereBetween('paid_at', [$start, $end])
                 ->sum('amount');
             $revenueChart[] = [
@@ -84,7 +83,7 @@ class DashboardController extends Controller
             ->withCount(['studentAcademics' => fn($q) => $q->where('is_current', true)])
             ->orderBy('name')
             ->get()
-            ->map(fn($c) => ['class' => $c->name, 'count' => $c->school_class_count]);
+            ->map(fn($c) => ['class' => $c->name, 'count' => $c->student_academics_count]);
 
         // Attendance trend (last 7 days)
         $attendanceTrend = [];
@@ -106,7 +105,7 @@ class DashboardController extends Controller
             ->where('start_date', '>=', Carbon::today())
             ->orderBy('start_date')
             ->take(5)
-            ->get(['id', 'name', 'start_date', 'end_date']);
+            ->get(['id', 'title as name', 'start_date', 'end_date']);
 
         // Fee defaulters
         $feeDefaulters = \App\Modules\Payment\Models\Invoice::where('school_id', $schoolId)
