@@ -33,7 +33,7 @@
 
             <!-- Global Search -->
             @if($searchable)
-                <div class="header-search flex-grow-1 flex-lg-grow-0 mx-3 mx-lg-4" style="max-width: 400px;">
+                <div class="header-search" style="flex: 1 1 auto; max-width: 420px; margin: 0 1rem;">
                     <div class="position-relative">
                         <label for="global-search" class="visually-hidden">Search</label>
                         <input
