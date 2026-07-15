@@ -18,7 +18,6 @@
   <style>
     :root {
       --sidebar-width: 264px;
-      --sidebar-collapsed: 76px;
       --sb-bg: #ffffff;
       --sb-border: #e9edf3;
       --sb-primary: var(--color-primary, #1d4ed8);
@@ -29,26 +28,22 @@
     }
     body { background: #f5f7fb; }
 
-    /* ── Sidebar shell ─────────────────────────────────────────── */
+    /* ── Sidebar shell (always open on desktop) ────────────────── */
     .sidebar {
       width: var(--sidebar-width); min-height: 100vh;
       display: flex; flex-direction: column;
       background: var(--sb-bg); border-right: 1px solid var(--sb-border);
-      position: fixed; top: 0; left: 0; z-index: 1040;
-      overflow: hidden; transition: width .22s cubic-bezier(.4,0,.2,1);
+      position: fixed; top: 0; left: 0; z-index: 1040; overflow: hidden;
     }
-    .sidebar.collapsed { width: var(--sidebar-collapsed); }
 
-    /* Brand + collapse toggle */
+    /* Brand */
     .sidebar-brand { min-height: 60px; border-bottom: 1px solid var(--sb-border); }
-    .sidebar.collapsed .sidebar-brand { justify-content: center; padding-left: .5rem; padding-right: .5rem; }
-    .sidebar.collapsed .sidebar-brand a, .sidebar.collapsed .sidebar-brand > i { display: none !important; }
-    .sidebar-toggle {
+    .sidebar-close {
       border: 0; background: transparent; color: var(--sb-muted);
       width: 34px; height: 34px; border-radius: 9px; display: inline-flex;
       align-items: center; justify-content: center; transition: .15s;
     }
-    .sidebar-toggle:hover { background: var(--sb-hover); color: var(--sb-primary); }
+    .sidebar-close:hover { background: var(--sb-hover); color: var(--sb-primary); }
 
     /* Nav */
     .sidebar-nav { flex: 1; overflow-y: auto; overflow-x: hidden; padding: .35rem 0 1rem; }
@@ -57,8 +52,6 @@
     .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
     .sidebar .nav-section { margin-top: .5rem; }
     .sidebar .nav-section span { font-size: .68rem; letter-spacing: .08em; color: var(--sb-muted); font-weight: 700; }
-    .sidebar.collapsed .nav-section { height: 0; margin: .55rem .9rem; padding: 0 !important; border-top: 1px solid var(--sb-border); }
-    .sidebar.collapsed .nav-section span { display: none; }
     .sidebar .nav-link {
       color: var(--sb-text); border-radius: 10px; margin: 1px .5rem; padding: .55rem .7rem;
       font-size: .92rem; font-weight: 500; display: flex; align-items: center; gap: .7rem;
@@ -67,16 +60,12 @@
     .sidebar .nav-link:hover { background: var(--sb-hover); color: var(--sb-primary); }
     .sidebar .nav-link.active { background: var(--sb-active-bg); color: var(--sb-primary); font-weight: 600; }
     .sidebar .nav-link .nav-icon { width: 1.35rem; font-size: 1.05rem; text-align: center; flex-shrink: 0; }
-    .sidebar.collapsed .nav-link { justify-content: center; padding: .6rem; margin: 2px .65rem; }
-    .sidebar.collapsed .nav-label, .sidebar.collapsed .nav-link .badge { display: none !important; }
 
     /* Footer */
     .sidebar-footer { border-top: 1px solid var(--sb-border); }
-    .sidebar.collapsed .sidebar-footer .flex-grow-1, .sidebar.collapsed .sidebar-footer .dropdown { display: none !important; }
 
-    /* ── Content offset (follows collapse via :has) ───────────── */
-    .content { margin-left: var(--sidebar-width); transition: margin-left .22s cubic-bezier(.4,0,.2,1); }
-    body:has(.sidebar.collapsed) .content { margin-left: var(--sidebar-collapsed); }
+    /* ── Content offset ───────────────────────────────────────── */
+    .content { margin-left: var(--sidebar-width); }
 
     .card { border: 1px solid #eef0f4; box-shadow: 0 1px 2px rgba(16,24,40,.05); border-radius: 12px; }
     .card-header { background: #fff; font-weight: 600; }
@@ -85,10 +74,9 @@
     /* ── Mobile: off-canvas ───────────────────────────────────── */
     .sidebar-backdrop { display: none; }
     @media (max-width: 991px) {
-      .sidebar { transform: translateX(-100%); width: var(--sidebar-width) !important; transition: transform .2s; }
+      .sidebar { transform: translateX(-100%); transition: transform .2s; }
       .sidebar.show { transform: none; }
       .content { margin-left: 0 !important; }
-      body:has(.sidebar.collapsed) .content { margin-left: 0 !important; }
       .sidebar-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,.45); z-index: 1039; }
     }
   </style>
