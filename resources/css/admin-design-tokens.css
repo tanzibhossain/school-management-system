@@ -1662,6 +1662,164 @@ code, pre, kbd, samp {
 }
 
 /* ============================================================
+   INLINE EDIT STYLES
+   ============================================================ */
+.inline-edit {
+  position: relative;
+  display: inline-block;
+}
+
+.inline-edit-display {
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  min-width: 80px;
+}
+
+.inline-edit-display:hover {
+  background-color: var(--color-bg-hover);
+  border-radius: var(--radius-sm);
+}
+
+.inline-edit-trigger {
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.inline-edit-display:hover .inline-edit-trigger,
+.inline-edit-display:focus-within .inline-edit-trigger {
+  opacity: 1;
+}
+
+.inline-edit-form {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.inline-edit-input,
+.inline-edit-select,
+.inline-edit-textarea {
+  width: 100%;
+  padding: var(--space-1_5) var(--space-2);
+  font-size: var(--text-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  margin-bottom: var(--space-1);
+}
+
+.inline-edit-input:focus,
+.inline-edit-select:focus,
+.inline-edit-textarea:focus {
+  outline: none;
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.inline-edit-actions {
+  display: flex;
+  gap: var(--space-1);
+  justify-content: flex-end;
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-1);
+  padding-top: var(--space-1);
+}
+
+.inline-edit-actions .btn {
+  flex-shrink: 0;
+}
+
+.inline-edit-saving {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Inline edit validation */
+.inline-edit-input.is-invalid,
+.inline-edit-select.is-invalid,
+.inline-edit-textarea.is-invalid {
+  border-color: var(--color-danger);
+}
+
+.inline-edit-error {
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+  margin-top: var(--space-1);
+}
+
+/* Display mode with placeholder */
+.inline-edit-display .text-muted {
+  color: var(--color-text-muted) !important;
+}
+
+/* Inline edit display mode */
+.inline-edit-display.empty {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Inline edit validation styles */
+.inline-edit-input.is-invalid,
+.inline-edit-select.is-invalid,
+.inline-edit-textarea.is-invalid {
+  border-color: var(--color-danger);
+}
+
+.inline-edit-error {
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+  margin-top: var(--space-1);
+}
+
+/* Inline edit form positioning */
+.inline-edit-form {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-2);
+  margin-top: var(--space-1);
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+/* Inline edit actions */
+.inline-edit-actions {
+  display: flex;
+  gap: var(--space-1);
+  justify-content: flex-end;
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.inline-edit-actions .btn {
+  flex-shrink: 0;
+}
+
+/* Inline edit validation */
+.inline-edit-error {
+  font-size: var(--text-xs);
+  color: var(--color-danger);
+  margin-top: var(--space-1);
+}
+
+/* ============================================================
    PRINT STYLES
    ============================================================ */
 @media print {
