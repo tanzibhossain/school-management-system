@@ -40,6 +40,8 @@ storage/*.key
 /.nova
 /.zed
 /.codex
+/.claude/
+/..clinerules/
 .phpactor.json
 _ide_helper.php
 
