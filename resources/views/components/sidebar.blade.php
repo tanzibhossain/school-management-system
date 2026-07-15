@@ -46,8 +46,10 @@
         $navItems[] = ['label' => 'Data import', 'icon' => 'bi-upload', 'href' => route('admin.data-import.index'), 'active' => request()->routeIs('admin.data-import.*')];
         $navItems[] = ['label' => 'Users & roles', 'icon' => 'bi-person-gear', 'href' => route('admin.users.index'), 'active' => request()->routeIs('admin.users.*')];
         $navItems[] = ['label' => 'Certificates & IDs', 'icon' => 'bi-file-earmark-medical', 'href' => route('admin.testimonials.index'), 'active' => request()->routeIs('admin.testimonials.*') || request()->routeIs('admin.admit-cards.*') || request()->routeIs('admin.cert-templates.*') || request()->routeIs('admin.id-cards.*') || request()->routeIs('admin.id-card-templates.*')];
+    }
 
-        if ($canFinance) {
+    // Finance — admin OR accountant (routes are role:admin|accountant)
+    if ($canFinance) {
             $navItems[] = ['section' => 'Finance'];
             $navItems[] = ['label' => 'Fee categories', 'icon' => 'bi-tags', 'href' => route('admin.fee-categories.index'), 'active' => request()->routeIs('admin.fee-categories.*')];
             $navItems[] = ['label' => 'Fee items', 'icon' => 'bi-cash-stack', 'href' => route('admin.fee-items.index'), 'active' => request()->routeIs('admin.fee-items.*')];
@@ -57,7 +59,6 @@
             $navItems[] = ['label' => 'Refunds', 'icon' => 'bi-arrow-return-left', 'href' => route('admin.refunds.index'), 'active' => request()->routeIs('admin.refunds.*')];
             $navItems[] = ['label' => 'Student credit', 'icon' => 'bi-wallet2', 'href' => route('admin.student-credit.index'), 'active' => request()->routeIs('admin.student-credit.*')];
             $navItems[] = ['label' => 'Payment config', 'icon' => 'bi-gear', 'href' => route('admin.payment-config.edit'), 'active' => request()->routeIs('admin.payment-config.*')];
-        }
     }
 
     if ($isAdmin) {
@@ -79,11 +80,12 @@
         $navItems[] = ['label' => 'Student leave', 'icon' => 'bi-person-vcard', 'href' => route('admin.student-leave.index'), 'active' => request()->routeIs('admin.student-leave.*')];
         $navItems[] = ['label' => 'Staff leave', 'icon' => 'bi-person-workspace', 'href' => route('admin.staff-leave.index'), 'active' => request()->routeIs('admin.staff-leave.*')];
         $navItems[] = ['label' => 'Staff loans', 'icon' => 'bi-cash-stack', 'href' => route('admin.staff-loans.index'), 'active' => request()->routeIs('admin.staff-loans.*')];
+    }
 
-        if ($canFinance) {
-            $navItems[] = ['section' => 'Reports'];
-            $navItems[] = ['label' => 'Reports', 'icon' => 'bi-file-earmark-bar-graph', 'href' => route('admin.reports.fee-collection'), 'active' => request()->routeIs('admin.reports.*')];
-        }
+    // Reports — admin OR accountant (routes are role:admin|accountant)
+    if ($canFinance) {
+        $navItems[] = ['section' => 'Reports'];
+        $navItems[] = ['label' => 'Reports', 'icon' => 'bi-file-earmark-bar-graph', 'href' => route('admin.reports.fee-collection'), 'active' => request()->routeIs('admin.reports.*')];
     }
 
     if ($isAdmin && $enabledModules) {
