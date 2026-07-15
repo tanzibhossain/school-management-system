@@ -12,7 +12,6 @@
 
 @php
     $sidebarId = 'sidebar-' . uniqid();
-    $collapsed = $collapsed ? 'true' : 'false';
 
     // Build navigation items
     $navItems = [];
@@ -73,6 +72,7 @@
         $navItems[] = ['label' => 'Announcements', 'icon' => 'bi-megaphone', 'href' => route('admin.announcements.index'), 'active' => request()->routeIs('admin.announcements.*')];
         $navItems[] = ['label' => 'SMS', 'icon' => 'bi-chat-dots', 'href' => route('admin.sms.index'), 'active' => request()->routeIs('admin.sms.*')];
         $navItems[] = ['label' => 'Messages', 'icon' => 'bi-chat-left-text', 'href' => route('admin.messages.index'), 'active' => request()->routeIs('admin.messages.*')];
+        $navItems[] = ['label' => 'Enquiries', 'icon' => 'bi-envelope-paper', 'href' => route('admin.enquiries.index'), 'active' => request()->routeIs('admin.enquiries.*')];
 
         $navItems[] = ['section' => 'HR'];
         $navItems[] = ['label' => 'Leave types', 'icon' => 'bi-card-checklist', 'href' => route('admin.leave-types.index'), 'active' => request()->routeIs('admin.leave-types.*')];
@@ -103,17 +103,15 @@
     }
 
     $sidebarId = 'sidebar-' . uniqid();
-    $collapsed = $collapsed ? 'true' : 'false';
-    $sidebarWidth = $collapsed ? 'var(--sidebar-collapsed)' : 'var(--sidebar-width)';
-    $sidebarStyle = "width: {$sidebarWidth}; min-width: {$sidebarWidth}; max-width: {$sidebarWidth};";
+    // Collapse is client-side (toggle + localStorage); keep $collapsed as a boolean and let
+    // CSS (.sidebar / .sidebar.collapsed) control the width — no inline width to override.
 @endphp
 
 <aside
     id="{{ $sidebarId }}"
     class="sidebar bg-white border-end position-fixed {{ $collapsed ? 'collapsed' : '' }} {{ $class }}"
-    style="{{ $sidebarStyle }}"
     aria-label="Main navigation"
-    data-collapsed="{{ $collapsed }}"
+    data-collapsed="{{ $collapsed ? 'true' : 'false' }}"
 >
     <!-- Brand -->
     <div class="sidebar-brand d-flex align-items-center gap-2 px-3 py-3 mb-2">
