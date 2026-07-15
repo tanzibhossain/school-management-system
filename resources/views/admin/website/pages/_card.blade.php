@@ -9,6 +9,10 @@
     </span>
   </div>
   <div class="card-body py-2 px-2">
-    @include('admin.website.pages._fields', ['prefix' => $prefix, 'type' => $type, 'data' => $data, 'spec' => $spec])
+    @if ($type === 'admission_form')
+      @include('admin.website.pages._admission_form_fields', ['prefix' => $prefix, 'data' => $data])
+    @else
+      @include('admin.website.pages._fields', ['prefix' => $prefix, 'type' => $type, 'data' => $data, 'spec' => $spec])
+    @endif
   </div>
 </div>

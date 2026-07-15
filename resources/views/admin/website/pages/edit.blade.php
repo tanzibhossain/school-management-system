@@ -2,6 +2,16 @@
 @section('title', 'Edit page')
 @section('content')
   @php
+    $admissionFieldDefaults = [
+        'last_name'        => ['label' => 'Last name',        'required' => false],
+        'blood_group'      => ['label' => 'Blood group',      'required' => false],
+        'student_phone'    => ['label' => 'Student phone',    'required' => false],
+        'photo'            => ['label' => 'Student photo',    'required' => false],
+        'guardian'         => ['label' => 'Guardian information', 'required' => false],
+        'permanent_address'=> ['label' => 'Permanent address','required' => false],
+        'notes'            => ['label' => 'Notes',            'required' => false],
+    ];
+
     $spec = [
       'hero'          => [['key'=>'title','label'=>'Title','input'=>'text'],['key'=>'subtitle','label'=>'Subtitle','input'=>'text'],['key'=>'image','label'=>'Background image URL','input'=>'text'],['key'=>'button_text','label'=>'Button text','input'=>'text'],['key'=>'button_url','label'=>'Button URL','input'=>'text']],
       'heading'       => [['key'=>'text','label'=>'Text','input'=>'text'],['key'=>'align','label'=>'Align','input'=>'select','options'=>['start'=>'Left','center'=>'Center','end'=>'Right']]],
@@ -13,7 +23,7 @@
       'stats'         => [['key'=>'heading','label'=>'Heading','input'=>'text']],
       'gallery_photo' => [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'images','label'=>'Image URLs (one per line)','input'=>'textarea']],
       'gallery_video' => [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'videos','label'=>'Embed URLs (one per line)','input'=>'textarea']],
-      'admission_form'=> [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'intro','label'=>'Intro text','input'=>'text'],['key'=>'action_url','label'=>'Form URL','input'=>'text']],
+      'admission_form'=> [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'intro','label'=>'Intro text','input'=>'text']],
       'contact'       => [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'address','label'=>'Address','input'=>'text'],['key'=>'phone','label'=>'Phone','input'=>'text'],['key'=>'email','label'=>'Email','input'=>'text'],['key'=>'map_embed','label'=>'Map embed URL','input'=>'text']],
       'quick_links'   => [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'links','label'=>'Links (Label|URL per line)','input'=>'textarea']],
       'office_hours'  => [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'lines','label'=>'Rows (Label|Value per line)','input'=>'textarea']],
@@ -94,7 +104,7 @@
       </div>
     </div>
 
-    <div class="mt-3"><button class="btn btn-primary"><i class="bi bi-save"></i> Save page</button>
+    <div class="mt-3"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Save page</button>
       <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary">Back</a></div>
   </form>
 
@@ -115,6 +125,7 @@
         var html = tpl.innerHTML.split('__I__').join(blockIdx++);
         document.getElementById(group + '-list').insertAdjacentHTML('beforeend', html);
         var empty = document.getElementById('blocks-empty'); if (empty) empty.style.display = 'none';
+        initRichTextEditors();
       }
       document.addEventListener('click', function (e) {
         var up = e.target.closest('.js-up'), down = e.target.closest('.js-down'), rm = e.target.closest('.js-remove');
@@ -127,6 +138,34 @@
         document.getElementById('side-col').style.display = sidebar ? '' : 'none';
         document.getElementById('main-col').className = sidebar ? 'col-lg-8' : 'col-12';
       });
+
+      // Initialize TinyMCE for rich text editors
+      function initRichTextEditors() {
+        if (typeof tinymce === 'undefined') return;
+        document.querySelectorAll('textarea.rich-text-editor').forEach(function(el) {
+          if (!el.dataset.tinymceInit) {
+            el.dataset.tinymceInit = 'true';
+            tinymce.init({
+              target: el,
+              menubar: false,
+              plugins: 'link lists table',
+              toolbar: 'undo redo | bold italic underline strikethrough | alignleft aligncenter alignright | bullist numlist outdent indent | link table | removeformat',
+              content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; }',
+              height: 200,
+              promotion: false,
+              branding: false,
+              setup: function(editor) {
+                editor.on('change', function() {
+                  editor.save();
+                });
+              }
+            });
+          }
+        });
+      }
+
+      // Initialize on page load
+      document.addEventListener('DOMContentLoaded', initRichTextEditors);
     </script>
   @endpush
 @endsection
