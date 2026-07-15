@@ -103,7 +103,7 @@
         { id: 'students', label: 'Students', description: 'Manage students', section: 'Navigation', icon: 'bi-people-fill', url: '/admin/students', keywords: 'pupils list', shortcut: 'g s' },
         { id: 'students-create', label: 'New Student', description: 'Add new student', section: 'Navigation', icon: 'bi-person-plus', url: '/admin/students/create', keywords: 'add new pupil', shortcut: 'n s' },
         { id: 'staff', label: 'Staff', description: 'Manage staff', section: 'Navigation', icon: 'bi-person-badge', url: '/admin/staff', keywords: 'teachers employees', shortcut: 'g t' },
-        { id: 'staff-create', label: 'New Staff', description: 'Add new staff member', section: 'Navigation', icon: 'bi-person-badge-plus', url: '/admin/staff/create', keywords: 'add teacher employee', shortcut: 'n t' },
+        { id: 'staff-create', label: 'New Staff', description: 'Add new staff member', section: 'Navigation', icon: 'bi-person-badge', url: '/admin/staff', keywords: 'add teacher employee', shortcut: 'n t' },
 
         // Setup
         { id: 'school-settings', label: 'School Settings', description: 'Configure school settings', section: 'Setup', icon: 'bi-building-gear', url: '/admin/school', keywords: 'configuration', shortcut: 'g s' },
@@ -147,6 +147,7 @@
         { id: 'announcements', label: 'Announcements', description: 'Manage announcements', section: 'Comms', icon: 'bi-megaphone', url: '/admin/announcements', keywords: 'notices circulars', shortcut: 'g a' },
         { id: 'sms', label: 'SMS', description: 'Send SMS', section: 'Comms', icon: 'bi-chat-dots', url: '/admin/sms', keywords: 'text messages', shortcut: 'g s' },
         { id: 'messages', label: 'Messages', description: 'View messages', section: 'Comms', icon: 'bi-chat-left-text', url: '/admin/messages', keywords: 'chat inbox', shortcut: 'g m' },
+        { id: 'enquiries', label: 'Enquiries', description: 'Contact-form enquiries', section: 'Comms', icon: 'bi-envelope-paper', url: '/admin/enquiries', keywords: 'contact messages inbox', shortcut: 'g q' },
 
         // HR
         { id: 'leave-types', label: 'Leave Types', description: 'Manage leave types', section: 'HR', icon: 'bi-card-checklist', url: '/admin/leave-types', keywords: 'vacation sick', shortcut: 'g l' },
@@ -167,8 +168,8 @@
 
         // Actions
         { id: 'new-student', label: 'New Student', description: 'Create new student', section: 'Actions', icon: 'bi-person-plus', url: '/admin/students/create', keywords: 'add pupil register', shortcut: 'n s' },
-        { id: 'new-staff', label: 'New Staff', description: 'Add new staff member', section: 'Actions', icon: 'bi-person-badge-plus', url: '/admin/staff/create', keywords: 'hire teacher employee', shortcut: 'n t' },
-        { id: 'new-admission', label: 'New Admission', description: 'Process new admission', section: 'Actions', icon: 'bi-clipboard-check', url: '/admin/admissions/index', keywords: 'enroll register', shortcut: 'n a' },
+        { id: 'new-staff', label: 'New Staff', description: 'Add new staff member', section: 'Actions', icon: 'bi-person-badge', url: '/admin/staff', keywords: 'hire teacher employee', shortcut: 'n t' },
+        { id: 'new-admission', label: 'New Admission', description: 'Process new admission', section: 'Actions', icon: 'bi-clipboard-check', url: '/admin/admissions', keywords: 'enroll register', shortcut: 'n a' },
     ];
 
     // ─── Fuzzy Search (Optimized) ───
