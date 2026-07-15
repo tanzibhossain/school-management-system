@@ -142,11 +142,23 @@
           @if(!empty($d['map_embed']))<div class="ratio ratio-4x3 mt-3 rounded-3 overflow-hidden"><iframe src="{{ $d['map_embed'] }}" loading="lazy" style="border:0;"></iframe></div>@endif
         </div>
         <div class="col-md-6"><div class="card"><div class="card-body">
-          <div class="mb-2"><input class="form-control" placeholder="Your name"></div>
-          <div class="mb-2"><input class="form-control" placeholder="Email"></div>
-          <div class="mb-2"><textarea class="form-control" rows="4" placeholder="Message"></textarea></div>
-          <button type="button" class="btn btn-brand">Send message</button>
-          <div class="form-text mt-1">Contact form delivery is configured by the school.</div>
+          @if(session('contact_sent'))
+            <div class="alert alert-success"><i class="bi bi-check-circle"></i> Thanks — your message has been sent.</div>
+          @endif
+          @if($errors->any())
+            <div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>
+          @endif
+          <form method="POST" action="{{ route('contact.submit') }}">
+            @csrf
+            <div class="row g-2">
+              <div class="col-md-6"><input name="name" class="form-control" placeholder="Your name" value="{{ old('name') }}" required></div>
+              <div class="col-md-6"><input name="email" type="email" class="form-control" placeholder="Email" value="{{ old('email') }}"></div>
+              <div class="col-md-6"><input name="phone" class="form-control" placeholder="Phone" value="{{ old('phone') }}"></div>
+              <div class="col-md-6"><input name="subject" class="form-control" placeholder="Subject" value="{{ old('subject') }}"></div>
+            </div>
+            <div class="my-2"><textarea name="message" class="form-control" rows="4" placeholder="Message" required>{{ old('message') }}</textarea></div>
+            <button class="btn btn-brand"><i class="bi bi-send"></i> Send message</button>
+          </form>
         </div></div></div>
       </div>
     {!! $close !!}

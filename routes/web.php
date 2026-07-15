@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\Certificates\IdCardTemplateController;
 use App\Http\Controllers\Admin\Certificates\TemplateController as CertTemplateController;
 use App\Http\Controllers\Admin\Certificates\TestimonialController;
 use App\Http\Controllers\Admin\Comms\AnnouncementController;
+use App\Http\Controllers\Admin\Comms\ContactMessageController;
 use App\Http\Controllers\Admin\Comms\MessageController;
 use App\Http\Controllers\Admin\Comms\ReportController;
 use App\Http\Controllers\Admin\Comms\SmsController;
@@ -69,6 +70,10 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // Public online-admission submission (form rendered by the admission_form block).
 Route::post('/admission', [\App\Http\Controllers\Public\AdmissionController::class, 'submit'])
     ->middleware('throttle:10,1')->name('admission.submit');
+
+// Public contact-form submission (form rendered by the contact block).
+Route::post('/contact', [\App\Http\Controllers\Public\ContactController::class, 'submit'])
+    ->middleware('throttle:10,1')->name('contact.submit');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
@@ -305,6 +310,11 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::get('/sms', [SmsController::class, 'index'])->name('sms.index');
         Route::post('/sms', [SmsController::class, 'store'])->name('sms.store');
         Route::get('/sms/{id}', [SmsController::class, 'show'])->name('sms.show');
+
+        // Contact-form enquiries (public contact block → admin inbox)
+        Route::get('/enquiries', [ContactMessageController::class, 'index'])->name('enquiries.index');
+        Route::patch('/enquiries/{id}/read', [ContactMessageController::class, 'markRead'])->whereNumber('id')->name('enquiries.read');
+        Route::delete('/enquiries/{id}', [ContactMessageController::class, 'destroy'])->whereNumber('id')->name('enquiries.destroy');
 
         // Messaging (admin = staff participant + oversight)
         Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
