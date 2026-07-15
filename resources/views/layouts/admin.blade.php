@@ -9,22 +9,24 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link href="https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+  <link href="{{ asset('css/admin-design-tokens.css') }}" rel="stylesheet">
   <style>
-    :root { --sb-w: 248px; }
-    body { background:#f5f7fb; }
-    .sidebar { width:var(--sb-w); min-height:100vh; overflow-y:auto; }
-    .sidebar .brand { font-weight:700; color:#1d4ed8; }
-    .sidebar .nav-section { font-size:.7rem; letter-spacing:.06em; }
-    .sidebar .nav-link { color:#3f4a5a; border-radius:.5rem; padding:.4rem .75rem; font-size:.925rem; display:flex; align-items:center; gap:.55rem; }
-    .sidebar .nav-link:hover { background:#eef2f9; }
-    .sidebar .nav-link.active { background:#e7f0ff; color:#1d4ed8; font-weight:600; }
-    .sidebar .nav-link i { width:1.1rem; text-align:center; }
-    .content { margin-left:var(--sb-w); }
-    .page-head { background:#fff; }
-    .card { border:0; box-shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.04); }
-    .card-header { background:#fff; font-weight:600; }
-    table.dataTable thead th { white-space:nowrap; }
-    @media (max-width: 991px){ .sidebar{ position:fixed; z-index:1040; transform:translateX(-100%); transition:.2s; } .sidebar.show{ transform:none; } .content{ margin-left:0; } }
+    /* Legacy styles - being migrated to design tokens */
+    :root { --sidebar-width: var(--sidebar-width); }
+    body { background: var(--color-bg); }
+    .sidebar { width: var(--sidebar-width); min-height: 100vh; overflow-y: auto; }
+    .sidebar .brand { font-weight: 700; color: var(--color-primary); }
+    .sidebar .nav-section { font-size: var(--text-xs); letter-spacing: var(--tracking-wider); }
+    .sidebar .nav-link { color: var(--color-text-muted); border-radius: var(--radius); padding: var(--space-2) var(--space-3); font-size: var(--text-sm); display: flex; align-items: center; gap: var(--space-2); }
+    .sidebar .nav-link:hover { background: var(--color-bg-hover); }
+    .sidebar .nav-link.active { background: var(--color-primary-light); color: var(--color-primary); font-weight: 600; }
+    .sidebar .nav-link i { width: 1.25rem; text-align: center; }
+    .content { margin-left: var(--sidebar-width); }
+    .page-head { background: var(--color-surface); }
+    .card { border: 1px solid var(--color-border); box-shadow: var(--shadow-sm); border-radius: var(--radius-card); }
+    .card-header { background: var(--color-bg-subtle); font-weight: 600; }
+    table.dataTable thead th { white-space: nowrap; }
+    @media (max-width: 991px) { .sidebar { position: fixed; z-index: var(--z-fixed); transform: translateX(-100%); transition: transform var(--transition-base); } .sidebar.show { transform: none; } .content { margin-left: 0; } }
   </style>
 </head>
 <body>
@@ -36,9 +38,12 @@
     $isAdmin = $u->hasRole('admin');
     $canFinance = $isAdmin || $u->hasRole('accountant');
   @endphp
-  <nav class="sidebar bg-white border-end position-fixed p-3">
-    <div class="brand fs-5 mb-3 px-2 d-flex align-items-center gap-2"><i class="bi bi-mortarboard-fill"></i> School Admin</div>
-    <ul class="nav nav-pills flex-column gap-1">
+  <nav class="sidebar bg-white border-end position-fixed p-3" style="width: var(--sidebar-width);" aria-label="Main navigation">
+    <div class="brand fs-5 mb-4 px-2 d-flex align-items-center gap-2">
+      <i class="bi bi-mortarboard-fill" style="color: var(--color-primary);"></i>
+      <span class="fw-bold text-slate-900">School Admin</span>
+    </div>
+    <ul class="nav nav-pills flex-column gap-1" role="navigation" aria-label="Main navigation">
       <li><a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
 
       @if ($isAdmin)
@@ -47,7 +52,7 @@
       <li><a class="nav-link {{ request()->routeIs('admin.modules.*') ? 'active' : '' }}" href="{{ route('admin.modules.index') }}"><i class="bi bi-toggles"></i> Modules</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.pages.*') ? 'active' : '' }}" href="{{ route('admin.pages.index') }}"><i class="bi bi-window"></i> Website pages</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.academic-years.*') ? 'active' : '' }}" href="{{ route('admin.academic-years.index') }}"><i class="bi bi-calendar3"></i> Academic years</a></li>
-      <li><a class="nav-link {{ request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*') ? 'active' : '' }}" href="{{ route('admin.classes.index') }}"><i class="bi bi-diagram-3"></i> Classes &amp; sections</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*') ? 'active' : '' }}" href="{{ route('admin.classes.index') }}"><i class="bi bi-diagram-3"></i> Classes & sections</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.subjects.*') ? 'active' : '' }}" href="{{ route('admin.subjects.index') }}"><i class="bi bi-book"></i> Subjects</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.groups.*') ? 'active' : '' }}" href="{{ route('admin.groups.index') }}"><i class="bi bi-people"></i> Groups</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.versions.*') ? 'active' : '' }}" href="{{ route('admin.versions.index') }}"><i class="bi bi-translate"></i> Versions</a></li>
@@ -61,8 +66,8 @@
       <li><a class="nav-link {{ request()->routeIs('admin.departments.*') ? 'active' : '' }}" href="{{ route('admin.departments.index') }}"><i class="bi bi-building"></i> Departments</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.admissions.*') ? 'active' : '' }}" href="{{ route('admin.admissions.index') }}"><i class="bi bi-clipboard-check"></i> Admissions</a></li>
       <li><a class="nav-link {{ request()->routeIs('admin.data-import.*') ? 'active' : '' }}" href="{{ route('admin.data-import.index') }}"><i class="bi bi-upload"></i> Data import</a></li>
-      <li><a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}"><i class="bi bi-person-gear"></i> Users &amp; roles</a></li>
-      <li><a class="nav-link {{ request()->routeIs('admin.testimonials.*') || request()->routeIs('admin.admit-cards.*') || request()->routeIs('admin.cert-templates.*') || request()->routeIs('admin.id-cards.*') || request()->routeIs('admin.id-card-templates.*') ? 'active' : '' }}" href="{{ route('admin.testimonials.index') }}"><i class="bi bi-file-earmark-medical"></i> Certificates &amp; IDs</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}"><i class="bi bi-person-gear"></i> Users & roles</a></li>
+      <li><a class="nav-link {{ request()->routeIs('admin.testimonials.*') || request()->routeIs('admin.admit-cards.*') || request()->routeIs('admin.cert-templates.*') || request()->routeIs('admin.id-cards.*') || request()->routeIs('admin.id-card-templates.*') ? 'active' : '' }}" href="{{ route('admin.testimonials.index') }}"><i class="bi bi-file-earmark-medical"></i> Certificates & IDs</a></li>
       @endif
 
       @if ($canFinance)
@@ -121,29 +126,29 @@
   </nav>
 
   <div class="content">
-    <nav class="navbar page-head border-bottom px-3 px-lg-4 py-2">
-      <button class="btn btn-sm btn-outline-secondary d-lg-none" onclick="document.querySelector('.sidebar').classList.toggle('show')"><i class="bi bi-list"></i></button>
+    <nav class="navbar page-head border-bottom px-3 px-lg-4 py-2" style="background: var(--color-surface); height: var(--header-height);">
+      <button class="btn btn-sm btn-outline-secondary d-lg-none" onclick="document.querySelector('.sidebar').classList.toggle('show')" aria-label="Toggle navigation"><i class="bi bi-list"></i></button>
       <div class="ms-auto d-flex align-items-center gap-3">
         <span class="text-muted small"><i class="bi bi-person-circle"></i> {{ $u->name }}</span>
         <form method="POST" action="{{ route('logout') }}">
           @csrf
-          <button class="btn btn-sm btn-outline-secondary">Sign out</button>
+          <button class="btn btn-sm btn-outline-secondary" type="submit">Sign out</button>
         </form>
       </div>
     </nav>
 
-    <main class="p-3 p-lg-4">
+    <main class="p-3 p-lg-4" style="padding: var(--content-padding); max-width: var(--content-max); margin: 0 auto;">
       @if (session('status'))
-        <div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle"></i> {{ session('status') }}<button class="btn-close" data-bs-dismiss="alert"></button></div>
+        <div class="alert alert-success alert-dismissible fade show" role="alert"><i class="bi bi-check-circle"></i> {{ session('status') }}<button class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
       @endif
       @if (session('error'))
-        <div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-triangle"></i> {{ session('error') }}<button class="btn-close" data-bs-dismiss="alert"></button></div>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert"><i class="bi bi-exclamation-triangle"></i> {{ session('error') }}<button class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
       @endif
       @if ($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
           <div class="fw-semibold mb-1"><i class="bi bi-exclamation-triangle"></i> Please fix the following:</div>
           <ul class="mb-0 ps-3">@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
-          <button class="btn-close" data-bs-dismiss="alert"></button>
+          <button class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
       @endif
       @yield('content')
