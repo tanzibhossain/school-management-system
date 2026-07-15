@@ -77,6 +77,13 @@ class PageRenderService
             'stats' => $data + ['stats' => $this->portal->stats($schoolId)],
             'staff' => $data + ['members' => $this->staffFor($schoolId, $data)],
             'contact_info', 'contact' => $data + ['school' => School::find($schoolId)],
+            'admission_form' => $data + [
+                'classes' => \App\Modules\Academic\Models\SchoolClass::where('school_id', $schoolId)
+                    ->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
+                'years' => \App\Modules\Academic\Models\AcademicYear::where('school_id', $schoolId)
+                    ->where('is_trash', false)->orderByDesc('is_current')->orderByDesc('year')->get(['id', 'year']),
+                'field_data' => $this->prepareAdmissionFormFields($data['fields'] ?? $data['hidden'] ?? []),
+            ],
             default => $data,
         };
     }
@@ -122,6 +129,105 @@ class PageRenderService
         }
 
         return $out;
+    }
+
+    /**
+     * Normalize admission form field configuration.
+     * Supports both:
+     * - New format: ['field_key' => ['enabled' => true, 'label' => '...', 'required' => false], ...]
+     * - Old format: 'hidden' => 'field1,field2,field3' (comma-separated string)
+     *
+     * @param  array|string|null  $fields
+     * @return array<string, array{enabled: bool, label: string, required: bool}>
+     */
+    private function normalizeAdmissionFields($fields): array
+    {
+        $defaults = [
+            'last_name'         => ['label' => 'Last name',          'required' => false],
+            'blood_group'       => ['label' => 'Blood group',        'required' => false],
+            'student_phone'     => ['label' => 'Student phone',      'required' => false],
+            'photo'             => ['label' => 'Student photo',      'required' => false],
+            'guardian'          => ['label' => 'Guardian information','required' => false],
+            'permanent_address' => ['label' => 'Permanent address',  'required' => false],
+            'notes'             => ['label' => 'Notes',              'required' => false],
+        ];
+
+        // Handle old "hidden" format (string of comma-separated field keys)
+        if (is_string($fields)) {
+            $hidden = array_filter(array_map('trim', explode(',', $fields)));
+            $normalized = [];
+            foreach ($defaults as $key => $def) {
+                $normalized[$key] = [
+                    'enabled'   => ! in_array($key, $hidden, true),
+                    'label'     => $def['label'],
+                    'required'  => $def['required'],
+                ];
+            }
+            return $normalized;
+        }
+
+        // New format: array of field configs
+        if (is_array($fields)) {
+            $normalized = [];
+            foreach ($defaults as $key => $def) {
+                $cfg = $fields[$key] ?? [];
+                $normalized[$key] = [
+                    'enabled'   => (bool) ($cfg['enabled'] ?? true),
+                    'label'     => $cfg['label'] ?? $def['label'],
+                    'required'  => (bool) ($cfg['required'] ?? $def['required']),
+                ];
+            }
+            // Also include any custom fields
+            foreach ($fields as $key => $cfg) {
+                if (! array_key_exists($key, $defaults)) {
+                    $normalized[$key] = [
+                        'enabled'   => (bool) ($cfg['enabled'] ?? true),
+                        'label'     => $cfg['label'] ?? ucfirst(str_replace('_', ' ', $key)),
+                        'required'  => (bool) ($cfg['required'] ?? false),
+                        'type'      => $cfg['type'] ?? 'text',
+                    ];
+                }
+            }
+            return $normalized;
+        }
+
+        // Default: all enabled with defaults
+        return array_map(fn ($def) => ['enabled' => true] + $def, $defaults);
+    }
+
+    /**
+     * Prepare admission form field data for Blade template.
+     * Returns a flat array with all field info needed for rendering.
+     *
+     * @param  array|string|null  $fields
+     * @return array<string, mixed>
+     */
+    private function prepareAdmissionFormFields($fields): array
+    {
+        $normalized = $this->normalizeAdmissionFields($fields);
+
+        $standardKeys = ['last_name', 'blood_group', 'student_phone', 'photo', 'guardian', 'permanent_address', 'notes'];
+        $customFields = [];
+
+        foreach ($normalized as $key => $cfg) {
+            if (!in_array($key, $standardKeys, true)) {
+                $customFields[$key] = [
+                    'enabled'   => (bool) ($cfg['enabled'] ?? true),
+                    'label'     => $cfg['label'] ?? ucfirst(str_replace('_', ' ', $key)),
+                    'required'  => (bool) ($cfg['required'] ?? false),
+                    'type'      => $cfg['type'] ?? 'text',
+                    'options'   => is_array($cfg['options'] ?? null) ? $cfg['options'] : (is_string($cfg['options'] ?? null) ? array_map('trim', explode(',', $cfg['options'])) : []),
+                ];
+            }
+        }
+
+        return [
+            'standard' => array_intersect_key($normalized, array_flip($standardKeys)),
+            'custom'   => $customFields,
+            'show'     => fn($key) => !empty($normalized[$key]['enabled']),
+            'getLabel' => fn($key, $default) => $normalized[$key]['label'] ?? $default,
+            'isRequired' => fn($key) => !empty($normalized[$key]['required']),
+        ];
     }
 
     /** The page whose layout should drive the homepage, if any. */
