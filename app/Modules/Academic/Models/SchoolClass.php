@@ -2,6 +2,7 @@
 
 namespace App\Modules\Academic\Models;
 
+use App\Modules\Student\Models\StudentAcademic;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -28,6 +29,12 @@ class SchoolClass extends Model
     public function subjectRelations(): HasMany
     {
         return $this->hasMany(SubjectRelation::class, 'class_id');
+    }
+
+    /** @return HasMany<StudentAcademic> */
+    public function studentAcademics(): HasMany
+    {
+        return $this->hasMany(StudentAcademic::class, 'class_id');
     }
 
     /** @param  Builder<SchoolClass>  $query */
