@@ -66,6 +66,10 @@ use Illuminate\Support\Facades\Route;
 // Public school homepage.
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// Public online-admission submission (form rendered by the admission_form block).
+Route::post('/admission', [\App\Http\Controllers\Public\AdmissionController::class, 'submit'])
+    ->middleware('throttle:10,1')->name('admission.submit');
+
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
