@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Admin\Setup;
 
+use App\Modules\School\Models\ModuleSetting;
 use App\Modules\School\Models\School;
+use App\Modules\School\Services\ModuleSettingService;
 use App\Modules\School\Services\SchoolService;
 use App\Modules\Website\Models\SiteSetting;
 use App\Modules\Website\Services\SiteSettingService;
@@ -16,6 +18,7 @@ class SchoolController extends Controller
     public function __construct(
         private readonly SchoolService $schools,
         private readonly SiteSettingService $siteSettings,
+        private readonly ModuleSettingService $modules,
     ) {}
 
     public function edit(): View
@@ -24,13 +27,15 @@ class SchoolController extends Controller
         $school = School::with(['phones', 'openingHours'])->findOrFail($schoolId);
 
         return view('admin.setup.school.edit', [
-            'school'     => $school,
-            'settings'   => SiteSetting::forSchool($schoolId),
-            'timezones'  => \DateTimeZone::listIdentifiers(),
-            'countries'  => config('geo.countries'),
-            'currencies' => config('geo.currencies'),
-            'languages'  => config('geo.languages'),
-            'patterns'   => [
+            'school'         => $school,
+            'settings'       => SiteSetting::forSchool($schoolId),
+            'timezones'      => \DateTimeZone::listIdentifiers(),
+            'countries'      => config('geo.countries'),
+            'currencies'     => config('geo.currencies'),
+            'languages'      => config('geo.languages'),
+            'moduleSettings' => $this->modules->allForSchool($schoolId),
+            'moduleMeta'     => ModuleSetting::META,
+            'patterns'       => [
                 'jan_dec' => 'January – December',
                 'apr_mar' => 'April – March',
                 'jul_jun' => 'July – June',

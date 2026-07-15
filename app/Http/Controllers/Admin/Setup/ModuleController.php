@@ -11,15 +11,6 @@ use Illuminate\View\View;
 
 class ModuleController extends Controller
 {
-    /** Friendly labels + descriptions for the optional modules. */
-    private const META = [
-        'payroll'   => ['Payroll', 'Salary components, payroll runs, salary certificates.'],
-        'lms'       => ['LMS', 'Courses, lessons, assignments, AI submission checks.'],
-        'library'   => ['Library', 'Books, members, borrow/return workflow.'],
-        'transport' => ['Transport', 'Routes, vehicles, drivers, student assignments.'],
-        'messaging' => ['Messaging', 'In-app threaded messaging between staff and families.'],
-    ];
-
     public function __construct(private readonly ModuleSettingService $modules) {}
 
     public function index(): View
@@ -28,7 +19,7 @@ class ModuleController extends Controller
 
         return view('admin.setup.modules.index', [
             'settings' => $settings,
-            'meta'     => self::META,
+            'meta'     => ModuleSetting::META,
         ]);
     }
 

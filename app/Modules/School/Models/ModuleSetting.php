@@ -12,6 +12,15 @@ class ModuleSetting extends Model
 
     public const MODULES = ['payroll', 'lms', 'library', 'transport', 'messaging'];
 
+    /** Friendly label + description for each optional module. */
+    public const META = [
+        'payroll' => ['Payroll', 'Salary components, payroll runs, salary certificates.'],
+        'lms' => ['LMS', 'Courses, lessons, assignments, AI submission checks.'],
+        'library' => ['Library', 'Books, members, borrow/return workflow.'],
+        'transport' => ['Transport', 'Routes, vehicles, drivers, student assignments.'],
+        'messaging' => ['Messaging', 'In-app threaded messaging between staff and families.'],
+    ];
+
     protected $fillable = [
         'school_id',
         'module',

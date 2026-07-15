@@ -26,8 +26,7 @@
 
     if ($isAdmin) {
         $navItems[] = ['section' => 'Setup'];
-        $navItems[] = ['label' => 'School settings', 'icon' => 'bi-building-gear', 'href' => route('admin.school.edit'), 'active' => request()->routeIs('admin.school.*')];
-        $navItems[] = ['label' => 'Modules', 'icon' => 'bi-toggles', 'href' => route('admin.modules.index'), 'active' => request()->routeIs('admin.modules.*')];
+        $navItems[] = ['label' => 'School settings', 'icon' => 'bi-building-gear', 'href' => route('admin.school.edit'), 'active' => request()->routeIs('admin.school.*') || request()->routeIs('admin.modules.*')];
         $navItems[] = ['label' => 'Website pages', 'icon' => 'bi-window', 'href' => route('admin.pages.index'), 'active' => request()->routeIs('admin.pages.*')];
         $navItems[] = ['label' => 'Academic years', 'icon' => 'bi-calendar3', 'href' => route('admin.academic-years.index'), 'active' => request()->routeIs('admin.academic-years.*')];
         $navItems[] = ['label' => 'Classes & sections', 'icon' => 'bi-diagram-3', 'href' => route('admin.classes.index'), 'active' => request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*')];

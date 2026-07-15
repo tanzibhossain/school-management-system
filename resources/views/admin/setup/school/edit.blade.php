@@ -255,6 +255,38 @@
         <div class="mt-4"><button class="btn btn-primary"><i class="bi bi-save"></i> Save settings</button></div>
     </form>
 
+    <form method="POST" action="{{ route('admin.modules.update') }}" class="mt-4">
+        @csrf @method('PUT')
+        <div class="card">
+            <div class="card-header">Optional modules</div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">Enable the optional modules your school uses. Disabled modules are
+                    hidden from the menu and their APIs return 403.</p>
+                <div class="row g-2">
+                    @foreach ($moduleSettings as $s)
+                        @php [$label, $desc] = $moduleMeta[$s['module']] ?? [ucfirst($s['module']), '']; @endphp
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center justify-content-between border rounded p-3 h-100">
+                                <div class="pe-3">
+                                    <div class="fw-semibold">{{ $label }}</div>
+                                    <div class="text-muted small">{{ $desc }}</div>
+                                </div>
+                                <div class="form-check form-switch fs-5 mb-0">
+                                    <input class="form-check-input" type="checkbox" role="switch" name="enabled[]"
+                                        value="{{ $s['module'] }}" id="mod-{{ $s['module'] }}" @checked($s['is_enabled'])>
+                                    <label class="form-check-label visually-hidden"
+                                        for="mod-{{ $s['module'] }}">{{ $label }}</label>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                <div class="text-end mt-3"><button class="btn btn-primary"><i class="bi bi-save"></i> Save
+                        modules</button></div>
+            </div>
+        </div>
+    </form>
+
     @php $hours = $school->openingHours->keyBy('day_of_week');
     $dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']; @endphp
     <form method="POST" action="{{ route('admin.school.hours') }}" class="mt-4">
