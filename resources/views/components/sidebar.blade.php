@@ -118,22 +118,16 @@
     <!-- Brand -->
     <div class="sidebar-brand d-flex align-items-center gap-2 px-3 py-3 mb-2">
         <i class="bi bi-mortarboard-fill" style="color: var(--color-primary); font-size: 1.5rem;"></i>
-        @if(!$collapsed)
-            <a href="{{ route('admin.dashboard') }}" class="fw-bold text-slate-900 text-decoration-none d-flex align-items-center gap-2 flex-grow-1">
-                School Admin
-            </a>
-        @endif
+        <a href="{{ route('admin.dashboard') }}" class="fw-bold text-slate-900 text-decoration-none d-flex align-items-center gap-2 flex-grow-1">
+            School Admin
+        </a>
+        {{-- Mobile-only close button (sidebar is always open on desktop) --}}
         <button
-            class="btn btn-ghost btn-icon sidebar-toggle ms-auto"
+            class="btn btn-ghost btn-icon sidebar-close d-lg-none ms-auto"
             type="button"
-            aria-label="{{ $collapsed ? 'Expand sidebar' : 'Collapse sidebar' }}"
-            aria-expanded="{{ $collapsed }}"
-            aria-controls="{{ $sidebarId }}"
-            data-bs-toggle="tooltip"
-            data-bs-placement="right"
-            title="{{ $collapsed ? 'Expand sidebar' : 'Collapse sidebar' }}"
+            aria-label="Close navigation"
         >
-            <i class="bi {{ $collapsed ? 'bi-chevron-right' : 'bi-chevron-left' }}" aria-hidden="true"></i>
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
     </div>
 
@@ -169,17 +163,12 @@
                             role="menuitem"
                             aria-current="{{ $isActive ? 'page' : 'false' }}"
                             aria-disabled="{{ isset($item['disabled']) && $item['disabled'] ? 'true' : 'false' }}"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="right"
-                            title="{{ $tooltip }}"
                             @if(isset($item['disabled']) && $item['disabled']) tabindex="-1" aria-disabled="true" @endif
                         >
                             <i class="bi {{ $icon }} nav-icon" aria-hidden="true"></i>
-                            @if(!$collapsed)
-                                <span class="nav-label flex-grow-1">{{ $item['label'] }}</span>
-                                @if($badge)
-                                    <span class="badge badge-sm ms-auto">{{ $badge }}</span>
-                                @endif
+                            <span class="nav-label flex-grow-1">{{ $item['label'] }}</span>
+                            @if($badge)
+                                <span class="badge badge-sm ms-auto">{{ $badge }}</span>
                             @endif
                         </a>
                     </li>
@@ -236,40 +225,22 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var sidebar = document.getElementById('{{ $sidebarId }}');
-        var toggle = sidebar?.querySelector('.sidebar-toggle');
         var backdrop = document.querySelector('.sidebar-backdrop');
+        var closeBtn = sidebar?.querySelector('.sidebar-close');
 
-        if (!sidebar || !toggle) return;
+        if (!sidebar) return;
 
-        // Toggle collapse
-        toggle.addEventListener('click', function() {
-            var isCollapsed = sidebar.classList.toggle('collapsed');
-            toggle.setAttribute('aria-expanded', isCollapsed);
-            toggle.setAttribute('aria-label', isCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
-            toggle.title = isCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
-            toggle.querySelector('i').className = 'bi ' + (isCollapsed ? 'bi-chevron-right' : 'bi-chevron-left');
-
-            // Persist to localStorage
-            localStorage.setItem('sidebar-collapsed', isCollapsed);
-
-            // Update backdrop
-            if (backdrop) {
-                backdrop.style.display = isCollapsed ? 'none' : (window.innerWidth < 992 ? 'block' : 'none');
-            }
-
-            // Dispatch custom event
-            window.dispatchEvent(new CustomEvent('sidebar:toggle', { detail: { collapsed: isCollapsed } }));
-        });
-
-        // Mobile backdrop click
-        if (backdrop) {
-            backdrop.addEventListener('click', function() {
-                sidebar.classList.remove('show');
-                backdrop.style.display = 'none';
-            });
+        // The sidebar is always open on desktop. On mobile it slides in as an
+        // off-canvas panel, opened by the header hamburger and closed here.
+        function closeMobile() {
+            sidebar.classList.remove('show');
+            if (backdrop) backdrop.style.display = 'none';
         }
 
-        // Mobile toggle from header
+        if (backdrop) backdrop.addEventListener('click', closeMobile);
+        if (closeBtn) closeBtn.addEventListener('click', closeMobile);
+
+        // Header hamburger dispatches sidebar:toggle {show: true}
         document.addEventListener('sidebar:toggle', function(e) {
             if (e.detail && typeof e.detail.show !== 'undefined') {
                 sidebar.classList.toggle('show', e.detail.show);
@@ -277,22 +248,12 @@
             }
         });
 
-        // Initialize tooltips
-        var tooltipTriggerList = [].slice.call(sidebar.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.forEach(function(el) {
-            new bootstrap.Tooltip(el, {
-                boundary: document.body,
-                delay: { show: 300, hide: 100 }
+        // Close the mobile panel after navigating to a link
+        sidebar.querySelectorAll('.nav-link').forEach(function(link) {
+            link.addEventListener('click', function() {
+                if (window.innerWidth < 992) closeMobile();
             });
         });
-
-        // Restore collapse state
-        var savedCollapsed = localStorage.getItem('sidebar-collapsed');
-        if (savedCollapsed === 'true' && !sidebar.classList.contains('collapsed')) {
-            toggle.click();
-        } else if (savedCollapsed === 'false' && sidebar.classList.contains('collapsed')) {
-            toggle.click();
-        }
     });
 </script>
 @endpush
