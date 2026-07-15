@@ -54,7 +54,7 @@
                         <div class="dropdown-menu dropdown-menu-end w-100 mt-2 shadow-lg" id="search-results" style="display: none;">
                             <div class="dropdown-header">Quick Actions</div>
                             <a class="dropdown-item" href="{{ route('admin.students.create') }}"><i class="bi bi-person-plus me-2"></i> New Student</a>
-                            <a class="dropdown-item" href="{{ route('admin.staff.store') }}"><i class="bi bi-person-badge-plus me-2"></i> New Staff</a>
+                            <a class="dropdown-item" href="{{ route('admin.staff.index') }}"><i class="bi bi-person-badge me-2"></i> New Staff</a>
                             <a class="dropdown-item" href="{{ route('admin.admissions.index') }}"><i class="bi bi-clipboard-check me-2"></i> Admissions</a>
                             <div class="dropdown-divider"></div>
                             <div class="dropdown-header">Recent</div>
@@ -211,7 +211,7 @@
                         searchInput.focus();
                     }
                 });
-            });
+            }
 
             // Notification dropdown click outside handling
             document.addEventListener('click', function(e) {
