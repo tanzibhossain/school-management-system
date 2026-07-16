@@ -36,14 +36,14 @@
                 {{-- Opens the command palette (the real fuzzy search). ⌘K / Ctrl+K also opens it. --}}
                 <button
                     type="button"
-                    class="header-search-trigger d-flex align-items-center"
-                    style="flex: 1 1 auto; max-width: 420px; margin: 0 1rem; gap: .55rem; height: 38px; padding: 0 .75rem; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; color: #64748b; cursor: text; text-align: left;"
+                    class="header-search-trigger d-flex align-items-center ms-auto"
+                    style="width: 280px; max-width: 44vw; gap: .55rem; height: 38px; padding: 0 .75rem; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; color: #64748b; cursor: text; text-align: left;"
                     onclick="document.dispatchEvent(new CustomEvent('command-palette:open'))"
                     aria-label="Search (Ctrl or Cmd + K)"
                 >
                     <i class="bi bi-search" style="font-size: .95rem;" aria-hidden="true"></i>
                     <span style="flex: 1 1 auto; font-size: .9rem;">Search…</span>
-                    <kbd style="font-size: .7rem; background: #e2e8f0; color: #475569; border-radius: 4px; padding: .1rem .4rem; font-family: monospace;">⌘K</kbd>
+                    <kbd class="js-shortcut-hint" style="font-size: .7rem; background: #e2e8f0; color: #475569; border-radius: 4px; padding: .1rem .4rem; font-family: monospace; white-space: nowrap;">Ctrl K</kbd>
                 </button>
             @endif
 
@@ -158,6 +158,13 @@
         document.addEventListener('DOMContentLoaded', function() {
             // The header search box is a trigger for the command palette, which owns
             // the ⌘K / Ctrl+K shortcut and the fuzzy search (see command-palette component).
+
+            // OS-aware shortcut hint: ⌘K on Mac, Ctrl K elsewhere. Detect from the
+            // browser so the label matches the user's actual keyboard.
+            var isMac = /Mac|iPhone|iPad|iPod/i.test(navigator.platform || navigator.userAgent || '');
+            document.querySelectorAll('.js-shortcut-hint').forEach(function(el) {
+                el.textContent = isMac ? '⌘K' : 'Ctrl K';
+            });
 
             // Notification dropdown click outside handling
             document.addEventListener('click', function(e) {

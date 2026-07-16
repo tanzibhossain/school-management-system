@@ -99,9 +99,7 @@
         <!-- Header -->
         <div class="flex items-center gap-3 p-4 border-b border-slate-200">
             <div class="flex items-center gap-2 text-slate-500">
-                <kbd class="kbd px-2 py-1 text-xs font-mono bg-slate-100 rounded">
-                    {{ Str::upper(str_replace('+', ' + ', $trigger)) }}
-                </kbd>
+                <kbd class="kbd px-2 py-1 text-xs font-mono bg-slate-100 rounded js-shortcut-hint">Ctrl K</kbd>
                 <span class="text-xs">to open</span>
             </div>
             <div class="flex-1 relative">
@@ -152,7 +150,7 @@
         <div class="p-3 border-t border-slate-100 bg-slate-50">
             <div class="flex items-center justify-between text-xs text-slate-400">
                 <span>Navigate with <kbd class="kbd">↑</kbd><kbd class="kbd">↓</kbd>, select with <kbd class="kbd">⏎</kbd>, close with <kbd class="kbd">Esc</kbd></span>
-                <span class="text-slate-300">⌘K</span>
+                <span class="text-slate-300 js-shortcut-hint">Ctrl K</span>
             </div>
         </div>
     </div>
@@ -453,7 +451,7 @@
         });
 
         // Let other UI (e.g. the header search box) open the palette.
-        document.addEventEventListener('command-palette:open', function() {
+        document.addEventListener('command-palette:open', function() {
             if (!isOpen) open();
         });
 
