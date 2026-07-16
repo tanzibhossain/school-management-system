@@ -16,6 +16,7 @@ class Staff extends Model
         'user_id',
         'designation_id',
         'department_id',
+        'subject_id',
         'employee_id',
         'name',
         'dob',
@@ -56,6 +57,12 @@ class Staff extends Model
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
+    }
+
+    /** Primary teaching subject (for teachers). @return BelongsTo<\App\Modules\Academic\Models\Subject, Staff> */
+    public function subject(): BelongsTo
+    {
+        return $this->belongsTo(\App\Modules\Academic\Models\Subject::class);
     }
 
     /** @return HasMany<StaffAcademic> */

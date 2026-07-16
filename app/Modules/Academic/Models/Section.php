@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Section extends Model
 {
-    protected $fillable = ['school_id', 'class_id', 'name', 'class_teacher_id', 'capacity', 'is_trash'];
+    protected $fillable = ['school_id', 'class_id', 'name', 'class_teacher_id', 'shift_id', 'capacity', 'is_trash'];
 
     protected $casts = ['is_trash' => 'boolean'];
 
@@ -16,6 +16,12 @@ class Section extends Model
     public function schoolClass(): BelongsTo
     {
         return $this->belongsTo(SchoolClass::class, 'class_id');
+    }
+
+    /** @return BelongsTo<AcademicShift, Section> */
+    public function shift(): BelongsTo
+    {
+        return $this->belongsTo(AcademicShift::class, 'shift_id');
     }
 
     /** Class teacher — the staff member who records this section's daily attendance. */

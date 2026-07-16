@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\People;
 
+use App\Modules\Academic\Models\Subject;
 use App\Modules\Staff\Models\Department;
 use App\Modules\Staff\Models\Designation;
 use App\Modules\Staff\Models\Staff;
@@ -21,7 +22,7 @@ class StaffController extends Controller
 
         $staff = Staff::where('school_id', $schoolId)
             ->where('is_trash', false)
-            ->with(['designation:id,name', 'department:id,name'])
+            ->with(['designation:id,name', 'department:id,name', 'subject:id,name'])
             ->orderBy('name')
             ->get();
 
@@ -29,6 +30,7 @@ class StaffController extends Controller
             'staff'        => $staff,
             'designations' => Designation::where('school_id', $schoolId)->orderBy('name')->get(['id', 'name']),
             'departments'  => Department::where('school_id', $schoolId)->orderBy('name')->get(['id', 'name']),
+            'subjects'     => Subject::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -68,6 +70,7 @@ class StaffController extends Controller
             'name'            => ['required', 'string', 'max:255'],
             'designation_id'  => ['nullable', 'integer', "exists:designations,id,school_id,{$schoolId}"],
             'department_id'   => ['nullable', 'integer', "exists:departments,id,school_id,{$schoolId}"],
+            'subject_id'      => ['nullable', 'integer', "exists:subjects,id,school_id,{$schoolId}"],
             'gender'          => ['nullable', 'in:male,female,other'],
             'dob'             => ['nullable', 'date'],
             'joining_date'    => ['nullable', 'date'],

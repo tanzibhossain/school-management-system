@@ -32,6 +32,8 @@
         <div class="col-md-4"><label class="form-label">Basic salary</label>
           <input type="number" step="0.01" min="0" name="basic_salary" class="form-control" value="{{ $isEdit ? $s->basic_salary : old('basic_salary') }}"></div>
 
+        <div class="col-md-6"><label class="form-label">Teaching subject</label>
+          <select name="subject_id" class="form-select">{!! $selOptions($subjects, $isEdit ? $s->subject_id : old('subject_id')) !!}</select></div>
         <div class="col-md-6"><label class="form-label">RFID number</label>
           <input name="rfid_number" class="form-control" value="{{ $isEdit ? $s->rfid_number : old('rfid_number') }}"></div>
       </div>
