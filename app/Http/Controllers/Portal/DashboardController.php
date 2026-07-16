@@ -7,6 +7,7 @@ use App\Modules\Announcement\Models\Announcement;
 use App\Modules\Attendance\Models\StudentAttendance;
 use App\Modules\Mark\Models\ExamResult;
 use App\Modules\Payment\Models\Invoice;
+use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\StudentAcademic;
 use App\Modules\Student\Models\StudentGuardian;
@@ -106,6 +107,34 @@ class DashboardController extends Controller
 
         return view('portal.notices', $ctx + [
             'notices' => $this->publishedNotices(app('current_school_id'))->paginate(15),
+        ]);
+    }
+
+    /** Stream a report-card / marksheet PDF for the selected student + exam. */
+    public function marksheet(int $examId)
+    {
+        $ctx = $this->context();
+        abort_unless($ctx['student'], 404);
+        $sid = app('current_school_id');
+
+        $result = ExamResult::where('school_id', $sid)
+            ->where('student_id', $ctx['student']->id)->where('exam_id', $examId)
+            ->with(['exam.schoolClass:id,name', 'exam.examType:id,name'])->firstOrFail();
+
+        $html = view('portal.marksheet', [
+            'result'     => $result,
+            'student'    => $ctx['student'],
+            'enrollment' => $ctx['enrollment'],
+            'exam'       => $result->exam,
+            'school'     => School::find($sid),
+        ])->render();
+
+        $bytes = app(\App\Services\PdfRenderingService::class)->renderToPdf($html);
+        $file = 'marksheet-' . $ctx['student']->admission_number . '-' . $examId . '.pdf';
+
+        return response($bytes, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $file . '"',
         ]);
     }
 

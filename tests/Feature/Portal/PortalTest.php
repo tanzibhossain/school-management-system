@@ -83,4 +83,17 @@ class PortalTest extends TestCase
         $this->actingAs($user);
         $this->get('/portal')->assertOk()->assertSee('Portal Test Kid');
     }
+
+    public function test_marksheet_requires_a_calculated_result(): void
+    {
+        $user = $this->userWithRole('student');
+        Student::create([
+            'school_id' => $this->school->id, 'user_id' => $user->id,
+            'admission_number' => 'ADM-TEST-2', 'student_id' => 'STD-TEST-2',
+            'name' => 'No Result Kid', 'gender' => 'female', 'status' => 'active',
+        ]);
+
+        $this->actingAs($user);
+        $this->get('/portal/results/999/marksheet')->assertNotFound();
+    }
 }

@@ -110,6 +110,7 @@ Route::middleware(['auth', 'school', 'role:student|parent'])
         Route::get('/', [$c, 'index'])->name('dashboard');
         Route::get('/attendance', [$c, 'attendance'])->name('attendance');
         Route::get('/results', [$c, 'results'])->name('results');
+        Route::get('/results/{examId}/marksheet', [$c, 'marksheet'])->whereNumber('examId')->name('results.marksheet');
         Route::get('/fees', [$c, 'fees'])->name('fees');
         Route::get('/routine', [$c, 'routine'])->name('routine');
         Route::get('/notices', [$c, 'notices'])->name('notices');
