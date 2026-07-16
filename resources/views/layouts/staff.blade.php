@@ -84,7 +84,7 @@
 
       <div class="section-label">General</div>
       <a href="{{ route('staff.notices') }}" class="nav-link {{ request()->routeIs('staff.notices') ? 'active' : '' }}"><i class="bi bi-megaphone"></i> Notices</a>
-      <a href="#" class="nav-link disabled"><i class="bi bi-chat-left-text"></i> Messages <span class="soon-badge">soon</span></a>
+      <a href="{{ route('staff.messages') }}" class="nav-link {{ request()->routeIs('staff.messages*') ? 'active' : '' }}"><i class="bi bi-chat-left-text"></i> Messages</a>
       <a href="{{ route('staff.profile') }}" class="nav-link {{ request()->routeIs('staff.profile') ? 'active' : '' }}"><i class="bi bi-person-badge"></i> My Profile</a>
     </nav>
     <div class="sidebar-footer">

@@ -99,6 +99,10 @@ Route::middleware(['auth', 'school', 'role:teacher|accountant|librarian|receptio
         Route::get('/marks', [\App\Http\Controllers\Staff\MarkController::class, 'index'])->name('marks');
         Route::get('/marks/{examId}/divisions/{divisionId}', [\App\Http\Controllers\Staff\MarkController::class, 'entry'])->whereNumber('examId')->whereNumber('divisionId')->name('marks.entry');
         Route::post('/marks/{examId}/divisions/{divisionId}', [\App\Http\Controllers\Staff\MarkController::class, 'saveEntry'])->whereNumber('examId')->whereNumber('divisionId')->name('marks.save');
+        Route::get('/messages', [\App\Http\Controllers\Staff\MessageController::class, 'index'])->name('messages');
+        Route::post('/messages', [\App\Http\Controllers\Staff\MessageController::class, 'store'])->name('messages.store');
+        Route::get('/messages/{id}', [\App\Http\Controllers\Staff\MessageController::class, 'show'])->whereNumber('id')->name('messages.show');
+        Route::post('/messages/{id}/reply', [\App\Http\Controllers\Staff\MessageController::class, 'reply'])->whereNumber('id')->name('messages.reply');
         Route::get('/notices', [\App\Http\Controllers\Staff\DashboardController::class, 'notices'])->name('notices');
         Route::get('/profile', [\App\Http\Controllers\Staff\DashboardController::class, 'profile'])->name('profile');
     });
