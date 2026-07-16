@@ -17,7 +17,7 @@
         @endforeach
       </ol>
     </nav>
-    <h1 class="h4 mb-0">{{ $title }}</h1>
+    <h1 class="h4 mb-0 page-title">{{ $title }}</h1>
   </div>
   @isset($action)
     @if (!empty($action['modal']))
