@@ -289,18 +289,20 @@
     .page-link { color: #4f46e5; }
     .nav-pills .nav-link.active { background-color: #4f46e5; }
 
-    /* admin-design-tokens.css defines a .modal for native <dialog> (shown via
-       [open]); it clobbers Bootstrap modals (which use .modal > .modal-dialog and
-       .show), leaving the dialog invisible while the backdrop shows. Restore
-       Bootstrap behavior for Bootstrap-structured modals only. */
-    .modal:has(.modal-dialog) {
+    /* admin-design-tokens.css hijacks Bootstrap's .modal / .modal-backdrop
+       (they were written for native <dialog>, shown via [open], with a solid
+       background). That leaves the Bootstrap dialog invisible / behind a solid
+       full-screen .modal box. Restore Bootstrap's modal container behavior. */
+    .modal {
       position: fixed; inset: 0; top: 0; left: 0;
       width: 100%; height: 100%; max-width: none; max-height: none;
       transform: none; opacity: 1; visibility: visible;
       background: transparent; border-radius: 0; box-shadow: none;
       overflow-x: hidden; overflow-y: auto; display: none; z-index: 1055;
     }
+    .modal.show { display: block; }
     .modal-backdrop { z-index: 1050; }
+    .modal-backdrop.show { opacity: .5; }
 
     /* ── Mobile: off-canvas ── */
     .sidebar-backdrop { display: none; }
@@ -412,6 +414,12 @@
   <script>
     // Auto-init any table with .js-dt as a DataTable; opt out per-column with data-orderable="false".
     $(function () {
+      // Reparent Bootstrap modals to <body> so the offset .content / any stacking
+      // context can't trap the dialog under the backdrop. IDs are preserved so
+      // data-bs-target="#..." triggers still work.
+      document.querySelectorAll('.modal').forEach(function (m) {
+        if (m.parentElement !== document.body) document.body.appendChild(m);
+      });
       $('table.js-dt').each(function () {
         var $t = $(this); var noSort = [];
         $t.find('thead th').each(function (i) { if ($(this).data('orderable') === false) noSort.push(i); });
