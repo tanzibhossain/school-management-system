@@ -103,11 +103,14 @@ Route::middleware(['auth', 'school', 'role:teacher|accountant|librarian|receptio
         Route::post('/messages', [\App\Http\Controllers\Staff\MessageController::class, 'store'])->name('messages.store');
         Route::get('/messages/{id}', [\App\Http\Controllers\Staff\MessageController::class, 'show'])->whereNumber('id')->name('messages.show');
         Route::post('/messages/{id}/reply', [\App\Http\Controllers\Staff\MessageController::class, 'reply'])->whereNumber('id')->name('messages.reply');
+        Route::get('/leave', [\App\Http\Controllers\Staff\LeaveController::class, 'index'])->name('leave');
+        Route::post('/leave', [\App\Http\Controllers\Staff\LeaveController::class, 'store'])->name('leave.store');
+        Route::patch('/leave/{id}/cancel', [\App\Http\Controllers\Staff\LeaveController::class, 'cancel'])->whereNumber('id')->name('leave.cancel');
         Route::get('/notices', [\App\Http\Controllers\Staff\DashboardController::class, 'notices'])->name('notices');
         Route::get('/profile', [\App\Http\Controllers\Staff\DashboardController::class, 'profile'])->name('profile');
     });
 
-// ── Family portal (student + guardian) — dashboard filled out in the next phase ─
+// ── Family portal (student + guardian) ─────────────────────────────────────────
 Route::middleware(['auth', 'school', 'role:student|parent'])
     ->prefix('portal')->name('portal.')->group(function (): void {
         $c = \App\Http\Controllers\Portal\DashboardController::class;
