@@ -124,11 +124,11 @@
                     @forelse($feeDefaulters as $student)
                         <tr>
                             <td>
-                                <div class="fw-medium">{{ $student->name }}</div>
-                                <small class="text-muted">{{ $student->admission_number }}</small>
+                                <div class="fw-medium">{{ $student['name'] }}</div>
+                                <small class="text-muted">{{ $student['admission_number'] }}</small>
                             </td>
                             <td class="text-end">
-                                <span class="badge badge-danger">{{ $student->overdue_count }} invoices</span>
+                                <span class="badge badge-danger">{{ $student['overdue_count'] }} invoices</span>
                             </td>
                         </tr>
                     @empty
