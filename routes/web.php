@@ -119,6 +119,12 @@ Route::middleware(['auth', 'school', 'role:student|parent'])
         Route::get('/routine', [$c, 'routine'])->name('routine');
         Route::get('/notices', [$c, 'notices'])->name('notices');
         Route::get('/profile', [$c, 'profile'])->name('profile');
+
+        $mc = \App\Http\Controllers\Portal\MessageController::class;
+        Route::get('/messages', [$mc, 'index'])->name('messages');
+        Route::post('/messages', [$mc, 'store'])->name('messages.store');
+        Route::get('/messages/{id}', [$mc, 'show'])->whereNumber('id')->name('messages.show');
+        Route::post('/messages/{id}/reply', [$mc, 'reply'])->whereNumber('id')->name('messages.reply');
     });
 
 Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(function (): void {

@@ -42,10 +42,12 @@ class PortalTest extends TestCase
     {
         $this->actingAs($this->userWithRole('student'));
         $this->get('/portal')->assertOk();
+        $this->get('/portal/messages')->assertOk();
 
         $this->app['auth']->forgetGuards();
         $this->actingAs($this->userWithRole('parent'));
         $this->get('/portal')->assertOk();
+        $this->get('/portal/messages')->assertOk();
     }
 
     public function test_staff_and_admin_cannot_reach_portal(): void
