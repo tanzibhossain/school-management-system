@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Staff;
 
+use App\Modules\Academic\Models\ClassRoutine;
 use App\Modules\Academic\Models\Section;
 use App\Modules\Announcement\Models\Announcement;
 use App\Modules\Staff\Models\Staff;
@@ -47,6 +48,19 @@ class DashboardController extends Controller
         [, $staff] = $this->context();
 
         return view('staff.profile', ['staff' => $staff?->load(['designation', 'department', 'subject'])]);
+    }
+
+    public function routine(): View
+    {
+        [$sid, $staff] = $this->context();
+
+        $rows = $staff
+            ? ClassRoutine::where('school_id', $sid)->where('teacher_id', $staff->id)
+                ->with(['subject:id,name', 'section:id,name', 'schoolClass:id,name'])
+                ->orderBy('period_id')->get()->groupBy('day_of_week')
+            : collect();
+
+        return view('staff.routine', ['rows' => $rows, 'staff' => $staff]);
     }
 
     public function notices(): View

@@ -93,8 +93,11 @@ Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->
 Route::middleware(['auth', 'school', 'role:teacher|accountant|librarian|receptionist'])
     ->prefix('staff')->name('staff.')->group(function (): void {
         Route::get('/', [\App\Http\Controllers\Staff\DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/profile', [\App\Http\Controllers\Staff\DashboardController::class, 'profile'])->name('profile');
+        Route::get('/attendance', [\App\Http\Controllers\Staff\AttendanceController::class, 'index'])->name('attendance');
+        Route::post('/attendance', [\App\Http\Controllers\Staff\AttendanceController::class, 'store'])->name('attendance.store');
+        Route::get('/routine', [\App\Http\Controllers\Staff\DashboardController::class, 'routine'])->name('routine');
         Route::get('/notices', [\App\Http\Controllers\Staff\DashboardController::class, 'notices'])->name('notices');
+        Route::get('/profile', [\App\Http\Controllers\Staff\DashboardController::class, 'profile'])->name('profile');
     });
 
 // ── Family portal (student + guardian) — dashboard filled out in the next phase ─

@@ -78,9 +78,9 @@
       <a href="{{ route('staff.dashboard') }}" class="nav-link {{ request()->routeIs('staff.dashboard') ? 'active' : '' }}"><i class="bi bi-speedometer2"></i> Dashboard</a>
 
       <div class="section-label">Teaching</div>
-      <a href="#" class="nav-link disabled"><i class="bi bi-calendar-check"></i> Attendance <span class="soon-badge">soon</span></a>
+      <a href="{{ route('staff.attendance') }}" class="nav-link {{ request()->routeIs('staff.attendance') ? 'active' : '' }}"><i class="bi bi-calendar-check"></i> Attendance</a>
       <a href="#" class="nav-link disabled"><i class="bi bi-journal-text"></i> Marks &amp; Results <span class="soon-badge">soon</span></a>
-      <a href="#" class="nav-link disabled"><i class="bi bi-calendar3-week"></i> Class Routine <span class="soon-badge">soon</span></a>
+      <a href="{{ route('staff.routine') }}" class="nav-link {{ request()->routeIs('staff.routine') ? 'active' : '' }}"><i class="bi bi-calendar3-week"></i> Class Routine</a>
 
       <div class="section-label">General</div>
       <a href="{{ route('staff.notices') }}" class="nav-link {{ request()->routeIs('staff.notices') ? 'active' : '' }}"><i class="bi bi-megaphone"></i> Notices</a>
