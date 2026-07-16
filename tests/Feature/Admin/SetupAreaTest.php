@@ -46,7 +46,7 @@ class SetupAreaTest extends TestCase
 
     public function test_guest_is_redirected_to_login(): void
     {
-        $this->get('/admin/classes')->assertRedirect('/login');
+        $this->get('/admin/classes')->assertRedirect('/admin/login');
     }
 
     public function test_admin_can_open_setup_screens(): void

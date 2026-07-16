@@ -46,7 +46,7 @@ class PeopleAreaTest extends TestCase
 
     public function test_guest_is_redirected_to_login(): void
     {
-        $this->get('/admin/students')->assertRedirect('/login');
+        $this->get('/admin/students')->assertRedirect('/admin/login');
     }
 
     public function test_admin_can_open_people_screens(): void

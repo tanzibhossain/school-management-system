@@ -76,15 +76,36 @@ Route::post('/contact', [\App\Http\Controllers\Public\ContactController::class, 
     ->middleware('throttle:10,1')->name('contact.submit');
 
 Route::middleware('guest')->group(function (): void {
-    Route::get('/login', [LoginController::class, 'show'])->name('login');
+    // Family portal (student + guardian) — the default login.
+    Route::get('/login', [LoginController::class, 'showFamily'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
+    // Admin console.
+    Route::get('/admin/login', [LoginController::class, 'showAdmin'])->name('admin.login');
+    Route::post('/admin/login', [LoginController::class, 'login']);
+    // Staff & teachers.
+    Route::get('/staff/login', [LoginController::class, 'showStaff'])->name('staff.login');
+    Route::post('/staff/login', [LoginController::class, 'login']);
 });
 
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
 
+// ── Staff / teacher portal ───────────────────────────────────────────────────
+Route::middleware(['auth', 'school', 'role:teacher|accountant|librarian|receptionist'])
+    ->prefix('staff')->name('staff.')->group(function (): void {
+        Route::get('/', [\App\Http\Controllers\Staff\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/profile', [\App\Http\Controllers\Staff\DashboardController::class, 'profile'])->name('profile');
+        Route::get('/notices', [\App\Http\Controllers\Staff\DashboardController::class, 'notices'])->name('notices');
+    });
+
+// ── Family portal (student + guardian) — dashboard filled out in the next phase ─
+Route::middleware(['auth', 'school', 'role:student|parent'])
+    ->prefix('portal')->name('portal.')->group(function (): void {
+        Route::get('/', [\App\Http\Controllers\Portal\DashboardController::class, 'index'])->name('dashboard');
+    });
+
 Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(function (): void {
-    // Dashboard — any authenticated staff of the school.
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    // Dashboard — admins and accountants (finance). Other staff use /staff.
+    Route::get('/', [DashboardController::class, 'index'])->middleware('role:admin|accountant')->name('dashboard');
 
     // ── Finance + Reports (role: admin OR accountant) ─────────────────────────
     // Spatie multi-role syntax is pipe-separated; a comma is read as the guard.

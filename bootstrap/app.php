@@ -18,6 +18,15 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->appendToGroup('api', \App\Http\Middleware\ResolveSchool::class);
 
+        // Guests hitting a protected area are sent to that area's branded login;
+        // already-authenticated users hitting a login go to their role's portal.
+        $middleware->redirectGuestsTo(
+            fn (Request $request) => \App\Http\Controllers\Admin\Auth\LoginController::loginUrlFor($request),
+        );
+        $middleware->redirectUsersTo(
+            fn (Request $request) => \App\Http\Controllers\Admin\Auth\LoginController::homeFor($request->user()),
+        );
+
         $middleware->alias([
             'ability'    => \Laravel\Sanctum\Http\Middleware\CheckForAnyAbility::class,
             'abilities'  => \Laravel\Sanctum\Http\Middleware\CheckAbilities::class,

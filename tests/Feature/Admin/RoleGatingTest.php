@@ -9,7 +9,8 @@ use Tests\TestCase;
 
 /**
  * Blade admin — role gating. Finance + Reports = admin OR accountant;
- * everything else = admin only; dashboard = any authenticated staff.
+ * everything else = admin only; dashboard = admin OR accountant (other staff
+ * use the /staff portal).
  */
 class RoleGatingTest extends TestCase
 {
@@ -70,7 +71,7 @@ class RoleGatingTest extends TestCase
     public function test_teacher_is_blocked_from_finance_and_admin_areas(): void
     {
         $this->actingAs($this->userWithRole('teacher'));
-        $this->get('/admin')->assertOk();                  // dashboard is open to any staff
+        $this->get('/admin')->assertForbidden();           // teachers use the staff portal, not /admin
         $this->get('/admin/invoices')->assertForbidden();  // finance = admin/accountant only
         $this->get('/admin/students')->assertForbidden();  // admin only
     }

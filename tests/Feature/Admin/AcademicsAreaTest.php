@@ -68,7 +68,7 @@ class AcademicsAreaTest extends TestCase
 
     public function test_guest_is_redirected_to_login(): void
     {
-        $this->get('/admin/exams')->assertRedirect('/login');
+        $this->get('/admin/exams')->assertRedirect('/admin/login');
     }
 
     public function test_admin_can_open_academics_screens(): void
