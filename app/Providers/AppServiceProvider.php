@@ -224,5 +224,14 @@ class AppServiceProvider extends ServiceProvider
                 ? app(\App\Modules\Website\Services\PublicPortalService::class)->notices($school->id)->take(8)
                 : collect());
         });
+
+        // Staff/family portal shells — share the unread message count for the
+        // sidebar "Messages" badge, so every portal controller needn't pass it.
+        \Illuminate\Support\Facades\View::composer(['layouts.staff', 'layouts.portal'], function ($view): void {
+            $user = auth()->user();
+            $view->with('messagesUnread', $user
+                ? app(\App\Modules\Messaging\Services\MessageService::class)->unreadCountFor($user->school_id, $user->id)
+                : 0);
+        });
     }
 }

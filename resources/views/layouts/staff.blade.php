@@ -85,7 +85,9 @@
       <div class="section-label">General</div>
       <a href="{{ route('staff.leave') }}" class="nav-link {{ request()->routeIs('staff.leave*') ? 'active' : '' }}"><i class="bi bi-calendar-minus"></i> My Leave</a>
       <a href="{{ route('staff.notices') }}" class="nav-link {{ request()->routeIs('staff.notices') ? 'active' : '' }}"><i class="bi bi-megaphone"></i> Notices</a>
-      <a href="{{ route('staff.messages') }}" class="nav-link {{ request()->routeIs('staff.messages*') ? 'active' : '' }}"><i class="bi bi-chat-left-text"></i> Messages</a>
+      <a href="{{ route('staff.messages') }}" class="nav-link {{ request()->routeIs('staff.messages*') ? 'active' : '' }}"><i class="bi bi-chat-left-text"></i> Messages
+        @if(($messagesUnread ?? 0) > 0)<span class="badge text-bg-primary rounded-pill ms-auto">{{ $messagesUnread }}</span>@endif
+      </a>
       <a href="{{ route('staff.profile') }}" class="nav-link {{ request()->routeIs('staff.profile') ? 'active' : '' }}"><i class="bi bi-person-badge"></i> My Profile</a>
     </nav>
     <div class="sidebar-footer">
