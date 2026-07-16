@@ -6,6 +6,7 @@ use App\Modules\Payment\Models\PaymentConfig;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PaymentConfigController extends Controller
@@ -40,6 +41,34 @@ class PaymentConfigController extends Controller
             'sslcommerz_store_pass' => ['nullable', 'string', 'max:255'],
             'sslcommerz_base_url'   => ['nullable', 'string', 'max:255'],
         ]);
+
+        // Enabling a gateway requires its credentials — unless they're already
+        // stored (blank then means "keep the saved value").
+        if (in_array($data['payment_mode'], ['online', 'both'], true)) {
+            $required = [
+                'bkash_enabled' => [
+                    'bkash_app_key' => 'bKash app key', 'bkash_app_secret' => 'bKash app secret',
+                    'bkash_username' => 'bKash username', 'bkash_password' => 'bKash password',
+                ],
+                'sslcommerz_enabled' => [
+                    'sslcommerz_store_id' => 'SSLCommerz store ID', 'sslcommerz_store_pass' => 'SSLCommerz store password',
+                ],
+            ];
+            $missing = [];
+            foreach ($required as $flag => $fields) {
+                if (! $request->boolean($flag)) {
+                    continue;
+                }
+                foreach ($fields as $field => $label) {
+                    if (! filled($data[$field] ?? null) && ! filled($config->{$field})) {
+                        $missing[$field] = ["{$label} is required to enable this gateway."];
+                    }
+                }
+            }
+            if ($missing) {
+                throw ValidationException::withMessages($missing);
+            }
+        }
 
         // Mode + gateway switches always apply.
         $config->payment_mode = $data['payment_mode'];
