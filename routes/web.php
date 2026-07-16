@@ -100,7 +100,14 @@ Route::middleware(['auth', 'school', 'role:teacher|accountant|librarian|receptio
 // ── Family portal (student + guardian) — dashboard filled out in the next phase ─
 Route::middleware(['auth', 'school', 'role:student|parent'])
     ->prefix('portal')->name('portal.')->group(function (): void {
-        Route::get('/', [\App\Http\Controllers\Portal\DashboardController::class, 'index'])->name('dashboard');
+        $c = \App\Http\Controllers\Portal\DashboardController::class;
+        Route::get('/', [$c, 'index'])->name('dashboard');
+        Route::get('/attendance', [$c, 'attendance'])->name('attendance');
+        Route::get('/results', [$c, 'results'])->name('results');
+        Route::get('/fees', [$c, 'fees'])->name('fees');
+        Route::get('/routine', [$c, 'routine'])->name('routine');
+        Route::get('/notices', [$c, 'notices'])->name('notices');
+        Route::get('/profile', [$c, 'profile'])->name('profile');
     });
 
 Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(function (): void {

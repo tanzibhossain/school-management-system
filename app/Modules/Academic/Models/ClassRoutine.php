@@ -31,6 +31,12 @@ class ClassRoutine extends Model
         return $this->belongsTo(Subject::class);
     }
 
+    /** @return BelongsTo<\App\Modules\Staff\Models\Staff, ClassRoutine> */
+    public function teacher(): BelongsTo
+    {
+        return $this->belongsTo(\App\Modules\Staff\Models\Staff::class, 'teacher_id');
+    }
+
     /** @return BelongsTo<RoutineRoom, ClassRoutine> */
     public function room(): BelongsTo
     {

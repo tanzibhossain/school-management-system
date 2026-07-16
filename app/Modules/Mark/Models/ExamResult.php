@@ -36,6 +36,12 @@ class ExamResult extends Model
         return $this->belongsTo(Student::class);
     }
 
+    /** @return BelongsTo<\App\Modules\Examination\Models\Exam, ExamResult> */
+    public function exam(): BelongsTo
+    {
+        return $this->belongsTo(\App\Modules\Examination\Models\Exam::class);
+    }
+
     /** @param  \Illuminate\Database\Eloquent\Builder  $query */
     public function scopeForSchool($query, int $schoolId): void
     {
