@@ -1,11 +1,94 @@
 @extends('layouts.admin')
-@section('title', 'Payment config')
+@section('title', 'Payment settings')
 @section('content')
-  @include('admin.partials.page-header', ['title' => 'Payment configuration', 'crumbs' => ['Finance', 'Payment config']])
+  @include('admin.partials.page-header', ['title' => 'Payment settings', 'crumbs' => ['Settings', 'Payment']])
 
-  <form method="POST" action="{{ route('admin.payment-config.update') }}">
+  <form method="POST" action="{{ route('admin.payment-config.update') }}" autocomplete="off">
     @csrf @method('PUT')
+
+    {{-- How fees are collected --}}
+    <div class="card mb-4">
+      <div class="card-header">How do you collect fees?</div>
+      <div class="card-body">
+        <div class="row g-2">
+          @foreach([
+            'offline' => ['Offline only', 'Cash, cheque and bank transfer recorded at the office.'],
+            'online'  => ['Online only', 'Families pay through a payment gateway.'],
+            'both'    => ['Offline & online', 'Accept both — families can pay online or at the office.'],
+          ] as $val => $meta)
+            <div class="col-md-4">
+              <label class="border rounded p-3 d-block h-100 {{ old('payment_mode', $config->payment_mode) === $val ? 'border-primary' : '' }}" style="cursor:pointer;">
+                <div class="form-check mb-1">
+                  <input class="form-check-input" type="radio" name="payment_mode" value="{{ $val }}" @checked(old('payment_mode', $config->payment_mode) === $val)>
+                  <span class="fw-semibold">{{ $meta[0] }}</span>
+                </div>
+                <div class="text-muted small">{{ $meta[1] }}</div>
+              </label>
+            </div>
+          @endforeach
+        </div>
+      </div>
+    </div>
+
+    {{-- Online gateways --}}
     <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>bKash</span>
+            @if($config->bkash_app_key)<span class="badge text-bg-success">Credentials set</span>@endif
+          </div>
+          <div class="card-body">
+            <div class="form-check form-switch mb-3">
+              <input type="hidden" name="bkash_enabled" value="0">
+              <input class="form-check-input" type="checkbox" role="switch" name="bkash_enabled" value="1" id="bkashOn" @checked(old('bkash_enabled', $config->bkash_enabled))>
+              <label class="form-check-label" for="bkashOn">Enable bKash</label>
+            </div>
+            <div class="row g-2">
+              <div class="col-md-6"><label class="form-label small">App key</label>
+                <input name="bkash_app_key" class="form-control" placeholder="{{ $config->bkash_app_key ? '•••• (unchanged)' : '' }}" autocomplete="off"></div>
+              <div class="col-md-6"><label class="form-label small">App secret</label>
+                <input name="bkash_app_secret" type="password" class="form-control" placeholder="{{ $config->bkash_app_secret ? '•••• (unchanged)' : '' }}" autocomplete="new-password"></div>
+              <div class="col-md-6"><label class="form-label small">Username</label>
+                <input name="bkash_username" class="form-control" placeholder="{{ $config->bkash_username ? '•••• (unchanged)' : '' }}" autocomplete="off"></div>
+              <div class="col-md-6"><label class="form-label small">Password</label>
+                <input name="bkash_password" type="password" class="form-control" placeholder="{{ $config->bkash_password ? '•••• (unchanged)' : '' }}" autocomplete="new-password"></div>
+              <div class="col-12"><label class="form-label small">Base URL</label>
+                <input name="bkash_base_url" class="form-control" value="{{ old('bkash_base_url', $config->bkash_base_url) }}" placeholder="sandbox or production URL"></div>
+            </div>
+            <div class="form-text mt-2">Leave a field blank to keep the stored value. Fee: {{ $config->bkash_fee_pct }}%.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>SSLCommerz</span>
+            @if($config->sslcommerz_store_id)<span class="badge text-bg-success">Credentials set</span>@endif
+          </div>
+          <div class="card-body">
+            <div class="form-check form-switch mb-3">
+              <input type="hidden" name="sslcommerz_enabled" value="0">
+              <input class="form-check-input" type="checkbox" role="switch" name="sslcommerz_enabled" value="1" id="sslOn" @checked(old('sslcommerz_enabled', $config->sslcommerz_enabled))>
+              <label class="form-check-label" for="sslOn">Enable SSLCommerz</label>
+            </div>
+            <div class="row g-2">
+              <div class="col-md-6"><label class="form-label small">Store ID</label>
+                <input name="sslcommerz_store_id" class="form-control" placeholder="{{ $config->sslcommerz_store_id ? '•••• (unchanged)' : '' }}" autocomplete="off"></div>
+              <div class="col-md-6"><label class="form-label small">Store password</label>
+                <input name="sslcommerz_store_pass" type="password" class="form-control" placeholder="{{ $config->sslcommerz_store_pass ? '•••• (unchanged)' : '' }}" autocomplete="new-password"></div>
+              <div class="col-12"><label class="form-label small">Base URL</label>
+                <input name="sslcommerz_base_url" class="form-control" value="{{ old('sslcommerz_base_url', $config->sslcommerz_base_url) }}" placeholder="sandbox or production URL"></div>
+            </div>
+            <div class="form-text mt-2">Leave a field blank to keep the stored value. Fee: {{ $config->sslcommerz_fee_pct }}%.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{-- Numbering + fees --}}
+    <div class="row g-4 mt-0">
       <div class="col-lg-6">
         <div class="card"><div class="card-header">Numbering</div><div class="card-body row g-3">
           <div class="col-md-6"><label class="form-label">Invoice prefix</label>
@@ -16,17 +99,17 @@
         </div></div>
       </div>
       <div class="col-lg-6">
-        <div class="card"><div class="card-header">Fees</div><div class="card-body row g-3">
-          <div class="col-md-6"><label class="form-label">bKash fee %</label>
+        <div class="card"><div class="card-header">Fees &amp; charges</div><div class="card-body row g-3">
+          <div class="col-md-4"><label class="form-label">bKash fee %</label>
             <input type="number" step="0.01" min="0" max="100" name="bkash_fee_pct" class="form-control" value="{{ old('bkash_fee_pct', $config->bkash_fee_pct) }}"></div>
-          <div class="col-md-6"><label class="form-label">SSLCommerz fee %</label>
+          <div class="col-md-4"><label class="form-label">SSLCommerz fee %</label>
             <input type="number" step="0.01" min="0" max="100" name="sslcommerz_fee_pct" class="form-control" value="{{ old('sslcommerz_fee_pct', $config->sslcommerz_fee_pct) }}"></div>
-          <div class="col-md-6"><label class="form-label">Cheque bounce fee</label>
+          <div class="col-md-4"><label class="form-label">Cheque bounce fee</label>
             <input type="number" step="0.01" min="0" name="bounce_fee_amount" class="form-control" value="{{ old('bounce_fee_amount', $config->bounce_fee_amount) }}"></div>
         </div></div>
-        <div class="alert alert-secondary border mt-3 small mb-0"><i class="bi bi-shield-lock"></i> Gateway credentials (bKash / SSLCommerz keys) are stored encrypted and managed separately for security.</div>
       </div>
     </div>
-    <div class="mt-4"><button class="btn btn-primary"><i class="bi bi-save"></i> Save configuration</button></div>
+
+    <div class="mt-4"><button class="btn btn-primary"><i class="bi bi-save"></i> Save payment settings</button></div>
   </form>
 @endsection
