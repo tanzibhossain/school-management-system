@@ -252,6 +252,14 @@
       transition: margin-left 0.2s ease;
     }
 
+    /* Header bar: min-height (never a hard height that clips) + sticky above content */
+    .page-head {
+      background: var(--color-surface, #fff);
+      min-height: var(--header-height);
+      z-index: 1030;
+    }
+    .page-head .container-fluid, .page-head .container-fluid > .d-flex { min-height: var(--header-height); }
+
     .card { border: 1px solid #eef0f4; box-shadow: 0 1px 2px rgba(16,24,40,.05); border-radius: 12px; }
     .card-header { background: #fff; font-weight: 600; }
     table.dataTable thead th { white-space: nowrap; }
@@ -420,6 +428,15 @@
       document.querySelectorAll('.modal').forEach(function (m) {
         if (m.parentElement !== document.body) document.body.appendChild(m);
       });
+
+      // Self-heal scroll lock: if no modal/palette is actually open but a previous
+      // interaction left <body> scroll-locked, clear it so long pages scroll.
+      if (!document.querySelector('.modal.show') &&
+          !document.querySelector('.command-palette:not(.hidden)')) {
+        document.body.classList.remove('modal-open');
+        if (document.body.style.overflow === 'hidden') document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+      }
       $('table.js-dt').each(function () {
         var $t = $(this); var noSort = [];
         $t.find('thead th').each(function (i) { if ($(this).data('orderable') === false) noSort.push(i); });

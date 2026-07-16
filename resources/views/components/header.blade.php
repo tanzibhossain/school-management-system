@@ -14,7 +14,6 @@
 <header
     id="{{ $headerId }}"
     class="page-head border-bottom sticky-top {{ $class }}"
-    style="background: var(--color-surface); height: var(--header-height); z-index: var(--z-sticky);"
     role="banner"
 >
     <div class="container-fluid px-3 px-lg-4 h-100">
