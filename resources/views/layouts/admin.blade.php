@@ -289,6 +289,19 @@
     .page-link { color: #4f46e5; }
     .nav-pills .nav-link.active { background-color: #4f46e5; }
 
+    /* admin-design-tokens.css defines a .modal for native <dialog> (shown via
+       [open]); it clobbers Bootstrap modals (which use .modal > .modal-dialog and
+       .show), leaving the dialog invisible while the backdrop shows. Restore
+       Bootstrap behavior for Bootstrap-structured modals only. */
+    .modal:has(.modal-dialog) {
+      position: fixed; inset: 0; top: 0; left: 0;
+      width: 100%; height: 100%; max-width: none; max-height: none;
+      transform: none; opacity: 1; visibility: visible;
+      background: transparent; border-radius: 0; box-shadow: none;
+      overflow-x: hidden; overflow-y: auto; display: none; z-index: 1055;
+    }
+    .modal-backdrop { z-index: 1050; }
+
     /* ── Mobile: off-canvas ── */
     .sidebar-backdrop { display: none; }
     @media (max-width: 991px) {
