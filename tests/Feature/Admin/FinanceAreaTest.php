@@ -180,9 +180,30 @@ class FinanceAreaTest extends TestCase
         $this->actingAs($this->admin);
 
         $this->put('/admin/payment-config', [
+            'payment_mode' => 'both', 'bkash_enabled' => '1',
             'invoice_prefix' => 'INV-', 'receipt_prefix' => 'RCP-', 'bkash_fee_pct' => 1.5, 'bounce_fee_amount' => 50,
+            'bkash_app_key' => 'test-app-key',
         ])->assertRedirect();
 
-        $this->assertDatabaseHas('payment_configs', ['school_id' => $this->school->id, 'invoice_prefix' => 'INV-', 'receipt_prefix' => 'RCP-']);
+        $this->assertDatabaseHas('payment_configs', [
+            'school_id' => $this->school->id, 'invoice_prefix' => 'INV-', 'receipt_prefix' => 'RCP-',
+            'payment_mode' => 'both', 'bkash_enabled' => true,
+        ]);
+
+        // Credential stored (encrypted) and readable back through the model.
+        $config = \App\Modules\Payment\Models\PaymentConfig::where('school_id', $this->school->id)->first();
+        $this->assertSame('test-app-key', $config->bkash_app_key);
+    }
+
+    public function test_blank_credential_does_not_wipe_stored_key(): void
+    {
+        $this->actingAs($this->admin);
+
+        $this->put('/admin/payment-config', ['payment_mode' => 'online', 'bkash_app_key' => 'keep-me'])->assertRedirect();
+        // Second save without the key must not clear it.
+        $this->put('/admin/payment-config', ['payment_mode' => 'online'])->assertRedirect();
+
+        $config = \App\Modules\Payment\Models\PaymentConfig::where('school_id', $this->school->id)->first();
+        $this->assertSame('keep-me', $config->bkash_app_key);
     }
 }

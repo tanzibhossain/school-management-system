@@ -56,7 +56,6 @@
             ['label' => 'Payments', 'href' => route('admin.payments.index'), 'active' => request()->routeIs('admin.payments.*')],
             ['label' => 'Refunds', 'href' => route('admin.refunds.index'), 'active' => request()->routeIs('admin.refunds.*')],
             ['label' => 'Student credit', 'href' => route('admin.student-credit.index'), 'active' => request()->routeIs('admin.student-credit.*')],
-            ['label' => 'Payment config', 'href' => route('admin.payment-config.edit'), 'active' => request()->routeIs('admin.payment-config.*')],
         ]];
         $navTree[] = ['label' => 'Reports', 'icon' => 'bi-graph-up', 'href' => route('admin.reports.fee-collection'), 'active' => request()->routeIs('admin.reports.*')];
     }
@@ -100,6 +99,7 @@
     if ($isAdmin) {
         $navTree[] = ['label' => 'Settings', 'icon' => 'bi-gear', 'children' => [
             ['label' => 'School settings', 'href' => route('admin.school.edit'), 'active' => request()->routeIs('admin.school.*') || request()->routeIs('admin.modules.*')],
+            ['label' => 'Payment settings', 'href' => route('admin.payment-config.edit'), 'active' => request()->routeIs('admin.payment-config.*')],
             ['label' => 'Users & roles', 'href' => route('admin.users.index'), 'active' => request()->routeIs('admin.users.*')],
         ]];
     }

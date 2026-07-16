@@ -197,7 +197,7 @@
         { id: 'payments', label: 'Payments', description: 'Record payments', section: 'Finance', icon: 'bi-credit-card', url: routes.payments, keywords: 'transactions', shortcut: 'f p' },
         { id: 'refunds', label: 'Refunds', description: 'Process refunds', section: 'Finance', icon: 'bi-arrow-return-left', url: routes.refunds, keywords: 'reimbursements', shortcut: 'f r' },
         { id: 'student-credit', label: 'Student Credit', description: 'Manage student credit', section: 'Finance', icon: 'bi-wallet2', url: routes['student-credit'], keywords: 'balance ledger', shortcut: 'f s' },
-        { id: 'payment-config', label: 'Payment Config', description: 'Configure payment gateways', section: 'Finance', icon: 'bi-gear', url: routes['payment-config'], keywords: 'gateway settings', shortcut: 'f g' },
+        { id: 'payment-config', label: 'Payment Settings', description: 'Payment mode, gateways & credentials', section: 'Setup', icon: 'bi-credit-card', url: routes['payment-config'], keywords: 'gateway settings bkash sslcommerz online offline', shortcut: 'g y' },
 
         // Academics
         { id: 'attendance', label: 'Attendance', description: 'Record attendance', section: 'Academics', icon: 'bi-calendar-check', url: routes.attendance, keywords: 'presence roll-call', shortcut: 'a a' },
