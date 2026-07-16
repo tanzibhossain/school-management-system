@@ -1,9 +1,10 @@
 # Blade Admin — Phase 2 Plan (remaining work)
 
-**Status:** ⬜ Planned · **Follows:** `27-blade-admin-plan.md` (Phase 1 — Setup/People/Finance/Academics/
-Comms+Reports/optional modules, all ✅). This doc plans everything still missing after the Phase-1 audit.
+**Status:** ✅ **Complete** · **Follows:** `27-blade-admin-plan.md` (Phase 1 — Setup/People/Finance/Academics/
+Comms+Reports/optional modules, all ✅). This doc planned everything still missing after the Phase-1 audit.
+All items are now **done**.
 
-Two parts: **(A)** gaps inside the original plan's own scope, and **(B)** backend modules that have no admin
+Two parts: **(A)** gaps inside the original plan's own scope, and **(B)** backend modules that had no admin
 UI at all. Each item lists what to build, the **existing Services/Models to reuse**, gotchas, and a Feature-
 test sketch. Everything follows the Phase-1 conventions: thin `Admin/{Area}` controllers → module Services →
 Blade views (`page-header` + card + DataTables + BS modals), `routes/web.php` under `['auth','school']`,
@@ -172,16 +173,6 @@ detail with per-row errors. Under People sidebar. *Original scope below.*
   page-builder; scope carefully (start with Pages + Menus + Site settings; defer a visual builder).
 - **Test:** create page → save layout (new revision) → publish; menu replaceItems.
 
-### B8. Platform *(separate `super_admin` portal — different scope)* ✅ DONE
-- **Screens:** Plans CRUD; schools list; provision offline school (expiry + reminders); change plan; view
-  signups/subscription status. **Gated by real `role:super_admin`** (not `ability:*`), and it's **platform-
-  level (not tenant-scoped)** — lives under a separate `/admin/platform` (or its own host) bypassing
-  `SetCurrentSchoolFromSession`.
-- **Reuse:** `PlanService`, `SuperAdminSchoolService` (`all/createOffline/changePlan`),
-  `SchoolProvisioningService`, `SubscriptionReminderService`, `DemoResetService`.
-- **Gotcha:** NOT school-scoped — do not apply the `school` middleware; use `role:super_admin`. Stripe is raw
-  Http-facade; provisioning idempotent. This is arguably a **separate mini-app**, not part of the school admin.
-
 ---
 
 ## Suggested build order
@@ -192,7 +183,9 @@ detail with per-row errors. Under People sidebar. *Original scope below.*
 5. **A2 Class routine** + **A3 Student detail tabs** (medium) →
 6. **B4 IdCard** + **B6 DataImport** (queued jobs + uploads) →
 7. **B7 Website** (large, own milestone) →
-8. **A6 Messaging** and **B8 Platform** (each a separate sub-app).
+8. **A6 Messaging** (each a separate sub-app).
+
+**✅ ALL ITEMS COMPLETE** — Every item above has been implemented with controllers, views, routes, and tests.
 
 Each item = one `Admin/{Area}` controller set + views + `routes/web.php` group + one `*Test.php`, exactly like
 Phase 1. Update the milestone table in `27-blade-admin-plan.md` as each lands.

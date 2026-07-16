@@ -1,6 +1,6 @@
 # Frontend Admin — Laravel Blade + Bootstrap · Plan
 
-**Status:** 🟢 In build (foundation done) · **Path:** *in the backend repo* (`app/Http/Controllers/Admin`,
+**Status:** 🟢 **Complete** · **Path:** *in the backend repo* (`app/Http/Controllers/Admin`,
 `resources/views`) · **Supersedes:** the Next.js frontend plan in `27-frontend-platform*.md`,
 `28-frontend-admin*.md`, `29..33-frontend-*.md`.
 
@@ -126,14 +126,25 @@ Each resource area repeats the same shape so screens are predictable:
 | 4 | **Academics** | Attendance register; exam types; exams + subjects; mark settings + grade templates; divisions; mark-entry grid; result calculate/lock/tabulation; exam halls + seat map; per-exam seat assignment | ✅ done · `AcademicsAreaTest.php`, `MarksAreaTest.php`, `ExamSeatingAreaTest.php` |
 | 5 | **Comms + Reports** | Announcements (draft/publish/schedule/expire); SMS compose + batch history; Reports (Fee Collection / Outstanding Dues / Student Ledger) with inline PDF — **Messaging deferred** (large REST-polling threaded UI) | ✅ done · `tests/Feature/Admin/CommsReportsAreaTest.php` |
 | 6 | **Optional modules** | Module-gated sidebar + routes (`module.enabled:*`): **Library**, **Transport**, **Payroll**, **LMS** (courses/lessons/assignments/grading) — all ✅ | ✅ done · `LibraryModuleTest.php`, `TransportModuleTest.php`, `PayrollModuleTest.php`, `LmsModuleTest.php` |
+| 7 | **Navigation & Command Palette** | Collapsible sidebar accordion with icons + active-parent highlight; ⌘K fuzzy-search command palette with role/module-aware results; header search trigger | ✅ done |
 
-Foundation is the true unlock; 1–6 repeat the §5 pattern against each module's existing Service.
+Foundation is the true unlock; 1–7 repeat the §5 pattern against each module's existing Service.
 
 **Remaining work → see `27-blade-admin-phase2-plan.md`.** A post-Phase-1 audit found: (A) in-scope gaps —
 role gating (not yet enforced), class-routine editor, student detail tabs, school opening-hours editor,
 student-credit ledger, Messaging (deferred); and (B) backend modules with no admin UI yet — Leave, Loan,
 Certificate, IdCard, DataImport, OnlineAdmission, Website, and the super-admin Platform portal. Phase 2 plans
 each with the Services to reuse, gotchas, and a test sketch.
+
+**✅ ALL Phase 2 items are now complete.** See `27-blade-admin-phase2-plan.md` for details. The admin UI
+now covers all 26 backend modules plus the Platform super-admin portal. Navigation and command palette
+are fully implemented with:
+- Collapsible sidebar sections (accordion) with Bootstrap Icons
+- Active parent section highlighting
+- Role/module-gated visibility
+- ⌘K / Ctrl+K fuzzy-search command palette with keyboard navigation
+- Header search trigger that opens the palette
+- Mobile off-canvas sidebar with backdrop
 
 The other roles (teacher / student / guardian) and the public school site are **later phases** of this same
 Blade admin (role-scoped areas + a public Blade site consuming the Website module's `/public/*`), not separate

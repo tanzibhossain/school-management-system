@@ -5,7 +5,6 @@
     'canFinance' => false,
     'enabledModules' => [],
     'currentRoute' => null,
-    'user' => null,
     'footer' => null,
     'class' => '',
 ])
@@ -103,8 +102,6 @@
         }
     }
 
-    $sidebarId = 'sidebar-' . uniqid();
-
     // Fold the flat nav list into collapsible groups. Items before the first
     // 'section' marker (i.e. Dashboard) live in an ungrouped, always-visible group.
     $navGroups = [];
@@ -130,15 +127,17 @@
     aria-label="Main navigation"
     data-collapsed="{{ $collapsed ? 'true' : 'false' }}"
 >
-    <!-- Brand -->
-    <div class="sidebar-brand d-flex align-items-center gap-2 px-3 py-3 mb-2">
-        <i class="bi bi-mortarboard-fill" style="color: var(--color-primary); font-size: 1.5rem;"></i>
-        <a href="{{ route('admin.dashboard') }}" class="fw-bold text-slate-900 text-decoration-none d-flex align-items-center gap-2 flex-grow-1">
-            School Admin
+    <!-- Header/Brand -->
+    <div class="sidebar-header">
+        <a href="{{ route('admin.dashboard') }}" class="sidebar-brand" aria-label="School Admin Dashboard">
+            <span class="brand-icon">
+                <i class="bi bi-mortarboard-fill" aria-hidden="true"></i>
+            </span>
+            <span class="brand-text">School Admin</span>
         </a>
-        {{-- Mobile-only close button (sidebar is always open on desktop) --}}
+        <!-- Mobile-only close button -->
         <button
-            class="btn btn-ghost btn-icon sidebar-close d-lg-none ms-auto"
+            class="btn sidebar-close d-lg-none"
             type="button"
             aria-label="Close navigation"
         >
@@ -147,25 +146,27 @@
     </div>
 
     <!-- Navigation -->
-    <nav class="sidebar-nav flex-grow-1 overflow-y-auto" role="navigation" aria-label="Main navigation">
+    <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
         @foreach($navGroups as $group)
             @php $hasActive = collect($group['items'])->contains(fn ($i) => $i['active'] ?? false); @endphp
 
             @if($group['section'] === null)
                 {{-- Ungrouped (Dashboard) — always visible --}}
-                <ul class="nav nav-pills flex-column gap-1 px-2 pt-1" role="list">
-                    @foreach($group['items'] as $item)
-                        @include('components.partials.nav-link', ['item' => $item])
-                    @endforeach
-                </ul>
+                <div class="nav-group nav-group--flat nav-group--open" data-nav-group="dashboard">
+                    <ul class="nav flex-column nav-group-items" style="max-height: none; opacity: 1;" role="list">
+                        @foreach($group['items'] as $item)
+                            @include('components.partials.nav-link', ['item' => $item])
+                        @endforeach
+                    </ul>
+                </div>
             @else
-                <div class="nav-group {{ $hasActive ? 'nav-group-open' : '' }}" data-nav-group="{{ \Illuminate\Support\Str::slug($group['section']) }}">
+                <div class="nav-group {{ $hasActive ? 'nav-group--open' : '' }}" data-nav-group="{{ \Illuminate\Support\Str::slug($group['section']) }}">
                     <button type="button" class="nav-group-toggle {{ $hasActive ? 'has-active' : '' }}" aria-expanded="{{ $hasActive ? 'true' : 'false' }}">
                         <i class="bi {{ $group['icon'] }} nav-group-icon" aria-hidden="true"></i>
                         <span class="nav-group-title flex-grow-1">{{ $group['section'] }}</span>
                         <i class="bi bi-chevron-down nav-group-caret" aria-hidden="true"></i>
                     </button>
-                    <ul class="nav nav-pills flex-column gap-1 px-2 nav-group-items" role="list">
+                    <ul class="nav flex-column nav-group-items" role="list">
                         @foreach($group['items'] as $item)
                             @include('components.partials.nav-link', ['item' => $item])
                         @endforeach
@@ -175,43 +176,10 @@
         @endforeach
     </nav>
 
-    <!-- Footer / User -->
-    @if($user || $footer)
-        <div class="sidebar-footer border-top pt-3 px-3 mt-auto">
-            @if($user)
-                <div class="d-flex align-items-center gap-3">
-                    @if($user['avatar'] ?? false)
-                        <img src="{{ $user['avatar'] }}" alt="" class="avatar avatar-sm" />
-                    @else
-                        <div class="avatar avatar-sm bg-primary-light text-primary">
-                            {{ strtoupper(substr($user['name'] ?? 'U', 0, 1)) }}
-                        </div>
-                    @endif
-                    @if(!$collapsed)
-                        <div class="flex-grow-1 min-w-0">
-                            <div class="fw-medium text-truncate">{{ $user['name'] }}</div>
-                            @if(isset($user['role']))
-                                <div class="text-xs text-muted">{{ $user['role'] }}</div>
-                            @endif
-                        @endif
-                    </div>
-                    @if(!$collapsed && isset($user['menu']))
-                        <div class="dropdown ms-auto">
-                            <button class="btn btn-ghost btn-icon-sm" data-bs-toggle="dropdown" aria-expanded="false" aria-label="User menu">
-                                <i class="bi bi-chevron-down"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                {{ $user['menu'] }}
-                            </ul>
-                        </div>
-                    @endif
-                </div>
-            @endif
-            @if($footer)
-                <div class="mt-3">
-                    {{ $footer }}
-                </div>
-            @endif
+    <!-- Footer (optional custom content only) -->
+    @if($footer)
+        <div class="sidebar-footer">
+            {{ $footer }}
         </div>
     @endif
 </aside>
@@ -228,8 +196,7 @@
 
         if (!sidebar) return;
 
-        // The sidebar is always open on desktop. On mobile it slides in as an
-        // off-canvas panel, opened by the header hamburger and closed here.
+        // Mobile off-canvas handling
         function closeMobile() {
             sidebar.classList.remove('show');
             if (backdrop) backdrop.style.display = 'none';
@@ -246,7 +213,7 @@
             }
         });
 
-        // Close the mobile panel after navigating to a link
+        // Close mobile panel after navigating
         sidebar.querySelectorAll('.nav-link').forEach(function(link) {
             link.addEventListener('click', function() {
                 if (window.innerWidth < 992) closeMobile();
@@ -254,15 +221,13 @@
         });
 
         // ── Collapsible section groups (exclusive accordion) ────────────────
-        // Only one section is open at a time. On a section page, the active section
-        // is shown; on Dashboard, the last-opened section is restored.
         var STORE_KEY = 'sidebar-open-group';
-        var groups = Array.prototype.slice.call(sidebar.querySelectorAll('.nav-group'));
+        var groups = Array.prototype.slice.call(sidebar.querySelectorAll('.nav-group[data-nav-group]'));
 
         function setOpen(target) {
             groups.forEach(function(g) {
                 var on = g === target;
-                g.classList.toggle('nav-group-open', on);
+                g.classList.toggle('nav-group--open', on);
                 var t = g.querySelector('.nav-group-toggle');
                 if (t) t.setAttribute('aria-expanded', on ? 'true' : 'false');
             });
@@ -282,7 +247,7 @@
             var toggle = group.querySelector('.nav-group-toggle');
             if (!toggle) return;
             toggle.addEventListener('click', function() {
-                var willOpen = !group.classList.contains('nav-group-open');
+                var willOpen = !group.classList.contains('nav-group--open');
                 setOpen(willOpen ? group : null);
                 try {
                     if (willOpen) localStorage.setItem(STORE_KEY, group.getAttribute('data-nav-group'));

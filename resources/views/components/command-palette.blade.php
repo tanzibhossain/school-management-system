@@ -9,6 +9,71 @@
 @php
     $paletteId = 'command-palette-' . uniqid();
     $enabledModules = $enabledModules ?? [];
+
+    // Generate route URLs for command palette
+    $routes = [
+        'dashboard' => route('admin.dashboard'),
+        'students' => route('admin.students.index'),
+        'students.create' => route('admin.students.create'),
+        'staff' => route('admin.staff.index'),
+        'school.edit' => route('admin.school.edit'),
+        'modules' => route('admin.modules.index'),
+        'pages' => route('admin.pages.index'),
+        'academic-years' => route('admin.academic-years.index'),
+        'classes' => route('admin.classes.index'),
+        'subjects' => route('admin.subjects.index'),
+        'groups' => route('admin.groups.index'),
+        'versions' => route('admin.versions.index'),
+        'shifts' => route('admin.shifts.index'),
+        'routine' => route('admin.routine.index'),
+        'designations' => route('admin.designations.index'),
+        'departments' => route('admin.departments.index'),
+        'admissions' => route('admin.admissions.index'),
+        'data-import' => route('admin.data-import.index'),
+        'users' => route('admin.users.index'),
+        'fee-categories' => route('admin.fee-categories.index'),
+        'fee-items' => route('admin.fee-items.index'),
+        'fee-discounts' => route('admin.fee-discounts.index'),
+        'invoices' => route('admin.invoices.index'),
+        'payments' => route('admin.payments.index'),
+        'refunds' => route('admin.refunds.index'),
+        'student-credit' => route('admin.student-credit.index'),
+        'payment-config' => route('admin.payment-config.edit'),
+        'attendance' => route('admin.attendance.index'),
+        'exam-types' => route('admin.exam-types.index'),
+        'exams' => route('admin.exams.index'),
+        'mark-settings' => route('admin.mark-settings.index'),
+        'exam-halls' => route('admin.exam-halls.index'),
+        'exam-marks-entry' => route('admin.exam-marks.entry', ['examId' => ':examId', 'divisionId' => ':divisionId']),
+        'exam-marks-results' => route('admin.exam-marks.results', ['examId' => ':examId']),
+        'exam-seating' => route('admin.exam-seating.index', ['examId' => ':examId']),
+        'announcements' => route('admin.announcements.index'),
+        'sms' => route('admin.sms.index'),
+        'messages' => route('admin.messages.index'),
+        'enquiries' => route('admin.enquiries.index'),
+        'leave-types' => route('admin.leave-types.index'),
+        'student-leave' => route('admin.student-leave.index'),
+        'staff-leave' => route('admin.staff-leave.index'),
+        'staff-loans' => route('admin.staff-loans.index'),
+        'reports-fee' => route('admin.reports.fee-collection'),
+        'reports-dues' => route('admin.reports.outstanding-dues'),
+        'reports-ledger' => route('admin.reports.student-ledger'),
+        'cert-templates' => route('admin.cert-templates.index'),
+        'testimonials' => route('admin.testimonials.index'),
+        'admit-cards' => route('admin.admit-cards.index'),
+        'id-card-templates' => route('admin.id-card-templates.index'),
+        'id-cards' => route('admin.id-cards.index'),
+        'library.books' => route('admin.library.books.index'),
+        'library.members' => route('admin.library.members.index'),
+        'library.borrow' => route('admin.library.borrow.index'),
+        'transport.drivers' => route('admin.transport.drivers.index'),
+        'transport.vehicles' => route('admin.transport.vehicles.index'),
+        'transport.routes' => route('admin.transport.routes.index'),
+        'payroll.components' => route('admin.payroll.components.index'),
+        'payroll.staff-salaries' => route('admin.payroll.staff-salaries.index'),
+        'payroll.runs' => route('admin.payroll.runs.index'),
+        'lms.courses' => route('admin.lms.courses.index'),
+    ];
 @endphp
 
 <!-- Command Palette Modal -->
@@ -96,80 +161,97 @@
 @push('scripts')
 <script>
 (function() {
+    // ─── Route URLs from PHP ───
+    const routes = @json($routes);
+
     // ─── Command Data ───
     const commandData = [
         // Navigation
-        { id: 'dashboard', label: 'Dashboard', description: 'Go to dashboard', section: 'Navigation', icon: 'bi-speedometer2', url: '/admin', keywords: 'home main overview', shortcut: 'g d' },
-        { id: 'students', label: 'Students', description: 'Manage students', section: 'Navigation', icon: 'bi-people-fill', url: '/admin/students', keywords: 'pupils list', shortcut: 'g s' },
-        { id: 'students-create', label: 'New Student', description: 'Add new student', section: 'Navigation', icon: 'bi-person-plus', url: '/admin/students/create', keywords: 'add new pupil', shortcut: 'n s' },
-        { id: 'staff', label: 'Staff', description: 'Manage staff', section: 'Navigation', icon: 'bi-person-badge', url: '/admin/staff', keywords: 'teachers employees', shortcut: 'g t' },
-        { id: 'staff-create', label: 'New Staff', description: 'Add new staff member', section: 'Navigation', icon: 'bi-person-badge', url: '/admin/staff', keywords: 'add teacher employee', shortcut: 'n t' },
+        { id: 'dashboard', label: 'Dashboard', description: 'Go to dashboard', section: 'Navigation', icon: 'bi-speedometer2', url: routes.dashboard, keywords: 'home main overview', shortcut: 'g d' },
+        { id: 'students', label: 'Students', description: 'Manage students', section: 'Navigation', icon: 'bi-people-fill', url: routes.students, keywords: 'pupils list', shortcut: 'g s' },
+        { id: 'students-create', label: 'New Student', description: 'Add new student', section: 'Navigation', icon: 'bi-person-plus', url: routes['students.create'], keywords: 'add new pupil', shortcut: 'n s' },
+        { id: 'staff', label: 'Staff', description: 'Manage staff', section: 'Navigation', icon: 'bi-person-badge', url: routes.staff, keywords: 'teachers employees', shortcut: 'g t' },
 
         // Setup
-        { id: 'school-settings', label: 'School Settings', description: 'Configure school settings', section: 'Setup', icon: 'bi-building-gear', url: '/admin/school', keywords: 'configuration', shortcut: 'g s' },
-        { id: 'modules', label: 'Modules', description: 'Enable/disable modules (in School Settings)', section: 'Setup', icon: 'bi-toggles', url: '/admin/school#modules', keywords: 'features toggle optional', shortcut: 'g m' },
-        { id: 'pages', label: 'Website Pages', description: 'Manage website pages', section: 'Setup', icon: 'bi-window', url: '/admin/pages', keywords: 'website content', shortcut: 'g p' },
-        { id: 'academic-years', label: 'Academic Years', description: 'Manage academic years', section: 'Setup', icon: 'bi-calendar3', url: '/admin/academic-years', keywords: 'years sessions', shortcut: 'g a' },
-        { id: 'classes', label: 'Classes & Sections', description: 'Manage classes and sections', section: 'Setup', icon: 'bi-diagram-3', url: '/admin/classes', keywords: 'classrooms grades', shortcut: 'g c' },
-        { id: 'subjects', label: 'Subjects', description: 'Manage subjects', section: 'Setup', icon: 'bi-book', url: '/admin/subjects', keywords: 'courses', shortcut: 'g s' },
-        { id: 'academic-groups', label: 'Academic Groups', description: 'Manage academic groups', section: 'Setup', icon: 'bi-people', url: '/admin/groups', keywords: 'streams tracks', shortcut: 'g g' },
-        { id: 'versions', label: 'Versions', description: 'Manage versions', section: 'Setup', icon: 'bi-translate', url: '/admin/versions', keywords: 'streams', shortcut: 'g v' },
-        { id: 'shifts', label: 'Shifts', description: 'Manage shifts', section: 'Setup', icon: 'bi-clock-history', url: '/admin/shifts', keywords: 'morning evening', shortcut: 'g s' },
-        { id: 'routine', label: 'Class Routine', description: 'Manage class routine', section: 'Setup', icon: 'bi-calendar3-week', url: '/admin/routine', keywords: 'schedule timetable', shortcut: 'g r' },
+        { id: 'school-settings', label: 'School Settings', description: 'Configure school settings', section: 'Setup', icon: 'bi-building-gear', url: routes['school.edit'], keywords: 'configuration', shortcut: 'g c' },
+        { id: 'modules', label: 'Modules', description: 'Enable/disable modules', section: 'Setup', icon: 'bi-toggles', url: routes.modules, keywords: 'features toggle optional', shortcut: 'g m' },
+        { id: 'pages', label: 'Website Pages', description: 'Manage website pages', section: 'Setup', icon: 'bi-window', url: routes.pages, keywords: 'website content', shortcut: 'g p' },
+        { id: 'academic-years', label: 'Academic Years', description: 'Manage academic years', section: 'Setup', icon: 'bi-calendar3', url: routes['academic-years'], keywords: 'years sessions', shortcut: 'g y' },
+        { id: 'classes', label: 'Classes & Sections', description: 'Manage classes and sections', section: 'Setup', icon: 'bi-diagram-3', url: routes.classes, keywords: 'classrooms grades', shortcut: 'g c' },
+        { id: 'subjects', label: 'Subjects', description: 'Manage subjects', section: 'Setup', icon: 'bi-book', url: routes.subjects, keywords: 'courses', shortcut: 'g b' },
+        { id: 'academic-groups', label: 'Academic Groups', description: 'Manage academic groups', section: 'Setup', icon: 'bi-people', url: routes.groups, keywords: 'streams tracks', shortcut: 'g g' },
+        { id: 'versions', label: 'Versions', description: 'Manage versions', section: 'Setup', icon: 'bi-translate', url: routes.versions, keywords: 'streams', shortcut: 'g v' },
+        { id: 'shifts', label: 'Shifts', description: 'Manage shifts', section: 'Setup', icon: 'bi-clock-history', url: routes.shifts, keywords: 'morning evening', shortcut: 'g h' },
+        { id: 'routine', label: 'Class Routine', description: 'Manage class routine', section: 'Setup', icon: 'bi-calendar3-week', url: routes.routine, keywords: 'schedule timetable', shortcut: 'g r' },
 
         // People
-        { id: 'students-index', label: 'Students', description: 'List all students', section: 'People', icon: 'bi-people-fill', url: '/admin/students', keywords: 'pupils list', shortcut: 'g s' },
-        { id: 'staff-index', label: 'Staff', description: 'List all staff', section: 'People', icon: 'bi-person-badge', url: '/admin/staff', keywords: 'teachers employees list', shortcut: 'g t' },
-        { id: 'designations', label: 'Designations', description: 'Manage designations', section: 'People', icon: 'bi-award', url: '/admin/designations', keywords: 'roles titles', shortcut: 'g d' },
-        { id: 'departments', label: 'Departments', description: 'Manage departments', section: 'People', icon: 'bi-building', url: '/admin/departments', keywords: 'divisions', shortcut: 'g d' },
-        { id: 'admissions', label: 'Admissions', description: 'Manage admissions', section: 'People', icon: 'bi-clipboard-check', url: '/admin/admissions', keywords: 'applications', shortcut: 'g a' },
-        { id: 'data-import', label: 'Data Import', description: 'Import students/staff', section: 'People', icon: 'bi-upload', url: '/admin/data-import', keywords: 'bulk upload csv excel', shortcut: 'g i' },
-        { id: 'users', label: 'Users & Roles', description: 'Manage users and roles', section: 'People', icon: 'bi-person-gear', url: '/admin/users', keywords: 'accounts permissions', shortcut: 'g u' },
+        { id: 'designations', label: 'Designations', description: 'Manage designations', section: 'People', icon: 'bi-award', url: routes.designations, keywords: 'roles titles', shortcut: 'g d' },
+        { id: 'departments', label: 'Departments', description: 'Manage departments', section: 'People', icon: 'bi-building', url: routes.departments, keywords: 'divisions', shortcut: 'g e' },
+        { id: 'admissions', label: 'Admissions', description: 'Manage admissions', section: 'People', icon: 'bi-clipboard-check', url: routes.admissions, keywords: 'applications', shortcut: 'g a' },
+        { id: 'data-import', label: 'Data Import', description: 'Import students/staff', section: 'People', icon: 'bi-upload', url: routes['data-import'], keywords: 'bulk upload csv excel', shortcut: 'g i' },
+        { id: 'users', label: 'Users & Roles', description: 'Manage users and roles', section: 'People', icon: 'bi-person-gear', url: routes.users, keywords: 'accounts permissions', shortcut: 'g u' },
 
         // Finance
-        { id: 'fee-categories', label: 'Fee Categories', description: 'Manage fee categories', section: 'Finance', icon: 'bi-tags', url: '/admin/fee-categories', keywords: 'fees types', shortcut: 'g f' },
-        { id: 'fee-items', label: 'Fee Items', description: 'Manage fee items', section: 'Finance', icon: 'bi-cash-stack', url: '/admin/fee-items', keywords: 'fees charges', shortcut: 'g f' },
-        { id: 'discounts', label: 'Discounts', description: 'Manage fee discounts', section: 'Finance', icon: 'bi-percent', url: '/admin/fee-discounts', keywords: 'concessions scholarships', shortcut: 'g d' },
-        { id: 'invoices', label: 'Invoices', description: 'Manage invoices', section: 'Finance', icon: 'bi-receipt', url: '/admin/invoices', keywords: 'bills', shortcut: 'g i' },
-        { id: 'payments', label: 'Payments', description: 'Record payments', section: 'Finance', icon: 'bi-credit-card', url: '/admin/payments', keywords: 'transactions', shortcut: 'g p' },
-        { id: 'refunds', label: 'Refunds', description: 'Process refunds', section: 'Finance', icon: 'bi-arrow-return-left', url: '/admin/refunds', keywords: 'reimbursements', shortcut: 'g r' },
-        { id: 'student-credit', label: 'Student Credit', description: 'Manage student credit', section: 'Finance', icon: 'bi-wallet2', url: '/admin/student-credit', keywords: 'balance ledger', shortcut: 'g c' },
-        { id: 'payment-config', label: 'Payment Config', description: 'Configure payment gateways', section: 'Finance', icon: 'bi-gear', url: '/admin/payment-config', keywords: 'gateway settings', shortcut: 'g g' },
+        { id: 'fee-categories', label: 'Fee Categories', description: 'Manage fee categories', section: 'Finance', icon: 'bi-tags', url: routes['fee-categories'], keywords: 'fees types', shortcut: 'f c' },
+        { id: 'fee-items', label: 'Fee Items', description: 'Manage fee items', section: 'Finance', icon: 'bi-cash-stack', url: routes['fee-items'], keywords: 'fees charges', shortcut: 'f i' },
+        { id: 'discounts', label: 'Discounts', description: 'Manage fee discounts', section: 'Finance', icon: 'bi-percent', url: routes['fee-discounts'], keywords: 'concessions scholarships', shortcut: 'f d' },
+        { id: 'invoices', label: 'Invoices', description: 'Manage invoices', section: 'Finance', icon: 'bi-receipt', url: routes.invoices, keywords: 'bills', shortcut: 'f v' },
+        { id: 'payments', label: 'Payments', description: 'Record payments', section: 'Finance', icon: 'bi-credit-card', url: routes.payments, keywords: 'transactions', shortcut: 'f p' },
+        { id: 'refunds', label: 'Refunds', description: 'Process refunds', section: 'Finance', icon: 'bi-arrow-return-left', url: routes.refunds, keywords: 'reimbursements', shortcut: 'f r' },
+        { id: 'student-credit', label: 'Student Credit', description: 'Manage student credit', section: 'Finance', icon: 'bi-wallet2', url: routes['student-credit'], keywords: 'balance ledger', shortcut: 'f s' },
+        { id: 'payment-config', label: 'Payment Config', description: 'Configure payment gateways', section: 'Finance', icon: 'bi-gear', url: routes['payment-config'], keywords: 'gateway settings', shortcut: 'f g' },
 
         // Academics
-        { id: 'attendance', label: 'Attendance', description: 'Record attendance', section: 'Academics', icon: 'bi-calendar-check', url: '/admin/attendance', keywords: 'presence roll-call', shortcut: 'g a' },
-        { id: 'exam-types', label: 'Exam Types', description: 'Manage exam types', section: 'Academics', icon: 'bi-card-list', url: '/admin/exam-types', keywords: 'examination types', shortcut: 'g e' },
-        { id: 'exams', label: 'Exams', description: 'Manage exams', section: 'Academics', icon: 'bi-journal-text', url: '/admin/exams', keywords: 'examinations tests', shortcut: 'g e' },
-        { id: 'mark-settings', label: 'Mark Settings', description: 'Configure mark settings', section: 'Academics', icon: 'bi-sliders', url: '/admin/mark-settings', keywords: 'grading configuration', shortcut: 'g m' },
-        { id: 'exam-halls', label: 'Exam Halls', description: 'Manage exam halls', section: 'Academics', icon: 'bi-grid-3x3', url: '/admin/exam-halls', keywords: 'rooms venues', shortcut: 'g h' },
+        { id: 'attendance', label: 'Attendance', description: 'Record attendance', section: 'Academics', icon: 'bi-calendar-check', url: routes.attendance, keywords: 'presence roll-call', shortcut: 'a a' },
+        { id: 'exam-types', label: 'Exam Types', description: 'Manage exam types', section: 'Academics', icon: 'bi-card-list', url: routes['exam-types'], keywords: 'examination types', shortcut: 'a e' },
+        { id: 'exams', label: 'Exams', description: 'Manage exams', section: 'Academics', icon: 'bi-journal-text', url: routes.exams, keywords: 'examinations tests', shortcut: 'a x' },
+        { id: 'mark-settings', label: 'Mark Settings', description: 'Configure mark settings', section: 'Academics', icon: 'bi-sliders', url: routes['mark-settings'], keywords: 'grading configuration', shortcut: 'a m' },
+        { id: 'exam-halls', label: 'Exam Halls', description: 'Manage exam halls', section: 'Academics', icon: 'bi-grid-3x3', url: routes['exam-halls'], keywords: 'rooms venues', shortcut: 'a h' },
+
+        // Exam sub-pages (require exam context - show when on exam pages)
+        { id: 'exam-marks-entry', label: 'Mark Entry', description: 'Enter marks for exam', section: 'Academics', icon: 'bi-pencil-square', url: '#', keywords: 'marks entry grades', shortcut: 'm e', context: 'exam' },
+        { id: 'exam-marks-results', label: 'Exam Results', description: 'View exam results', section: 'Academics', icon: 'bi-bar-chart', url: '#', keywords: 'results tabulation', shortcut: 'm r', context: 'exam' },
+        { id: 'exam-seating', label: 'Exam Seating', description: 'Manage exam seating', section: 'Academics', icon: 'bi-grid-3x3-gap', url: '#', keywords: 'seating arrangement', shortcut: 'm s', context: 'exam' },
 
         // Comms
-        { id: 'announcements', label: 'Announcements', description: 'Manage announcements', section: 'Comms', icon: 'bi-megaphone', url: '/admin/announcements', keywords: 'notices circulars', shortcut: 'g a' },
-        { id: 'sms', label: 'SMS', description: 'Send SMS', section: 'Comms', icon: 'bi-chat-dots', url: '/admin/sms', keywords: 'text messages', shortcut: 'g s' },
-        { id: 'messages', label: 'Messages', description: 'View messages', section: 'Comms', icon: 'bi-chat-left-text', url: '/admin/messages', keywords: 'chat inbox', shortcut: 'g m' },
-        { id: 'enquiries', label: 'Enquiries', description: 'Contact-form enquiries', section: 'Comms', icon: 'bi-envelope-paper', url: '/admin/enquiries', keywords: 'contact messages inbox', shortcut: 'g q' },
+        { id: 'announcements', label: 'Announcements', description: 'Manage announcements', section: 'Comms', icon: 'bi-megaphone', url: routes.announcements, keywords: 'notices circulars', shortcut: 'c a' },
+        { id: 'sms', label: 'SMS', description: 'Send SMS', section: 'Comms', icon: 'bi-chat-dots', url: routes.sms, keywords: 'text messages', shortcut: 'c s' },
+        { id: 'messages', label: 'Messages', description: 'View messages', section: 'Comms', icon: 'bi-chat-left-text', url: routes.messages, keywords: 'chat inbox', shortcut: 'c m' },
+        { id: 'enquiries', label: 'Enquiries', description: 'Contact-form enquiries', section: 'Comms', icon: 'bi-envelope-paper', url: routes.enquiries, keywords: 'contact messages inbox', shortcut: 'c q' },
 
         // HR
-        { id: 'leave-types', label: 'Leave Types', description: 'Manage leave types', section: 'HR', icon: 'bi-card-checklist', url: '/admin/leave-types', keywords: 'vacation sick', shortcut: 'g l' },
-        { id: 'student-leave', label: 'Student Leave', description: 'Student leave requests', section: 'HR', icon: 'bi-person-vcard', url: '/admin/student-leave', keywords: 'absences', shortcut: 'g s' },
-        { id: 'staff-leave', label: 'Staff Leave', description: 'Staff leave requests', section: 'HR', icon: 'bi-person-workspace', url: '/admin/staff-leave', keywords: 'teacher absence', shortcut: 'g s' },
-        { id: 'staff-loans', label: 'Staff Loans', description: 'Staff loan requests', section: 'HR', icon: 'bi-cash-stack', url: '/admin/staff-loans', keywords: 'advances', shortcut: 'g l' },
+        { id: 'leave-types', label: 'Leave Types', description: 'Manage leave types', section: 'HR', icon: 'bi-card-checklist', url: routes['leave-types'], keywords: 'vacation sick', shortcut: 'h l' },
+        { id: 'student-leave', label: 'Student Leave', description: 'Student leave requests', section: 'HR', icon: 'bi-person-vcard', url: routes['student-leave'], keywords: 'absences', shortcut: 'h s' },
+        { id: 'staff-leave', label: 'Staff Leave', description: 'Staff leave requests', section: 'HR', icon: 'bi-person-workspace', url: routes['staff-leave'], keywords: 'teacher absence', shortcut: 'h t' },
+        { id: 'staff-loans', label: 'Staff Loans', description: 'Staff loan requests', section: 'HR', icon: 'bi-cash-stack', url: routes['staff-loans'], keywords: 'advances', shortcut: 'h n' },
 
         // Reports
-        { id: 'reports-fee', label: 'Fee Collection', description: 'Fee collection report', section: 'Reports', icon: 'bi-file-earmark-bar-graph', url: '/admin/reports/fee-collection', keywords: 'revenue', shortcut: 'g f' },
-        { id: 'reports-dues', label: 'Outstanding Dues', description: 'Outstanding dues report', section: 'Reports', icon: 'bi-file-earmark-bar-graph', url: '/admin/reports/outstanding-dues', keywords: 'arrears', shortcut: 'g o' },
-        { id: 'reports-ledger', label: 'Student Ledger', description: 'Student ledger report', section: 'Reports', icon: 'bi-file-earmark-bar-graph', url: '/admin/reports/student-ledger', keywords: 'ledger statement', shortcut: 'g l' },
+        { id: 'reports-fee', label: 'Fee Collection', description: 'Fee collection report', section: 'Reports', icon: 'bi-file-earmark-bar-graph', url: routes['reports-fee'], keywords: 'revenue', shortcut: 'r f' },
+        { id: 'reports-dues', label: 'Outstanding Dues', description: 'Outstanding dues report', section: 'Reports', icon: 'bi-file-earmark-bar-graph', url: routes['reports-dues'], keywords: 'arrears', shortcut: 'r o' },
+        { id: 'reports-ledger', label: 'Student Ledger', description: 'Student ledger report', section: 'Reports', icon: 'bi-file-earmark-bar-graph', url: routes['reports-ledger'], keywords: 'ledger statement', shortcut: 'r l' },
 
         // Optional Modules
-        { id: 'library', label: 'Library', description: 'Manage library', section: 'Optional', icon: 'bi-book-half', url: '/admin/library/books', keywords: 'books borrow return', condition: 'library', shortcut: 'g l' },
-        { id: 'transport', label: 'Transport', description: 'Manage transport', section: 'Optional', icon: 'bi-bus-front', url: '/admin/transport/routes', keywords: 'bus routes vehicles', condition: 'transport', shortcut: 'g t' },
-        { id: 'payroll', label: 'Payroll', description: 'Manage payroll', section: 'Optional', icon: 'bi-cash-coin', url: '/admin/payroll/runs', keywords: 'salary payroll', condition: 'payroll', shortcut: 'g p' },
-        { id: 'lms', label: 'LMS', description: 'Learning management', section: 'Optional', icon: 'bi-easel', url: '/admin/lms/courses', keywords: 'courses lessons', condition: 'lms', shortcut: 'g l' },
+        { id: 'library', label: 'Library', description: 'Manage library', section: 'Optional', icon: 'bi-book-half', url: routes['library.books'], keywords: 'books borrow return', condition: 'library', shortcut: 'o l' },
+        { id: 'library-members', label: 'Library Members', description: 'Manage library members', section: 'Optional', icon: 'bi-person-lines-fill', url: routes['library.members'], keywords: 'members borrowers', condition: 'library', shortcut: 'o m' },
+        { id: 'library-borrow', label: 'Borrow/Return', description: 'Manage borrow/return', section: 'Optional', icon: 'bi-arrow-left-right', url: routes['library.borrow'], keywords: 'issue return books', condition: 'library', shortcut: 'o b' },
+        { id: 'transport', label: 'Transport', description: 'Manage transport', section: 'Optional', icon: 'bi-bus-front', url: routes['transport.routes'], keywords: 'bus routes vehicles', condition: 'transport', shortcut: 'o t' },
+        { id: 'transport-drivers', label: 'Drivers', description: 'Manage drivers', section: 'Optional', icon: 'bi-person-badge', url: routes['transport.drivers'], keywords: 'drivers staff', condition: 'transport', shortcut: 'o d' },
+        { id: 'transport-vehicles', label: 'Vehicles', description: 'Manage vehicles', section: 'Optional', icon: 'bi-truck', url: routes['transport.vehicles'], keywords: 'buses vans', condition: 'transport', shortcut: 'o v' },
+        { id: 'payroll', label: 'Payroll', description: 'Manage payroll', section: 'Optional', icon: 'bi-cash-coin', url: routes['payroll.runs'], keywords: 'salary payroll', condition: 'payroll', shortcut: 'o p' },
+        { id: 'payroll-components', label: 'Salary Components', description: 'Manage salary components', section: 'Optional', icon: 'bi-sliders', url: routes['payroll.components'], keywords: 'components allowances', condition: 'payroll', shortcut: 'o c' },
+        { id: 'payroll-salaries', label: 'Staff Salaries', description: 'Manage staff salaries', section: 'Optional', icon: 'bi-person-badge', url: routes['payroll.staff-salaries'], keywords: 'salaries payslips', condition: 'payroll', shortcut: 'o s' },
+        { id: 'lms', label: 'LMS', description: 'Learning management', section: 'Optional', icon: 'bi-easel', url: routes['lms.courses'], keywords: 'courses lessons', condition: 'lms', shortcut: 'o e' },
+
+        // Certificates & IDs
+        { id: 'cert-templates', label: 'Certificate Templates', description: 'Manage certificate templates', section: 'Certificates', icon: 'bi-file-earmark-text', url: routes['cert-templates'], keywords: 'templates design', shortcut: 't c' },
+        { id: 'testimonials', label: 'Testimonials', description: 'Issue testimonials', section: 'Certificates', icon: 'bi-award', url: routes.testimonials, keywords: 'testimonial certificate', shortcut: 't t' },
+        { id: 'admit-cards', label: 'Admit Cards', description: 'Generate admit cards', section: 'Certificates', icon: 'bi-card-checklist', url: routes['admit-cards'], keywords: 'admit card hall ticket', shortcut: 't a' },
+        { id: 'id-card-templates', label: 'ID Card Templates', description: 'Manage ID card templates', section: 'Certificates', icon: 'bi-credit-card-2-front', url: routes['id-card-templates'], keywords: 'id card template design', shortcut: 't i' },
+        { id: 'id-cards', label: 'ID Cards', description: 'Generate ID cards', section: 'Certificates', icon: 'bi-person-badge', url: routes['id-cards'], keywords: 'id card batch generate', shortcut: 't d' },
 
         // Actions
-        { id: 'new-student', label: 'New Student', description: 'Create new student', section: 'Actions', icon: 'bi-person-plus', url: '/admin/students/create', keywords: 'add pupil register', shortcut: 'n s' },
-        { id: 'new-staff', label: 'New Staff', description: 'Add new staff member', section: 'Actions', icon: 'bi-person-badge', url: '/admin/staff', keywords: 'hire teacher employee', shortcut: 'n t' },
-        { id: 'new-admission', label: 'New Admission', description: 'Process new admission', section: 'Actions', icon: 'bi-clipboard-check', url: '/admin/admissions', keywords: 'enroll register', shortcut: 'n a' },
+        { id: 'new-student', label: 'New Student', description: 'Create new student', section: 'Actions', icon: 'bi-person-plus', url: routes['students.create'], keywords: 'add pupil register', shortcut: 'n s' },
+        { id: 'new-admission', label: 'New Admission', description: 'Process new admission', section: 'Actions', icon: 'bi-clipboard-check', url: routes.admissions, keywords: 'enroll register', shortcut: 'n a' },
     ];
 
     // ─── Fuzzy Search (Optimized) ───
@@ -221,6 +303,10 @@
         const filtered = commandData
             .filter(item => {
                 if (item.condition && !window.enabledModules?.includes(item.condition)) {
+                    return false;
+                }
+                // Skip context-dependent items unless we're on the right page
+                if (item.context === 'exam' && !window.location.pathname.includes('/exams/')) {
                     return false;
                 }
                 return fuzzyMatch(query, item) !== -1;
@@ -367,7 +453,7 @@
         });
 
         // Let other UI (e.g. the header search box) open the palette.
-        document.addEventListener('command-palette:open', function() {
+        document.addEventEventListener('command-palette:open', function() {
             if (!isOpen) open();
         });
 

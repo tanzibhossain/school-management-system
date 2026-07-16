@@ -1,15 +1,14 @@
 # CLAUDE.md — School Management System v2
 
-Read automatically at the start of every session. Follow every rule here across all 26 modules.
+Read automatically at the start of every session. Follow every rule here across all 25 modules.
 
 ## Project Overview
-Multi-tenant SaaS school management platform.
+Multi-school self-hosted school management platform.
 Stack: Laravel 13 · PHP 8.3 · MySQL 8 · Redis 7 · Laravel Horizon · MinIO · Sanctum · Spatie Permission
 
-## Frontend (Laravel Blade + Bootstrap admin — in this repo; superseded the Next.js SPA)
+## Frontend (Laravel Blade + Bootstrap admin — in this repo)
 - **Decision:** the school-facing admin UI is **server-rendered Laravel Blade + Bootstrap 5**, living in THIS
-  backend repo — not a separate Next.js/Turborepo app. Reuses the module Services and **session auth** (`web`
-  guard), no API tokens / BFF proxy / CORS. Full plan: `docs/modules/27-blade-admin-plan.md`.
+  backend repo. Reuses the module Services and **session auth** (`web` guard), no API tokens / BFF proxy / CORS.
 - **Reference:** the v1 build in `old/` (SmartAdmin/Bootstrap 4) is the layout + IA reference — reproduce its
   sidebar grouping and panel/breadcrumb structure, **modernized** to BS 5.3, DataTables 2 (bootstrap5 skin),
   native BS modals, and inline FormRequest validation (no Laravel Collective / bootbox / select2).
@@ -18,9 +17,13 @@ Stack: Laravel 13 · PHP 8.3 · MySQL 8 · Redis 7 · Laravel Horizon · MinIO �
   `admin`). `SetCurrentSchoolFromSession` (alias `school`) sets `app('current_school_id')` from `Auth::user()`.
 - Admin controllers stay thin and call existing Services (never `DB::table()`); admin writes reuse module
   FormRequest `rules()`. CDN assets (Bootstrap 5.3.3, DataTables 2.1.8, jQuery 3.7.1, Tom Select) — no build step.
-- Tenant routing: subdomain per school still applies for public sites (`{school}.yourapp.com`); the admin runs
-  under the app host with session auth. `schools.subdomain` column exists (Platform module). Teacher/student/
-  guardian areas and the public school site are later phases of this same Blade app.
+- **Single-school mode:** no subdomain routing. The admin runs under the app host with session auth.
+  Teacher/student/guardian areas and the public school site are later phases of this same Blade app.
+
+**✅ Admin UI Complete:** All 25 modules have full admin coverage. Navigation includes collapsible sidebar
+accordion with icons + active-parent highlight. Fuzzy-search command palette (⌘K) with role/module-aware
+results, keyboard navigation, and context-aware exam sub-pages. Header search trigger opens palette. Mobile
+off-canvas sidebar with backdrop. All 206 admin feature tests pass.
 
 ## Architecture Rules
 - Module path: `app/Modules/{ModuleName}/Http/{Controllers,Requests,Resources}`, `Models/`, `Repositories/`,
@@ -29,12 +32,10 @@ Stack: Laravel 13 · PHP 8.3 · MySQL 8 · Redis 7 · Laravel Horizon · MinIO �
 - Every write endpoint: `FormRequest` with `authorize()`+`rules()`. Every response: `JsonResource` (never a
   raw Model).
 - Repositories: `Cache::tags([...])->remember()` (see `StudentRepository`). Observers flush tags on
-  saved/deleted. Platform-level models (no `school_id`, e.g. `Plan`) don't extend `BaseRepository`/
-  `BaseService` — those assume `school_id` scoping.
+  saved/deleted.
 - Financial/mark-entry writes: `DB::transaction()`, no cache.
-- Sanctum: `middleware(['auth:sanctum', 'ability:admin:*'])`. Every table has `school_id` except platform-level
-  (`schools`, `plans`, `pending_school_signups`). All queries scoped to `school_id` via `app('current_school_id')`
-  (set by `ResolveSchool`; bypassed for `/api/v2/platform/*` and `/api/v2/health`).
+- Sanctum: `middleware(['auth:sanctum', 'ability:admin:*'])`. Every table has `school_id`.
+- All queries scoped to `school_id` via `app('current_school_id')` (set by `SetCurrentSchoolFromSession`).
 
 ## Naming Conventions
 | Type | Convention | Example |
@@ -52,7 +53,7 @@ Build in dependency order.
 
 | # | Module | Depends On | Status | Notes |
 |---|--------|-----------|--------|-------|
-| 1 | School | — | ✅ | School, SchoolPhone, SchoolOpeningHour; locale (currency/timezone/locale/academic_year_pattern), country_code, subdomain |
+| 1 | School | — | ✅ | School, SchoolPhone, SchoolOpeningHour; locale (currency/timezone/locale/academic_year_pattern), country_code |
 | 2 | Academic | School | ✅ | AcademicYear, SchoolClass, Section(+class_teacher_id), Subject, SubjectRelation, AcademicGroup, Version, Shift, ClassRoutine |
 | 3 | User/Auth | — | ✅ | User+Sanctum+Spatie. Roles: `super_admin, admin, teacher, accountant, librarian, receptionist, student, parent` (real list — DevPlan's "moderator"/"Finance"/"Head Teacher" don't exist, never invent them) |
 | 4 | Student | Academic, User | ✅ | Student, StudentAcademic, StudentSubject (optional/4th-subject enrollment) |
@@ -74,10 +75,11 @@ Build in dependency order.
 | 20 | Website | — | ✅ tests green | 9 tables: Page, PageRedirect, PageLayout, SiteLayout, SiteSetting, Menu, MenuItem, PageTemplate, WebsiteMedia. `layout_json` opaque LONGTEXT blob, every save is a NEW row (versioned). Public `/public/*` (pages, site-chrome, notices, staff, routine, stats, result-check) |
 | 21 | Payroll *(optional)* | Staff | ✅ tests green | SalaryComponent, StaffSalaryValue, PayrollRun, PayrollEntry, SalaryCertificateRequest. Flat component sums only (no attendance proration). Integrates Loan's deferred repayment. Fixed a real bug: `User::abilitiesForRole()` never emitted `teacher:*`/`staff:*` wildcards, so those ability-gated routes never matched a real login |
 | 22 | LMS *(optional)* | Academic, Student | ✅ tests green | Course, Lesson, Assignment, Submission, SubmissionAiCheck. Real Anthropic API integration (`AnthropicAiChecker`, Http-facade, no SDK). Introduced `school_module_settings`/`CheckModuleEnabled` (`module.enabled:{name}` middleware) — also retrofitted onto Payroll |
-| 23 | Platform | — | ✅ tests green | Plan, PendingSchoolSignup, SubscriptionReminder. Platform-level (not tenant-scoped) — see spec below |
-| 24 | Library *(optional)* | Student, Staff | ✅ tests green | Book, LibraryMember, BorrowRecord, borrow/return workflow. Borrow/return are `DB::transaction`+`lockForUpdate` on `books.available_copies` (no oversell); "overdue" is derived (`returned_at` null AND `due_at` past, `scopeOverdue`), never a stored status |
-| 25 | Transport *(optional)* | Student, Payment, Sms, Academic | ✅ tests green | TransportRoute, TransportVehicle, TransportDriver, StudentTransportAssignment. Vehicle serves a route; swap pulls a pool vehicle (old→`out_of_service`, new→`in_service`) under `lockForUpdate`+seat-capacity, driver stays with the route. Route fee is a `FeeItem` billed only to active riders (guarded `InvoiceService` query). Swap SMS-alerts student + primary guardian via new Sms `transport_alert` purpose. Academic `transports` fare synced one-way (not dropped) |
-| 26 | Messaging *(optional)* | User | ✅ tests green | MessageThread, MessageParticipant, Message, MessageAttachment. Role-restricted `MessagingPolicyService`: non-staff (student/parent) may only share a thread WITH staff, and every thread keeps ≥1 staff. 1:1 + group; 1:1 deduped via unique `direct_key`. REST polling + live unread (`last_read_message_id`); MinIO attachments; soft-deleted messages. Admin oversight via `role:admin` (read + lock, never a participant). `MessageSent` event is the seam for deferred SMS/realtime. Self-contained — no shared-file edits |
+| 23 | Library *(optional)* | Student, Staff | ✅ tests green | Book, LibraryMember, BorrowRecord, borrow/return workflow. Borrow/return are `DB::transaction`+`lockForUpdate` on `books.available_copies` (no oversell); "overdue" is derived (`returned_at` null AND `due_at` past, `scopeOverdue`), never a stored status |
+| 24 | Transport *(optional)* | Student, Payment, Sms, Academic | ✅ tests green | TransportRoute, TransportVehicle, TransportDriver, StudentTransportAssignment. Vehicle serves a route; swap pulls a pool vehicle (old→`out_of_service`, new→`in_service`) under `lockForUpdate`+seat-capacity, driver stays with the route. Route fee is a `FeeItem` billed only to active riders (guarded `InvoiceService` query). Swap SMS-alerts student + primary guardian via new Sms `transport_alert` purpose. Academic `transports` fare synced one-way (not dropped) |
+| 25 | Messaging *(optional)* | User | ✅ tests green | MessageThread, MessageParticipant, Message, MessageAttachment. Role-restricted `MessagingPolicyService`: non-staff (student/parent) may only share a thread WITH staff, and every thread keeps ≥1 staff. 1:1 + group; 1:1 deduped via unique `direct_key`. REST polling + live unread (`last_read_message_id`); MinIO attachments; soft-deleted messages. Admin oversight via `role:admin` (read + lock, never a participant). `MessageSent` event is the seam for deferred SMS/realtime. Self-contained — no shared-file edits |
+
+Total: **25 modules** (22 core + 3 optional)
 
 ## The 10-Step Pattern (one commit per step)
 1. Migration(s) 2. Model 3. Repository (cache-aside) 4. Service 5. Observer (cache flush)
@@ -135,40 +137,6 @@ V2 is global (v1 was BD-only) — never bake BD assumptions into core code.
 - Division/exam-weight templates are seed data (`config/grading.php`), not code.
 - Grace marks: separate audited `grace_marks` column (never mixed into `marks_obtained`), per-school cap.
 - No cache on mark writes.
-
-## Platform Module Spec (Module 23)
-Added outside the original 25-module list — powers the marketing site's "buy a package → pay → get logged in"
-flow (a Super Admin Portal the DevPlan had but CLAUDE.md silently dropped). **Platform-level, not
-tenant-scoped** — Super Admin sees every school; public signup/checkout run before a school exists.
-
-Plans (seed data in `config/platform.php`, editable by Super Admin, placeholders not final pricing):
-| Plan | Price | Caps | Notes |
-|---|---|---|---|
-| Demo | Free, not purchasable | 20 students/10 staff | ONE shared `is_demo=true` school; prefilled public login page; resets every 14h |
-| Trial | Free, 30 days | 100/15 | Self-serve, no payment |
-| Basic | $19/mo, $190/yr | 500/40 | Stripe Checkout |
-| Pro | $49/mo, $490/yr | Unlimited | Stripe Checkout |
-
-Schema: `plans` (platform-level), `schools` gets `subdomain`, `plan_id` (nullable=legacy/uncapped),
-`trial_ends_at`, `subscription_expires_at`, `is_demo`, `provisioning_type` enum(self_service/offline_manual/
-super_admin), `stripe_customer_id`, `stripe_subscription_id`, `subscription_status`. `pending_school_signups`
-(platform-level staging row for the Stripe round-trip, same pattern as `AdmissionApplication` but
-webhook-triggered). `subscription_reminders` (school-scoped, milestone enum(day_7/day_1), unique per school+
-milestone — idempotent).
-
-Key decisions: Stripe globally for vendor billing (separate from Payment module's per-school student
-gateways); Super Admin can also create offline-paid schools with explicit expiry + reminders; credentials
-delivered via signed "set your password" link, never plaintext; Demo replaces any "request a demo" form
-entirely; plan caps ENFORCED via `PlanLimitService` hook in `StudentService::enrol()`/`StaffService::hire()`
-(schools with `plan_id=null` never capped); `role:super_admin` middleware (real Spatie role check) gates the
-Super Admin portal — NOT `ability:super_admin:*`, since `admin`/`super_admin` both carry a bare Sanctum `'*'`
-which would satisfy any ability check. Stripe integration is raw Http-facade calls (no SDK), webhook signature
-via `hash_hmac('sha256', ...)`. Provisioning idempotent on webhook retry.
-
-Known gaps: no `DemoSchoolSeeder` (demo school's academic structure + fixed-password admin must be created
-once, manually or via a seeder not yet written); demo reset (`platform:demo-reset`, runs ~every 14h via
-00:00/14:00 cron) only wipes/reseeds Student/Staff; subscription reminders email only the first admin found
-per school; pricing/caps are placeholders (no currency conversion).
 
 ## Key Patterns
 
