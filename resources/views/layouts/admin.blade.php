@@ -9,6 +9,9 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link href="https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="{{ asset('css/admin-design-tokens.css') }}" rel="stylesheet">
   {{-- The design-system components (sidebar, header, command palette) use Tailwind
        utility classes. Load Tailwind with Preflight OFF so it supplies the utilities
@@ -23,17 +26,31 @@
       --content-max: 1280px;
       --content-padding: 1.5rem;
 
+      /* Accent — indigo, matching the reference design. Overrides the blue scale
+         from admin-design-tokens.css so every component (buttons, links, badges,
+         focus rings) picks up indigo. */
+      --color-primary-50:  #eef2ff;
+      --color-primary-100: #e0e7ff;
+      --color-primary-200: #c7d2fe;
+      --color-primary-300: #a5b4fc;
+      --color-primary-400: #818cf8;
+      --color-primary-500: #6366f1;
+      --color-primary-600: #4f46e5;
+      --color-primary-700: #4338ca;
+      --color-primary-800: #3730a3;
+      --color-primary-900: #312e81;
+
       /* Modern color palette */
       --sb-bg: #ffffff;
       --sb-border: #e8ecf1;
-      --sb-primary: #1d4ed8;
-      --sb-primary-hover: #1e40af;
-      --sb-primary-light: #eff6ff;
+      --sb-primary: #4f46e5;
+      --sb-primary-hover: #4338ca;
+      --sb-primary-light: #eef2ff;
       --sb-text: #374151;
       --sb-text-muted: #6b7280;
       --sb-hover: #f8fafc;
-      --sb-active-bg: #eff6ff;
-      --sb-active-border: #bfdbfe;
+      --sb-active-bg: #eef2ff;
+      --sb-active-border: #c7d2fe;
       --sb-section-text: #9ca3af;
       --sb-scrollbar: #d1d5db;
       --sb-scrollbar-hover: #9ca3af;
@@ -44,14 +61,14 @@
       :root {
         --sb-bg: #1e293b;
         --sb-border: #334155;
-        --sb-primary: #3b82f6;
-        --sb-primary-hover: #60a5fa;
-        --sb-primary-light: #1e3a5f;
+        --sb-primary: #818cf8;
+        --sb-primary-hover: #a5b4fc;
+        --sb-primary-light: #312e81;
         --sb-text: #f1f5f9;
         --sb-text-muted: #94a3b8;
         --sb-hover: #334155;
-        --sb-active-bg: #1e3a5f;
-        --sb-active-border: #3b82f6;
+        --sb-active-bg: #312e81;
+        --sb-active-border: #6366f1;
         --sb-section-text: #64748b;
         --sb-scrollbar: #475569;
         --sb-scrollbar-hover: #64748b;
@@ -158,142 +175,68 @@
     .sidebar-nav::-webkit-scrollbar-thumb:hover { background: var(--sb-scrollbar-hover); }
     .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
 
-    /* Section groups (accordion) */
-    .nav-group {
-      margin-top: 0.5rem;
-    }
+    /* ── Navigation: module tree (parents + expandable children) ── */
+    .sidebar-nav ul { list-style: none; margin: 0; padding: 0; }
+    .nav-item { position: relative; }
 
-    /* Flat group (Dashboard) */
-    .nav-group--flat {
-      padding: 0.25rem 0.25rem 0.5rem;
-    }
-
-    /* Group toggle button */
-    .nav-group-toggle {
-      width: calc(100% - 0.5rem);
-      margin: 0.125rem 0.25rem;
-      padding: 0.5rem 0.75rem;
-      display: flex;
-      align-items: center;
-      gap: 0.625rem;
-      border: 0;
-      background: transparent;
-      cursor: pointer;
-      border-radius: 8px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
-      color: var(--sb-section-text);
-      transition: all 0.15s ease;
-    }
-
-    .nav-group-toggle:hover {
-      background: var(--sb-hover);
-      color: var(--sb-text);
-    }
-
-    .nav-group-icon {
-      width: 1.25rem;
-      font-size: 1rem;
-      text-align: center;
-      flex-shrink: 0;
-      color: var(--sb-section-text);
-      transition: color 0.15s ease;
-    }
-
-    .nav-group-toggle:hover .nav-group-icon {
-      color: var(--sb-primary);
-    }
-
-    /* Active parent section */
-    .nav-group-toggle.has-active {
-      background: var(--sb-active-bg);
-      color: var(--sb-primary);
-    }
-
-    .nav-group-toggle.has-active .nav-group-icon {
-      color: var(--sb-primary);
-    }
-
-    .nav-group-caret {
-      font-size: 0.625rem;
-      transition: transform 0.2s ease;
-      flex-shrink: 0;
-      color: var(--sb-text-muted);
-    }
-
-    .nav-group--open .nav-group-caret {
-      transform: rotate(180deg);
-    }
-
-    /* Group items container */
-    .nav-group-items {
-      overflow: hidden;
-      max-height: 0;
-      opacity: 0;
-      transition: max-height 0.25s ease, opacity 0.2s ease;
-      padding: 0.125rem 0.25rem 0.25rem;
-    }
-
-    .nav-group--open .nav-group-items {
-      max-height: 500px; /* Sufficient for all items */
-      opacity: 1;
-    }
-
-    /* Navigation links */
+    /* Top-level rows: direct links and parent toggles share .nav-link */
     .nav-link {
       color: var(--sb-text);
       border-radius: 8px;
-      margin: 0.125rem 0.25rem;
-      padding: 0.5rem 0.75rem;
-      font-size: 0.875rem;
+      margin: 0.125rem 0.5rem;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.9rem;
       font-weight: 500;
       display: flex;
       align-items: center;
-      gap: 0.625rem;
+      gap: 0.7rem;
       white-space: nowrap;
       text-transform: capitalize;
-      transition: all 0.15s ease;
+      transition: background 0.15s ease, color 0.15s ease;
       position: relative;
+      text-decoration: none;
     }
-
-    .nav-link:hover {
-      background: var(--sb-hover);
-      color: var(--sb-primary);
-    }
-
-    .nav-link.active {
-      background: var(--sb-active-bg);
-      color: var(--sb-primary);
-      font-weight: 600;
-    }
-
-    .nav-link.active::before {
-      content: '';
-      position: absolute;
-      left: 0.25rem;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 3px;
-      height: 1.25rem;
-      background: var(--sb-primary);
-      border-radius: 0 2px 2px 0;
-    }
+    .nav-link:hover { background: var(--sb-hover); color: var(--sb-primary); }
+    /* Active leaf = soft grey pill (matches reference) */
+    .nav-link.active { background: #eef1f5; color: #111827; font-weight: 600; }
 
     .nav-icon {
-      width: 1.25rem;
-      font-size: 1rem;
-      text-align: center;
-      flex-shrink: 0;
-      color: var(--sb-text-muted);
-      transition: color 0.15s ease;
+      width: 1.25rem; font-size: 1.05rem; text-align: center;
+      flex-shrink: 0; color: var(--sb-text-muted); transition: color 0.15s ease;
     }
+    .nav-link:hover .nav-icon, .nav-link.active .nav-icon { color: var(--sb-primary); }
+    .nav-label { overflow: hidden; text-overflow: ellipsis; }
 
-    .nav-link:hover .nav-icon,
-    .nav-link.active .nav-icon {
-      color: var(--sb-primary);
+    /* Parent toggle button */
+    .nav-parent-toggle {
+      width: calc(100% - 1rem);
+      border: 0; background: transparent; cursor: pointer;
+      font: inherit; text-align: left;
     }
+    .nav-caret {
+      font-size: 0.7rem; color: var(--sb-text-muted);
+      transition: transform 0.2s ease; flex-shrink: 0;
+    }
+    .nav-parent.open > .nav-parent-toggle .nav-caret { transform: rotate(180deg); }
+    /* Parent whose child is active: emphasise text, no pill */
+    .nav-parent-toggle.has-active { color: var(--sb-primary); }
+    .nav-parent-toggle.has-active .nav-icon { color: var(--sb-primary); }
+
+    /* Children container (collapsible) */
+    .nav-children {
+      overflow: hidden; max-height: 0; opacity: 0;
+      transition: max-height 0.25s ease, opacity 0.2s ease;
+    }
+    .nav-parent.open > .nav-children { max-height: 40rem; opacity: 1; }
+
+    /* Child rows: indented, dash connector, no icon */
+    .nav-child { padding-left: 2.5rem; font-size: 0.875rem; }
+    .nav-child::before {
+      content: ''; position: absolute; left: 1.4rem; top: 50%;
+      transform: translateY(-50%); width: 0.55rem; height: 1.5px;
+      background: #c3cbd6; border-radius: 2px; transition: background 0.15s ease;
+    }
+    .nav-child:hover::before, .nav-child.active::before { background: var(--sb-primary); }
 
     /* Footer */
     .sidebar-footer {
@@ -312,6 +255,39 @@
     .card { border: 1px solid #eef0f4; box-shadow: 0 1px 2px rgba(16,24,40,.05); border-radius: 12px; }
     .card-header { background: #fff; font-weight: 600; }
     table.dataTable thead th { white-space: nowrap; }
+
+    /* Titles use Title Case (first letter of each word capitalised) */
+    .page-title, .card-header, .section-title, .page-head-title { text-transform: capitalize; }
+
+    /* Indigo accent for Bootstrap components (their .btn/.badge use compiled
+       colors, so CSS-var overrides alone don't reach them). */
+    :root {
+      --bs-primary: #4f46e5;
+      --bs-primary-rgb: 79, 70, 229;
+      --bs-link-color: #4f46e5;
+      --bs-link-color-rgb: 79, 70, 229;
+      --bs-link-hover-color: #4338ca;
+    }
+    .btn-primary {
+      --bs-btn-bg: #4f46e5; --bs-btn-border-color: #4f46e5;
+      --bs-btn-hover-bg: #4338ca; --bs-btn-hover-border-color: #4338ca;
+      --bs-btn-active-bg: #3730a3; --bs-btn-active-border-color: #3730a3;
+      --bs-btn-disabled-bg: #4f46e5; --bs-btn-disabled-border-color: #4f46e5;
+    }
+    .btn-outline-primary {
+      --bs-btn-color: #4f46e5; --bs-btn-border-color: #4f46e5;
+      --bs-btn-hover-bg: #4f46e5; --bs-btn-hover-border-color: #4f46e5;
+      --bs-btn-active-bg: #4f46e5; --bs-btn-active-border-color: #4f46e5;
+    }
+    .text-primary { color: #4f46e5 !important; }
+    .bg-primary { background-color: #4f46e5 !important; }
+    .badge.text-bg-primary, .badge.bg-primary { background-color: #4f46e5 !important; }
+    .form-check-input:checked { background-color: #4f46e5; border-color: #4f46e5; }
+    .form-check-input:focus { border-color: #a5b4fc; box-shadow: 0 0 0 .25rem rgba(79, 70, 229, .25); }
+    .form-control:focus, .form-select:focus { border-color: #a5b4fc; box-shadow: 0 0 0 .25rem rgba(79, 70, 229, .2); }
+    .page-item.active .page-link { background-color: #4f46e5; border-color: #4f46e5; }
+    .page-link { color: #4f46e5; }
+    .nav-pills .nav-link.active { background-color: #4f46e5; }
 
     /* ── Mobile: off-canvas ── */
     .sidebar-backdrop { display: none; }

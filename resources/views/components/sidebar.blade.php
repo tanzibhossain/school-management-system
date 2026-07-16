@@ -1,4 +1,4 @@
-{{-- Modern Sidebar Component --}}
+{{-- Modern Sidebar Component — module tree (parents + expandable children) --}}
 @props([
     'collapsed' => false,
     'isAdmin' => false,
@@ -12,120 +12,103 @@
 @php
     $sidebarId = 'sidebar-' . uniqid();
 
-    // Build navigation items
-    $navItems = [];
+    // Build a module tree. Each node is either a direct link
+    // (has 'href') or an expandable parent (has 'children').
+    $navTree = [];
 
-    // Dashboard
-    $navItems[] = [
-        'label' => 'Dashboard',
-        'icon' => 'bi-speedometer2',
-        'href' => route('admin.dashboard'),
-        'active' => request()->routeIs('admin.dashboard'),
-    ];
+    $navTree[] = ['label' => 'Dashboard', 'icon' => 'bi-speedometer2', 'href' => route('admin.dashboard'), 'active' => request()->routeIs('admin.dashboard')];
 
     if ($isAdmin) {
-        $navItems[] = ['section' => 'Setup', 'icon' => 'bi-sliders'];
-        $navItems[] = ['label' => 'School settings', 'icon' => 'bi-building-gear', 'href' => route('admin.school.edit'), 'active' => request()->routeIs('admin.school.*') || request()->routeIs('admin.modules.*')];
-        $navItems[] = ['label' => 'Website pages', 'icon' => 'bi-window', 'href' => route('admin.pages.index'), 'active' => request()->routeIs('admin.pages.*')];
-        $navItems[] = ['label' => 'Academic years', 'icon' => 'bi-calendar3', 'href' => route('admin.academic-years.index'), 'active' => request()->routeIs('admin.academic-years.*')];
-        $navItems[] = ['label' => 'Classes & sections', 'icon' => 'bi-diagram-3', 'href' => route('admin.classes.index'), 'active' => request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*')];
-        $navItems[] = ['label' => 'Subjects', 'icon' => 'bi-book', 'href' => route('admin.subjects.index'), 'active' => request()->routeIs('admin.subjects.*')];
-        $navItems[] = ['label' => 'Groups', 'icon' => 'bi-people', 'href' => route('admin.groups.index'), 'active' => request()->routeIs('admin.groups.*')];
-        $navItems[] = ['label' => 'Versions', 'icon' => 'bi-translate', 'href' => route('admin.versions.index'), 'active' => request()->routeIs('admin.versions.*')];
-        $navItems[] = ['label' => 'Shifts', 'icon' => 'bi-clock-history', 'href' => route('admin.shifts.index'), 'active' => request()->routeIs('admin.shifts.*')];
-        $navItems[] = ['label' => 'Class routine', 'icon' => 'bi-calendar3-week', 'href' => route('admin.routine.index'), 'active' => request()->routeIs('admin.routine.*') || request()->routeIs('admin.routine-setup.*')];
-
-        $navItems[] = ['section' => 'People', 'icon' => 'bi-people'];
-        $navItems[] = ['label' => 'Students', 'icon' => 'bi-people-fill', 'href' => route('admin.students.index'), 'active' => request()->routeIs('admin.students.*')];
-        $navItems[] = ['label' => 'Staff', 'icon' => 'bi-person-badge', 'href' => route('admin.staff.index'), 'active' => request()->routeIs('admin.staff.*')];
-        $navItems[] = ['label' => 'Designations', 'icon' => 'bi-award', 'href' => route('admin.designations.index'), 'active' => request()->routeIs('admin.designations.*')];
-        $navItems[] = ['label' => 'Departments', 'icon' => 'bi-building', 'href' => route('admin.departments.index'), 'active' => request()->routeIs('admin.departments.*')];
-        $navItems[] = ['label' => 'Admissions', 'icon' => 'bi-clipboard-check', 'href' => route('admin.admissions.index'), 'active' => request()->routeIs('admin.admissions.*')];
-        $navItems[] = ['label' => 'Data import', 'icon' => 'bi-upload', 'href' => route('admin.data-import.index'), 'active' => request()->routeIs('admin.data-import.*')];
-        $navItems[] = ['label' => 'Users & roles', 'icon' => 'bi-person-gear', 'href' => route('admin.users.index'), 'active' => request()->routeIs('admin.users.*')];
-        $navItems[] = ['label' => 'Certificates & IDs', 'icon' => 'bi-file-earmark-medical', 'href' => route('admin.testimonials.index'), 'active' => request()->routeIs('admin.testimonials.*') || request()->routeIs('admin.admit-cards.*') || request()->routeIs('admin.cert-templates.*') || request()->routeIs('admin.id-cards.*') || request()->routeIs('admin.id-card-templates.*')];
+        $navTree[] = ['label' => 'Students', 'icon' => 'bi-people-fill', 'children' => [
+            ['label' => 'All students', 'href' => route('admin.students.index'), 'active' => request()->routeIs('admin.students.*')],
+            ['label' => 'Admissions', 'href' => route('admin.admissions.index'), 'active' => request()->routeIs('admin.admissions.*')],
+            ['label' => 'Data import', 'href' => route('admin.data-import.index'), 'active' => request()->routeIs('admin.data-import.*')],
+        ]];
+        $navTree[] = ['label' => 'Staff', 'icon' => 'bi-person-badge', 'children' => [
+            ['label' => 'All staff', 'href' => route('admin.staff.index'), 'active' => request()->routeIs('admin.staff.*')],
+            ['label' => 'Designations', 'href' => route('admin.designations.index'), 'active' => request()->routeIs('admin.designations.*')],
+            ['label' => 'Departments', 'href' => route('admin.departments.index'), 'active' => request()->routeIs('admin.departments.*')],
+        ]];
+        $navTree[] = ['label' => 'Academic', 'icon' => 'bi-mortarboard', 'children' => [
+            ['label' => 'Academic years', 'href' => route('admin.academic-years.index'), 'active' => request()->routeIs('admin.academic-years.*')],
+            ['label' => 'Classes & sections', 'href' => route('admin.classes.index'), 'active' => request()->routeIs('admin.classes.*') || request()->routeIs('admin.sections.*')],
+            ['label' => 'Subjects', 'href' => route('admin.subjects.index'), 'active' => request()->routeIs('admin.subjects.*')],
+            ['label' => 'Groups', 'href' => route('admin.groups.index'), 'active' => request()->routeIs('admin.groups.*')],
+            ['label' => 'Versions', 'href' => route('admin.versions.index'), 'active' => request()->routeIs('admin.versions.*')],
+            ['label' => 'Shifts', 'href' => route('admin.shifts.index'), 'active' => request()->routeIs('admin.shifts.*')],
+            ['label' => 'Class routine', 'href' => route('admin.routine.index'), 'active' => request()->routeIs('admin.routine.*') || request()->routeIs('admin.routine-setup.*')],
+        ]];
+        $navTree[] = ['label' => 'Attendance', 'icon' => 'bi-calendar-check', 'href' => route('admin.attendance.index'), 'active' => request()->routeIs('admin.attendance.*')];
+        $navTree[] = ['label' => 'Examinations', 'icon' => 'bi-journal-text', 'children' => [
+            ['label' => 'Exam types', 'href' => route('admin.exam-types.index'), 'active' => request()->routeIs('admin.exam-types.*')],
+            ['label' => 'Exams', 'href' => route('admin.exams.index'), 'active' => request()->routeIs('admin.exams.*') || request()->routeIs('admin.exam-marks.*')],
+            ['label' => 'Mark settings', 'href' => route('admin.mark-settings.index'), 'active' => request()->routeIs('admin.mark-settings.*')],
+            ['label' => 'Exam halls', 'href' => route('admin.exam-halls.index'), 'active' => request()->routeIs('admin.exam-halls.*')],
+        ]];
     }
 
-    // Finance — admin OR accountant (routes are role:admin|accountant)
     if ($canFinance) {
-            $navItems[] = ['section' => 'Finance', 'icon' => 'bi-cash-coin'];
-            $navItems[] = ['label' => 'Fee categories', 'icon' => 'bi-tags', 'href' => route('admin.fee-categories.index'), 'active' => request()->routeIs('admin.fee-categories.*')];
-            $navItems[] = ['label' => 'Fee items', 'icon' => 'bi-cash-stack', 'href' => route('admin.fee-items.index'), 'active' => request()->routeIs('admin.fee-items.*')];
-            $navItems[] = ['label' => 'Discounts', 'icon' => 'bi-percent', 'href' => route('admin.fee-discounts.index'), 'active' => request()->routeIs('admin.fee-discounts.*')];
-            $navItems[] = ['label' => 'Invoices', 'icon' => 'bi-receipt', 'href' => route('admin.invoices.index'), 'active' => request()->routeIs('admin.invoices.*')];
-            $navItems[] = ['label' => 'Payments', 'icon' => 'bi-credit-card', 'href' => route('admin.payments.index'), 'active' => request()->routeIs('admin.payments.*')];
-            $navItems[] = ['label' => 'Refunds', 'icon' => 'bi-arrow-return-left', 'href' => route('admin.refunds.index'), 'active' => request()->routeIs('admin.refunds.*')];
-            $navItems[] = ['label' => 'Student credit', 'icon' => 'bi-wallet2', 'href' => route('admin.student-credit.index'), 'active' => request()->routeIs('admin.student-credit.*')];
-            $navItems[] = ['label' => 'Payment config', 'icon' => 'bi-gear', 'href' => route('admin.payment-config.edit'), 'active' => request()->routeIs('admin.payment-config.*')];
+        $navTree[] = ['label' => 'Finance', 'icon' => 'bi-cash-coin', 'children' => [
+            ['label' => 'Fee categories', 'href' => route('admin.fee-categories.index'), 'active' => request()->routeIs('admin.fee-categories.*')],
+            ['label' => 'Fee items', 'href' => route('admin.fee-items.index'), 'active' => request()->routeIs('admin.fee-items.*')],
+            ['label' => 'Discounts', 'href' => route('admin.fee-discounts.index'), 'active' => request()->routeIs('admin.fee-discounts.*')],
+            ['label' => 'Invoices', 'href' => route('admin.invoices.index'), 'active' => request()->routeIs('admin.invoices.*')],
+            ['label' => 'Payments', 'href' => route('admin.payments.index'), 'active' => request()->routeIs('admin.payments.*')],
+            ['label' => 'Refunds', 'href' => route('admin.refunds.index'), 'active' => request()->routeIs('admin.refunds.*')],
+            ['label' => 'Student credit', 'href' => route('admin.student-credit.index'), 'active' => request()->routeIs('admin.student-credit.*')],
+            ['label' => 'Payment config', 'href' => route('admin.payment-config.edit'), 'active' => request()->routeIs('admin.payment-config.*')],
+        ]];
+        $navTree[] = ['label' => 'Reports', 'icon' => 'bi-graph-up', 'href' => route('admin.reports.fee-collection'), 'active' => request()->routeIs('admin.reports.*')];
     }
 
     if ($isAdmin) {
-        $navItems[] = ['section' => 'Academics', 'icon' => 'bi-mortarboard'];
-        $navItems[] = ['label' => 'Attendance', 'icon' => 'bi-calendar-check', 'href' => route('admin.attendance.index'), 'active' => request()->routeIs('admin.attendance.*')];
-        $navItems[] = ['label' => 'Exam types', 'icon' => 'bi-card-list', 'href' => route('admin.exam-types.index'), 'active' => request()->routeIs('admin.exam-types.*')];
-        $navItems[] = ['label' => 'Exams', 'icon' => 'bi-journal-text', 'href' => route('admin.exams.index'), 'active' => request()->routeIs('admin.exams.*') || request()->routeIs('admin.exam-marks.*')];
-        $navItems[] = ['label' => 'Mark settings', 'icon' => 'bi-sliders', 'href' => route('admin.mark-settings.index'), 'active' => request()->routeIs('admin.mark-settings.*')];
-        $navItems[] = ['label' => 'Exam halls', 'icon' => 'bi-grid-3x3', 'href' => route('admin.exam-halls.index'), 'active' => request()->routeIs('admin.exam-halls.*')];
-
-        $navItems[] = ['section' => 'Comms', 'icon' => 'bi-chat-dots'];
-        $navItems[] = ['label' => 'Announcements', 'icon' => 'bi-megaphone', 'href' => route('admin.announcements.index'), 'active' => request()->routeIs('admin.announcements.*')];
-        $navItems[] = ['label' => 'SMS', 'icon' => 'bi-chat-dots', 'href' => route('admin.sms.index'), 'active' => request()->routeIs('admin.sms.*')];
-        $navItems[] = ['label' => 'Messages', 'icon' => 'bi-chat-left-text', 'href' => route('admin.messages.index'), 'active' => request()->routeIs('admin.messages.*')];
-        $navItems[] = ['label' => 'Enquiries', 'icon' => 'bi-envelope-paper', 'href' => route('admin.enquiries.index'), 'active' => request()->routeIs('admin.enquiries.*')];
-
-        $navItems[] = ['section' => 'HR', 'icon' => 'bi-person-badge'];
-        $navItems[] = ['label' => 'Leave types', 'icon' => 'bi-card-checklist', 'href' => route('admin.leave-types.index'), 'active' => request()->routeIs('admin.leave-types.*')];
-        $navItems[] = ['label' => 'Student leave', 'icon' => 'bi-person-vcard', 'href' => route('admin.student-leave.index'), 'active' => request()->routeIs('admin.student-leave.*')];
-        $navItems[] = ['label' => 'Staff leave', 'icon' => 'bi-person-workspace', 'href' => route('admin.staff-leave.index'), 'active' => request()->routeIs('admin.staff-leave.*')];
-        $navItems[] = ['label' => 'Staff loans', 'icon' => 'bi-cash-stack', 'href' => route('admin.staff-loans.index'), 'active' => request()->routeIs('admin.staff-loans.*')];
-    }
-
-    // Reports — admin OR accountant (routes are role:admin|accountant)
-    if ($canFinance) {
-        $navItems[] = ['section' => 'Reports', 'icon' => 'bi-graph-up'];
-        $navItems[] = ['label' => 'Reports', 'icon' => 'bi-file-earmark-bar-graph', 'href' => route('admin.reports.fee-collection'), 'active' => request()->routeIs('admin.reports.*')];
+        $navTree[] = ['label' => 'Certificates & IDs', 'icon' => 'bi-file-earmark-medical', 'href' => route('admin.testimonials.index'), 'active' => request()->routeIs('admin.testimonials.*') || request()->routeIs('admin.admit-cards.*') || request()->routeIs('admin.cert-templates.*') || request()->routeIs('admin.id-cards.*') || request()->routeIs('admin.id-card-templates.*')];
+        $navTree[] = ['label' => 'Communication', 'icon' => 'bi-chat-dots', 'children' => [
+            ['label' => 'Announcements', 'href' => route('admin.announcements.index'), 'active' => request()->routeIs('admin.announcements.*')],
+            ['label' => 'SMS', 'href' => route('admin.sms.index'), 'active' => request()->routeIs('admin.sms.*')],
+            ['label' => 'Messages', 'href' => route('admin.messages.index'), 'active' => request()->routeIs('admin.messages.*')],
+            ['label' => 'Enquiries', 'href' => route('admin.enquiries.index'), 'active' => request()->routeIs('admin.enquiries.*')],
+        ]];
+        $navTree[] = ['label' => 'HR & Leave', 'icon' => 'bi-person-workspace', 'children' => [
+            ['label' => 'Leave types', 'href' => route('admin.leave-types.index'), 'active' => request()->routeIs('admin.leave-types.*')],
+            ['label' => 'Student leave', 'href' => route('admin.student-leave.index'), 'active' => request()->routeIs('admin.student-leave.*')],
+            ['label' => 'Staff leave', 'href' => route('admin.staff-leave.index'), 'active' => request()->routeIs('admin.staff-leave.*')],
+            ['label' => 'Staff loans', 'href' => route('admin.staff-loans.index'), 'active' => request()->routeIs('admin.staff-loans.*')],
+        ]];
+        $navTree[] = ['label' => 'Website', 'icon' => 'bi-window', 'href' => route('admin.pages.index'), 'active' => request()->routeIs('admin.pages.*')];
     }
 
     if ($isAdmin && $enabledModules) {
-        $navItems[] = ['section' => 'Optional', 'icon' => 'bi-puzzle'];
+        $optChildren = [];
         if (in_array('library', $enabledModules)) {
-            $navItems[] = ['label' => 'Library', 'icon' => 'bi-book-half', 'href' => route('admin.library.books.index'), 'active' => request()->routeIs('admin.library.*')];
+            $optChildren[] = ['label' => 'Library', 'href' => route('admin.library.books.index'), 'active' => request()->routeIs('admin.library.*')];
         }
         if (in_array('transport', $enabledModules)) {
-            $navItems[] = ['label' => 'Transport', 'icon' => 'bi-bus-front', 'href' => route('admin.transport.routes.index'), 'active' => request()->routeIs('admin.transport.*')];
+            $optChildren[] = ['label' => 'Transport', 'href' => route('admin.transport.routes.index'), 'active' => request()->routeIs('admin.transport.*')];
         }
         if (in_array('payroll', $enabledModules)) {
-            $navItems[] = ['label' => 'Payroll', 'icon' => 'bi-cash-coin', 'href' => route('admin.payroll.runs.index'), 'active' => request()->routeIs('admin.payroll.*')];
+            $optChildren[] = ['label' => 'Payroll', 'href' => route('admin.payroll.runs.index'), 'active' => request()->routeIs('admin.payroll.*')];
         }
         if (in_array('lms', $enabledModules)) {
-            $navItems[] = ['label' => 'LMS', 'icon' => 'bi-easel', 'href' => route('admin.lms.courses.index'), 'active' => request()->routeIs('admin.lms.*')];
+            $optChildren[] = ['label' => 'LMS', 'href' => route('admin.lms.courses.index'), 'active' => request()->routeIs('admin.lms.*')];
+        }
+        if ($optChildren) {
+            $navTree[] = ['label' => 'Modules', 'icon' => 'bi-puzzle', 'children' => $optChildren];
         }
     }
 
-    // Fold the flat nav list into collapsible groups. Items before the first
-    // 'section' marker (i.e. Dashboard) live in an ungrouped, always-visible group.
-    $navGroups = [];
-    $current = ['section' => null, 'icon' => null, 'items' => []];
-    foreach ($navItems as $it) {
-        if (isset($it['section'])) {
-            if (! empty($current['items'])) {
-                $navGroups[] = $current;
-            }
-            $current = ['section' => $it['section'], 'icon' => $it['icon'] ?? 'bi-dot', 'items' => []];
-        } else {
-            $current['items'][] = $it;
-        }
-    }
-    if (! empty($current['items'])) {
-        $navGroups[] = $current;
+    if ($isAdmin) {
+        $navTree[] = ['label' => 'Settings', 'icon' => 'bi-gear', 'children' => [
+            ['label' => 'School settings', 'href' => route('admin.school.edit'), 'active' => request()->routeIs('admin.school.*') || request()->routeIs('admin.modules.*')],
+            ['label' => 'Users & roles', 'href' => route('admin.users.index'), 'active' => request()->routeIs('admin.users.*')],
+        ]];
     }
 @endphp
 
 <aside
     id="{{ $sidebarId }}"
-    class="sidebar bg-white border-end position-fixed {{ $collapsed ? 'collapsed' : '' }} {{ $class }}"
+    class="sidebar bg-white border-end position-fixed {{ $class }}"
     aria-label="Main navigation"
-    data-collapsed="{{ $collapsed ? 'true' : 'false' }}"
 >
     <!-- Header/Brand -->
     <div class="sidebar-header">
@@ -135,45 +118,46 @@
             </span>
             <span class="brand-text">School Admin</span>
         </a>
-        <!-- Mobile-only close button -->
-        <button
-            class="btn sidebar-close d-lg-none"
-            type="button"
-            aria-label="Close navigation"
-        >
+        <button class="btn sidebar-close d-lg-none" type="button" aria-label="Close navigation">
             <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
     </div>
 
     <!-- Navigation -->
     <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
-        @foreach($navGroups as $group)
-            @php $hasActive = collect($group['items'])->contains(fn ($i) => $i['active'] ?? false); @endphp
-
-            @if($group['section'] === null)
-                {{-- Ungrouped (Dashboard) — always visible --}}
-                <div class="nav-group nav-group--flat nav-group--open" data-nav-group="dashboard">
-                    <ul class="nav flex-column nav-group-items" style="max-height: none; opacity: 1;" role="list">
-                        @foreach($group['items'] as $item)
-                            @include('components.partials.nav-link', ['item' => $item])
-                        @endforeach
-                    </ul>
-                </div>
-            @else
-                <div class="nav-group {{ $hasActive ? 'nav-group--open' : '' }}" data-nav-group="{{ \Illuminate\Support\Str::slug($group['section']) }}">
-                    <button type="button" class="nav-group-toggle {{ $hasActive ? 'has-active' : '' }}" aria-expanded="{{ $hasActive ? 'true' : 'false' }}">
-                        <i class="bi {{ $group['icon'] }} nav-group-icon" aria-hidden="true"></i>
-                        <span class="nav-group-title flex-grow-1">{{ $group['section'] }}</span>
-                        <i class="bi bi-chevron-down nav-group-caret" aria-hidden="true"></i>
-                    </button>
-                    <ul class="nav flex-column nav-group-items" role="list">
-                        @foreach($group['items'] as $item)
-                            @include('components.partials.nav-link', ['item' => $item])
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-        @endforeach
+        <ul role="list">
+            @foreach($navTree as $node)
+                @if(empty($node['children']))
+                    {{-- Direct link --}}
+                    <li class="nav-item">
+                        <a href="{{ $node['href'] }}" class="nav-link {{ ($node['active'] ?? false) ? 'active' : '' }}"
+                           aria-current="{{ ($node['active'] ?? false) ? 'page' : 'false' }}">
+                            <i class="bi {{ $node['icon'] }} nav-icon" aria-hidden="true"></i>
+                            <span class="nav-label flex-grow-1">{{ $node['label'] }}</span>
+                        </a>
+                    </li>
+                @else
+                    @php $childActive = collect($node['children'])->contains(fn ($c) => $c['active'] ?? false); @endphp
+                    <li class="nav-item nav-parent {{ $childActive ? 'open' : '' }}" data-nav-parent="{{ \Illuminate\Support\Str::slug($node['label']) }}">
+                        <button type="button" class="nav-link nav-parent-toggle {{ $childActive ? 'has-active' : '' }}" aria-expanded="{{ $childActive ? 'true' : 'false' }}">
+                            <i class="bi {{ $node['icon'] }} nav-icon" aria-hidden="true"></i>
+                            <span class="nav-label flex-grow-1">{{ $node['label'] }}</span>
+                            <i class="bi bi-chevron-down nav-caret" aria-hidden="true"></i>
+                        </button>
+                        <ul class="nav-children" role="list">
+                            @foreach($node['children'] as $child)
+                                <li class="nav-item">
+                                    <a href="{{ $child['href'] }}" class="nav-link nav-child {{ ($child['active'] ?? false) ? 'active' : '' }}"
+                                       aria-current="{{ ($child['active'] ?? false) ? 'page' : 'false' }}">
+                                        <span class="nav-label flex-grow-1">{{ $child['label'] }}</span>
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </li>
+                @endif
+            @endforeach
+        </ul>
     </nav>
 
     <!-- Footer (optional custom content only) -->
@@ -201,56 +185,51 @@
             sidebar.classList.remove('show');
             if (backdrop) backdrop.style.display = 'none';
         }
-
         if (backdrop) backdrop.addEventListener('click', closeMobile);
         if (closeBtn) closeBtn.addEventListener('click', closeMobile);
-
-        // Header hamburger dispatches sidebar:toggle {show: true}
         document.addEventListener('sidebar:toggle', function(e) {
             if (e.detail && typeof e.detail.show !== 'undefined') {
                 sidebar.classList.toggle('show', e.detail.show);
                 if (backdrop) backdrop.style.display = e.detail.show ? 'block' : 'none';
             }
         });
-
-        // Close mobile panel after navigating
-        sidebar.querySelectorAll('.nav-link').forEach(function(link) {
+        sidebar.querySelectorAll('.nav-link:not(.nav-parent-toggle)').forEach(function(link) {
             link.addEventListener('click', function() {
                 if (window.innerWidth < 992) closeMobile();
             });
         });
 
-        // ── Collapsible section groups (exclusive accordion) ────────────────
-        var STORE_KEY = 'sidebar-open-group';
-        var groups = Array.prototype.slice.call(sidebar.querySelectorAll('.nav-group[data-nav-group]'));
+        // ── Expandable parents (exclusive: one open at a time) ──────────────
+        var STORE_KEY = 'sidebar-open-parent';
+        var parents = Array.prototype.slice.call(sidebar.querySelectorAll('.nav-parent'));
 
         function setOpen(target) {
-            groups.forEach(function(g) {
-                var on = g === target;
-                g.classList.toggle('nav-group--open', on);
-                var t = g.querySelector('.nav-group-toggle');
+            parents.forEach(function(p) {
+                var on = p === target;
+                p.classList.toggle('open', on);
+                var t = p.querySelector('.nav-parent-toggle');
                 if (t) t.setAttribute('aria-expanded', on ? 'true' : 'false');
             });
         }
 
-        var activeGroup = groups.find(function(g) { return g.querySelector('.nav-link.active'); });
-        if (activeGroup) {
-            setOpen(activeGroup);
+        var activeParent = parents.find(function(p) { return p.querySelector('.nav-child.active'); });
+        if (activeParent) {
+            setOpen(activeParent);
         } else {
             var savedKey = null;
             try { savedKey = localStorage.getItem(STORE_KEY); } catch (e) {}
-            var saved = savedKey && groups.find(function(g) { return g.getAttribute('data-nav-group') === savedKey; });
+            var saved = savedKey && parents.find(function(p) { return p.getAttribute('data-nav-parent') === savedKey; });
             setOpen(saved || null);
         }
 
-        groups.forEach(function(group) {
-            var toggle = group.querySelector('.nav-group-toggle');
+        parents.forEach(function(parent) {
+            var toggle = parent.querySelector('.nav-parent-toggle');
             if (!toggle) return;
             toggle.addEventListener('click', function() {
-                var willOpen = !group.classList.contains('nav-group--open');
-                setOpen(willOpen ? group : null);
+                var willOpen = !parent.classList.contains('open');
+                setOpen(willOpen ? parent : null);
                 try {
-                    if (willOpen) localStorage.setItem(STORE_KEY, group.getAttribute('data-nav-group'));
+                    if (willOpen) localStorage.setItem(STORE_KEY, parent.getAttribute('data-nav-parent'));
                     else localStorage.removeItem(STORE_KEY);
                 } catch (e) {}
             });
