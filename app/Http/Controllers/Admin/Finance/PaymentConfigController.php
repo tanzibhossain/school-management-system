@@ -41,26 +41,22 @@ class PaymentConfigController extends Controller
             'sslcommerz_base_url'   => ['nullable', 'string', 'max:255'],
         ]);
 
-        // Non-secret settings always update.
-        $config->fill([
-            'payment_mode'       => $data['payment_mode'],
-            'bkash_enabled'      => $request->boolean('bkash_enabled'),
-            'sslcommerz_enabled' => $request->boolean('sslcommerz_enabled'),
-            'invoice_prefix'     => $data['invoice_prefix'] ?? $config->invoice_prefix,
-            'receipt_prefix'     => $data['receipt_prefix'] ?? $config->receipt_prefix,
-            'bkash_fee_pct'      => $data['bkash_fee_pct'] ?? $config->bkash_fee_pct,
-            'sslcommerz_fee_pct' => $data['sslcommerz_fee_pct'] ?? $config->sslcommerz_fee_pct,
-            'bounce_fee_amount'  => $data['bounce_fee_amount'] ?? $config->bounce_fee_amount,
-            'bkash_base_url'     => $data['bkash_base_url'] ?? $config->bkash_base_url,
-            'sslcommerz_base_url' => $data['sslcommerz_base_url'] ?? $config->sslcommerz_base_url,
-        ]);
+        // Mode + gateway switches always apply.
+        $config->payment_mode = $data['payment_mode'];
+        $config->bkash_enabled = $request->boolean('bkash_enabled');
+        $config->sslcommerz_enabled = $request->boolean('sslcommerz_enabled');
 
-        // Secret credentials only overwrite when a new value is supplied, so a
-        // blank field never wipes stored keys.
-        foreach (['bkash_app_key', 'bkash_app_secret', 'bkash_username', 'bkash_password',
-            'sslcommerz_store_id', 'sslcommerz_store_pass'] as $secret) {
-            if (filled($data[$secret] ?? null)) {
-                $config->{$secret} = $data[$secret];
+        // Everything else only overwrites when a value is actually supplied — a
+        // blank/absent field never nulls a NOT-NULL column or wipes a stored key.
+        $optional = [
+            'invoice_prefix', 'receipt_prefix', 'bkash_fee_pct', 'sslcommerz_fee_pct',
+            'bounce_fee_amount', 'bkash_base_url', 'sslcommerz_base_url',
+            'bkash_app_key', 'bkash_app_secret', 'bkash_username', 'bkash_password',
+            'sslcommerz_store_id', 'sslcommerz_store_pass',
+        ];
+        foreach ($optional as $field) {
+            if (filled($data[$field] ?? null)) {
+                $config->{$field} = $data[$field];
             }
         }
 
