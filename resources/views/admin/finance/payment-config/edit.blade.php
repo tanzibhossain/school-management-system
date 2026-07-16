@@ -46,15 +46,15 @@
             </div>
             <div class="row g-2">
               <div class="col-md-6"><label class="form-label small">App key <span class="text-danger star-bkash" style="display:none">*</span></label>
-                <input name="bkash_app_key" class="form-control js-cred" data-gw="bkash" data-has="{{ $config->bkash_app_key ? '1' : '0' }}" placeholder="{{ $config->bkash_app_key ? '•••• (unchanged)' : '' }}" autocomplete="off"></div>
+                <input name="bkash_app_key" class="form-control gw-field" data-req="1" data-gw="bkash" data-has="{{ $config->bkash_app_key ? '1' : '0' }}" placeholder="{{ $config->bkash_app_key ? '•••• (unchanged)' : '' }}" autocomplete="off"></div>
               <div class="col-md-6"><label class="form-label small">App secret <span class="text-danger star-bkash" style="display:none">*</span></label>
-                <input name="bkash_app_secret" type="password" class="form-control js-cred" data-gw="bkash" data-has="{{ $config->bkash_app_secret ? '1' : '0' }}" placeholder="{{ $config->bkash_app_secret ? '•••• (unchanged)' : '' }}" autocomplete="new-password"></div>
+                <input name="bkash_app_secret" type="password" class="form-control gw-field" data-req="1" data-gw="bkash" data-has="{{ $config->bkash_app_secret ? '1' : '0' }}" placeholder="{{ $config->bkash_app_secret ? '•••• (unchanged)' : '' }}" autocomplete="new-password"></div>
               <div class="col-md-6"><label class="form-label small">Username <span class="text-danger star-bkash" style="display:none">*</span></label>
-                <input name="bkash_username" class="form-control js-cred" data-gw="bkash" data-has="{{ $config->bkash_username ? '1' : '0' }}" placeholder="{{ $config->bkash_username ? '•••• (unchanged)' : '' }}" autocomplete="off"></div>
+                <input name="bkash_username" class="form-control gw-field" data-req="1" data-gw="bkash" data-has="{{ $config->bkash_username ? '1' : '0' }}" placeholder="{{ $config->bkash_username ? '•••• (unchanged)' : '' }}" autocomplete="off"></div>
               <div class="col-md-6"><label class="form-label small">Password <span class="text-danger star-bkash" style="display:none">*</span></label>
-                <input name="bkash_password" type="password" class="form-control js-cred" data-gw="bkash" data-has="{{ $config->bkash_password ? '1' : '0' }}" placeholder="{{ $config->bkash_password ? '•••• (unchanged)' : '' }}" autocomplete="new-password"></div>
+                <input name="bkash_password" type="password" class="form-control gw-field" data-req="1" data-gw="bkash" data-has="{{ $config->bkash_password ? '1' : '0' }}" placeholder="{{ $config->bkash_password ? '•••• (unchanged)' : '' }}" autocomplete="new-password"></div>
               <div class="col-12"><label class="form-label small">Base URL</label>
-                <input name="bkash_base_url" class="form-control" value="{{ old('bkash_base_url', $config->bkash_base_url) }}" placeholder="sandbox or production URL"></div>
+                <input name="bkash_base_url" class="form-control gw-field" data-gw="bkash" value="{{ old('bkash_base_url', $config->bkash_base_url) }}" placeholder="sandbox or production URL"></div>
             </div>
             <div class="form-text mt-2">Leave a field blank to keep the stored value. Fee: {{ $config->bkash_fee_pct }}%.</div>
           </div>
@@ -75,11 +75,11 @@
             </div>
             <div class="row g-2">
               <div class="col-md-6"><label class="form-label small">Store ID <span class="text-danger star-ssl" style="display:none">*</span></label>
-                <input name="sslcommerz_store_id" class="form-control js-cred" data-gw="ssl" data-has="{{ $config->sslcommerz_store_id ? '1' : '0' }}" placeholder="{{ $config->sslcommerz_store_id ? '•••• (unchanged)' : '' }}" autocomplete="off"></div>
+                <input name="sslcommerz_store_id" class="form-control gw-field" data-req="1" data-gw="ssl" data-has="{{ $config->sslcommerz_store_id ? '1' : '0' }}" placeholder="{{ $config->sslcommerz_store_id ? '•••• (unchanged)' : '' }}" autocomplete="off"></div>
               <div class="col-md-6"><label class="form-label small">Store password <span class="text-danger star-ssl" style="display:none">*</span></label>
-                <input name="sslcommerz_store_pass" type="password" class="form-control js-cred" data-gw="ssl" data-has="{{ $config->sslcommerz_store_pass ? '1' : '0' }}" placeholder="{{ $config->sslcommerz_store_pass ? '•••• (unchanged)' : '' }}" autocomplete="new-password"></div>
+                <input name="sslcommerz_store_pass" type="password" class="form-control gw-field" data-req="1" data-gw="ssl" data-has="{{ $config->sslcommerz_store_pass ? '1' : '0' }}" placeholder="{{ $config->sslcommerz_store_pass ? '•••• (unchanged)' : '' }}" autocomplete="new-password"></div>
               <div class="col-12"><label class="form-label small">Base URL</label>
-                <input name="sslcommerz_base_url" class="form-control" value="{{ old('sslcommerz_base_url', $config->sslcommerz_base_url) }}" placeholder="sandbox or production URL"></div>
+                <input name="sslcommerz_base_url" class="form-control gw-field" data-gw="ssl" value="{{ old('sslcommerz_base_url', $config->sslcommerz_base_url) }}" placeholder="sandbox or production URL"></div>
             </div>
             <div class="form-text mt-2">Leave a field blank to keep the stored value. Fee: {{ $config->sslcommerz_fee_pct }}%.</div>
           </div>
@@ -124,19 +124,21 @@
       function sync() {
         var picked = document.querySelector('input[name="payment_mode"]:checked');
         var offline = picked && picked.value === 'offline';
-
-        // Dim + disable the whole online section when offline-only.
-        gateways.querySelectorAll('input, select, textarea').forEach(function (el) { el.disabled = offline; });
-        gateways.style.opacity = offline ? '0.5' : '1';
-        gateways.style.pointerEvents = offline ? 'none' : '';
-
-        // A gateway's credentials are required when it's enabled online and has
-        // no stored value yet (blank otherwise means "keep the saved value").
         var bkOn = bkashOn && bkashOn.checked;
         var slOn = sslOn && sslOn.checked;
-        document.querySelectorAll('.js-cred').forEach(function (el) {
+
+        // Enable switches (+ their hidden partners) are usable only when online.
+        gateways.querySelectorAll('.form-check-input, input[type="hidden"]').forEach(function (el) { el.disabled = offline; });
+        gateways.style.opacity = offline ? '0.5' : '1';
+
+        // A gateway's own fields stay disabled until that gateway's Enable switch
+        // is on (and never while offline-only). Required + asterisk only when the
+        // gateway is on and the credential has no stored value yet.
+        document.querySelectorAll('.gw-field').forEach(function (el) {
           var gw = el.dataset.gw;
-          var need = ! offline && ((gw === 'bkash' && bkOn) || (gw === 'ssl' && slOn)) && el.dataset.has !== '1';
+          var on = ! offline && ((gw === 'bkash' && bkOn) || (gw === 'ssl' && slOn));
+          el.disabled = ! on;
+          var need = on && el.dataset.req === '1' && el.dataset.has !== '1';
           el.required = need;
           var star = el.parentElement.querySelector('span[class*="star-"]');
           if (star) star.style.display = need ? '' : 'none';
