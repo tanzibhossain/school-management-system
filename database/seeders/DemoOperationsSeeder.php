@@ -5,9 +5,13 @@ namespace Database\Seeders;
 use App\Models\User;
 use App\Modules\Academic\Models\AcademicYear;
 use App\Modules\Academic\Models\SchoolClass;
+use App\Modules\Academic\Models\SubjectRelation;
 use App\Modules\Attendance\Models\AttendanceSetting;
 use App\Modules\Attendance\Models\StudentAttendance;
+use App\Modules\Examination\Models\Exam;
+use App\Modules\Examination\Models\ExamSubject;
 use App\Modules\Examination\Models\ExamType;
+use App\Modules\Mark\Models\MarkDivision;
 use App\Modules\Leave\Models\LeaveType;
 use App\Modules\Mark\Models\GradeBoundary;
 use App\Modules\Mark\Models\MarkSetting;
@@ -120,6 +124,42 @@ class DemoOperationsSeeder extends Seeder
         // ── Exam types ──────────────────────────────────────────────────────
         foreach (['First Term', 'Half Yearly', 'Annual Exam'] as $et) {
             ExamType::firstOrCreate(['school_id' => $sid, 'name' => $et], ['is_active' => true]);
+        }
+
+        // ── A published exam (Class 8) with subjects + one mark division each ──
+        // Lets teachers enter marks for their subject; the office calculates results.
+        $halfYearly = ExamType::where('school_id', $sid)->where('name', 'Half Yearly')->first();
+        $class8 = SchoolClass::where('school_id', $sid)->where('name', 'Class 8')->first();
+        if ($year && $halfYearly && $class8) {
+            $exam = Exam::firstOrCreate(
+                ['school_id' => $sid, 'title' => 'Half Yearly Examination', 'class_id' => $class8->id, 'academic_year_id' => $year->id],
+                [
+                    'exam_type_id'     => $halfYearly->id,
+                    'start_date'       => now()->addWeek()->toDateString(),
+                    'end_date'         => now()->addWeeks(2)->toDateString(),
+                    'status'           => 'published',
+                    'seating_strategy' => 'sequential',
+                ],
+            );
+
+            $relations = SubjectRelation::where('school_id', $sid)->where('class_id', $class8->id)->get();
+            foreach ($relations->values() as $i => $rel) {
+                $examSubject = ExamSubject::firstOrCreate(
+                    ['school_id' => $sid, 'exam_id' => $exam->id, 'subject_relation_id' => $rel->id],
+                    [
+                        'exam_date'  => now()->addWeek()->addDays($i)->toDateString(),
+                        'start_time' => '10:00:00',
+                        'end_time'   => '13:00:00',
+                        'full_marks' => 100,
+                        'pass_marks' => 33,
+                    ],
+                );
+
+                MarkDivision::firstOrCreate(
+                    ['school_id' => $sid, 'exam_id' => $exam->id, 'exam_subject_id' => $examSubject->id, 'name' => 'Written'],
+                    ['max_marks' => 100, 'pass_mark' => 33, 'display_order' => 1],
+                );
+            }
         }
 
         // ── Leave types ─────────────────────────────────────────────────────
