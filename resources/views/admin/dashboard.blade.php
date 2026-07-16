@@ -5,7 +5,7 @@
 {{-- Page Header --}}
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h1 class="h3 mb-1">Dashboard</h1>
+        <h1 class="h3 mb-1 page-title">Dashboard</h1>
         <p class="text-muted small mb-0">Welcome back, {{ auth()->user()->name }}. Here's what's happening today.</p>
     </div>
     <div class="d-flex gap-2">
@@ -23,7 +23,7 @@
                     <h3 class="mb-0">{{ number_format($totalStudents) }}</h3>
                     <span class="text-success small"><i class="bi bi-arrow-up-right"></i> {{ $pendingAdmissions }} pending admissions</span>
                 </div>
-                <div class="stat-icon bg-primary-light text-primary rounded-circle p-3">
+                <div class="stat-icon bg-primary-light text-primary rounded-3 p-3">
                     <i class="bi bi-people-fill fs-4"></i>
                 </div>
             </div>
@@ -38,7 +38,7 @@
                     <h3 class="mb-0">{{ number_format($totalStaff) }}</h3>
                     <span class="text-muted small">Teachers & admin</span>
                 </div>
-                <div class="stat-icon bg-success-light text-success rounded-circle p-3">
+                <div class="stat-icon bg-success-light text-success rounded-3 p-3">
                     <i class="bi bi-person-badge-fill fs-4"></i>
                 </div>
             </div>
@@ -53,7 +53,7 @@
                     <h3 class="mb-0">{{ $revenueThisMonth ? number_format($revenueThisMonth, 0) : '0' }}</h3>
                     <span class="text-muted small">Outstanding: {{ number_format($outstandingDues, 0) }}</span>
                 </div>
-                <div class="stat-icon bg-warning-light text-warning rounded-circle p-3">
+                <div class="stat-icon bg-warning-light text-warning rounded-3 p-3">
                     <i class="bi bi-currency-dollar fs-4"></i>
                 </div>
             </div>
@@ -68,7 +68,7 @@
                     <h3 class="mb-0">{{ $attendanceRate }}%</h3>
                     <span class="text-muted small">{{ $totalEnrolled }} enrolled</span>
                 </div>
-                <div class="stat-icon bg-info-light text-info rounded-circle p-3">
+                <div class="stat-icon bg-info-light text-info rounded-3 p-3">
                     <i class="bi bi-calendar-check-fill fs-4"></i>
                 </div>
             </div>
@@ -225,8 +225,8 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Revenue',
                 data: @json(array_column($revenueChart, 'amount')),
-                borderColor: 'rgb(37, 99, 235)',
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderColor: 'rgb(79, 70, 229)',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
                 fill: true,
                 tension: 0.3,
                 pointRadius: 4,
@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 data: @json(array_column($classStrength->toArray(), 'count')),
                 backgroundColor: [
-                    'rgba(37, 99, 235, 0.8)',
+                    'rgba(79, 70, 229, 0.8)',
                     'rgba(5, 150, 105, 0.8)',
                     'rgba(217, 119, 6, 0.8)',
                     'rgba(220, 38, 38, 0.8)',
