@@ -44,6 +44,7 @@ class StaffPortalTest extends TestCase
         $this->get('/staff/notices')->assertOk();
         $this->get('/staff/attendance')->assertOk();
         $this->get('/staff/routine')->assertOk();
+        $this->get('/staff/marks')->assertOk();
     }
 
     public function test_admin_and_student_cannot_reach_staff_portal(): void

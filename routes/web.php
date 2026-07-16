@@ -96,6 +96,9 @@ Route::middleware(['auth', 'school', 'role:teacher|accountant|librarian|receptio
         Route::get('/attendance', [\App\Http\Controllers\Staff\AttendanceController::class, 'index'])->name('attendance');
         Route::post('/attendance', [\App\Http\Controllers\Staff\AttendanceController::class, 'store'])->name('attendance.store');
         Route::get('/routine', [\App\Http\Controllers\Staff\DashboardController::class, 'routine'])->name('routine');
+        Route::get('/marks', [\App\Http\Controllers\Staff\MarkController::class, 'index'])->name('marks');
+        Route::get('/marks/{examId}/divisions/{divisionId}', [\App\Http\Controllers\Staff\MarkController::class, 'entry'])->whereNumber('examId')->whereNumber('divisionId')->name('marks.entry');
+        Route::post('/marks/{examId}/divisions/{divisionId}', [\App\Http\Controllers\Staff\MarkController::class, 'saveEntry'])->whereNumber('examId')->whereNumber('divisionId')->name('marks.save');
         Route::get('/notices', [\App\Http\Controllers\Staff\DashboardController::class, 'notices'])->name('notices');
         Route::get('/profile', [\App\Http\Controllers\Staff\DashboardController::class, 'profile'])->name('profile');
     });

@@ -79,7 +79,7 @@
 
       <div class="section-label">Teaching</div>
       <a href="{{ route('staff.attendance') }}" class="nav-link {{ request()->routeIs('staff.attendance') ? 'active' : '' }}"><i class="bi bi-calendar-check"></i> Attendance</a>
-      <a href="#" class="nav-link disabled"><i class="bi bi-journal-text"></i> Marks &amp; Results <span class="soon-badge">soon</span></a>
+      <a href="{{ route('staff.marks') }}" class="nav-link {{ request()->routeIs('staff.marks*') ? 'active' : '' }}"><i class="bi bi-journal-text"></i> Marks &amp; Results</a>
       <a href="{{ route('staff.routine') }}" class="nav-link {{ request()->routeIs('staff.routine') ? 'active' : '' }}"><i class="bi bi-calendar3-week"></i> Class Routine</a>
 
       <div class="section-label">General</div>

@@ -135,13 +135,18 @@ class MarkEntryService
         $exam      = Exam::findOrFail($division->exam_id);
         $subjectId = $division->examSubject?->subjectRelation?->subject_id;
 
+        // A teacher may enter marks for their assigned subject, or any subject they
+        // are timetabled to teach for this class (class_routines).
         $assigned = $staff !== null
             && $subjectId !== null
-            && ClassRoutine::where('school_id', $schoolId)
-                ->where('class_id', $exam->class_id)
-                ->where('subject_id', $subjectId)
-                ->where('teacher_id', $staff->id)
-                ->exists();
+            && (
+                (int) $staff->subject_id === (int) $subjectId
+                || ClassRoutine::where('school_id', $schoolId)
+                    ->where('class_id', $exam->class_id)
+                    ->where('subject_id', $subjectId)
+                    ->where('teacher_id', $staff->id)
+                    ->exists()
+            );
 
         if (! $assigned) {
             throw new AuthorizationException('You can only enter marks for subjects assigned to you.');
