@@ -84,6 +84,7 @@ class PortalTest extends TestCase
 
         $this->actingAs($user);
         $this->get('/portal')->assertOk()->assertSee('Portal Test Kid');
+        $this->get('/portal/leave')->assertOk();
     }
 
     public function test_marksheet_requires_a_calculated_result(): void

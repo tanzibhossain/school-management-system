@@ -71,6 +71,7 @@
       <a href="{{ $link('portal.results') }}" class="nav-link {{ request()->routeIs('portal.results') ? 'active' : '' }}"><i class="bi bi-award"></i> Results</a>
       <a href="{{ $link('portal.fees') }}" class="nav-link {{ request()->routeIs('portal.fees') ? 'active' : '' }}"><i class="bi bi-receipt"></i> Fees</a>
       <a href="{{ $link('portal.routine') }}" class="nav-link {{ request()->routeIs('portal.routine') ? 'active' : '' }}"><i class="bi bi-calendar3-week"></i> Class Routine</a>
+      <a href="{{ $link('portal.leave') }}" class="nav-link {{ request()->routeIs('portal.leave*') ? 'active' : '' }}"><i class="bi bi-calendar-minus"></i> Leave</a>
       <a href="{{ $link('portal.notices') }}" class="nav-link {{ request()->routeIs('portal.notices') ? 'active' : '' }}"><i class="bi bi-megaphone"></i> Notices</a>
       <a href="{{ route('portal.messages') }}" class="nav-link {{ request()->routeIs('portal.messages*') ? 'active' : '' }}"><i class="bi bi-chat-left-text"></i> Messages</a>
       <a href="{{ $link('portal.profile') }}" class="nav-link {{ request()->routeIs('portal.profile') ? 'active' : '' }}"><i class="bi bi-person-vcard"></i> Profile</a>

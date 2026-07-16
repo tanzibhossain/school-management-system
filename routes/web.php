@@ -120,6 +120,9 @@ Route::middleware(['auth', 'school', 'role:student|parent'])
         Route::get('/results/{examId}/marksheet', [$c, 'marksheet'])->whereNumber('examId')->name('results.marksheet');
         Route::get('/fees', [$c, 'fees'])->name('fees');
         Route::get('/routine', [$c, 'routine'])->name('routine');
+        Route::get('/leave', [$c, 'leave'])->name('leave');
+        Route::post('/leave', [$c, 'leaveStore'])->name('leave.store');
+        Route::patch('/leave/{id}/cancel', [$c, 'leaveCancel'])->whereNumber('id')->name('leave.cancel');
         Route::get('/notices', [$c, 'notices'])->name('notices');
         Route::get('/profile', [$c, 'profile'])->name('profile');
 
