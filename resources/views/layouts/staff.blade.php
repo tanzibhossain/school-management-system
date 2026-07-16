@@ -83,6 +83,7 @@
       <a href="{{ route('staff.routine') }}" class="nav-link {{ request()->routeIs('staff.routine') ? 'active' : '' }}"><i class="bi bi-calendar3-week"></i> Class Routine</a>
 
       <div class="section-label">General</div>
+      <a href="{{ route('staff.clock') }}" class="nav-link {{ request()->routeIs('staff.clock*') ? 'active' : '' }}"><i class="bi bi-clock-history"></i> My Attendance</a>
       <a href="{{ route('staff.leave') }}" class="nav-link {{ request()->routeIs('staff.leave*') ? 'active' : '' }}"><i class="bi bi-calendar-minus"></i> My Leave</a>
       <a href="{{ route('staff.notices') }}" class="nav-link {{ request()->routeIs('staff.notices') ? 'active' : '' }}"><i class="bi bi-megaphone"></i> Notices</a>
       <a href="{{ route('staff.messages') }}" class="nav-link {{ request()->routeIs('staff.messages*') ? 'active' : '' }}"><i class="bi bi-chat-left-text"></i> Messages

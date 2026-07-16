@@ -4,6 +4,7 @@ namespace Tests\Feature\Staff;
 
 use App\Models\User;
 use App\Modules\School\Models\School;
+use App\Modules\Staff\Models\Staff;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -47,6 +48,7 @@ class StaffPortalTest extends TestCase
         $this->get('/staff/marks')->assertOk();
         $this->get('/staff/messages')->assertOk();
         $this->get('/staff/leave')->assertOk();
+        $this->get('/staff/my-attendance')->assertOk();
     }
 
     public function test_admin_and_student_cannot_reach_staff_portal(): void
@@ -70,6 +72,22 @@ class StaffPortalTest extends TestCase
         $teacher->assignRole('teacher');
         $this->post('/staff/login', ['email' => $teacher->email, 'password' => 'secret123'])
             ->assertRedirect(route('staff.dashboard'));
+    }
+
+    public function test_staff_can_clock_in(): void
+    {
+        $user = $this->userWithRole('teacher');
+        $staff = Staff::create([
+            'school_id' => $this->school->id, 'user_id' => $user->id,
+            'employee_id' => 'EMP-CLK-1', 'name' => 'Clock Teacher', 'gender' => 'male', 'status' => 'active',
+        ]);
+
+        $this->actingAs($user);
+        $this->post('/staff/my-attendance/punch')->assertRedirect();
+
+        $this->assertDatabaseHas('staff_attendances', [
+            'school_id' => $this->school->id, 'staff_id' => $staff->id,
+        ]);
     }
 
     public function test_admin_login_routes_to_admin_dashboard(): void

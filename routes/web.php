@@ -103,6 +103,8 @@ Route::middleware(['auth', 'school', 'role:teacher|accountant|librarian|receptio
         Route::post('/messages', [\App\Http\Controllers\Staff\MessageController::class, 'store'])->name('messages.store');
         Route::get('/messages/{id}', [\App\Http\Controllers\Staff\MessageController::class, 'show'])->whereNumber('id')->name('messages.show');
         Route::post('/messages/{id}/reply', [\App\Http\Controllers\Staff\MessageController::class, 'reply'])->whereNumber('id')->name('messages.reply');
+        Route::get('/my-attendance', [\App\Http\Controllers\Staff\ClockController::class, 'index'])->name('clock');
+        Route::post('/my-attendance/punch', [\App\Http\Controllers\Staff\ClockController::class, 'punch'])->name('clock.punch');
         Route::get('/leave', [\App\Http\Controllers\Staff\LeaveController::class, 'index'])->name('leave');
         Route::post('/leave', [\App\Http\Controllers\Staff\LeaveController::class, 'store'])->name('leave.store');
         Route::patch('/leave/{id}/cancel', [\App\Http\Controllers\Staff\LeaveController::class, 'cancel'])->whereNumber('id')->name('leave.cancel');

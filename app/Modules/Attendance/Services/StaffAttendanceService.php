@@ -35,6 +35,15 @@ class StaffAttendanceService
             ]);
         }
 
+        return $this->punchStaff($schoolId, $staff, $source);
+    }
+
+    /**
+     * Punch for a known staff member (e.g. a self-service clock in/out from the
+     * staff portal). Same first-punch-is-check-in / last-punch-is-check-out rule.
+     */
+    public function punchStaff(int $schoolId, Staff $staff, string $source = 'manual'): StaffAttendance
+    {
         $school = School::findOrFail($schoolId);
         $now    = CarbonImmutable::now($school->timezone ?? 'UTC');
         $today  = $now->toDateString();
