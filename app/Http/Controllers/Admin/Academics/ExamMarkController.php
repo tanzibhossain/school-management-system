@@ -99,14 +99,18 @@ class ExamMarkController extends Controller
 
         $marks = Mark::forSchool($schoolId)->where('mark_division_id', $division->id)->get()->keyBy('student_id');
 
-        $roster = $academics->filter(fn ($a) => $a->student !== null)->map(fn ($a) => (object) [
-            'student_id' => $a->student_id,
-            'name'       => $a->student->name,
-            'code'       => $a->student->student_id,
-            'obtained'   => $marks[$a->student_id]->marks_obtained ?? null,
-            'is_absent'  => (bool) ($marks[$a->student_id]->is_absent ?? false),
-            'locked'     => $marks[$a->student_id]?->isLocked() ?? false,
-        ])->sortBy('name')->values();
+        $roster = $academics->filter(fn ($a) => $a->student !== null)->map(function ($a) use ($marks) {
+            $m = $marks->get($a->student_id);
+
+            return (object) [
+                'student_id' => $a->student_id,
+                'name'       => $a->student->name,
+                'code'       => $a->student->student_id,
+                'obtained'   => $m?->marks_obtained,
+                'is_absent'  => (bool) ($m?->is_absent ?? false),
+                'locked'     => $m?->isLocked() ?? false,
+            ];
+        })->sortBy('name')->values();
 
         return view('admin.academics.exam-marks.entry', compact('exam', 'division', 'roster'));
     }
