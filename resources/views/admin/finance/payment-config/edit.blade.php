@@ -38,7 +38,7 @@
       @forelse($gateways as $key => $def)
         @php
           $configured = collect($def['fields'])->filter(fn ($m) => ! empty($m['required']))
-              ->keys()->every(fn ($f) => filled($config->{$f}));
+              ->keys()->every(fn ($f) => filled($config->credential($key, $f)));
         @endphp
         <div class="col-lg-6">
           <div class="card h-100">
@@ -49,22 +49,22 @@
             </div>
             <div class="card-body">
               <div class="form-check form-switch mb-3">
-                <input type="hidden" name="{{ $def['enabled_field'] }}" value="0">
-                <input class="form-check-input" type="checkbox" role="switch" name="{{ $def['enabled_field'] }}" value="1"
-                       id="{{ $key }}On" @checked(old($def['enabled_field'], $config->{$def['enabled_field']}))>
+                <input type="hidden" name="gw[{{ $key }}][enabled]" value="0">
+                <input class="form-check-input" type="checkbox" role="switch" name="gw[{{ $key }}][enabled]" value="1"
+                       id="{{ $key }}On" @checked($config->gatewayEnabled($key))>
                 <label class="form-check-label" for="{{ $key }}On">Enable {{ $def['label'] }}</label>
               </div>
               <div class="row g-2">
                 @foreach($def['fields'] as $field => $meta)
-                  @php $has = filled($config->{$field}); @endphp
+                  @php $has = filled($config->credential($key, $field)); @endphp
                   <div class="col-md-6">
                     <label class="form-label small">{{ $meta['label'] }}
                       @if(! empty($meta['required']))<span class="text-danger star-{{ $key }}" style="display:none">*</span>@endif</label>
-                    <input name="{{ $field }}"
+                    <input name="gw[{{ $key }}][cred][{{ $field }}]"
                            type="{{ ! empty($meta['secret']) ? 'password' : 'text' }}"
                            class="form-control gw-field" data-gw="{{ $key }}"
                            data-req="{{ ! empty($meta['required']) ? '1' : '0' }}" data-has="{{ $has ? '1' : '0' }}"
-                           value="{{ empty($meta['secret']) && ! $has ? old($field, $config->{$field}) : '' }}"
+                           value="{{ (empty($meta['secret']) && ! $has) ? old("gw.$key.cred.$field") : '' }}"
                            placeholder="{{ $has ? '•••• (unchanged)' : '' }}"
                            autocomplete="{{ ! empty($meta['secret']) ? 'new-password' : 'off' }}">
                   </div>
@@ -75,7 +75,7 @@
           </div>
         </div>
       @empty
-        <div class="col-12"><div class="alert alert-info mb-0">No online gateways are configured for your country. Set your country in School settings.</div></div>
+        <div class="col-12"><div class="alert alert-info mb-0">No online gateways are available for your country yet. Set your country in School settings, or an implemented gateway is required.</div></div>
       @endforelse
     </div>
 
@@ -118,13 +118,9 @@
 
       function sync() {
         var offline = isOffline();
-
-        // Enable switches (+ hidden partners) usable only when online.
         gateways.querySelectorAll('.form-check-input, input[type="hidden"]').forEach(function (el) { el.disabled = offline; });
         gateways.style.opacity = offline ? '0.5' : '1';
 
-        // A gateway's fields stay disabled until its Enable switch is on; required
-        // + asterisk only when on and no stored value yet.
         document.querySelectorAll('.gw-field').forEach(function (el) {
           var on = ! offline && gatewayOn(el.dataset.gw);
           el.disabled = ! on;

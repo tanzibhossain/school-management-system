@@ -26,33 +26,29 @@ class PaymentConfigController extends Controller
         $config = PaymentConfig::firstOrCreate(['school_id' => app('current_school_id')]);
         $gateways = $config->availableGatewayDefs();
 
-        // Base rules + a rule per available gateway's flag and fields.
-        $rules = [
-            'payment_mode'       => ['required', 'in:offline,online,both'],
-            'invoice_prefix'     => ['nullable', 'string', 'max:20'],
-            'receipt_prefix'     => ['nullable', 'string', 'max:20'],
-            'bkash_fee_pct'      => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'sslcommerz_fee_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'bounce_fee_amount'  => ['nullable', 'numeric', 'min:0'],
-        ];
-        foreach ($gateways as $def) {
-            $rules[$def['enabled_field']] = ['nullable', 'boolean'];
-            foreach (array_keys($def['fields']) as $field) {
-                $rules[$field] = ['nullable', 'string', 'max:255'];
-            }
-        }
-        $data = $request->validate($rules);
+        $data = $request->validate([
+            'payment_mode'      => ['required', 'in:offline,online,both'],
+            'invoice_prefix'    => ['nullable', 'string', 'max:20'],
+            'receipt_prefix'    => ['nullable', 'string', 'max:20'],
+            'bounce_fee_amount' => ['nullable', 'numeric', 'min:0'],
+            'gw'                => ['array'],
+            'gw.*'              => ['array'],
+        ]);
 
         // Enabling a gateway requires its credentials — unless already stored.
         if (in_array($data['payment_mode'], ['online', 'both'], true)) {
             $missing = [];
-            foreach ($gateways as $def) {
-                if (! $request->boolean($def['enabled_field'])) {
+            foreach ($gateways as $slug => $def) {
+                if (! $request->boolean("gw.{$slug}.enabled")) {
                     continue;
                 }
                 foreach ($def['fields'] as $field => $meta) {
-                    if (! empty($meta['required']) && ! filled($data[$field] ?? null) && ! filled($config->{$field})) {
-                        $missing[$field] = ["{$def['label']} {$meta['label']} is required to enable this gateway."];
+                    if (empty($meta['required'])) {
+                        continue;
+                    }
+                    $submitted = $request->input("gw.{$slug}.cred.{$field}");
+                    if (! filled($submitted) && ! filled($config->credential($slug, $field))) {
+                        $missing["gw.{$slug}.cred.{$field}"] = ["{$def['label']} {$meta['label']} is required to enable this gateway."];
                     }
                 }
             }
@@ -61,23 +57,30 @@ class PaymentConfigController extends Controller
             }
         }
 
-        // Mode + gateway switches (for the country's gateways) always apply.
+        // Non-gateway settings (never null a NOT-NULL column).
         $config->payment_mode = $data['payment_mode'];
-        foreach ($gateways as $def) {
-            $config->{$def['enabled_field']} = $request->boolean($def['enabled_field']);
-        }
-
-        // Everything else only overwrites when a value is actually supplied — a
-        // blank/absent field never nulls a NOT-NULL column or wipes a stored key.
-        $optional = ['invoice_prefix', 'receipt_prefix', 'bkash_fee_pct', 'sslcommerz_fee_pct', 'bounce_fee_amount'];
-        foreach ($gateways as $def) {
-            $optional = array_merge($optional, array_keys($def['fields']));
-        }
-        foreach (array_unique($optional) as $field) {
+        foreach (['invoice_prefix', 'receipt_prefix', 'bounce_fee_amount'] as $field) {
             if (filled($data[$field] ?? null)) {
                 $config->{$field} = $data[$field];
             }
         }
+
+        // Build the generic gateway store — a blank field keeps the saved value.
+        $store = $config->gateways ?? [];
+        foreach ($gateways as $slug => $def) {
+            $creds = $store[$slug]['credentials'] ?? [];
+            foreach (array_keys($def['fields']) as $field) {
+                $value = $request->input("gw.{$slug}.cred.{$field}");
+                if (filled($value)) {
+                    $creds[$field] = $value;
+                }
+            }
+            $store[$slug] = [
+                'enabled'     => $request->boolean("gw.{$slug}.enabled"),
+                'credentials' => $creds,
+            ];
+        }
+        $config->gateways = $store;
 
         $config->save();
 

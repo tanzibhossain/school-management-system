@@ -50,10 +50,12 @@ class PortalPaymentTest extends TestCase
 
     public function test_initiate_rejects_an_invoice_not_owned_by_the_family(): void
     {
-        // Online + bKash configured so we get past the availability check.
+        // Online + bKash fully configured so we get past the availability check.
         PaymentConfig::create([
             'school_id' => $this->school->id, 'payment_mode' => 'online',
-            'bkash_enabled' => true, 'bkash_app_key' => 'test-key',
+            'gateways' => ['bkash' => ['enabled' => true, 'credentials' => [
+                'app_key' => 'k', 'app_secret' => 's', 'username' => 'u', 'password' => 'p',
+            ]]],
         ]);
 
         $this->actingAs($this->familyUser());

@@ -180,31 +180,34 @@ class FinanceAreaTest extends TestCase
         $this->actingAs($this->admin);
 
         $this->put('/admin/payment-config', [
-            'payment_mode' => 'both', 'bkash_enabled' => '1',
-            'invoice_prefix' => 'INV-', 'receipt_prefix' => 'RCP-', 'bkash_fee_pct' => 1.5, 'bounce_fee_amount' => 50,
-            'bkash_app_key' => 'test-app-key', 'bkash_app_secret' => 'secret',
-            'bkash_username' => 'user', 'bkash_password' => 'pass',
+            'payment_mode' => 'both',
+            'invoice_prefix' => 'INV-', 'receipt_prefix' => 'RCP-', 'bounce_fee_amount' => 50,
+            'gw' => ['bkash' => [
+                'enabled' => '1',
+                'cred' => ['app_key' => 'test-app-key', 'app_secret' => 'secret', 'username' => 'user', 'password' => 'pass'],
+            ]],
         ])->assertRedirect();
 
         $this->assertDatabaseHas('payment_configs', [
-            'school_id' => $this->school->id, 'invoice_prefix' => 'INV-', 'receipt_prefix' => 'RCP-',
-            'payment_mode' => 'both', 'bkash_enabled' => true,
+            'school_id' => $this->school->id, 'invoice_prefix' => 'INV-', 'receipt_prefix' => 'RCP-', 'payment_mode' => 'both',
         ]);
 
-        // Credential stored (encrypted) and readable back through the model.
+        // Stored in the generic JSON store and readable back through the model.
         $config = \App\Modules\Payment\Models\PaymentConfig::where('school_id', $this->school->id)->first();
-        $this->assertSame('test-app-key', $config->bkash_app_key);
+        $this->assertTrue($config->gatewayEnabled('bkash'));
+        $this->assertSame('test-app-key', $config->credential('bkash', 'app_key'));
     }
 
     public function test_blank_credential_does_not_wipe_stored_key(): void
     {
         $this->actingAs($this->admin);
 
-        $this->put('/admin/payment-config', ['payment_mode' => 'online', 'bkash_app_key' => 'keep-me'])->assertRedirect();
+        // Store a credential (gateway left disabled, so no required-field check).
+        $this->put('/admin/payment-config', ['payment_mode' => 'online', 'gw' => ['bkash' => ['cred' => ['app_key' => 'keep-me']]]])->assertRedirect();
         // Second save without the key must not clear it.
         $this->put('/admin/payment-config', ['payment_mode' => 'online'])->assertRedirect();
 
         $config = \App\Modules\Payment\Models\PaymentConfig::where('school_id', $this->school->id)->first();
-        $this->assertSame('keep-me', $config->bkash_app_key);
+        $this->assertSame('keep-me', $config->credential('bkash', 'app_key'));
     }
 }
