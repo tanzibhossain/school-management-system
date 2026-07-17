@@ -117,6 +117,12 @@
     </header>
 
     <main class="p-3 p-lg-4" style="max-width:1100px; margin:0 auto;">
+      @if(session('status'))
+        <div class="alert alert-success alert-dismissible fade show"><i class="bi bi-check-circle me-1"></i>{{ session('status') }}<button class="btn-close" data-bs-dismiss="alert"></button></div>
+      @endif
+      @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show"><i class="bi bi-exclamation-triangle me-1"></i>{{ session('error') }}<button class="btn-close" data-bs-dismiss="alert"></button></div>
+      @endif
       @yield('content')
     </main>
   </div>

@@ -121,6 +121,7 @@ Route::middleware(['auth', 'school', 'role:student|parent'])
         Route::get('/results', [$c, 'results'])->name('results');
         Route::get('/results/{examId}/marksheet', [$c, 'marksheet'])->whereNumber('examId')->name('results.marksheet');
         Route::get('/fees', [$c, 'fees'])->name('fees');
+        Route::post('/pay/initiate', [\App\Http\Controllers\Portal\PaymentController::class, 'initiate'])->name('pay.initiate');
         Route::get('/routine', [$c, 'routine'])->name('routine');
         Route::get('/leave', [$c, 'leave'])->name('leave');
         Route::post('/leave', [$c, 'leaveStore'])->name('leave.store');
@@ -134,6 +135,11 @@ Route::middleware(['auth', 'school', 'role:student|parent'])
         Route::get('/messages/{id}', [$mc, 'show'])->whereNumber('id')->name('messages.show');
         Route::post('/messages/{id}/reply', [$mc, 'reply'])->whereNumber('id')->name('messages.reply');
     });
+
+// Gateway browser-return for family portal payments — public (the gateway drives
+// the redirect); the school + invoice are resolved from the cached payment id.
+Route::get('/portal/pay/bkash/callback', [\App\Http\Controllers\Portal\PaymentController::class, 'bkashCallback'])
+    ->name('portal.pay.bkash.callback');
 
 Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(function (): void {
     // Dashboard — admins and accountants (finance). Other staff use /staff.

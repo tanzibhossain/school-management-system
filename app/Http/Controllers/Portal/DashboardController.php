@@ -10,6 +10,7 @@ use App\Modules\Leave\Models\StudentLeaveRequest;
 use App\Modules\Leave\Services\StudentLeaveService;
 use App\Modules\Mark\Models\ExamResult;
 use App\Modules\Payment\Models\Invoice;
+use App\Modules\Payment\Models\PaymentConfig;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\StudentAcademic;
@@ -79,10 +80,13 @@ class DashboardController extends Controller
             return view('portal.no-student', $ctx);
         }
 
+        $config = PaymentConfig::firstOrCreate(['school_id' => app('current_school_id')]);
+
         return view('portal.fees', $ctx + [
             'invoices'    => Invoice::where('school_id', app('current_school_id'))
                 ->where('student_id', $ctx['student']->id)->orderByDesc('due_date')->paginate(20),
             'outstanding' => $this->outstanding($ctx['student']),
+            'bkashEnabled' => collect($config->enabledGateways())->contains(fn ($g) => $g['key'] === 'bkash'),
         ]);
     }
 
