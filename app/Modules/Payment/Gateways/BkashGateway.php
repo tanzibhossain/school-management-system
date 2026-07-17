@@ -30,12 +30,12 @@ class BkashGateway
     public function grantToken(): string
     {
         $response = Http::withHeaders([
-            'username'     => $this->config->bkash_username,
-            'password'     => $this->config->bkash_password,
+            'username'     => $this->config->credential('bkash', 'username'),
+            'password'     => $this->config->credential('bkash', 'password'),
             'Content-Type' => 'application/json',
         ])->post($this->url('checkout/token/grant'), [
-            'app_key'    => $this->config->bkash_app_key,
-            'app_secret' => $this->config->bkash_app_secret,
+            'app_key'    => $this->config->credential('bkash', 'app_key'),
+            'app_secret' => $this->config->credential('bkash', 'app_secret'),
         ]);
 
         $this->log(null, 'grant_token', [], $response->json(), $response->status());
@@ -140,7 +140,7 @@ class BkashGateway
 
     private function url(string $path): string
     {
-        return rtrim($this->config->bkash_base_url, '/') . '/' . $path;
+        return rtrim($this->config->credential('bkash', 'base_url'), '/') . '/' . $path;
     }
 
     /** @return array<string, string> */
@@ -149,7 +149,7 @@ class BkashGateway
         // bKash Tokenized Checkout expects the raw id_token — no "Bearer" prefix
         return [
             'Authorization' => $token,
-            'X-APP-Key'     => $this->config->bkash_app_key,
+            'X-APP-Key'     => $this->config->credential('bkash', 'app_key'),
             'Content-Type'  => 'application/json',
         ];
     }

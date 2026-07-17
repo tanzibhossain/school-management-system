@@ -40,8 +40,8 @@ class SslcommerzGateway
         string $ipnUrl,
     ): array {
         $payload = [
-            'store_id'          => $this->config->sslcommerz_store_id,
-            'store_passwd'      => $this->config->sslcommerz_store_pass,
+            'store_id'          => $this->config->credential('sslcommerz', 'store_id'),
+            'store_passwd'      => $this->config->credential('sslcommerz', 'store_pass'),
             'total_amount'      => $amount,
             'currency'          => 'BDT',
             'tran_id'           => $invoiceNumber,
@@ -82,8 +82,8 @@ class SslcommerzGateway
     {
         $response = Http::get($this->url('validator/api/validationserverAPI.php'), [
             'val_id'       => $valId,
-            'store_id'     => $this->config->sslcommerz_store_id,
-            'store_passwd' => $this->config->sslcommerz_store_pass,
+            'store_id'     => $this->config->credential('sslcommerz', 'store_id'),
+            'store_passwd' => $this->config->credential('sslcommerz', 'store_pass'),
             'v'            => 1,       // required per SSLCommerz validation API
             'format'       => 'json',
         ]);
@@ -103,8 +103,8 @@ class SslcommerzGateway
     public function refund(string $bankTranId, float $amount, string $remarks, string $refeId): array
     {
         $payload = [
-            'store_id'        => $this->config->sslcommerz_store_id,
-            'store_passwd'    => $this->config->sslcommerz_store_pass,
+            'store_id'        => $this->config->credential('sslcommerz', 'store_id'),
+            'store_passwd'    => $this->config->credential('sslcommerz', 'store_pass'),
             'bank_tran_id'    => $bankTranId,
             'refund_amount'   => $amount,
             'refund_remarks'  => $remarks,
@@ -128,7 +128,7 @@ class SslcommerzGateway
 
     private function url(string $path): string
     {
-        return rtrim($this->config->sslcommerz_base_url, '/') . '/' . $path;
+        return rtrim($this->config->credential('sslcommerz', 'base_url'), '/') . '/' . $path;
     }
 
     private function log(?int $paymentId, string $action, array $payload, ?array $response, int $httpStatus): void
