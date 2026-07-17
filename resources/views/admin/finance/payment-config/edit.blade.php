@@ -30,64 +30,56 @@
       </div>
     </div>
 
-    {{-- Online gateways — disabled when the school is offline-only --}}
+    {{-- Online gateways available for this school's country --}}
+    <div class="d-flex align-items-center justify-content-between mb-2">
+      <h2 class="h6 mb-0 text-muted">Online gateways <span class="text-muted small">— available for your country</span></h2>
+    </div>
     <div class="row g-4" id="onlineGateways" style="transition:opacity .15s;">
-      <div class="col-lg-6">
-        <div class="card h-100">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <span>bKash</span>
-            @if($config->bkash_app_key)<span class="badge text-bg-success">Credentials set</span>@endif
-          </div>
-          <div class="card-body">
-            <div class="form-check form-switch mb-3">
-              <input type="hidden" name="bkash_enabled" value="0">
-              <input class="form-check-input" type="checkbox" role="switch" name="bkash_enabled" value="1" id="bkashOn" @checked(old('bkash_enabled', $config->bkash_enabled))>
-              <label class="form-check-label" for="bkashOn">Enable bKash</label>
+      @forelse($gateways as $key => $def)
+        @php
+          $configured = collect($def['fields'])->filter(fn ($m) => ! empty($m['required']))
+              ->keys()->every(fn ($f) => filled($config->{$f}));
+        @endphp
+        <div class="col-lg-6">
+          <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span><i class="bi {{ $def['icon'] ?? 'bi-credit-card' }} me-1"></i>{{ $def['label'] }}
+                <span class="text-muted small">({{ implode(', ', $def['currencies']) }})</span></span>
+              @if($configured)<span class="badge text-bg-success">Credentials set</span>@endif
             </div>
-            <div class="row g-2">
-              <div class="col-md-6"><label class="form-label small">App key <span class="text-danger star-bkash" style="display:none">*</span></label>
-                <input name="bkash_app_key" class="form-control gw-field" data-req="1" data-gw="bkash" data-has="{{ $config->bkash_app_key ? '1' : '0' }}" placeholder="{{ $config->bkash_app_key ? '•••• (unchanged)' : '' }}" autocomplete="off"></div>
-              <div class="col-md-6"><label class="form-label small">App secret <span class="text-danger star-bkash" style="display:none">*</span></label>
-                <input name="bkash_app_secret" type="password" class="form-control gw-field" data-req="1" data-gw="bkash" data-has="{{ $config->bkash_app_secret ? '1' : '0' }}" placeholder="{{ $config->bkash_app_secret ? '•••• (unchanged)' : '' }}" autocomplete="new-password"></div>
-              <div class="col-md-6"><label class="form-label small">Username <span class="text-danger star-bkash" style="display:none">*</span></label>
-                <input name="bkash_username" class="form-control gw-field" data-req="1" data-gw="bkash" data-has="{{ $config->bkash_username ? '1' : '0' }}" placeholder="{{ $config->bkash_username ? '•••• (unchanged)' : '' }}" autocomplete="off"></div>
-              <div class="col-md-6"><label class="form-label small">Password <span class="text-danger star-bkash" style="display:none">*</span></label>
-                <input name="bkash_password" type="password" class="form-control gw-field" data-req="1" data-gw="bkash" data-has="{{ $config->bkash_password ? '1' : '0' }}" placeholder="{{ $config->bkash_password ? '•••• (unchanged)' : '' }}" autocomplete="new-password"></div>
-              <div class="col-12"><label class="form-label small">Base URL</label>
-                <input name="bkash_base_url" class="form-control gw-field" data-gw="bkash" value="{{ old('bkash_base_url', $config->bkash_base_url) }}" placeholder="sandbox or production URL"></div>
+            <div class="card-body">
+              <div class="form-check form-switch mb-3">
+                <input type="hidden" name="{{ $def['enabled_field'] }}" value="0">
+                <input class="form-check-input" type="checkbox" role="switch" name="{{ $def['enabled_field'] }}" value="1"
+                       id="{{ $key }}On" @checked(old($def['enabled_field'], $config->{$def['enabled_field']}))>
+                <label class="form-check-label" for="{{ $key }}On">Enable {{ $def['label'] }}</label>
+              </div>
+              <div class="row g-2">
+                @foreach($def['fields'] as $field => $meta)
+                  @php $has = filled($config->{$field}); @endphp
+                  <div class="col-md-6">
+                    <label class="form-label small">{{ $meta['label'] }}
+                      @if(! empty($meta['required']))<span class="text-danger star-{{ $key }}" style="display:none">*</span>@endif</label>
+                    <input name="{{ $field }}"
+                           type="{{ ! empty($meta['secret']) ? 'password' : 'text' }}"
+                           class="form-control gw-field" data-gw="{{ $key }}"
+                           data-req="{{ ! empty($meta['required']) ? '1' : '0' }}" data-has="{{ $has ? '1' : '0' }}"
+                           value="{{ empty($meta['secret']) && ! $has ? old($field, $config->{$field}) : '' }}"
+                           placeholder="{{ $has ? '•••• (unchanged)' : '' }}"
+                           autocomplete="{{ ! empty($meta['secret']) ? 'new-password' : 'off' }}">
+                  </div>
+                @endforeach
+              </div>
+              <div class="form-text mt-2">Leave a field blank to keep the stored value.</div>
             </div>
-            <div class="form-text mt-2">Leave a field blank to keep the stored value. Fee: {{ $config->bkash_fee_pct }}%.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-lg-6">
-        <div class="card h-100">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <span>SSLCommerz</span>
-            @if($config->sslcommerz_store_id)<span class="badge text-bg-success">Credentials set</span>@endif
-          </div>
-          <div class="card-body">
-            <div class="form-check form-switch mb-3">
-              <input type="hidden" name="sslcommerz_enabled" value="0">
-              <input class="form-check-input" type="checkbox" role="switch" name="sslcommerz_enabled" value="1" id="sslOn" @checked(old('sslcommerz_enabled', $config->sslcommerz_enabled))>
-              <label class="form-check-label" for="sslOn">Enable SSLCommerz</label>
-            </div>
-            <div class="row g-2">
-              <div class="col-md-6"><label class="form-label small">Store ID <span class="text-danger star-ssl" style="display:none">*</span></label>
-                <input name="sslcommerz_store_id" class="form-control gw-field" data-req="1" data-gw="ssl" data-has="{{ $config->sslcommerz_store_id ? '1' : '0' }}" placeholder="{{ $config->sslcommerz_store_id ? '•••• (unchanged)' : '' }}" autocomplete="off"></div>
-              <div class="col-md-6"><label class="form-label small">Store password <span class="text-danger star-ssl" style="display:none">*</span></label>
-                <input name="sslcommerz_store_pass" type="password" class="form-control gw-field" data-req="1" data-gw="ssl" data-has="{{ $config->sslcommerz_store_pass ? '1' : '0' }}" placeholder="{{ $config->sslcommerz_store_pass ? '•••• (unchanged)' : '' }}" autocomplete="new-password"></div>
-              <div class="col-12"><label class="form-label small">Base URL</label>
-                <input name="sslcommerz_base_url" class="form-control gw-field" data-gw="ssl" value="{{ old('sslcommerz_base_url', $config->sslcommerz_base_url) }}" placeholder="sandbox or production URL"></div>
-            </div>
-            <div class="form-text mt-2">Leave a field blank to keep the stored value. Fee: {{ $config->sslcommerz_fee_pct }}%.</div>
           </div>
         </div>
-      </div>
+      @empty
+        <div class="col-12"><div class="alert alert-info mb-0">No online gateways are configured for your country. Set your country in School settings.</div></div>
+      @endforelse
     </div>
 
-    {{-- Numbering + fees --}}
+    {{-- Numbering + charges --}}
     <div class="row g-4 mt-0">
       <div class="col-lg-6">
         <div class="card"><div class="card-header">Numbering</div><div class="card-body row g-3">
@@ -99,12 +91,8 @@
         </div></div>
       </div>
       <div class="col-lg-6">
-        <div class="card"><div class="card-header">Fees &amp; charges</div><div class="card-body row g-3">
-          <div class="col-md-4"><label class="form-label">bKash fee %</label>
-            <input type="number" step="0.01" min="0" max="100" name="bkash_fee_pct" class="form-control" value="{{ old('bkash_fee_pct', $config->bkash_fee_pct) }}"></div>
-          <div class="col-md-4"><label class="form-label">SSLCommerz fee %</label>
-            <input type="number" step="0.01" min="0" max="100" name="sslcommerz_fee_pct" class="form-control" value="{{ old('sslcommerz_fee_pct', $config->sslcommerz_fee_pct) }}"></div>
-          <div class="col-md-4"><label class="form-label">Cheque bounce fee</label>
+        <div class="card"><div class="card-header">Charges</div><div class="card-body row g-3">
+          <div class="col-md-6"><label class="form-label">Cheque bounce fee</label>
             <input type="number" step="0.01" min="0" name="bounce_fee_amount" class="form-control" value="{{ old('bounce_fee_amount', $config->bounce_fee_amount) }}"></div>
         </div></div>
       </div>
@@ -118,25 +106,27 @@
     (function () {
       var gateways = document.getElementById('onlineGateways');
       if (! gateways) return;
-      var bkashOn = document.getElementById('bkashOn');
-      var sslOn = document.getElementById('sslOn');
+
+      function isOffline() {
+        var p = document.querySelector('input[name="payment_mode"]:checked');
+        return p && p.value === 'offline';
+      }
+      function gatewayOn(key) {
+        var t = document.getElementById(key + 'On');
+        return t && t.checked;
+      }
 
       function sync() {
-        var picked = document.querySelector('input[name="payment_mode"]:checked');
-        var offline = picked && picked.value === 'offline';
-        var bkOn = bkashOn && bkashOn.checked;
-        var slOn = sslOn && sslOn.checked;
+        var offline = isOffline();
 
-        // Enable switches (+ their hidden partners) are usable only when online.
+        // Enable switches (+ hidden partners) usable only when online.
         gateways.querySelectorAll('.form-check-input, input[type="hidden"]').forEach(function (el) { el.disabled = offline; });
         gateways.style.opacity = offline ? '0.5' : '1';
 
-        // A gateway's own fields stay disabled until that gateway's Enable switch
-        // is on (and never while offline-only). Required + asterisk only when the
-        // gateway is on and the credential has no stored value yet.
+        // A gateway's fields stay disabled until its Enable switch is on; required
+        // + asterisk only when on and no stored value yet.
         document.querySelectorAll('.gw-field').forEach(function (el) {
-          var gw = el.dataset.gw;
-          var on = ! offline && ((gw === 'bkash' && bkOn) || (gw === 'ssl' && slOn));
+          var on = ! offline && gatewayOn(el.dataset.gw);
           el.disabled = ! on;
           var need = on && el.dataset.req === '1' && el.dataset.has !== '1';
           el.required = need;
@@ -146,7 +136,7 @@
       }
 
       document.querySelectorAll('input[name="payment_mode"]').forEach(function (r) { r.addEventListener('change', sync); });
-      [bkashOn, sslOn].forEach(function (t) { if (t) t.addEventListener('change', sync); });
+      gateways.querySelectorAll('.form-check-input').forEach(function (t) { t.addEventListener('change', sync); });
       sync();
     })();
   </script>

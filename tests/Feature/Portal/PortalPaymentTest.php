@@ -25,7 +25,7 @@ class PortalPaymentTest extends TestCase
         $this->seed(\Database\Seeders\RoleSeeder::class);
 
         $this->school = School::create([
-            'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT',
+            'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT', 'country_code' => 'BD',
             'timezone' => 'Asia/Dhaka', 'locale' => 'en', 'academic_year_pattern' => 'jan_dec',
         ]);
     }

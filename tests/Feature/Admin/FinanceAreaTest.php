@@ -37,7 +37,7 @@ class FinanceAreaTest extends TestCase
         $this->seed(\Database\Seeders\RoleSeeder::class);
 
         $this->school = School::create([
-            'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT',
+            'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT', 'country_code' => 'BD',
             'timezone' => 'Asia/Dhaka', 'locale' => 'en', 'academic_year_pattern' => 'jan_dec',
         ]);
         $this->admin = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
@@ -182,7 +182,8 @@ class FinanceAreaTest extends TestCase
         $this->put('/admin/payment-config', [
             'payment_mode' => 'both', 'bkash_enabled' => '1',
             'invoice_prefix' => 'INV-', 'receipt_prefix' => 'RCP-', 'bkash_fee_pct' => 1.5, 'bounce_fee_amount' => 50,
-            'bkash_app_key' => 'test-app-key',
+            'bkash_app_key' => 'test-app-key', 'bkash_app_secret' => 'secret',
+            'bkash_username' => 'user', 'bkash_password' => 'pass',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('payment_configs', [

@@ -15,53 +15,44 @@ class PaymentConfigController extends Controller
     {
         $config = PaymentConfig::firstOrCreate(['school_id' => app('current_school_id')]);
 
-        return view('admin.finance.payment-config.edit', compact('config'));
+        return view('admin.finance.payment-config.edit', [
+            'config'   => $config,
+            'gateways' => $config->availableGatewayDefs(), // gateways for the school's country
+        ]);
     }
 
     public function update(Request $request): RedirectResponse
     {
         $config = PaymentConfig::firstOrCreate(['school_id' => app('current_school_id')]);
+        $gateways = $config->availableGatewayDefs();
 
-        $data = $request->validate([
-            'payment_mode'        => ['required', 'in:offline,online,both'],
-            'bkash_enabled'       => ['nullable', 'boolean'],
-            'sslcommerz_enabled'  => ['nullable', 'boolean'],
-            'invoice_prefix'      => ['nullable', 'string', 'max:20'],
-            'receipt_prefix'      => ['nullable', 'string', 'max:20'],
-            'bkash_fee_pct'       => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'sslcommerz_fee_pct'  => ['nullable', 'numeric', 'min:0', 'max:100'],
-            'bounce_fee_amount'   => ['nullable', 'numeric', 'min:0'],
-            // Gateway credentials (kept as-is when the field is left blank).
-            'bkash_app_key'       => ['nullable', 'string', 'max:255'],
-            'bkash_app_secret'    => ['nullable', 'string', 'max:255'],
-            'bkash_username'      => ['nullable', 'string', 'max:255'],
-            'bkash_password'      => ['nullable', 'string', 'max:255'],
-            'bkash_base_url'      => ['nullable', 'string', 'max:255'],
-            'sslcommerz_store_id'   => ['nullable', 'string', 'max:255'],
-            'sslcommerz_store_pass' => ['nullable', 'string', 'max:255'],
-            'sslcommerz_base_url'   => ['nullable', 'string', 'max:255'],
-        ]);
+        // Base rules + a rule per available gateway's flag and fields.
+        $rules = [
+            'payment_mode'       => ['required', 'in:offline,online,both'],
+            'invoice_prefix'     => ['nullable', 'string', 'max:20'],
+            'receipt_prefix'     => ['nullable', 'string', 'max:20'],
+            'bkash_fee_pct'      => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'sslcommerz_fee_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'bounce_fee_amount'  => ['nullable', 'numeric', 'min:0'],
+        ];
+        foreach ($gateways as $def) {
+            $rules[$def['enabled_field']] = ['nullable', 'boolean'];
+            foreach (array_keys($def['fields']) as $field) {
+                $rules[$field] = ['nullable', 'string', 'max:255'];
+            }
+        }
+        $data = $request->validate($rules);
 
-        // Enabling a gateway requires its credentials — unless they're already
-        // stored (blank then means "keep the saved value").
+        // Enabling a gateway requires its credentials — unless already stored.
         if (in_array($data['payment_mode'], ['online', 'both'], true)) {
-            $required = [
-                'bkash_enabled' => [
-                    'bkash_app_key' => 'bKash app key', 'bkash_app_secret' => 'bKash app secret',
-                    'bkash_username' => 'bKash username', 'bkash_password' => 'bKash password',
-                ],
-                'sslcommerz_enabled' => [
-                    'sslcommerz_store_id' => 'SSLCommerz store ID', 'sslcommerz_store_pass' => 'SSLCommerz store password',
-                ],
-            ];
             $missing = [];
-            foreach ($required as $flag => $fields) {
-                if (! $request->boolean($flag)) {
+            foreach ($gateways as $def) {
+                if (! $request->boolean($def['enabled_field'])) {
                     continue;
                 }
-                foreach ($fields as $field => $label) {
-                    if (! filled($data[$field] ?? null) && ! filled($config->{$field})) {
-                        $missing[$field] = ["{$label} is required to enable this gateway."];
+                foreach ($def['fields'] as $field => $meta) {
+                    if (! empty($meta['required']) && ! filled($data[$field] ?? null) && ! filled($config->{$field})) {
+                        $missing[$field] = ["{$def['label']} {$meta['label']} is required to enable this gateway."];
                     }
                 }
             }
@@ -70,20 +61,19 @@ class PaymentConfigController extends Controller
             }
         }
 
-        // Mode + gateway switches always apply.
+        // Mode + gateway switches (for the country's gateways) always apply.
         $config->payment_mode = $data['payment_mode'];
-        $config->bkash_enabled = $request->boolean('bkash_enabled');
-        $config->sslcommerz_enabled = $request->boolean('sslcommerz_enabled');
+        foreach ($gateways as $def) {
+            $config->{$def['enabled_field']} = $request->boolean($def['enabled_field']);
+        }
 
         // Everything else only overwrites when a value is actually supplied — a
         // blank/absent field never nulls a NOT-NULL column or wipes a stored key.
-        $optional = [
-            'invoice_prefix', 'receipt_prefix', 'bkash_fee_pct', 'sslcommerz_fee_pct',
-            'bounce_fee_amount', 'bkash_base_url', 'sslcommerz_base_url',
-            'bkash_app_key', 'bkash_app_secret', 'bkash_username', 'bkash_password',
-            'sslcommerz_store_id', 'sslcommerz_store_pass',
-        ];
-        foreach ($optional as $field) {
+        $optional = ['invoice_prefix', 'receipt_prefix', 'bkash_fee_pct', 'sslcommerz_fee_pct', 'bounce_fee_amount'];
+        foreach ($gateways as $def) {
+            $optional = array_merge($optional, array_keys($def['fields']));
+        }
+        foreach (array_unique($optional) as $field) {
             if (filled($data[$field] ?? null)) {
                 $config->{$field} = $data[$field];
             }
