@@ -70,7 +70,15 @@
                   </div>
                 @endforeach
               </div>
-              <div class="form-text mt-2">Leave a field blank to keep the stored value.</div>
+              <div class="row g-2 mt-1">
+                <div class="col-md-4">
+                  <label class="form-label small">Refund fee %</label>
+                  <input type="number" step="0.01" min="0" max="100" name="gw[{{ $key }}][fee_pct]"
+                         class="form-control" value="{{ old("gw.$key.fee_pct", $config->feePct($key) ?: '') }}"
+                         placeholder="0">
+                </div>
+              </div>
+              <div class="form-text mt-2">Leave a credential blank to keep the stored value. Refund fee % is deducted from refunds for this gateway.</div>
             </div>
           </div>
         </div>

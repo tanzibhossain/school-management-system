@@ -33,6 +33,7 @@ class PaymentConfigController extends Controller
             'bounce_fee_amount' => ['nullable', 'numeric', 'min:0'],
             'gw'                => ['array'],
             'gw.*'              => ['array'],
+            'gw.*.fee_pct'      => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
         // Enabling a gateway requires its credentials — unless already stored.
@@ -75,9 +76,11 @@ class PaymentConfigController extends Controller
                     $creds[$field] = $value;
                 }
             }
+            $feePct = $request->input("gw.{$slug}.fee_pct");
             $store[$slug] = [
                 'enabled'     => $request->boolean("gw.{$slug}.enabled"),
                 'credentials' => $creds,
+                'fee_pct'     => filled($feePct) ? (float) $feePct : ($store[$slug]['fee_pct'] ?? 0.0),
             ];
         }
         $config->gateways = $store;
