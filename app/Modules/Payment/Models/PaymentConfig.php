@@ -13,38 +13,19 @@ class PaymentConfig extends Model
         'payment_mode', 'gateways',
         'invoice_prefix', 'invoice_last_seq',
         'receipt_prefix', 'receipt_last_seq',
-        'bkash_fee_pct', 'sslcommerz_fee_pct', 'bounce_fee_amount',
-        // Legacy per-gateway columns — kept as a read fallback and for the API.
-        'bkash_enabled', 'sslcommerz_enabled',
-        'bkash_app_key', 'bkash_app_secret', 'bkash_username', 'bkash_password', 'bkash_base_url',
-        'sslcommerz_store_id', 'sslcommerz_store_pass', 'sslcommerz_base_url',
+        'bounce_fee_amount',
     ];
 
     protected $casts = [
-        // Generic gateway store: { slug: { enabled, mode, credentials: {} } }
-        'gateways'             => 'encrypted:array',
-        'bkash_enabled'        => 'boolean',
-        'sslcommerz_enabled'   => 'boolean',
-        'invoice_last_seq'     => 'integer',
-        'receipt_last_seq'     => 'integer',
-        'bkash_fee_pct'        => 'decimal:2',
-        'sslcommerz_fee_pct'   => 'decimal:2',
-        'bounce_fee_amount'    => 'decimal:2',
-        // Legacy per-gateway credentials stored encrypted
-        'bkash_app_key'        => 'encrypted',
-        'bkash_app_secret'     => 'encrypted',
-        'bkash_username'       => 'encrypted',
-        'bkash_password'       => 'encrypted',
-        'sslcommerz_store_id'  => 'encrypted',
-        'sslcommerz_store_pass' => 'encrypted',
+        // Generic gateway store: { slug: { enabled, fee_pct, credentials: {} } }
+        'gateways'          => 'encrypted:array',
+        'invoice_last_seq'  => 'integer',
+        'receipt_last_seq'  => 'integer',
+        'bounce_fee_amount' => 'decimal:2',
     ];
 
     /** @var list<string> */
-    protected $hidden = [
-        'gateways',
-        'bkash_app_key', 'bkash_app_secret', 'bkash_username', 'bkash_password',
-        'sslcommerz_store_id', 'sslcommerz_store_pass',
-    ];
+    protected $hidden = ['gateways'];
 
     /** @return BelongsTo<School, PaymentConfig> */
     public function school(): BelongsTo
@@ -66,12 +47,7 @@ class PaymentConfig extends Model
 
     public function gatewayEnabled(string $slug): bool
     {
-        $store = ($this->gateways ?? [])[$slug] ?? null;
-        if (is_array($store) && array_key_exists('enabled', $store)) {
-            return (bool) $store['enabled'];
-        }
-
-        return (bool) $this->getAttribute("{$slug}_enabled"); // legacy
+        return (bool) (($this->gateways ?? [])[$slug]['enabled'] ?? false);
     }
 
     public function gatewayMode(string $slug): ?string
@@ -79,32 +55,20 @@ class PaymentConfig extends Model
         return ($this->gateways ?? [])[$slug]['mode'] ?? null;
     }
 
-    /** A single credential value for a gateway (JSON first, then legacy column). */
+    /** A single credential value for a gateway from the generic store. */
     public function credential(string $slug, string $key): ?string
     {
         $value = ($this->gateways ?? [])[$slug]['credentials'][$key] ?? null;
-        if (filled($value)) {
-            return $value;
-        }
 
-        // Legacy column mapping is "{slug}_{key}" (e.g. bkash_app_key).
-        return $this->getAttribute("{$slug}_{$key}");
+        return filled($value) ? (string) $value : null;
     }
 
-    /**
-     * Refund processing-fee percentage for a gateway (JSON store first, then the
-     * legacy "{slug}_fee_pct" column for bKash/SSLCommerz). 0 for anything else.
-     */
+    /** Refund processing-fee percentage for a gateway (0 when unset). */
     public function feePct(string $slug): float
     {
         $stored = ($this->gateways ?? [])[$slug]['fee_pct'] ?? null;
-        if ($stored !== null && $stored !== '') {
-            return (float) $stored;
-        }
 
-        $legacy = $this->getAttribute("{$slug}_fee_pct");
-
-        return $legacy !== null ? (float) $legacy : 0.0;
+        return ($stored !== null && $stored !== '') ? (float) $stored : 0.0;
     }
 
     // ── Registry-driven availability (country) ────────────────────────────────

@@ -13,13 +13,11 @@ class PaymentNumberGeneratorService
 {
     /** Default config values for first-time generation. */
     private const DEFAULTS = [
-        'invoice_prefix'   => 'INV',
-        'invoice_last_seq' => 0,
-        'receipt_prefix'   => 'REC',
-        'receipt_last_seq' => 0,
-        'bkash_fee_pct'    => 1.50,
-        'sslcommerz_fee_pct' => 2.00,
-        'bounce_fee_amount'  => 0.00,
+        'invoice_prefix'    => 'INV',
+        'invoice_last_seq'  => 0,
+        'receipt_prefix'    => 'REC',
+        'receipt_last_seq'  => 0,
+        'bounce_fee_amount' => 0.00,
     ];
 
     public function nextInvoiceNumber(int $schoolId): string
