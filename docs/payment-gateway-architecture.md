@@ -275,15 +275,14 @@ gateway. Remaining Part 2 steps and the backlog below are not yet started.
 Tracked here so they survive beyond a working session. None are happy-path bugs;
 each is a robustness or consistency gap surfaced by the post-implementation audit.
 
-1. **Async webhooks for Stripe & PayPal.** Confirmation is currently browser-return
-   only, so an invoice will not settle if the payer completes payment but never
-   returns to the browser (e.g. closes the tab). SSLCommerz already has server-to-
-   server IPN and bKash executes synchronously on its callback — only Stripe/PayPal
-   are exposed. Add a Stripe Checkout webhook (verify the signature with the stored
-   `webhook_secret`) and a PayPal webhook, both resolving school + invoice from the
-   event metadata (`invoice_id` / `school_id` are already sent on create) and calling
-   the existing `verifyStripe` / `verifyPayPal`. Public, CSRF-exempt routes. This is
-   Part 2 migration step 5 and the highest-value item here.
+1. ~~**Async webhooks for Stripe & PayPal.**~~ **Done.** `WebhookController`
+   (`POST /payments/webhook/{stripe,paypal}`, public + CSRF-exempt) is the
+   authoritative confirmation, so an invoice settles even if the payer never returns
+   to the browser. Stripe verifies the `Stripe-Signature` HMAC against the stored
+   `webhook_secret`; PayPal verifies via the verify-webhook-signature API using a new
+   `webhook_id` credential. Both reuse the idempotent `verifyStripe` / `verifyPayPal`.
+   `verifyPayPal` now GETs the order first so the browser return and the webhook can't
+   double-capture. (SSLCommerz already had IPN; bKash captures synchronously.)
 
 2. **Unify the dual credential system.** The Blade admin uses the generic JSON
    `payment_configs.gateways` store; the JSON-API surface
