@@ -58,7 +58,8 @@ class PayPalGateway
             throw new RuntimeException('PayPal create order failed: ' . $response->body());
         }
 
-        $approve = collect($response->json('links', []))->firstWhere('rel', 'approve')['href'] ?? null;
+        $approveLink = collect($response->json('links', []))->firstWhere('rel', 'approve');
+        $approve = is_array($approveLink) ? ($approveLink['href'] ?? null) : null;
         if (! $approve) {
             throw new RuntimeException('PayPal approve link missing from order response.');
         }

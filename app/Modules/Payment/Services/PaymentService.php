@@ -281,9 +281,9 @@ class PaymentService
             throw new RuntimeException('PayPal payment not completed.');
         }
 
-        $unit    = $result['purchase_units'][0] ?? [];
-        $capture = $unit['payments']['captures'][0] ?? [];
-        $captureId = $capture['id'] ?? null;
+        $unit      = data_get($result, 'purchase_units.0', []);
+        $capture   = data_get($unit, 'payments.captures.0', []);
+        $captureId = data_get($capture, 'id');
 
         if (! $captureId) {
             throw new RuntimeException('PayPal capture id missing from response.');
@@ -292,12 +292,12 @@ class PaymentService
         $invoice = Invoice::findOrFail($invoiceId);
 
         // Prevent replay — the order must reference this invoice.
-        $customId = $unit['custom_id'] ?? ($capture['custom_id'] ?? '');
+        $customId = data_get($unit, 'custom_id') ?? data_get($capture, 'custom_id', '');
         if ($customId !== $invoice->invoice_number) {
             throw new RuntimeException('PayPal order does not match invoice.');
         }
 
-        $paid = (float) ($capture['amount']['value'] ?? 0);
+        $paid = (float) data_get($capture, 'amount.value', 0);
         if ($paid < $invoice->remainingAmount()) {
             throw new RuntimeException('PayPal amount is less than invoice remaining amount.');
         }
