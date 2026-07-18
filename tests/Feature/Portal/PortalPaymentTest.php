@@ -89,4 +89,26 @@ class PortalPaymentTest extends TestCase
             ->assertRedirect(route('portal.fees'))
             ->assertSessionHas('error');
     }
+
+    public function test_stripe_not_offered_for_a_bd_school(): void
+    {
+        // Stripe is a default (non-BD) gateway, so a BD school can never enable it.
+        PaymentConfig::create([
+            'school_id' => $this->school->id, 'payment_mode' => 'online',
+            'gateways' => ['stripe' => ['enabled' => true, 'credentials' => ['secret_key' => 'sk_test']]],
+        ]);
+
+        $this->actingAs($this->familyUser());
+        $this->post('/portal/pay/initiate', ['invoice_id' => 1, 'gateway' => 'stripe'])
+            ->assertRedirect()
+            ->assertSessionHas('error');
+    }
+
+    public function test_stripe_return_without_session_is_treated_as_cancel(): void
+    {
+        // Public GET return with no session_id — cancelled, no gateway call.
+        $this->get('/portal/pay/stripe/return')
+            ->assertRedirect(route('portal.fees'))
+            ->assertSessionHas('error');
+    }
 }
