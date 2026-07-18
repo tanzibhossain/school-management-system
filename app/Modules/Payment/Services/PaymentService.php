@@ -6,6 +6,7 @@ use App\Modules\Payment\Events\InvoicePaid;
 use App\Modules\Payment\Events\OverpaymentCredited;
 use App\Modules\Payment\Events\PaymentRecorded;
 use App\Modules\Payment\Gateways\BkashGateway;
+use App\Modules\Payment\Gateways\PayPalGateway;
 use App\Modules\Payment\Gateways\SslcommerzGateway;
 use App\Modules\Payment\Gateways\StripeGateway;
 use App\Modules\Payment\Models\Invoice;
@@ -228,6 +229,103 @@ class PaymentService
 
             $this->updateInvoiceAfterPayment($invoice, $payment);
             Cache::forget("stripe_session:{$sessionId}");
+            event(new PaymentRecorded($payment));
+
+            return $payment->load('invoice');
+        });
+    }
+
+    // ── PayPal gateway (Orders v2) ───────────────────────────────────────────
+
+    /**
+     * Create a PayPal order and return the payer-approval URL.
+     *
+     * @return array{ approveUrl: string, orderId: string }
+     */
+    public function initiatePayPal(Invoice $invoice, string $returnUrl, string $cancelUrl): array
+    {
+        $this->assertGatewaySupportsCurrency($invoice, PayPalGateway::SUPPORTED_CURRENCIES, 'PayPal');
+
+        $config  = $this->requireConfig($invoice->school_id);
+        $gateway = new PayPalGateway($config);
+
+        $order = $gateway->createOrder(
+            $invoice->invoice_number,
+            $invoice->remainingAmount(),
+            $invoice->currency,
+            $returnUrl,
+            $cancelUrl,
+        );
+
+        // Map the order back to school + invoice for the browser return.
+        Cache::put(
+            "paypal_order:{$order['id']}",
+            ['school_id' => $invoice->school_id, 'invoice_id' => $invoice->id],
+            now()->addHour(),
+        );
+
+        return ['approveUrl' => $order['approveUrl'], 'orderId' => $order['id']];
+    }
+
+    /**
+     * Capture an approved PayPal order and record the payment.
+     * invoiceId and schoolId are resolved from cache by the return controller.
+     */
+    public function verifyPayPal(string $orderId, int $invoiceId, int $schoolId): Payment
+    {
+        $config  = $this->requireConfig($schoolId);
+        $gateway = new PayPalGateway($config);
+        $result  = $gateway->captureOrder($orderId);
+
+        if (($result['status'] ?? '') !== 'COMPLETED') {
+            throw new RuntimeException('PayPal payment not completed.');
+        }
+
+        $unit    = $result['purchase_units'][0] ?? [];
+        $capture = $unit['payments']['captures'][0] ?? [];
+        $captureId = $capture['id'] ?? null;
+
+        if (! $captureId) {
+            throw new RuntimeException('PayPal capture id missing from response.');
+        }
+
+        $invoice = Invoice::findOrFail($invoiceId);
+
+        // Prevent replay — the order must reference this invoice.
+        $customId = $unit['custom_id'] ?? ($capture['custom_id'] ?? '');
+        if ($customId !== $invoice->invoice_number) {
+            throw new RuntimeException('PayPal order does not match invoice.');
+        }
+
+        $paid = (float) ($capture['amount']['value'] ?? 0);
+        if ($paid < $invoice->remainingAmount()) {
+            throw new RuntimeException('PayPal amount is less than invoice remaining amount.');
+        }
+
+        if ($existing = Payment::where('transaction_ref', $captureId)->first()) {
+            return $existing;
+        }
+
+        return DB::transaction(function () use ($invoice, $paid, $captureId, $orderId, $schoolId): Payment {
+            $receiptNumber = $this->numberGenerator->nextReceiptNumber($schoolId);
+
+            $payment = Payment::create([
+                'school_id'          => $schoolId,
+                'receipt_number'     => $receiptNumber,
+                'invoice_id'         => $invoice->id,
+                'student_id'         => $invoice->student_id,
+                'amount'             => $paid,
+                'currency'           => $invoice->currency,
+                'method'             => 'paypal',
+                'transaction_ref'    => $captureId,     // capture id — used for refunds
+                'gateway_payment_id' => $captureId,
+                'gateway_status'     => 'success',
+                'collected_by'       => $invoice->issued_by,
+                'paid_at'            => now(),
+            ]);
+
+            $this->updateInvoiceAfterPayment($invoice, $payment);
+            Cache::forget("paypal_order:{$orderId}");
             event(new PaymentRecorded($payment));
 
             return $payment->load('invoice');
