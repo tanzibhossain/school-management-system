@@ -111,4 +111,28 @@ class PortalPaymentTest extends TestCase
             ->assertRedirect(route('portal.fees'))
             ->assertSessionHas('error');
     }
+
+    public function test_paypal_not_offered_for_a_bd_school(): void
+    {
+        // PayPal is a default (non-BD) gateway, so a BD school can never enable it.
+        PaymentConfig::create([
+            'school_id' => $this->school->id, 'payment_mode' => 'online',
+            'gateways' => ['paypal' => ['enabled' => true, 'credentials' => [
+                'client_id' => 'cid', 'client_secret' => 'csec',
+            ]]],
+        ]);
+
+        $this->actingAs($this->familyUser());
+        $this->post('/portal/pay/initiate', ['invoice_id' => 1, 'gateway' => 'paypal'])
+            ->assertRedirect()
+            ->assertSessionHas('error');
+    }
+
+    public function test_paypal_return_cancel_redirects_with_error(): void
+    {
+        // Public GET return with ?cancel=1 — cancelled, no gateway call.
+        $this->get('/portal/pay/paypal/return?cancel=1')
+            ->assertRedirect(route('portal.fees'))
+            ->assertSessionHas('error');
+    }
 }
