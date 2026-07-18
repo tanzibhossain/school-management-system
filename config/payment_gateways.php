@@ -67,6 +67,7 @@ return [
                 'client_id'     => ['label' => 'Client ID', 'secret' => false, 'required' => true],
                 'client_secret' => ['label' => 'Client secret', 'secret' => true, 'required' => true],
                 'mode'          => ['label' => 'Mode (sandbox / live)', 'secret' => false, 'required' => false],
+                'webhook_id'    => ['label' => 'Webhook ID', 'secret' => false, 'required' => false],
             ],
         ],
     ],

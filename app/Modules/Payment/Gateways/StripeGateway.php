@@ -108,6 +108,45 @@ class StripeGateway
         return $response->json();
     }
 
+    /**
+     * Verify a Stripe webhook signature (HMAC-SHA256 over "{t}.{payload}") against
+     * the stored signing secret. No SDK — implements the documented scheme.
+     */
+    public function verifyWebhookSignature(string $payload, ?string $sigHeader, int $toleranceSeconds = 300): bool
+    {
+        $secret = $this->config->credential('stripe', 'webhook_secret');
+        if (! filled($secret) || ! filled($sigHeader)) {
+            return false;
+        }
+
+        $parts = [];
+        foreach (explode(',', $sigHeader) as $piece) {
+            [$k, $v] = array_pad(explode('=', trim($piece), 2), 2, null);
+            $parts[$k][] = $v;
+        }
+
+        $timestamp = $parts['t'][0] ?? null;
+        $signatures = $parts['v1'] ?? [];
+        if (! $timestamp || ! $signatures) {
+            return false;
+        }
+
+        // Reject stale timestamps (replay protection).
+        if (abs(time() - (int) $timestamp) > $toleranceSeconds) {
+            return false;
+        }
+
+        $expected = hash_hmac('sha256', $timestamp . '.' . $payload, $secret);
+
+        foreach ($signatures as $candidate) {
+            if (is_string($candidate) && hash_equals($expected, $candidate)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /** Convert a minor-unit amount (from Stripe) back to a major-unit decimal. */
     public function toMajorUnits(int $minor, string $currency): float
     {

@@ -268,20 +268,25 @@ class PaymentService
     }
 
     /**
-     * Capture an approved PayPal order and record the payment.
-     * invoiceId and schoolId are resolved from cache by the return controller.
+     * Capture an approved PayPal order and record the payment. Resolves the order
+     * state first so the browser return and the webhook can both call this safely
+     * (whichever arrives first captures; the other records idempotently).
      */
     public function verifyPayPal(string $orderId, int $invoiceId, int $schoolId): Payment
     {
         $config  = $this->requireConfig($schoolId);
         $gateway = new PayPalGateway($config);
-        $result  = $gateway->captureOrder($orderId);
 
-        if (($result['status'] ?? '') !== 'COMPLETED') {
-            throw new RuntimeException('PayPal payment not completed.');
+        $order  = $gateway->getOrder($orderId);
+        $status = $order['status'] ?? '';
+
+        if ($status === 'APPROVED') {
+            $order = $gateway->captureOrder($orderId);   // not yet captured — do it now
+        } elseif ($status !== 'COMPLETED') {
+            throw new RuntimeException("PayPal order is not ready to capture (status: {$status}).");
         }
 
-        $unit      = data_get($result, 'purchase_units.0', []);
+        $unit      = data_get($order, 'purchase_units.0', []);
         $capture   = data_get($unit, 'payments.captures.0', []);
         $captureId = data_get($capture, 'id');
 

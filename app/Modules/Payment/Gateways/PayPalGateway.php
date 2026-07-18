@@ -87,6 +87,56 @@ class PayPalGateway
     }
 
     /**
+     * Fetch an order's current state (used to decide capture vs. already-captured).
+     *
+     * @return array<string, mixed>
+     */
+    public function getOrder(string $orderId): array
+    {
+        $response = Http::withToken($this->accessToken())->acceptJson()
+            ->get($this->url("/v2/checkout/orders/{$orderId}"));
+
+        $this->log(null, 'get_order', ['id' => $orderId], $response->json(), $response->status());
+
+        if (! $response->successful()) {
+            throw new RuntimeException('PayPal get order failed: ' . $response->body());
+        }
+
+        return $response->json();
+    }
+
+    /**
+     * Verify a webhook notification via PayPal's verify-webhook-signature API.
+     *
+     * @param  array<string, ?string>  $headers  transmission headers (lower-cased keys)
+     * @param  array<string, mixed>  $event  the raw event body
+     */
+    public function verifyWebhookSignature(array $headers, array $event): bool
+    {
+        $webhookId = $this->config->credential('paypal', 'webhook_id');
+        if (! filled($webhookId)) {
+            return false;
+        }
+
+        $payload = [
+            'auth_algo'         => $headers['paypal-auth-algo'] ?? null,
+            'cert_url'          => $headers['paypal-cert-url'] ?? null,
+            'transmission_id'   => $headers['paypal-transmission-id'] ?? null,
+            'transmission_sig'  => $headers['paypal-transmission-sig'] ?? null,
+            'transmission_time' => $headers['paypal-transmission-time'] ?? null,
+            'webhook_id'        => $webhookId,
+            'webhook_event'     => $event,
+        ];
+
+        $response = Http::withToken($this->accessToken())->acceptJson()
+            ->post($this->url('/v1/notifications/verify-webhook-signature'), $payload);
+
+        $this->log(null, 'verify_webhook', ['transmission_id' => $payload['transmission_id']], $response->json(), $response->status());
+
+        return ($response->json('verification_status') ?? '') === 'SUCCESS';
+    }
+
+    /**
      * Refund a captured payment (full or partial).
      *
      * @return array<string, mixed>
