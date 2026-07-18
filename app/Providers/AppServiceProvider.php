@@ -223,6 +223,10 @@ class AppServiceProvider extends ServiceProvider
             $view->with('ticker', $school
                 ? app(\App\Modules\Website\Services\PublicPortalService::class)->notices($school->id)->take(8)
                 : collect());
+            $view->with('navMenu', $school
+                ? \App\Modules\Website\Models\Menu::forSchool($school->id)
+                    ->with(['items.children.page', 'items.page'])->first()
+                : null);
         });
 
         // Staff/family portal shells — share the unread message count for the

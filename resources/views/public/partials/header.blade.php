@@ -85,32 +85,29 @@
                 class="navbar-toggler-icon"></span></button>
         <div class="collapse navbar-collapse" id="pubnav">
             <ul class="navbar-nav me-auto">
-                <li class="nav-item"><a class="nav-link" href="{{ route('home') }}">Home</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">About</a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ url('/history') }}">Short history</a></li>
-                        <li><a class="dropdown-item" href="{{ url('/about') }}">At a glance</a></li>
-                        <li><a class="dropdown-item" href="{{ url('/mission') }}">Mission &amp; vision</a></li>
-                        <li><a class="dropdown-item" href="{{ url('/administration') }}">Administration</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Staff</a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ url('/faculty') }}">All staff</a></li>
-                        <li><a class="dropdown-item" href="{{ url('/teachers') }}">Teachers</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="{{ url('/online-admission') }}">Online admission</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Gallery</a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ url('/gallery') }}">Photo gallery</a></li>
-                        <li><a class="dropdown-item" href="{{ url('/video') }}">Video gallery</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item"><a class="nav-link" href="{{ url('/contact') }}">Contact</a></li>
+                @if(($navMenu ?? null) && $navMenu->items->isNotEmpty())
+                    @foreach($navMenu->items as $item)
+                        @if($item->children->isNotEmpty())
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">{{ $item->label }}</a>
+                                <ul class="dropdown-menu">
+                                    @foreach($item->children as $child)
+                                        <li><a class="dropdown-item" href="{{ $child->resolvedUrl() }}" target="{{ $child->target }}">{{ $child->label }}</a></li>
+                                    @endforeach
+                                </ul>
+                            </li>
+                        @else
+                            <li class="nav-item"><a class="nav-link" href="{{ $item->resolvedUrl() }}" target="{{ $item->target }}">{{ $item->label }}</a></li>
+                        @endif
+                    @endforeach
+                @else
+                    {{-- Fallback nav when no menu has been built yet --}}
+                    <li class="nav-item"><a class="nav-link" href="{{ route('home') }}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url('/faculty') }}">Faculty</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url('/online-admission') }}">Online admission</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url('/notices') }}">Notices</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url('/contact') }}">Contact</a></li>
+                @endif
             </ul>
             <a class="btn btn-light btn-sm px-3" href="{{ route('login') }}"><i class="bi bi-box-arrow-in-right"></i>
                 Login</a>
