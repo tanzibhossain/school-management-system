@@ -5,8 +5,6 @@ namespace App\Modules\Payment\Services;
 use App\Modules\Payment\Events\RefundCompleted;
 use App\Modules\Payment\Events\RefundFailed;
 use App\Modules\Payment\Events\RefundRequested;
-use App\Modules\Payment\Gateways\BkashGateway;
-use App\Modules\Payment\Gateways\SslcommerzGateway;
 use App\Modules\Payment\Models\Payment;
 use App\Modules\Payment\Models\PaymentConfig;
 use App\Modules\Payment\Models\Refund;
@@ -15,6 +13,11 @@ use RuntimeException;
 
 class RefundService
 {
+    /** Gateways whose refunds are initiated automatically via an API call. */
+    private const GATEWAY_METHODS = ['bkash', 'sslcommerz', 'stripe', 'paypal'];
+
+    public function __construct(private readonly PaymentGatewayManager $manager) {}
+
     /**
      * Request a refund for a payment.
      * For gateway payments, immediately initiates the gateway refund API call.
@@ -26,7 +29,7 @@ class RefundService
             throw new RuntimeException('Cannot refund a reversed payment.');
         }
 
-        if (in_array($payment->method, ['bkash', 'sslcommerz']) && $payment->gateway_status !== 'success') {
+        if (in_array($payment->method, self::GATEWAY_METHODS, true) && $payment->gateway_status !== 'success') {
             throw new RuntimeException('Gateway payment must be successful before refund.');
         }
 
@@ -54,11 +57,13 @@ class RefundService
             event(new RefundRequested($refund));
 
             // Initiate gateway refund immediately
-            if ($payment->method === 'bkash') {
-                $this->initiateBkashRefund($refund, $payment, $config);
-            } elseif ($payment->method === 'sslcommerz') {
-                $this->initiateSslcommerzRefund($refund, $payment, $config);
-            }
+            match ($payment->method) {
+                'bkash'      => $this->initiateBkashRefund($refund, $payment, $config),
+                'sslcommerz' => $this->initiateSslcommerzRefund($refund, $payment, $config),
+                'stripe'     => $this->initiateStripeRefund($refund, $payment, $config),
+                'paypal'     => $this->initiatePayPalRefund($refund, $payment, $config),
+                default      => null, // cash/bank/cheque — admin processes manually
+            };
 
             return $refund->fresh();
         });
@@ -97,7 +102,7 @@ class RefundService
         return match ($method) {
             'bkash'       => round($amount * ((float) $config->bkash_fee_pct / 100), 2),
             'sslcommerz'  => round($amount * ((float) $config->sslcommerz_fee_pct / 100), 2),
-            default       => 0.0,
+            default       => 0.0, // Stripe/PayPal fees are not deducted from refunds here
         };
     }
 
@@ -108,7 +113,7 @@ class RefundService
         }
 
         try {
-            $gateway = new BkashGateway($config);
+            $gateway = $this->manager->driver('bkash', $config);
             $token   = $gateway->grantToken();
             $result  = $gateway->refund(
                 $token,
@@ -136,7 +141,7 @@ class RefundService
         }
 
         try {
-            $gateway = new SslcommerzGateway($config);
+            $gateway = $this->manager->driver('sslcommerz', $config);
             $result  = $gateway->refund(
                 $payment->gateway_payment_id,  // SSLCommerz bank_tran_id (from validation)
                 $refund->amount,
@@ -146,6 +151,66 @@ class RefundService
 
             $status = ($result['APIConnect'] ?? '') === 'DONE' ? 'processing' : 'failed';
             $refund->update(['status' => $status]);
+        } catch (\Throwable $e) {
+            $refund->update(['status' => 'failed']);
+        }
+    }
+
+    private function initiateStripeRefund(Refund $refund, Payment $payment, ?PaymentConfig $config): void
+    {
+        if (! $config) {
+            return;
+        }
+
+        try {
+            $gateway = $this->manager->driver('stripe', $config);
+            $result  = $gateway->refund(
+                $payment->gateway_payment_id,  // Stripe PaymentIntent id
+                $refund->amount,
+                $payment->currency,
+            );
+
+            // Stripe refund status: succeeded | pending | requires_action | failed | canceled
+            $status = match ($result['status'] ?? '') {
+                'succeeded'                  => 'completed',
+                'pending', 'requires_action' => 'processing',
+                default                      => 'failed',
+            };
+            $refund->update([
+                'status'       => $status,
+                'gateway_ref'  => $result['id'] ?? null,
+                'processed_at' => $status === 'completed' ? now() : null,
+            ]);
+        } catch (\Throwable $e) {
+            $refund->update(['status' => 'failed']);
+        }
+    }
+
+    private function initiatePayPalRefund(Refund $refund, Payment $payment, ?PaymentConfig $config): void
+    {
+        if (! $config) {
+            return;
+        }
+
+        try {
+            $gateway = $this->manager->driver('paypal', $config);
+            $result  = $gateway->refund(
+                $payment->gateway_payment_id,  // PayPal capture id
+                $refund->amount,
+                $payment->currency,
+            );
+
+            // PayPal refund status: COMPLETED | PENDING | FAILED
+            $status = match ($result['status'] ?? '') {
+                'COMPLETED' => 'completed',
+                'PENDING'   => 'processing',
+                default     => 'failed',
+            };
+            $refund->update([
+                'status'       => $status,
+                'gateway_ref'  => $result['id'] ?? null,
+                'processed_at' => $status === 'completed' ? now() : null,
+            ]);
         } catch (\Throwable $e) {
             $refund->update(['status' => 'failed']);
         }
