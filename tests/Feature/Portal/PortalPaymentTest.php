@@ -65,4 +65,28 @@ class PortalPaymentTest extends TestCase
             ->assertRedirect()
             ->assertSessionHas('error');
     }
+
+    public function test_sslcommerz_initiate_blocked_when_gateway_not_enabled(): void
+    {
+        // Online + only bKash configured — SSLCommerz is not an enabled gateway.
+        PaymentConfig::create([
+            'school_id' => $this->school->id, 'payment_mode' => 'online',
+            'gateways' => ['bkash' => ['enabled' => true, 'credentials' => [
+                'app_key' => 'k', 'app_secret' => 's', 'username' => 'u', 'password' => 'p',
+            ]]],
+        ]);
+
+        $this->actingAs($this->familyUser());
+        $this->post('/portal/pay/initiate', ['invoice_id' => 1, 'gateway' => 'sslcommerz'])
+            ->assertRedirect()
+            ->assertSessionHas('error');
+    }
+
+    public function test_sslcommerz_return_fail_redirects_to_fees_with_error(): void
+    {
+        // Public browser-return route — no auth, no gateway call for a failure.
+        $this->post('/portal/pay/sslcommerz/fail', ['status' => 'FAILED'])
+            ->assertRedirect(route('portal.fees'))
+            ->assertSessionHas('error');
+    }
 }
