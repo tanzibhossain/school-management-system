@@ -86,7 +86,7 @@ class DashboardController extends Controller
             'invoices'    => Invoice::where('school_id', app('current_school_id'))
                 ->where('student_id', $ctx['student']->id)->orderByDesc('due_date')->paginate(20),
             'outstanding' => $this->outstanding($ctx['student']),
-            'bkashEnabled' => collect($config->enabledGateways())->contains(fn ($g) => $g['key'] === 'bkash'),
+            'payGateways' => $config->enabledGateways(), // [{key,label,icon}] ready for checkout
         ]);
     }
 

@@ -36,13 +36,17 @@
               <td class="text-end">{{ number_format($inv->amount_paid) }}</td>
               <td class="text-center"><span class="badge {{ $badge }}">{{ ucfirst($inv->status) }}</span></td>
               <td class="text-end">
-                @if($payable && $bkashEnabled)
-                  <form method="POST" action="{{ route('portal.pay.initiate', ['student' => $student->id]) }}" onsubmit="return confirm('Pay {{ number_format($balance) }} for {{ $inv->invoice_number }} with bKash?')">
-                    @csrf
-                    <input type="hidden" name="invoice_id" value="{{ $inv->id }}">
-                    <input type="hidden" name="gateway" value="bkash">
-                    <button class="btn btn-sm btn-outline-primary"><i class="bi bi-phone"></i> bKash</button>
-                  </form>
+                @if($payable && count($payGateways))
+                  <div class="d-flex gap-1 justify-content-end flex-wrap">
+                    @foreach($payGateways as $gw)
+                      <form method="POST" action="{{ route('portal.pay.initiate', ['student' => $student->id]) }}" onsubmit="return confirm('Pay {{ number_format($balance) }} for {{ $inv->invoice_number }} with {{ $gw['label'] }}?')">
+                        @csrf
+                        <input type="hidden" name="invoice_id" value="{{ $inv->id }}">
+                        <input type="hidden" name="gateway" value="{{ $gw['key'] }}">
+                        <button class="btn btn-sm btn-outline-primary"><i class="bi {{ $gw['icon'] }}"></i> {{ $gw['label'] }}</button>
+                      </form>
+                    @endforeach
+                  </div>
                 @elseif($payable)
                   <span class="text-muted small">At office</span>
                 @else — @endif
