@@ -74,7 +74,10 @@
             ['label' => 'Staff leave', 'href' => route('admin.staff-leave.index'), 'active' => request()->routeIs('admin.staff-leave.*')],
             ['label' => 'Staff loans', 'href' => route('admin.staff-loans.index'), 'active' => request()->routeIs('admin.staff-loans.*')],
         ]];
-        $navTree[] = ['label' => 'Website', 'icon' => 'bi-window', 'href' => route('admin.pages.index'), 'active' => request()->routeIs('admin.pages.*')];
+        $navTree[] = ['label' => 'Website', 'icon' => 'bi-window', 'children' => [
+            ['label' => 'Pages', 'href' => route('admin.pages.index'), 'active' => request()->routeIs('admin.pages.*')],
+            ['label' => 'Menus', 'href' => route('admin.menus.index'), 'active' => request()->routeIs('admin.menus.*')],
+        ]];
     }
 
     if ($isAdmin && $enabledModules) {

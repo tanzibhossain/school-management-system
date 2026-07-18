@@ -238,6 +238,10 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::post('/pages/{id}/homepage', [WebsitePageController::class, 'setHomepage'])->whereNumber('id')->name('pages.homepage');
         Route::delete('/pages/{id}', [WebsitePageController::class, 'destroy'])->whereNumber('id')->name('pages.destroy');
 
+        // Navigation menu editor
+        Route::get('/menus', [\App\Http\Controllers\Admin\Website\MenuController::class, 'edit'])->name('menus.index');
+        Route::put('/menus', [\App\Http\Controllers\Admin\Website\MenuController::class, 'save'])->name('menus.save');
+
         Route::get('/academic-years', [AcademicYearController::class, 'index'])->name('academic-years.index');
         Route::post('/academic-years', [AcademicYearController::class, 'store'])->name('academic-years.store');
         Route::put('/academic-years/{id}', [AcademicYearController::class, 'update'])->name('academic-years.update');

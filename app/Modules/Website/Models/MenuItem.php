@@ -58,4 +58,17 @@ class MenuItem extends Model
     {
         return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order');
     }
+
+    /** Public-facing href for this item (homepage collapses to "/"). */
+    public function resolvedUrl(): string
+    {
+        return match ($this->type) {
+            'page'    => $this->page
+                ? ($this->page->is_homepage ? url('/') : url('/' . ltrim($this->page->slug, '/')))
+                : '#',
+            'external' => $this->url ?: '#',
+            'dynamic'  => $this->dynamic_route ?: '#',
+            default    => '#', // dropdown header
+        };
+    }
 }
