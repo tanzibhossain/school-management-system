@@ -290,14 +290,15 @@ each is a robustness or consistency gap surfaced by the post-implementation audi
    gateway, and never serializes credentials — matching the Blade admin. Both are now
    single-source on the JSON store.
 
-   *Remaining (contract phase — destructive, deferred):* drop the legacy
-   `bkash_*` / `sslcommerz_*` / `*_enabled` / `*_fee_pct` columns from
-   `payment_configs` after (a) a data-migration backfilling any legacy values into the
-   JSON store, (b) removing the legacy fallbacks in `PaymentConfig::credential/
-   gatewayEnabled/feePct` and the model's fillable/casts/hidden, and (c) updating the
-   `bkash_fee_pct`/`sslcommerz_fee_pct` defaults in `PaymentNumberGeneratorService`.
-   Also remove the **orphaned `SchoolPaymentSetting` model + `school_payment_settings`
-   table** (a third, unreferenced credential store — dead code).
+   *Contract phase (done).* A backfill-then-drop migration moves any legacy
+   `bkash_*` / `sslcommerz_*` values into the `gateways` JSON store (raw DB + Crypt,
+   model-independent) and drops the 12 legacy columns
+   (`*_enabled` / credentials / `*_fee_pct`). The legacy fallbacks in
+   `PaymentConfig::credential/gatewayEnabled/feePct` and the model's
+   fillable/casts/hidden are gone, `PaymentNumberGeneratorService` no longer seeds
+   legacy fee defaults, and the orphaned `SchoolPaymentSetting` model +
+   `school_payment_settings` table are deleted. The `gateways` JSON store is now the
+   sole credential source; adding a gateway remains one driver + one config entry.
 
 3. ~~**Stripe/PayPal refund processing fees.**~~ **Done.** A per-gateway `fee_pct`
    now lives in the generic JSON store (`gateways[slug].fee_pct`, editable per gateway
