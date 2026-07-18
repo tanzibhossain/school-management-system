@@ -10,19 +10,32 @@ class PaymentConfigResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        // One generic shape per gateway available to the school's country.
+        // Credentials are never exposed — only whether each required field is set.
+        $gateways = [];
+        foreach ($this->availableGatewayDefs() as $slug => $def) {
+            $configured = collect($def['fields'])
+                ->filter(fn ($meta) => ! empty($meta['required']))
+                ->keys()
+                ->every(fn ($field) => filled($this->credential($slug, $field)));
+
+            $gateways[$slug] = [
+                'label'      => $def['label'],
+                'enabled'    => $this->gatewayEnabled($slug),
+                'configured' => $configured,
+                'fee_pct'    => $this->feePct($slug),
+                'currencies' => $def['currencies'],
+            ];
+        }
+
         return [
-            'invoice_prefix'      => $this->invoice_prefix,
-            'invoice_last_seq'    => $this->invoice_last_seq,
-            'receipt_prefix'      => $this->receipt_prefix,
-            'receipt_last_seq'    => $this->receipt_last_seq,
-            'bkash_fee_pct'       => $this->bkash_fee_pct,
-            'sslcommerz_fee_pct'  => $this->sslcommerz_fee_pct,
-            'bounce_fee_amount'   => $this->bounce_fee_amount,
-            // Gateway URLs only — credentials never exposed
-            'bkash_configured'    => ! empty($this->bkash_app_key),
-            'bkash_base_url'      => $this->bkash_base_url,
-            'sslcommerz_configured' => ! empty($this->sslcommerz_store_id),
-            'sslcommerz_base_url' => $this->sslcommerz_base_url,
+            'payment_mode'      => $this->payment_mode,
+            'invoice_prefix'    => $this->invoice_prefix,
+            'invoice_last_seq'  => $this->invoice_last_seq,
+            'receipt_prefix'    => $this->receipt_prefix,
+            'receipt_last_seq'  => $this->receipt_last_seq,
+            'bounce_fee_amount' => $this->bounce_fee_amount,
+            'gateways'          => $gateways,
         ];
     }
 }
