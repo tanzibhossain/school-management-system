@@ -27,7 +27,7 @@ class PaymentController extends Controller
         $sid = app('current_school_id');
         $data = $request->validate([
             'invoice_id' => ['required', 'integer'],
-            'gateway'    => ['required', 'in:bkash,sslcommerz,stripe'],
+            'gateway'    => ['required', 'in:bkash,sslcommerz,stripe,paypal'],
         ]);
 
         $config = PaymentConfig::firstOrCreate(['school_id' => $sid]);
@@ -48,6 +48,16 @@ class PaymentController extends Controller
         }
 
         try {
+            if ($data['gateway'] === 'paypal') {
+                $result = $service->initiatePayPal(
+                    $invoice,
+                    route('portal.pay.paypal.return'),
+                    route('portal.pay.paypal.return', ['cancel' => 1]),
+                );
+
+                return redirect()->away($result['approveUrl']);
+            }
+
             if ($data['gateway'] === 'stripe') {
                 $result = $service->initiateStripe(
                     $invoice,
@@ -77,6 +87,38 @@ class PaymentController extends Controller
             report($e);
 
             return back()->with('error', 'Could not start the online payment. Please try again, or pay at the office.');
+        }
+    }
+
+    /**
+     * PayPal returns the browser here (public GET). On approval PayPal appends
+     * ?token={ORDER_ID}; the cancel_url carries ?cancel=1.
+     */
+    public function paypalReturn(Request $request, PaymentService $service): RedirectResponse
+    {
+        if ($request->boolean('cancel')) {
+            return redirect()->route('portal.fees')->with('error', 'Payment was cancelled.');
+        }
+
+        $orderId = $request->query('token');
+        if (! $orderId) {
+            return redirect()->route('portal.fees')->with('error', 'Payment could not be verified.');
+        }
+
+        $cached = Cache::get("paypal_order:{$orderId}");
+        if (! $cached) {
+            return redirect()->route('portal.fees')->with('error', 'Payment session expired — please try again.');
+        }
+
+        try {
+            $service->verifyPayPal($orderId, $cached['invoice_id'], $cached['school_id']);
+
+            return redirect()->route('portal.fees')->with('status', 'Payment successful — thank you!');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->route('portal.fees')
+                ->with('error', 'We could not confirm your payment. If your account was charged, please contact the office.');
         }
     }
 

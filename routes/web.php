@@ -146,6 +146,11 @@ Route::get('/portal/pay/bkash/callback', [\App\Http\Controllers\Portal\PaymentCo
 Route::get('/portal/pay/stripe/return', [\App\Http\Controllers\Portal\PaymentController::class, 'stripeReturn'])
     ->name('portal.pay.stripe.return');
 
+// PayPal redirects the browser back here (GET). Approval carries ?token={ORDER_ID};
+// cancel carries ?cancel=1. Public — the invoice is resolved from the cached order.
+Route::get('/portal/pay/paypal/return', [\App\Http\Controllers\Portal\PaymentController::class, 'paypalReturn'])
+    ->name('portal.pay.paypal.return');
+
 // SSLCommerz POSTs the browser back here (success/fail/cancel). CSRF-exempt (see
 // bootstrap/app.php) and public — the invoice is resolved from tran_id.
 Route::match(['get', 'post'], '/portal/pay/sslcommerz/{result}', [\App\Http\Controllers\Portal\PaymentController::class, 'sslcommerzReturn'])

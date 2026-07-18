@@ -61,7 +61,7 @@ return [
             'label'       => 'PayPal',
             'icon'        => 'bi-paypal',
             'currencies'  => ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'JPY', 'NZD'],
-            'implemented' => false,
+            'implemented' => true,
             'fields'      => [
                 'client_id'     => ['label' => 'Client ID', 'secret' => false, 'required' => true],
                 'client_secret' => ['label' => 'Client secret', 'secret' => true, 'required' => true],
