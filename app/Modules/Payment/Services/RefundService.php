@@ -99,11 +99,9 @@ class RefundService
             return 0.0;
         }
 
-        return match ($method) {
-            'bkash'       => round($amount * ((float) $config->bkash_fee_pct / 100), 2),
-            'sslcommerz'  => round($amount * ((float) $config->sslcommerz_fee_pct / 100), 2),
-            default       => 0.0, // Stripe/PayPal fees are not deducted from refunds here
-        };
+        // Uniform across gateways — the per-gateway rate lives in the config
+        // (generic JSON store, with a legacy-column fallback for bKash/SSLCommerz).
+        return round($amount * $config->feePct($method) / 100, 2);
     }
 
     private function initiateBkashRefund(Refund $refund, Payment $payment, ?PaymentConfig $config): void

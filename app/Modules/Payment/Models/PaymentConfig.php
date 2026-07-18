@@ -91,6 +91,22 @@ class PaymentConfig extends Model
         return $this->getAttribute("{$slug}_{$key}");
     }
 
+    /**
+     * Refund processing-fee percentage for a gateway (JSON store first, then the
+     * legacy "{slug}_fee_pct" column for bKash/SSLCommerz). 0 for anything else.
+     */
+    public function feePct(string $slug): float
+    {
+        $stored = ($this->gateways ?? [])[$slug]['fee_pct'] ?? null;
+        if ($stored !== null && $stored !== '') {
+            return (float) $stored;
+        }
+
+        $legacy = $this->getAttribute("{$slug}_fee_pct");
+
+        return $legacy !== null ? (float) $legacy : 0.0;
+    }
+
     // ── Registry-driven availability (country) ────────────────────────────────
 
     /** Gateway keys a school in the given country may use. */
