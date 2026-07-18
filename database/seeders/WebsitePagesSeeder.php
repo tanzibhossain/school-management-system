@@ -70,8 +70,9 @@ class WebsitePagesSeeder extends Seeder
         ]);
 
         // ── Staff pages ─────────────────────────────────────────────────────
-        $this->page($sid, 'staff', 'All Staff', 'full', [
-            ['type' => 'staff', 'data' => ['heading' => 'All staff']],
+        // Public listing lives at /faculty — /staff is the authenticated staff portal.
+        $this->page($sid, 'faculty', 'Faculty & Staff', 'full', [
+            ['type' => 'staff', 'data' => ['heading' => 'Our faculty & staff']],
         ]);
         $this->page($sid, 'teachers', 'Teachers', 'full', [
             ['type' => 'staff', 'data' => ['heading' => 'Our teachers']],

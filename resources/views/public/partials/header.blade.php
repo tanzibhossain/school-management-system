@@ -98,7 +98,7 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Staff</a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ url('/staff') }}">All staff</a></li>
+                        <li><a class="dropdown-item" href="{{ url('/faculty') }}">All staff</a></li>
                         <li><a class="dropdown-item" href="{{ url('/teachers') }}">Teachers</a></li>
                     </ul>
                 </li>
