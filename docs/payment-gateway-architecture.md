@@ -284,13 +284,20 @@ each is a robustness or consistency gap surfaced by the post-implementation audi
    `verifyPayPal` now GETs the order first so the browser return and the webhook can't
    double-capture. (SSLCommerz already had IPN; bKash captures synchronously.)
 
-2. **Unify the dual credential system.** The Blade admin uses the generic JSON
-   `payment_configs.gateways` store; the JSON-API surface
-   (`PaymentConfigResource` + `UpdatePaymentConfigRequest`) still reads/writes the
-   legacy per-gateway columns, so the API cannot configure Stripe/PayPal. The model
-   falls back to the legacy columns, so nothing breaks today. Migrate the API onto
-   the generic store, then (contract phase of expand-contract) drop the legacy
-   `bkash_*` / `sslcommerz_*` columns once nothing reads them.
+2. **Unify the dual credential system.** *API migrated (done).* The JSON API
+   (`PaymentConfigController` + `UpdatePaymentConfigRequest` + `PaymentConfigResource`)
+   now reads/writes the generic `payment_configs.gateways` store, configures every
+   gateway, and never serializes credentials — matching the Blade admin. Both are now
+   single-source on the JSON store.
+
+   *Remaining (contract phase — destructive, deferred):* drop the legacy
+   `bkash_*` / `sslcommerz_*` / `*_enabled` / `*_fee_pct` columns from
+   `payment_configs` after (a) a data-migration backfilling any legacy values into the
+   JSON store, (b) removing the legacy fallbacks in `PaymentConfig::credential/
+   gatewayEnabled/feePct` and the model's fillable/casts/hidden, and (c) updating the
+   `bkash_fee_pct`/`sslcommerz_fee_pct` defaults in `PaymentNumberGeneratorService`.
+   Also remove the **orphaned `SchoolPaymentSetting` model + `school_payment_settings`
+   table** (a third, unreferenced credential store — dead code).
 
 3. ~~**Stripe/PayPal refund processing fees.**~~ **Done.** A per-gateway `fee_pct`
    now lives in the generic JSON store (`gateways[slug].fee_pct`, editable per gateway
