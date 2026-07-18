@@ -3,8 +3,10 @@
 namespace Database\Seeders;
 
 use App\Modules\School\Models\School;
+use App\Modules\Website\Models\Menu;
 use App\Modules\Website\Models\Page;
 use App\Modules\Website\Models\PageLayout;
+use App\Modules\Website\Services\MenuService;
 use Illuminate\Database\Seeder;
 
 /**
@@ -30,6 +32,20 @@ class WebsitePagesSeeder extends Seeder
             ['label' => 'Online admission', 'url' => '/online-admission'],
             ['label' => 'Contact', 'url' => '/contact'],
         ];
+
+        // ── Homepage (block-built, set as is_homepage so "/" renders it) ────────
+        $this->page($sid, 'home', 'Home', 'full', [
+            ['type' => 'hero', 'data' => [
+                'title'       => $school->name ?: 'Welcome to our school',
+                'subtitle'    => 'Nurturing curiosity, character, and community.',
+                'button_text' => 'Apply for admission',
+                'button_url'  => '/online-admission',
+            ]],
+            ['type' => 'stats',   'data' => ['heading' => 'At a glance']],
+            ['type' => 'notices', 'data' => ['heading' => 'Latest notices', 'limit' => 6]],
+            ['type' => 'staff',   'data' => ['heading' => 'Our faculty']],
+            ['type' => 'heading', 'data' => ['text' => 'Admissions are open — join our community today.', 'align' => 'center']],
+        ], [], isHomepage: true);
 
         // ── About / identity pages ──────────────────────────────────────────
         $this->page($sid, 'history', 'Short History', 'sidebar',
@@ -121,6 +137,38 @@ class WebsitePagesSeeder extends Seeder
             ['type' => 'heading', 'data' => ['text' => 'Notices']],
             ['type' => 'notices', 'data' => ['heading' => 'All notices', 'limit' => 20]],
         ]);
+
+        $this->seedMenu($sid);
+    }
+
+    /** Seed the primary navigation menu (mirrors the site IA) from the pages above. */
+    private function seedMenu(int $sid): void
+    {
+        $ids = Page::forSchool($sid)->pluck('id', 'slug');
+        $page = fn (string $slug, string $label): array => [
+            'label' => $label, 'type' => 'page', 'page_id' => $ids[$slug] ?? null, 'target' => '_self',
+        ];
+
+        $menu = Menu::forSchool($sid)->firstOrCreate(['school_id' => $sid], ['name' => 'Main menu']);
+
+        app(MenuService::class)->replaceItems($menu, [
+            $page('home', 'Home'),
+            ['label' => 'About', 'type' => 'dropdown', 'target' => '_self', 'children' => [
+                $page('history', 'Short history'),
+                $page('about', 'At a glance'),
+                $page('mission', 'Mission & vision'),
+                $page('administration', 'Administration'),
+            ]],
+            $page('faculty', 'Faculty'),
+            $page('teachers', 'Teachers'),
+            $page('online-admission', 'Online admission'),
+            ['label' => 'Gallery', 'type' => 'dropdown', 'target' => '_self', 'children' => [
+                $page('gallery', 'Photo gallery'),
+                $page('video', 'Video gallery'),
+            ]],
+            $page('notices', 'Notices'),
+            $page('contact', 'Contact'),
+        ]);
     }
 
     /**
@@ -129,12 +177,16 @@ class WebsitePagesSeeder extends Seeder
      * @param  array<int, array{type: string, data: array}>  $blocks
      * @param  array<int, array{type: string, data: array}>  $sidebar
      */
-    private function page(int $sid, string $slug, string $title, string $template, array $blocks, array $sidebar = []): void
+    private function page(int $sid, string $slug, string $title, string $template, array $blocks, array $sidebar = [], bool $isHomepage = false): void
     {
         $page = Page::updateOrCreate(
             ['school_id' => $sid, 'slug' => $slug],
-            ['title' => $title, 'status' => 'published', 'is_homepage' => false],
+            ['title' => $title, 'status' => 'published', 'is_homepage' => $isHomepage],
         );
+
+        if ($isHomepage) {
+            \App\Modules\Website\Models\SiteSetting::where('school_id', $sid)->update(['homepage_page_id' => $page->id]);
+        }
 
         PageLayout::where('page_id', $page->id)->delete();
         PageLayout::create([
