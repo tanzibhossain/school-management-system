@@ -264,5 +264,37 @@ the MIT/Apache gateway SDKs, though these drivers use none.
 controller/routes; webhooks must be added for Stripe/PayPal to be fully robust; the
 value-object layer adds a small indirection for readers used to the direct calls.
 
-**Status:** Part 1 shipped. Part 2 not yet started — recommended first slice is the
-manager + Stripe/PayPal auto-refund (step 2), which is small and closes a real gap.
+**Status:** Part 1 shipped. Part 2 step 2 (manager + Stripe/PayPal auto-refund) is
+done — `PaymentGatewayManager` exists and refunds for all four gateways call the
+gateway. Remaining Part 2 steps and the backlog below are not yet started.
+
+---
+
+## Backlog (deferred follow-ups)
+
+Tracked here so they survive beyond a working session. None are happy-path bugs;
+each is a robustness or consistency gap surfaced by the post-implementation audit.
+
+1. **Async webhooks for Stripe & PayPal.** Confirmation is currently browser-return
+   only, so an invoice will not settle if the payer completes payment but never
+   returns to the browser (e.g. closes the tab). SSLCommerz already has server-to-
+   server IPN and bKash executes synchronously on its callback — only Stripe/PayPal
+   are exposed. Add a Stripe Checkout webhook (verify the signature with the stored
+   `webhook_secret`) and a PayPal webhook, both resolving school + invoice from the
+   event metadata (`invoice_id` / `school_id` are already sent on create) and calling
+   the existing `verifyStripe` / `verifyPayPal`. Public, CSRF-exempt routes. This is
+   Part 2 migration step 5 and the highest-value item here.
+
+2. **Unify the dual credential system.** The Blade admin uses the generic JSON
+   `payment_configs.gateways` store; the JSON-API surface
+   (`PaymentConfigResource` + `UpdatePaymentConfigRequest`) still reads/writes the
+   legacy per-gateway columns, so the API cannot configure Stripe/PayPal. The model
+   falls back to the legacy columns, so nothing breaks today. Migrate the API onto
+   the generic store, then (contract phase of expand-contract) drop the legacy
+   `bkash_*` / `sslcommerz_*` columns once nothing reads them.
+
+3. **Stripe/PayPal refund processing fees.** `RefundService::calculateFee` returns
+   `0` for stripe/paypal (bKash/SSLCommerz deduct a configured `*_fee_pct`). Add a
+   configurable per-gateway refund fee — either `stripe_fee_pct` / `paypal_fee_pct`
+   columns or a `fee_pct` field in the registry/JSON store — and apply it in
+   `calculateFee` for parity.
