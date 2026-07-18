@@ -157,6 +157,13 @@ Route::match(['get', 'post'], '/portal/pay/sslcommerz/{result}', [\App\Http\Cont
     ->whereIn('result', ['success', 'fail', 'cancel'])
     ->name('portal.pay.sslcommerz.return');
 
+// Server-to-server gateway webhooks — authoritative confirmation, public + CSRF-exempt
+// (bootstrap/app.php); the signature is the trust boundary.
+Route::post('/payments/webhook/stripe', [\App\Http\Controllers\Payment\WebhookController::class, 'stripe'])
+    ->name('payments.webhook.stripe');
+Route::post('/payments/webhook/paypal', [\App\Http\Controllers\Payment\WebhookController::class, 'paypal'])
+    ->name('payments.webhook.paypal');
+
 Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(function (): void {
     // Dashboard — admins and accountants (finance). Other staff use /staff.
     Route::get('/', [DashboardController::class, 'index'])->middleware('role:admin|accountant')->name('dashboard');
