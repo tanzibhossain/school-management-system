@@ -7,6 +7,7 @@ use App\Modules\Payment\Events\OverpaymentCredited;
 use App\Modules\Payment\Events\PaymentRecorded;
 use App\Modules\Payment\Gateways\BkashGateway;
 use App\Modules\Payment\Gateways\SslcommerzGateway;
+use App\Modules\Payment\Gateways\StripeGateway;
 use App\Modules\Payment\Models\Invoice;
 use App\Modules\Payment\Models\Payment;
 use App\Modules\Payment\Models\PaymentConfig;
@@ -134,6 +135,99 @@ class PaymentService
 
             $this->updateInvoiceAfterPayment($invoice, $payment);
             Cache::forget("bkash_payment:{$paymentId}");
+            event(new PaymentRecorded($payment));
+
+            return $payment->load('invoice');
+        });
+    }
+
+    // ── Stripe gateway (hosted Checkout) ─────────────────────────────────────
+
+    /**
+     * Create a Stripe Checkout Session for an invoice.
+     *
+     * @return array{ checkoutUrl: string, sessionId: string }
+     */
+    public function initiateStripe(Invoice $invoice, string $successUrl, string $cancelUrl): array
+    {
+        $this->assertGatewaySupportsCurrency($invoice, StripeGateway::SUPPORTED_CURRENCIES, 'Stripe');
+
+        $config  = $this->requireConfig($invoice->school_id);
+        $gateway = new StripeGateway($config);
+
+        $session = $gateway->createCheckoutSession(
+            $invoice->invoice_number,
+            $invoice->remainingAmount(),
+            $invoice->currency,
+            $successUrl,
+            $cancelUrl,
+            $invoice->id,
+            $invoice->school_id,
+        );
+
+        // Map the session back to school + invoice for the browser return.
+        Cache::put(
+            "stripe_session:{$session['id']}",
+            ['school_id' => $invoice->school_id, 'invoice_id' => $invoice->id],
+            now()->addHour(),
+        );
+
+        return ['checkoutUrl' => $session['url'], 'sessionId' => $session['id']];
+    }
+
+    /**
+     * Verify a completed Stripe Checkout Session and record the payment.
+     * invoiceId and schoolId are resolved from cache by the return controller.
+     */
+    public function verifyStripe(string $sessionId, int $invoiceId, int $schoolId): Payment
+    {
+        $config  = $this->requireConfig($schoolId);
+        $gateway = new StripeGateway($config);
+        $session = $gateway->retrieveSession($sessionId);
+
+        if (($session['payment_status'] ?? '') !== 'paid') {
+            throw new RuntimeException('Stripe payment not completed.');
+        }
+
+        $invoice = Invoice::findOrFail($invoiceId);
+
+        // Prevent replay — the session must reference this invoice.
+        if (($session['client_reference_id'] ?? '') !== $invoice->invoice_number) {
+            throw new RuntimeException('Stripe session does not match invoice.');
+        }
+
+        $paid = $gateway->toMajorUnits((int) ($session['amount_total'] ?? 0), $session['currency'] ?? $invoice->currency);
+        if ($paid < $invoice->remainingAmount()) {
+            throw new RuntimeException('Stripe amount is less than invoice remaining amount.');
+        }
+
+        // PaymentIntent id is the durable reference (used for refunds + idempotency).
+        $ref = $session['payment_intent'] ?? $sessionId;
+
+        if ($existing = Payment::where('transaction_ref', $ref)->first()) {
+            return $existing;
+        }
+
+        return DB::transaction(function () use ($invoice, $paid, $ref, $sessionId, $schoolId): Payment {
+            $receiptNumber = $this->numberGenerator->nextReceiptNumber($schoolId);
+
+            $payment = Payment::create([
+                'school_id'          => $schoolId,
+                'receipt_number'     => $receiptNumber,
+                'invoice_id'         => $invoice->id,
+                'student_id'         => $invoice->student_id,
+                'amount'             => $paid,
+                'currency'           => $invoice->currency,
+                'method'             => 'stripe',
+                'transaction_ref'    => $ref,           // PaymentIntent id
+                'gateway_payment_id' => $ref,           // required for refunds
+                'gateway_status'     => 'success',
+                'collected_by'       => $invoice->issued_by,
+                'paid_at'            => now(),
+            ]);
+
+            $this->updateInvoiceAfterPayment($invoice, $payment);
+            Cache::forget("stripe_session:{$sessionId}");
             event(new PaymentRecorded($payment));
 
             return $payment->load('invoice');
