@@ -42,8 +42,9 @@ return [
             ],
         ],
 
-        // ── International gateways — defined but not yet implemented. Add a driver
-        //    class and flip `implemented` to true; no migration needed. ──────────
+        // ── International gateways (default for non-BD schools). To add another,
+        //    define it here, write a driver class, and flip `implemented` to true;
+        //    no migration needed. ─────────────────────────────────────────────────
         'stripe' => [
             'label'       => 'Stripe',
             'icon'        => 'bi-stripe',

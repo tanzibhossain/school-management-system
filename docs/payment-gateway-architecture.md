@@ -1,54 +1,142 @@
-# Payment Gateway Architecture — Recommendation (open-source friendly)
+# Payment Gateway Architecture
 
-**Question:** which option lets me open-source this and implement *all* gateways,
-given each works differently?
+**Goal:** an open-source-friendly payment layer where adding a gateway is *one driver
+class + one config entry* — no core edits, no migration, no UI changes.
 
-**Answer:** a **driver-based gateway system** — a common contract, one driver class
-per gateway, generic (schema-less) credential storage, and a country→gateway
-registry. Adding a gateway becomes: **one driver class + one config entry. No core
-edits, no migration, no UI changes.** That is exactly what makes it contributable
-and self-hostable.
+This document has two halves:
 
-The per-gateway-columns approach (what I started) is the opposite: every new gateway
-needs a migration + model + controller + hand-written UI. It does not scale and is
-hostile to outside contributors.
+1. **As-built** — what actually ships today (four working gateways).
+2. **Next step** — formalizing the shared `PaymentGateway` contract so the four
+   flow patterns collapse into a single app-side code path, plus a "how to add a
+   gateway" guide and an incremental migration path that keeps tests green.
 
 ---
 
-## 1. How gateways actually differ (analysis of the docs)
+## Part 1 — As-built (current state)
 
-Ignoring branding, real integrations fall into **four flow patterns**. The
-abstraction only has to cover these four — not N gateways.
+### What ships
 
-| Pattern | How it works | Examples |
+Four gateways are implemented and covered by feature tests:
+
+| Slug | Driver class | Flow pattern | Currencies | Countries |
+|---|---|---|---|---|
+| `bkash` | `BkashGateway` | Create → authorize → execute (tokenized) | BDT | BD |
+| `sslcommerz` | `SslcommerzGateway` | Hosted redirect (+ IPN) | BDT | BD |
+| `stripe` | `StripeGateway` | Hosted Checkout redirect | USD, EUR, GBP, AUD, CAD, SGD, INR, AED, JPY, NZD | default (non-BD) |
+| `paypal` | `PayPalGateway` | Hosted redirect (Orders v2) | USD, EUR, GBP, AUD, CAD, SGD, JPY, NZD | default (non-BD) |
+
+Availability per school comes from `config/payment_gateways.php`
+(`by_country` → slugs, falling back to `default`), filtered to gateways whose
+`implemented` flag is `true`.
+
+### The three pieces already in place
+
+**a) Generic credential storage (no per-gateway migration).**
+`payment_configs.gateways` is a single encrypted JSON column:
+
+```json
+{ "bkash": { "enabled": true, "credentials": { "app_key": "…", "app_secret": "…" } } }
+```
+
+`PaymentConfig` reads it through `gatewayEnabled($slug)`, `credential($slug, $key)`,
+`availableGatewayDefs()`, and `enabledGateways()` (online + enabled + all required
+credentials present). Legacy `bkash_*` / `sslcommerz_*` columns remain only as a
+read fallback. Adding a gateway never touches the schema.
+
+**b) Registry (`config/payment_gateways.php`).**
+Single source of truth: each gateway's `label`, `icon`, `currencies`,
+`implemented` flag, and `fields` (un-prefixed keys with `label` / `secret` /
+`required`). Drives the settings UI, request validation, and availability. This is
+the contribution surface.
+
+**c) String method/gateway columns.**
+`payments.method`, `refunds.method`, and `payment_gateway_logs.gateway` were widened
+from enums to `string(30)`, so any new slug fits with no further migration. The set
+of allowed values is governed at the application layer (registry + validation).
+
+### How a payment flows today
+
+```
+Portal fees page
+   └─ POST /portal/pay/initiate {invoice_id, gateway}
+        └─ Portal\PaymentController::initiate()
+             ├─ guards: online enabled? gateway in enabledGateways()? invoice owned?
+             └─ per-gateway branch → PaymentService::initiateX(...)
+                  └─ new XGateway($config)->create…()  ── redirect the browser away
+                                                             (bKash/Stripe/PayPal also
+                                                              cache ref → {school, invoice})
+
+Gateway hosted page  ──►  browser returns to a public route
+   ├─ bkash:      GET  /portal/pay/bkash/callback        (?paymentID&status)
+   ├─ stripe:     GET  /portal/pay/stripe/return         (?session_id)
+   ├─ paypal:     GET  /portal/pay/paypal/return         (?token | ?cancel=1)
+   └─ sslcommerz: GET|POST /portal/pay/sslcommerz/{result} (CSRF-exempt; POST cross-site)
+        └─ Portal\PaymentController::xReturn()
+             └─ PaymentService::verifyX(ref, invoiceId, schoolId)
+                  ├─ re-fetch/validate with the gateway (execute/retrieve/capture/validate)
+                  ├─ replay + amount guards
+                  ├─ idempotent by transaction_ref
+                  └─ DB::transaction → Payment + updateInvoiceAfterPayment + event
+```
+
+`PaymentService::updateInvoiceAfterPayment()` and `PaymentNumberGeneratorService`
+are shared by all gateways; `PaymentGatewayLog` records every gateway call.
+
+### Where the four drivers actually differ (as coded)
+
+| Concern | bKash | SSLCommerz | Stripe | PayPal |
+|---|---|---|---|---|
+| Start call | `grantToken` + `createPayment` | `initSession` | `createCheckoutSession` | `createOrder` |
+| Confirm call | `executePayment` (`queryPayment` fallback) | `validatePayment` | `retrieveSession` | `captureOrder` |
+| Refund | `refund` | `refund` | `refund` | `refund` |
+| Browser return key | `paymentID` (cached) | `tran_id` = invoice_number | `session_id` (cached) | `token` (cached) |
+| Amount units | major (BDT) | major (BDT) | minor (cents) | major decimal string |
+| Durable ref recorded | `trxID` | `val_id` | PaymentIntent id | capture id |
+
+### The friction this leaves
+
+The differences above are already normalized *by hand* in two places that grow
+linearly with each gateway:
+
+- `PaymentService` has a dedicated `initiateX` / `verifyX` pair per gateway.
+- `Portal\PaymentController::initiate()` has an `if ($gateway === '…')` branch per
+  gateway, and there is one bespoke return route/handler per gateway.
+
+Nothing shares a common type, so the compiler can't guarantee a new driver is
+"complete," and a contributor must touch the service, controller, and routes to add
+one. Part 2 removes that.
+
+---
+
+## Part 2 — Formalizing the `PaymentGateway` contract
+
+### Why
+
+Ignoring branding, real integrations fall into **four flow patterns** — the
+abstraction only has to cover these four, not N gateways:
+
+| Pattern | How it works | Built example |
 |---|---|---|
-| **A. Hosted redirect** | Server creates a payment session → you redirect the browser to the gateway's page → gateway redirects back to your `return_url` → confirm via webhook/IPN | SSLCommerz, PayPal (Orders v2), Razorpay Hosted, Paystack, Flutterwave, PayTabs, Telr, iyzico, Mercado Pago, VNPay, Midtrans Snap, Xendit Invoice, Fawry |
-| **B. Create → authorize → execute** | Two server calls with a user authorization step between (tokenized) | **bKash** (tokenized checkout) |
-| **C. Intent + client SDK** | Server creates an "intent" → browser confirms it with the gateway's JS SDK (card never touches your server) → webhook confirms | Stripe (PaymentIntents), Adyen (Sessions/Components), Checkout.com, Paymob |
-| **D. Wallet push / STK** | Server initiates → user approves in their wallet app / on phone → async callback | M-Pesa (Daraja STK Push), JazzCash, Easypaisa, MoMo, GCash |
+| **A. Hosted redirect** | create session → redirect → return → confirm via return/webhook | SSLCommerz, PayPal, Stripe Checkout |
+| **B. Create → authorize → execute** | two server calls with a user auth step between | bKash |
+| **C. Intent + client SDK** | server creates an intent → browser confirms with the gateway's JS SDK → webhook | (Stripe PaymentIntents, Adyen — future) |
+| **D. Wallet push / STK** | server initiates → user approves in wallet app → async callback | (M-Pesa, bKash-URL variants — future) |
 
-Two things are **universal** across all four: an **async webhook/IPN** for the
-authoritative result (never trust only the browser return), and **idempotent
-verification** before recording a payment. Refunds are always a separate API call
-keyed by the gateway's payment id.
+Two things are **universal**: an authoritative async **webhook/IPN** (never trust
+only the browser return) and **idempotent verification** before recording. Refunds
+are always a separate call keyed by the gateway's payment id.
 
-**Design implication:** `initiate()` must be able to return *any* of:
-- a **redirect URL** (pattern A/B),
-- a **client payload** to hand to a JS SDK (pattern C),
-- a **"pending, poll/await callback"** instruction (pattern D).
+So `initiate()` must be able to return *any* of: a **redirect URL** (A/B), a
+**client payload** for a JS SDK (C), or a **"pending, await callback"** instruction
+(D) — and every driver must expose a return handler, a webhook handler, `verify()`,
+and `refund()`.
 
-…and every driver must expose `handleWebhook()` + `verify()`.
-
----
-
-## 2. Recommended structure
-
-### a) A gateway contract (interface)
+### The contract
 
 ```php
 interface PaymentGateway
 {
-    /** @return list<string> ISO-4217 codes, e.g. ['BDT'] or ['USD','EUR',...] */
+    /** @return list<string> ISO-4217 codes, e.g. ['BDT'] or ['USD','EUR',…] */
     public function supportedCurrencies(): array;
 
     /** Start a payment. Returns a normalized instruction for the frontend. */
@@ -57,92 +145,124 @@ interface PaymentGateway
     /** Handle the browser return (redirect back). */
     public function handleReturn(Request $request): GatewayResult;
 
-    /** Handle the async webhook / IPN (the authoritative result). */
+    /** Handle the async webhook / IPN — the authoritative result. */
     public function handleWebhook(Request $request): GatewayResult;
 
     /** Re-check a payment's status out of band. */
     public function verify(string $reference): GatewayResult;
 
-    public function refund(string $paymentId, float $amount, string $reason): GatewayResult;
+    public function refund(string $gatewayPaymentId, float $amount, string $reason): GatewayResult;
 }
 ```
 
-### b) Small value objects (normalize the differences)
+### Value objects (normalize the differences)
 
-- `PaymentIntent` — invoice id, amount, currency, customer, `return_url`, `webhook_url`.
-- `GatewayResponse` — `action`: `redirect` | `render` | `pending`, plus the data for
-  that action (`redirect_url`, or `client_payload` for the SDK, or `reference`).
-- `GatewayResult` — `status`: `paid` | `failed` | `pending`, `amount`, `transaction_ref`,
-  `gateway_payment_id`, raw payload.
+- **`PaymentIntent`** — `invoiceId`, `invoiceNumber`, `amount`, `currency`,
+  `customerRef`, `returnUrl`, `cancelUrl`, `webhookUrl`.
+- **`GatewayResponse`** — `action`: `redirect` | `render` | `pending`, plus the data
+  for that action (`redirectUrl`, or `clientPayload` for an SDK, or `reference`).
+- **`GatewayResult`** — `status`: `paid` | `failed` | `pending`, `amount`,
+  `currency`, `transactionRef`, `gatewayPaymentId`, and the raw payload.
 
-The controller/portal only ever deals with these three types, so **the four flow
-patterns collapse into one code path** on the app side.
+The portal only ever deals with these three types, so **the four flow patterns
+collapse into one code path** on the app side.
 
-### c) A driver manager (Laravel-idiomatic)
+### How the four shipped drivers map onto it
 
-`PaymentGatewayManager::driver('bkash')` resolves the class for a slug (from
-`config/payment_gateways.php`). One generic webhook route:
-`POST /payments/webhook/{gateway}` → `manager->driver($gateway)->handleWebhook()`.
+| Contract method | bKash | SSLCommerz | Stripe | PayPal |
+|---|---|---|---|---|
+| `initiate()` | `grantToken` → `createPayment` → `GatewayResponse::redirect(bkashURL)` | `initSession` → `redirect(GatewayPageURL)` | `createCheckoutSession` → `redirect(url)` | `createOrder` → `redirect(approveUrl)` |
+| `handleReturn()` | read `paymentID` → `executePayment` → `GatewayResult` | read `tran_id`/`val_id` → `validatePayment` | read `session_id` → `retrieveSession` | read `token` → `captureOrder` |
+| `handleWebhook()` | (bKash: n/a — synchronous execute) | IPN `validatePayment` | Checkout webhook `retrieveSession` | webhook `captureOrder`/lookup |
+| `verify()` | `queryPayment` | `validatePayment` | `retrieveSession` | order lookup |
+| `refund()` | `refund` | `refund` | `refund` | `refund` |
 
-### d) Schema-less credential storage (no per-gateway migration)
+The gateway-specific amount/ref normalization already living in `verifyX()`
+(minor→major for Stripe, `trxID`/`val_id`/capture-id selection, replay + amount
+guards) moves *into* each driver's `handleReturn()`/`verify()`, which return a
+uniform `GatewayResult`. `PaymentService` keeps only the shared recording logic.
 
-Replace the `bkash_*`, `sslcommerz_*`, `stripe_*`, `paypal_*` columns with **one**
-generic structure — pick one:
+### A driver manager + generic routes
 
-- **Option 1 (simplest):** a JSON column on `payment_configs`:
-  `gateways = { "bkash": {"enabled": true, "mode": "live", "credentials": {"app_key": "...", ...}} }`
-  (the whole column encrypted).
-- **Option 2 (cleaner for many gateways):** a `payment_gateway_settings` table
-  (`school_id`, `gateway` slug, `enabled`, `mode`, `credentials` json-encrypted),
-  one row per school+gateway.
+`PaymentGatewayManager::driver($slug)` resolves a driver from the registry. The
+per-gateway portal branches and bespoke return routes collapse to:
 
-Either way, **adding a gateway never changes the schema again**. The field labels
-come from `config/payment_gateways.php`, which already drives the UI and validation.
+```
+POST /portal/pay/initiate            → manager->driver($gw)->initiate($intent)      → act on GatewayResponse
+GET|POST /payments/return/{gateway}  → manager->driver($gw)->handleReturn($request) → record if paid
+POST /payments/webhook/{gateway}     → manager->driver($gw)->handleWebhook($request)→ record if paid  (CSRF-exempt)
+```
 
-### e) Registry (already built)
+`recordFromResult(GatewayResult)` on `PaymentService` becomes the single, gateway-
+agnostic recording path (idempotent by `transactionRef`, transactional, fires
+`PaymentRecorded`), replacing the four `verifyX` methods.
 
-`config/payment_gateways.php`: `country_code → [slugs]` + each gateway's field
-definitions + supported currencies. This stays; it's the contribution surface.
+### Refunds
 
-### f) Reuse what exists
-
-`PaymentGatewayLog` already tracks async state; `PaymentService` already records
-`Payment` rows and updates invoices. Drivers call into those — no reinvention.
-
----
-
-## 3. Why this is the open-source option
-
-- **Add a gateway = 1 file + 1 config block.** No migration, no core edits, no UI
-  edits → outside contributors can PR a gateway in isolation.
-- **Schema is stable forever** (generic credentials).
-- **License:** AGPL-3.0 (your earlier pick) is fine — gateway SDKs are MIT/Apache,
-  compatible. Ship gateways as first-party drivers; the community adds the rest.
-- **A "How to add a gateway" guide** + the contract is all a contributor needs.
+`RefundService` currently auto-calls the gateway only for bKash and SSLCommerz.
+Under the contract it calls `manager->driver($payment->method)->refund(...)` for any
+gateway — closing the gap where a Stripe/PayPal refund records a `Refund` row but
+doesn't hit the gateway. (This is the smallest immediately-shippable slice and can
+land before the full contract refactor.)
 
 ---
 
-## 4. Suggested phasing (all patterns covered by reference drivers)
+## How to add a gateway (target workflow)
 
-1. **Foundation:** contract + value objects + manager + generic credential storage;
-   refactor the existing **bKash** code into a `BkashGateway` driver (pattern B).
-2. **Global reference drivers:** **Stripe** (pattern C) + **PayPal** (pattern A) —
-   proves the abstraction across the two hardest patterns.
-3. **Redirect batch (cheap to add):** SSLCommerz, Razorpay, Paystack, Flutterwave
-   (all pattern A — mostly config + a thin driver each).
-4. **Wallet push:** M-Pesa Daraja (pattern D).
-5. **Everything else:** community, via the contract + guide.
+1. **Add a registry entry** in `config/payment_gateways.php`: `label`, `icon`,
+   `currencies`, `fields` (credential keys + `label`/`secret`/`required`), and place
+   the slug under the right `by_country` list or `default`. Leave `implemented`
+   `false` until the driver exists.
+2. **Write one driver** implementing `PaymentGateway` (roughly 80–150 lines, using
+   the `Http` facade — no SDK required). Map its calls to the four contract methods.
+3. **Flip `implemented => true`.** The settings UI, validation, availability,
+   portal button, initiate, return, webhook, and refund all work through the generic
+   manager — no further edits.
+4. **Add a driver test** (guard + a mocked round-trip via `Http::fake()`).
 
-"Implement *all* gateways" is dozens of integrations — not a single sprint — but with
-this design each is small and independent, and the first ~6 drivers prove all four
-patterns end to end.
+No migration, no controller edits, no route edits, no UI edits.
 
 ---
 
-## My recommendation
+## Migration path (incremental, tests stay green)
 
-Go with the **driver system + generic (Option 1 JSON) credential storage**. First
-step: **revert the Stripe/PayPal per-gateway columns**, add the generic `gateways`
-JSON column, refactor bKash into the first driver against the new contract, then add
-Stripe + PayPal as the global reference drivers. Tell me your **primary local
-gateway** (bKash? Nagad? SSLCommerz?) and I'll start there.
+The four gateways already work, so this is a refactor behind stable behavior — do it
+in small, independently shippable steps:
+
+1. **Value objects + interface** — add `PaymentGateway`, `PaymentIntent`,
+   `GatewayResponse`, `GatewayResult`. No behavior change yet.
+2. **Wire refunds through a manager** — add `PaymentGatewayManager`, give each driver
+   a `refund()` that returns `GatewayResult`, and route `RefundService` through it.
+   Ships the Stripe/PayPal auto-refund fix immediately.
+3. **Adopt the contract one driver at a time** — implement `initiate`/`handleReturn`
+   on `StripeGateway` first (cleanest), switch its portal branch to the generic path,
+   keep the others on their existing `initiateX`/`verifyX` methods. Repeat per driver.
+4. **Collapse the routes/branches** — once all four implement the contract, replace
+   the per-gateway portal branches and return routes with the generic
+   `return/{gateway}` + `webhook/{gateway}` routes and delete the `initiateX`/`verifyX`
+   pairs.
+5. **Add webhooks where missing** — Stripe Checkout + PayPal webhooks as the
+   authoritative confirmation, so a dropped browser return still settles the invoice.
+
+At every step the existing `PortalPaymentTest` / `tests/Feature/Payment` suites must
+stay green; each step is one or two commits.
+
+---
+
+## Decision & consequences
+
+**Decision:** keep the driver-per-gateway design and the generic JSON credential
+store (both shipped); formalize the shared `PaymentGateway` contract + manager as the
+next refactor, migrating incrementally.
+
+**Consequences (positive):** adding a gateway becomes one file + one config block;
+the schema is stable forever; contributors can PR a gateway in isolation; the four
+flow patterns are provably covered by reference drivers; AGPL-3.0 is compatible with
+the MIT/Apache gateway SDKs, though these drivers use none.
+
+**Consequences (cost):** a one-time refactor of `PaymentService` and the portal
+controller/routes; webhooks must be added for Stripe/PayPal to be fully robust; the
+value-object layer adds a small indirection for readers used to the direct calls.
+
+**Status:** Part 1 shipped. Part 2 not yet started — recommended first slice is the
+manager + Stripe/PayPal auto-refund (step 2), which is small and closes a real gap.
