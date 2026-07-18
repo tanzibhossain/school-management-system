@@ -44,4 +44,16 @@ class WebsitePagesSeedTest extends TestCase
         $this->get('/history')->assertOk()->assertSee('A proud history')->assertSee('Quick links');
         $this->get('/online-admission')->assertOk()->assertSee('Apply for admission');
     }
+
+    public function test_homepage_renders_the_block_built_home_page(): void
+    {
+        // "/" now resolves to the is_homepage block page (not the hardcoded fallback).
+        $this->get('/')->assertOk()->assertSee('Admissions are open');
+    }
+
+    public function test_public_nav_is_driven_by_the_seeded_menu(): void
+    {
+        // The seeded Main menu drives the navbar (a dropdown + page links).
+        $this->get('/')->assertOk()->assertSee('About')->assertSee('Faculty');
+    }
 }
