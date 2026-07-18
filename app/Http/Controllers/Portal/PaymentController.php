@@ -27,7 +27,7 @@ class PaymentController extends Controller
         $sid = app('current_school_id');
         $data = $request->validate([
             'invoice_id' => ['required', 'integer'],
-            'gateway'    => ['required', 'in:bkash,sslcommerz'],
+            'gateway'    => ['required', 'in:bkash,sslcommerz,stripe'],
         ]);
 
         $config = PaymentConfig::firstOrCreate(['school_id' => $sid]);
@@ -48,6 +48,16 @@ class PaymentController extends Controller
         }
 
         try {
+            if ($data['gateway'] === 'stripe') {
+                $result = $service->initiateStripe(
+                    $invoice,
+                    route('portal.pay.stripe.return') . '?session_id={CHECKOUT_SESSION_ID}',
+                    route('portal.pay.stripe.return'), // cancel — no session_id
+                );
+
+                return redirect()->away($result['checkoutUrl']);
+            }
+
             if ($data['gateway'] === 'sslcommerz') {
                 $result = $service->initiateSslcommerz(
                     $invoice,
@@ -67,6 +77,34 @@ class PaymentController extends Controller
             report($e);
 
             return back()->with('error', 'Could not start the online payment. Please try again, or pay at the office.');
+        }
+    }
+
+    /**
+     * Stripe returns the browser here (public GET). A session_id means success;
+     * its absence means the customer cancelled on the Stripe page.
+     */
+    public function stripeReturn(Request $request, PaymentService $service): RedirectResponse
+    {
+        $sessionId = $request->query('session_id');
+        if (! $sessionId) {
+            return redirect()->route('portal.fees')->with('error', 'Payment was cancelled.');
+        }
+
+        $cached = Cache::get("stripe_session:{$sessionId}");
+        if (! $cached) {
+            return redirect()->route('portal.fees')->with('error', 'Payment session expired — please try again.');
+        }
+
+        try {
+            $service->verifyStripe($sessionId, $cached['invoice_id'], $cached['school_id']);
+
+            return redirect()->route('portal.fees')->with('status', 'Payment successful — thank you!');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->route('portal.fees')
+                ->with('error', 'We could not confirm your payment. If your card was charged, please contact the office.');
         }
     }
 

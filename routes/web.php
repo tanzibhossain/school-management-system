@@ -141,6 +141,11 @@ Route::middleware(['auth', 'school', 'role:student|parent'])
 Route::get('/portal/pay/bkash/callback', [\App\Http\Controllers\Portal\PaymentController::class, 'bkashCallback'])
     ->name('portal.pay.bkash.callback');
 
+// Stripe redirects the browser back here (GET). success_url carries session_id;
+// cancel_url omits it. Public — the invoice is resolved from the cached session.
+Route::get('/portal/pay/stripe/return', [\App\Http\Controllers\Portal\PaymentController::class, 'stripeReturn'])
+    ->name('portal.pay.stripe.return');
+
 // SSLCommerz POSTs the browser back here (success/fail/cancel). CSRF-exempt (see
 // bootstrap/app.php) and public — the invoice is resolved from tran_id.
 Route::match(['get', 'post'], '/portal/pay/sslcommerz/{result}', [\App\Http\Controllers\Portal\PaymentController::class, 'sslcommerzReturn'])

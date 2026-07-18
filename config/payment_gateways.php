@@ -48,10 +48,12 @@ return [
             'label'       => 'Stripe',
             'icon'        => 'bi-stripe',
             'currencies'  => ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'INR', 'AED', 'JPY', 'NZD'],
-            'implemented' => false,
+            'implemented' => true,
             'fields'      => [
-                'publishable_key' => ['label' => 'Publishable key', 'secret' => false, 'required' => true],
+                // Hosted Checkout needs only the secret key; the publishable key is
+                // for client-side SDKs and the webhook secret for async confirmation.
                 'secret_key'      => ['label' => 'Secret key', 'secret' => true, 'required' => true],
+                'publishable_key' => ['label' => 'Publishable key', 'secret' => false, 'required' => false],
                 'webhook_secret'  => ['label' => 'Webhook signing secret', 'secret' => true, 'required' => false],
             ],
         ],
