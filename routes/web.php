@@ -141,6 +141,12 @@ Route::middleware(['auth', 'school', 'role:student|parent'])
 Route::get('/portal/pay/bkash/callback', [\App\Http\Controllers\Portal\PaymentController::class, 'bkashCallback'])
     ->name('portal.pay.bkash.callback');
 
+// SSLCommerz POSTs the browser back here (success/fail/cancel). CSRF-exempt (see
+// bootstrap/app.php) and public — the invoice is resolved from tran_id.
+Route::match(['get', 'post'], '/portal/pay/sslcommerz/{result}', [\App\Http\Controllers\Portal\PaymentController::class, 'sslcommerzReturn'])
+    ->whereIn('result', ['success', 'fail', 'cancel'])
+    ->name('portal.pay.sslcommerz.return');
+
 Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(function (): void {
     // Dashboard — admins and accountants (finance). Other staff use /staff.
     Route::get('/', [DashboardController::class, 'index'])->middleware('role:admin|accountant')->name('dashboard');

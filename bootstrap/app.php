@@ -18,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->appendToGroup('api', \App\Http\Middleware\ResolveSchool::class);
 
+        // SSLCommerz posts its browser-return cross-site — no session CSRF token.
+        $middleware->validateCsrfTokens(except: [
+            'portal/pay/sslcommerz/*',
+        ]);
+
         // Guests hitting a protected area are sent to that area's branded login;
         // already-authenticated users hitting a login go to their role's portal.
         $middleware->redirectGuestsTo(

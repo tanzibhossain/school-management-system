@@ -27,7 +27,7 @@ class PaymentController extends Controller
         $sid = app('current_school_id');
         $data = $request->validate([
             'invoice_id' => ['required', 'integer'],
-            'gateway'    => ['required', 'in:bkash'],
+            'gateway'    => ['required', 'in:bkash,sslcommerz'],
         ]);
 
         $config = PaymentConfig::firstOrCreate(['school_id' => $sid]);
@@ -48,13 +48,62 @@ class PaymentController extends Controller
         }
 
         try {
+            if ($data['gateway'] === 'sslcommerz') {
+                $result = $service->initiateSslcommerz(
+                    $invoice,
+                    route('portal.pay.sslcommerz.return', ['result' => 'success']),
+                    route('portal.pay.sslcommerz.return', ['result' => 'fail']),
+                    route('portal.pay.sslcommerz.return', ['result' => 'cancel']),
+                    route('payment.sslcommerz.ipn'),
+                );
+
+                return redirect()->away($result['GatewayPageURL']);
+            }
+
             $result = $service->initiateBkash($invoice, route('portal.pay.bkash.callback'));
 
             return redirect()->away($result['bkashURL']);
         } catch (\Throwable $e) {
             report($e);
 
-            return back()->with('error', 'Could not start the bKash payment. Please try again, or pay at the office.');
+            return back()->with('error', 'Could not start the online payment. Please try again, or pay at the office.');
+        }
+    }
+
+    /**
+     * SSLCommerz returns the browser here (public — the gateway POSTs the result).
+     * The invoice is resolved from tran_id (= invoice_number); the family session
+     * cookie may be dropped on this cross-site POST, so we never rely on auth here.
+     */
+    public function sslcommerzReturn(Request $request, PaymentService $service, string $result): RedirectResponse
+    {
+        if ($result !== 'success') {
+            return redirect()->route('portal.fees')
+                ->with('error', $result === 'cancel' ? 'Payment was cancelled.' : 'Payment failed.');
+        }
+
+        $tranId = $request->input('tran_id');
+        $valId  = $request->input('val_id');
+        $status = $request->input('status');
+
+        if (! $tranId || ! $valId || ! in_array($status, ['VALID', 'VALIDATED'], true)) {
+            return redirect()->route('portal.fees')->with('error', 'Payment could not be verified.');
+        }
+
+        $invoice = Invoice::where('invoice_number', $tranId)->first();
+        if (! $invoice) {
+            return redirect()->route('portal.fees')->with('error', 'Invoice not found for this payment.');
+        }
+
+        try {
+            $service->verifySslcommerz($invoice, $valId);
+
+            return redirect()->route('portal.fees')->with('status', 'Payment successful — thank you!');
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->route('portal.fees')
+                ->with('error', 'We could not confirm your payment. If your account was debited, please contact the office.');
         }
     }
 
