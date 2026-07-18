@@ -292,8 +292,8 @@ each is a robustness or consistency gap surfaced by the post-implementation audi
    the generic store, then (contract phase of expand-contract) drop the legacy
    `bkash_*` / `sslcommerz_*` columns once nothing reads them.
 
-3. **Stripe/PayPal refund processing fees.** `RefundService::calculateFee` returns
-   `0` for stripe/paypal (bKash/SSLCommerz deduct a configured `*_fee_pct`). Add a
-   configurable per-gateway refund fee — either `stripe_fee_pct` / `paypal_fee_pct`
-   columns or a `fee_pct` field in the registry/JSON store — and apply it in
-   `calculateFee` for parity.
+3. ~~**Stripe/PayPal refund processing fees.**~~ **Done.** A per-gateway `fee_pct`
+   now lives in the generic JSON store (`gateways[slug].fee_pct`, editable per gateway
+   in Payment settings); `PaymentConfig::feePct($slug)` reads it (falling back to the
+   legacy `{slug}_fee_pct` columns for bKash/SSLCommerz), and `calculateFee` applies
+   it uniformly for every gateway. No per-gateway column added.

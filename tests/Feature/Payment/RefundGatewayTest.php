@@ -106,4 +106,19 @@ class RefundGatewayTest extends TestCase
         $this->expectException(\RuntimeException::class);
         app(RefundService::class)->request($payment, 5000, $this->admin->id);
     }
+
+    public function test_configured_gateway_fee_is_deducted_from_the_refund(): void
+    {
+        Http::fake(['https://api.stripe.com/*' => Http::response(['id' => 're_9', 'status' => 'succeeded'])]);
+        PaymentConfig::create([
+            'school_id' => $this->school->id, 'payment_mode' => 'online',
+            'gateways' => ['stripe' => ['enabled' => true, 'fee_pct' => 2.5, 'credentials' => ['secret_key' => 'sk_test']]],
+        ]);
+        $payment = $this->payment('stripe', 'pi_9');
+
+        $refund = app(RefundService::class)->request($payment, 5000, $this->admin->id);
+
+        $this->assertSame('125.00', (string) $refund->processing_fee); // 2.5% of 5000
+        $this->assertSame('4875.00', (string) $refund->net_refund);
+    }
 }
