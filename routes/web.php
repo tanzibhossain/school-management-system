@@ -95,6 +95,15 @@ Route::middleware('guest')->group(function (): void {
 
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
 
+// Language switcher — anyone (guest or logged in) can pick an active language.
+Route::get('/language/{code}', function (string $code) {
+    if (\App\Modules\Language\Models\Language::activeCached()->contains(fn ($l) => $l->code === $code)) {
+        session(['app_locale' => $code]);
+    }
+
+    return back();
+})->name('language.switch');
+
 // ── Staff / teacher portal ───────────────────────────────────────────────────
 Route::middleware(['auth', 'school', 'role:teacher|accountant|librarian|receptionist'])
     ->prefix('staff')->name('staff.')->group(function (): void {
@@ -234,6 +243,17 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
 
         Route::get('/modules', [ModuleController::class, 'index'])->name('modules.index');
         Route::put('/modules', [ModuleController::class, 'update'])->name('modules.update');
+
+        // Languages + translations editor
+        $lc = \App\Http\Controllers\Admin\Setup\LanguageController::class;
+        Route::get('/languages', [$lc, 'index'])->name('languages.index');
+        Route::post('/languages', [$lc, 'store'])->name('languages.store');
+        Route::put('/languages/{id}', [$lc, 'update'])->whereNumber('id')->name('languages.update');
+        Route::post('/languages/{id}/default', [$lc, 'setDefault'])->whereNumber('id')->name('languages.default');
+        Route::delete('/languages/{id}', [$lc, 'destroy'])->whereNumber('id')->name('languages.destroy');
+        Route::post('/languages/scan', [$lc, 'scan'])->name('languages.scan');
+        Route::get('/languages/{code}/translations', [$lc, 'translations'])->name('languages.translations');
+        Route::put('/languages/{code}/translations', [$lc, 'saveTranslations'])->name('languages.translations.save');
 
         // Website page builder
         Route::get('/pages', [WebsitePageController::class, 'index'])->name('pages.index');

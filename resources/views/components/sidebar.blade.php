@@ -102,6 +102,7 @@
     if ($isAdmin) {
         $navTree[] = ['label' => 'Settings', 'icon' => 'bi-gear', 'children' => [
             ['label' => 'School settings', 'href' => route('admin.school.edit'), 'active' => request()->routeIs('admin.school.*') || request()->routeIs('admin.modules.*')],
+            ['label' => 'Languages', 'href' => route('admin.languages.index'), 'active' => request()->routeIs('admin.languages.*')],
             ['label' => 'Payment settings', 'href' => route('admin.payment-config.edit'), 'active' => request()->routeIs('admin.payment-config.*')],
             ['label' => 'Users & roles', 'href' => route('admin.users.index'), 'active' => request()->routeIs('admin.users.*')],
         ]];
@@ -119,7 +120,7 @@
             <span class="brand-icon">
                 <i class="bi bi-mortarboard-fill" aria-hidden="true"></i>
             </span>
-            <span class="brand-text">School Admin</span>
+            <span class="brand-text">{{ __('School Admin') }}</span>
         </a>
         <button class="btn sidebar-close d-lg-none" type="button" aria-label="Close navigation">
             <i class="bi bi-x-lg" aria-hidden="true"></i>
