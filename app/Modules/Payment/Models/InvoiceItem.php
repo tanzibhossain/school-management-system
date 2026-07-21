@@ -13,9 +13,9 @@ class InvoiceItem extends Model
     ];
 
     protected $casts = [
-        'amount'          => 'decimal:2',
+        'amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
-        'net_amount'      => 'decimal:2',
+        'net_amount' => 'decimal:2',
     ];
 
     public function invoice(): BelongsTo

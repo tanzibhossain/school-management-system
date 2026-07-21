@@ -27,10 +27,10 @@ class StaffController extends Controller
             ->get();
 
         return view('admin.people.staff.index', [
-            'staff'        => $staff,
+            'staff' => $staff,
             'designations' => Designation::where('school_id', $schoolId)->orderBy('name')->get(['id', 'name']),
-            'departments'  => Department::where('school_id', $schoolId)->orderBy('name')->get(['id', 'name']),
-            'subjects'     => Subject::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
+            'departments' => Department::where('school_id', $schoolId)->orderBy('name')->get(['id', 'name']),
+            'subjects' => Subject::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -67,20 +67,20 @@ class StaffController extends Controller
     private function validated(Request $request, int $schoolId): array
     {
         return $request->validate([
-            'name'            => ['required', 'string', 'max:255'],
-            'designation_id'  => ['nullable', 'integer', "exists:designations,id,school_id,{$schoolId}"],
-            'department_id'   => ['nullable', 'integer', "exists:departments,id,school_id,{$schoolId}"],
-            'subject_id'      => ['nullable', 'integer', "exists:subjects,id,school_id,{$schoolId}"],
-            'gender'          => ['nullable', 'in:male,female,other'],
-            'dob'             => ['nullable', 'date'],
-            'joining_date'    => ['nullable', 'date'],
+            'name' => ['required', 'string', 'max:255'],
+            'designation_id' => ['nullable', 'integer', "exists:designations,id,school_id,{$schoolId}"],
+            'department_id' => ['nullable', 'integer', "exists:departments,id,school_id,{$schoolId}"],
+            'subject_id' => ['nullable', 'integer', "exists:subjects,id,school_id,{$schoolId}"],
+            'gender' => ['nullable', 'in:male,female,other'],
+            'dob' => ['nullable', 'date'],
+            'joining_date' => ['nullable', 'date'],
             'employment_type' => ['nullable', 'string', 'max:50'],
-            'basic_salary'    => ['nullable', 'numeric', 'min:0'],
-            'rfid_number'     => ['nullable', 'string', 'max:50'],
+            'basic_salary' => ['nullable', 'numeric', 'min:0'],
+            'rfid_number' => ['nullable', 'string', 'max:50'],
         ], [], [
             'designation_id' => 'designation',
-            'department_id'  => 'department',
-            'basic_salary'   => 'basic salary',
+            'department_id' => 'department',
+            'basic_salary' => 'basic salary',
         ]);
     }
 }

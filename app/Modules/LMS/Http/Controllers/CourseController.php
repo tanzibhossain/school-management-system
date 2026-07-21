@@ -12,6 +12,7 @@ use App\Modules\LMS\Services\CourseService;
 use App\Modules\LMS\Services\LessonService;
 use App\Modules\Staff\Models\Staff;
 use App\Modules\Student\Models\Student;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
@@ -78,7 +79,7 @@ class CourseController extends Controller
         return new CourseResource($this->service->update($course, $data));
     }
 
-    public function destroy(Request $request, int $id): \Illuminate\Http\JsonResponse
+    public function destroy(Request $request, int $id): JsonResponse
     {
         $course = Course::forSchool(app('current_school_id'))->findOrFail($id);
         $this->assertCanManage($request, $course);

@@ -12,6 +12,7 @@ use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\StudentAcademic;
 use App\Modules\Student\Models\StudentGuardian;
 use App\Modules\Transport\Models\TransportVehicle;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -20,9 +21,13 @@ abstract class TransportTestCase extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected School $school;
+
     protected AcademicYear $year;
+
     protected SchoolClass $class;
+
     protected Section $section;
 
     private int $seq = 0;
@@ -31,7 +36,7 @@ abstract class TransportTestCase extends TestCase
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Transport Test School',
@@ -70,7 +75,7 @@ abstract class TransportTestCase extends TestCase
 
     protected function auth(): array
     {
-        return ['Authorization' => 'Bearer ' . $this->adminToken()];
+        return ['Authorization' => 'Bearer '.$this->adminToken()];
     }
 
     /** Student with a primary guardian who has a phone; optionally give the student's own User a phone too. */
@@ -141,7 +146,7 @@ abstract class TransportTestCase extends TestCase
     /** Route with an in_service vehicle attached; returns [routeId, vehicleId]. */
     protected function routeWithVehicle(int $capacity = 40, float $fare = 30.0): array
     {
-        $routeId = $this->createRoute('Route ' . uniqid(), $fare);
+        $routeId = $this->createRoute('Route '.uniqid(), $fare);
         $vehicle = $this->makeVehicle($capacity);
 
         $this->putJson("/api/v2/transport/routes/{$routeId}/vehicle", [

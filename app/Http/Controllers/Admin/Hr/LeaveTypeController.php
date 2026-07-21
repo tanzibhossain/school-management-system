@@ -46,11 +46,11 @@ class LeaveTypeController extends Controller
     private function validated(Request $request): array
     {
         $data = $request->validate([
-            'name'                => ['required', 'string', 'max:100'],
-            'applies_to'          => ['required', 'in:student,staff,both'],
-            'max_days_per_year'   => ['nullable', 'integer', 'min:0', 'max:365'],
+            'name' => ['required', 'string', 'max:100'],
+            'applies_to' => ['required', 'in:student,staff,both'],
+            'max_days_per_year' => ['nullable', 'integer', 'min:0', 'max:365'],
             'requires_attachment' => ['nullable', 'boolean'],
-            'is_paid'             => ['nullable', 'boolean'],
+            'is_paid' => ['nullable', 'boolean'],
         ], [], ['applies_to' => 'applies to', 'max_days_per_year' => 'max days per year']);
 
         $data['requires_attachment'] = $request->boolean('requires_attachment');

@@ -22,11 +22,11 @@ class AuthServiceTest extends TestCase
         $this->expectException(TooManyRequestsHttpException::class);
 
         // This should throw because tooManyAttempts returns true
-        $service = new AuthService();
+        $service = new AuthService;
 
         // Access private method via reflection
         $reflection = new \ReflectionClass($service);
-        $method     = $reflection->getMethod('enforceLockout');
+        $method = $reflection->getMethod('enforceLockout');
         $method->setAccessible(true);
         $method->invoke($service, 'lockout@test.com', '1.2.3.4');
     }
@@ -41,9 +41,9 @@ class AuthServiceTest extends TestCase
             RateLimiter::hit($key, 900);
         }
 
-        $service    = new AuthService();
+        $service = new AuthService;
         $reflection = new \ReflectionClass($service);
-        $method     = $reflection->getMethod('enforceLockout');
+        $method = $reflection->getMethod('enforceLockout');
         $method->setAccessible(true);
 
         // Should not throw

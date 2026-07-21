@@ -20,7 +20,7 @@ class BdNationalStrategy implements ResultStrategy
     public function calculate(Collection $units, Collection $boundaries): array
     {
         $compulsory = $units->where('is_optional', false);
-        $optional   = $units->where('is_optional', true);
+        $optional = $units->where('is_optional', true);
 
         if ($compulsory->isEmpty()) {
             return ['gpa' => 0.00, 'grade' => null, 'is_pass' => false];
@@ -33,7 +33,7 @@ class BdNationalStrategy implements ResultStrategy
             return ['gpa' => 0.00, 'grade' => $failLabel, 'is_pass' => false];
         }
 
-        $compulsorySum   = $compulsory->sum(fn ($u) => (float) $u['gpa_point']);
+        $compulsorySum = $compulsory->sum(fn ($u) => (float) $u['gpa_point']);
         $compulsoryCount = $compulsory->count();
 
         // Optional bonus — only the highest PASSED optional counts
@@ -46,8 +46,8 @@ class BdNationalStrategy implements ResultStrategy
         $gpa = round(min(self::GPA_CAP, ($compulsorySum + $bonus) / $compulsoryCount), 2);
 
         return [
-            'gpa'     => $gpa,
-            'grade'   => GradeResolver::byGpaPoint($boundaries, $gpa),
+            'gpa' => $gpa,
+            'grade' => GradeResolver::byGpaPoint($boundaries, $gpa),
             'is_pass' => true,
         ];
     }

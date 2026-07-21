@@ -18,27 +18,27 @@
 return [
     'gateways' => [
         'bkash' => [
-            'label'       => 'bKash',
-            'icon'        => 'bi-phone',
-            'currencies'  => ['BDT'],
+            'label' => 'bKash',
+            'icon' => 'bi-phone',
+            'currencies' => ['BDT'],
             'implemented' => true,
-            'fields'      => [
-                'app_key'    => ['label' => 'App key', 'secret' => false, 'required' => true],
+            'fields' => [
+                'app_key' => ['label' => 'App key', 'secret' => false, 'required' => true],
                 'app_secret' => ['label' => 'App secret', 'secret' => true, 'required' => true],
-                'username'   => ['label' => 'Username', 'secret' => false, 'required' => true],
-                'password'   => ['label' => 'Password', 'secret' => true, 'required' => true],
-                'base_url'   => ['label' => 'Base URL', 'secret' => false, 'required' => false],
+                'username' => ['label' => 'Username', 'secret' => false, 'required' => true],
+                'password' => ['label' => 'Password', 'secret' => true, 'required' => true],
+                'base_url' => ['label' => 'Base URL', 'secret' => false, 'required' => false],
             ],
         ],
         'sslcommerz' => [
-            'label'       => 'SSLCommerz',
-            'icon'        => 'bi-credit-card-2-front',
-            'currencies'  => ['BDT'],
+            'label' => 'SSLCommerz',
+            'icon' => 'bi-credit-card-2-front',
+            'currencies' => ['BDT'],
             'implemented' => true,
-            'fields'      => [
-                'store_id'   => ['label' => 'Store ID', 'secret' => false, 'required' => true],
+            'fields' => [
+                'store_id' => ['label' => 'Store ID', 'secret' => false, 'required' => true],
                 'store_pass' => ['label' => 'Store password', 'secret' => true, 'required' => true],
-                'base_url'   => ['label' => 'Base URL', 'secret' => false, 'required' => false],
+                'base_url' => ['label' => 'Base URL', 'secret' => false, 'required' => false],
             ],
         ],
 
@@ -46,28 +46,28 @@ return [
         //    define it here, write a driver class, and flip `implemented` to true;
         //    no migration needed. ─────────────────────────────────────────────────
         'stripe' => [
-            'label'       => 'Stripe',
-            'icon'        => 'bi-stripe',
-            'currencies'  => ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'INR', 'AED', 'JPY', 'NZD'],
+            'label' => 'Stripe',
+            'icon' => 'bi-stripe',
+            'currencies' => ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'INR', 'AED', 'JPY', 'NZD'],
             'implemented' => true,
-            'fields'      => [
+            'fields' => [
                 // Hosted Checkout needs only the secret key; the publishable key is
                 // for client-side SDKs and the webhook secret for async confirmation.
-                'secret_key'      => ['label' => 'Secret key', 'secret' => true, 'required' => true],
+                'secret_key' => ['label' => 'Secret key', 'secret' => true, 'required' => true],
                 'publishable_key' => ['label' => 'Publishable key', 'secret' => false, 'required' => false],
-                'webhook_secret'  => ['label' => 'Webhook signing secret', 'secret' => true, 'required' => false],
+                'webhook_secret' => ['label' => 'Webhook signing secret', 'secret' => true, 'required' => false],
             ],
         ],
         'paypal' => [
-            'label'       => 'PayPal',
-            'icon'        => 'bi-paypal',
-            'currencies'  => ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'JPY', 'NZD'],
+            'label' => 'PayPal',
+            'icon' => 'bi-paypal',
+            'currencies' => ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'JPY', 'NZD'],
             'implemented' => true,
-            'fields'      => [
-                'client_id'     => ['label' => 'Client ID', 'secret' => false, 'required' => true],
+            'fields' => [
+                'client_id' => ['label' => 'Client ID', 'secret' => false, 'required' => true],
                 'client_secret' => ['label' => 'Client secret', 'secret' => true, 'required' => true],
-                'mode'          => ['label' => 'Mode (sandbox / live)', 'secret' => false, 'required' => false],
-                'webhook_id'    => ['label' => 'Webhook ID', 'secret' => false, 'required' => false],
+                'mode' => ['label' => 'Mode (sandbox / live)', 'secret' => false, 'required' => false],
+                'webhook_id' => ['label' => 'Webhook ID', 'secret' => false, 'required' => false],
             ],
         ],
     ],

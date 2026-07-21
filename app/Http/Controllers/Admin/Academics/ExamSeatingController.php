@@ -28,9 +28,9 @@ class ExamSeatingController extends Controller
             ->values();
 
         return view('admin.academics.exam-seating.index', [
-            'exam'    => $exam,
+            'exam' => $exam,
             'seating' => $seating,
-            'halls'   => ExamHall::where('school_id', $schoolId)
+            'halls' => ExamHall::where('school_id', $schoolId)
                 ->withCount(['seats as available_count' => fn ($q) => $q->where('is_available', true)])
                 ->orderBy('name')->get(),
         ]);
@@ -42,8 +42,8 @@ class ExamSeatingController extends Controller
         $exam = Exam::where('school_id', $schoolId)->findOrFail($examId);
 
         $data = $request->validate([
-            'hall_id'     => ['required', 'integer', "exists:exam_halls,id,school_id,{$schoolId}"],
-            'strategy'    => ['nullable', 'in:sequential,interleave_group,interleave_section,anti_adjacency'],
+            'hall_id' => ['required', 'integer', "exists:exam_halls,id,school_id,{$schoolId}"],
+            'strategy' => ['nullable', 'in:sequential,interleave_group,interleave_section,anti_adjacency'],
             'blank_every' => ['nullable', 'integer', 'min:1', 'max:10'],
         ]);
 

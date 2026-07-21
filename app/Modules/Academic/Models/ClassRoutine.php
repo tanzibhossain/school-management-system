@@ -2,8 +2,9 @@
 
 namespace App\Modules\Academic\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Modules\Staff\Models\Staff;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ClassRoutine extends Model
@@ -31,10 +32,10 @@ class ClassRoutine extends Model
         return $this->belongsTo(Subject::class);
     }
 
-    /** @return BelongsTo<\App\Modules\Staff\Models\Staff, ClassRoutine> */
+    /** @return BelongsTo<Staff, ClassRoutine> */
     public function teacher(): BelongsTo
     {
-        return $this->belongsTo(\App\Modules\Staff\Models\Staff::class, 'teacher_id');
+        return $this->belongsTo(Staff::class, 'teacher_id');
     }
 
     /** @return BelongsTo<RoutineRoom, ClassRoutine> */

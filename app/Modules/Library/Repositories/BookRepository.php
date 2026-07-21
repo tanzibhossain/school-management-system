@@ -24,7 +24,7 @@ class BookRepository extends BaseRepository
     {
         return $this->remember(
             $this->cacheKey("school:{$schoolId}:available"),
-            fn() => Book::forSchool($schoolId)->available()->get(),
+            fn () => Book::forSchool($schoolId)->available()->get(),
         );
     }
 }

@@ -40,16 +40,16 @@ class PaymentService
             $receiptNumber = $this->numberGenerator->nextReceiptNumber($invoice->school_id);
 
             $payment = Payment::create(array_merge($data, [
-                'school_id'     => $invoice->school_id,
-                'receipt_number'=> $receiptNumber,
-                'invoice_id'    => $invoice->id,
-                'student_id'    => $invoice->student_id,
-                'currency'      => $invoice->currency,
-                'collected_by'  => $collectedBy,
-                'paid_at'       => now(),
+                'school_id' => $invoice->school_id,
+                'receipt_number' => $receiptNumber,
+                'invoice_id' => $invoice->id,
+                'student_id' => $invoice->student_id,
+                'currency' => $invoice->currency,
+                'collected_by' => $collectedBy,
+                'paid_at' => now(),
                 // Cheque defaults
                 'cheque_status' => isset($data['cheque_number']) ? 'submitted' : null,
-                'gateway_status'=> null,
+                'gateway_status' => null,
             ]));
 
             $this->updateInvoiceAfterPayment($invoice, $payment);
@@ -71,9 +71,9 @@ class PaymentService
     {
         $this->assertGatewaySupportsCurrency($invoice, BkashGateway::SUPPORTED_CURRENCIES, 'bKash');
 
-        $config  = $this->requireConfig($invoice->school_id);
+        $config = $this->requireConfig($invoice->school_id);
         $gateway = new BkashGateway($config);
-        $token   = $gateway->grantToken();
+        $token = $gateway->grantToken();
 
         $result = $gateway->createPayment(
             $token,
@@ -99,10 +99,10 @@ class PaymentService
      */
     public function executeBkash(string $paymentId, int $invoiceId, int $schoolId): Payment
     {
-        $config  = $this->requireConfig($schoolId);
+        $config = $this->requireConfig($schoolId);
         $gateway = new BkashGateway($config);
-        $token   = $gateway->grantToken();
-        $result  = $gateway->executePayment($token, $paymentId);
+        $token = $gateway->grantToken();
+        $result = $gateway->executePayment($token, $paymentId);
 
         // If executePayment returns empty/null, fall back to queryPayment (per official library pattern)
         if (empty($result)) {
@@ -111,7 +111,7 @@ class PaymentService
 
         // Check both statusCode and transactionStatus (belt-and-suspenders per bKash docs)
         if (($result['statusCode'] ?? '') !== '0000' || ($result['transactionStatus'] ?? '') !== 'Completed') {
-            throw new RuntimeException('bKash payment not completed: ' . ($result['statusMessage'] ?? 'unknown'));
+            throw new RuntimeException('bKash payment not completed: '.($result['statusMessage'] ?? 'unknown'));
         }
 
         $invoice = Invoice::findOrFail($invoiceId);
@@ -120,18 +120,18 @@ class PaymentService
             $receiptNumber = $this->numberGenerator->nextReceiptNumber($schoolId);
 
             $payment = Payment::create([
-                'school_id'          => $schoolId,
-                'receipt_number'     => $receiptNumber,
-                'invoice_id'         => $invoice->id,
-                'student_id'         => $invoice->student_id,
-                'amount'             => $result['amount'],
-                'currency'           => $invoice->currency,
-                'method'             => 'bkash',
-                'transaction_ref'    => $result['trxID'],       // bank transaction ID
+                'school_id' => $schoolId,
+                'receipt_number' => $receiptNumber,
+                'invoice_id' => $invoice->id,
+                'student_id' => $invoice->student_id,
+                'amount' => $result['amount'],
+                'currency' => $invoice->currency,
+                'method' => 'bkash',
+                'transaction_ref' => $result['trxID'],       // bank transaction ID
                 'gateway_payment_id' => $paymentId,             // bKash paymentID — required for refunds
-                'gateway_status'     => 'success',
-                'collected_by'       => $invoice->issued_by,
-                'paid_at'            => now(),
+                'gateway_status' => 'success',
+                'collected_by' => $invoice->issued_by,
+                'paid_at' => now(),
             ]);
 
             $this->updateInvoiceAfterPayment($invoice, $payment);
@@ -153,7 +153,7 @@ class PaymentService
     {
         $this->assertGatewaySupportsCurrency($invoice, StripeGateway::SUPPORTED_CURRENCIES, 'Stripe');
 
-        $config  = $this->requireConfig($invoice->school_id);
+        $config = $this->requireConfig($invoice->school_id);
         $gateway = new StripeGateway($config);
 
         $session = $gateway->createCheckoutSession(
@@ -182,7 +182,7 @@ class PaymentService
      */
     public function verifyStripe(string $sessionId, int $invoiceId, int $schoolId): Payment
     {
-        $config  = $this->requireConfig($schoolId);
+        $config = $this->requireConfig($schoolId);
         $gateway = new StripeGateway($config);
         $session = $gateway->retrieveSession($sessionId);
 
@@ -213,18 +213,18 @@ class PaymentService
             $receiptNumber = $this->numberGenerator->nextReceiptNumber($schoolId);
 
             $payment = Payment::create([
-                'school_id'          => $schoolId,
-                'receipt_number'     => $receiptNumber,
-                'invoice_id'         => $invoice->id,
-                'student_id'         => $invoice->student_id,
-                'amount'             => $paid,
-                'currency'           => $invoice->currency,
-                'method'             => 'stripe',
-                'transaction_ref'    => $ref,           // PaymentIntent id
+                'school_id' => $schoolId,
+                'receipt_number' => $receiptNumber,
+                'invoice_id' => $invoice->id,
+                'student_id' => $invoice->student_id,
+                'amount' => $paid,
+                'currency' => $invoice->currency,
+                'method' => 'stripe',
+                'transaction_ref' => $ref,           // PaymentIntent id
                 'gateway_payment_id' => $ref,           // required for refunds
-                'gateway_status'     => 'success',
-                'collected_by'       => $invoice->issued_by,
-                'paid_at'            => now(),
+                'gateway_status' => 'success',
+                'collected_by' => $invoice->issued_by,
+                'paid_at' => now(),
             ]);
 
             $this->updateInvoiceAfterPayment($invoice, $payment);
@@ -246,7 +246,7 @@ class PaymentService
     {
         $this->assertGatewaySupportsCurrency($invoice, PayPalGateway::SUPPORTED_CURRENCIES, 'PayPal');
 
-        $config  = $this->requireConfig($invoice->school_id);
+        $config = $this->requireConfig($invoice->school_id);
         $gateway = new PayPalGateway($config);
 
         $order = $gateway->createOrder(
@@ -274,10 +274,10 @@ class PaymentService
      */
     public function verifyPayPal(string $orderId, int $invoiceId, int $schoolId): Payment
     {
-        $config  = $this->requireConfig($schoolId);
+        $config = $this->requireConfig($schoolId);
         $gateway = new PayPalGateway($config);
 
-        $order  = $gateway->getOrder($orderId);
+        $order = $gateway->getOrder($orderId);
         $status = $order['status'] ?? '';
 
         if ($status === 'APPROVED') {
@@ -286,8 +286,8 @@ class PaymentService
             throw new RuntimeException("PayPal order is not ready to capture (status: {$status}).");
         }
 
-        $unit      = data_get($order, 'purchase_units.0', []);
-        $capture   = data_get($unit, 'payments.captures.0', []);
+        $unit = data_get($order, 'purchase_units.0', []);
+        $capture = data_get($unit, 'payments.captures.0', []);
         $captureId = data_get($capture, 'id');
 
         if (! $captureId) {
@@ -315,18 +315,18 @@ class PaymentService
             $receiptNumber = $this->numberGenerator->nextReceiptNumber($schoolId);
 
             $payment = Payment::create([
-                'school_id'          => $schoolId,
-                'receipt_number'     => $receiptNumber,
-                'invoice_id'         => $invoice->id,
-                'student_id'         => $invoice->student_id,
-                'amount'             => $paid,
-                'currency'           => $invoice->currency,
-                'method'             => 'paypal',
-                'transaction_ref'    => $captureId,     // capture id — used for refunds
+                'school_id' => $schoolId,
+                'receipt_number' => $receiptNumber,
+                'invoice_id' => $invoice->id,
+                'student_id' => $invoice->student_id,
+                'amount' => $paid,
+                'currency' => $invoice->currency,
+                'method' => 'paypal',
+                'transaction_ref' => $captureId,     // capture id — used for refunds
                 'gateway_payment_id' => $captureId,
-                'gateway_status'     => 'success',
-                'collected_by'       => $invoice->issued_by,
-                'paid_at'            => now(),
+                'gateway_status' => 'success',
+                'collected_by' => $invoice->issued_by,
+                'paid_at' => now(),
             ]);
 
             $this->updateInvoiceAfterPayment($invoice, $payment);
@@ -348,7 +348,7 @@ class PaymentService
     {
         $this->assertGatewaySupportsCurrency($invoice, SslcommerzGateway::SUPPORTED_CURRENCIES, 'SSLCommerz');
 
-        $config  = $this->requireConfig($invoice->school_id);
+        $config = $this->requireConfig($invoice->school_id);
         $gateway = new SslcommerzGateway($config);
 
         return $gateway->initSession(
@@ -370,9 +370,9 @@ class PaymentService
     public function verifySslcommerz(Invoice $invoice, string $valId): ?Payment
     {
         $schoolId = $invoice->school_id;
-        $config   = $this->requireConfig($schoolId);
-        $gateway  = new SslcommerzGateway($config);
-        $result   = $gateway->validatePayment($valId);
+        $config = $this->requireConfig($schoolId);
+        $gateway = new SslcommerzGateway($config);
+        $result = $gateway->validatePayment($valId);
 
         // SSLCommerz validation API returns 'VALID' or 'VALIDATED'
         if (! in_array($result['status'] ?? '', ['VALID', 'VALIDATED'], true)) {
@@ -399,18 +399,18 @@ class PaymentService
             $receiptNumber = $this->numberGenerator->nextReceiptNumber($schoolId);
 
             $payment = Payment::create([
-                'school_id'          => $schoolId,
-                'receipt_number'     => $receiptNumber,
-                'invoice_id'         => $invoice->id,
-                'student_id'         => $invoice->student_id,
-                'amount'             => $validatedAmount,
-                'currency'           => $invoice->currency,
-                'method'             => 'sslcommerz',
-                'transaction_ref'    => $valId,                      // val_id
+                'school_id' => $schoolId,
+                'receipt_number' => $receiptNumber,
+                'invoice_id' => $invoice->id,
+                'student_id' => $invoice->student_id,
+                'amount' => $validatedAmount,
+                'currency' => $invoice->currency,
+                'method' => 'sslcommerz',
+                'transaction_ref' => $valId,                      // val_id
                 'gateway_payment_id' => $result['bank_tran_id'] ?? null, // required for refunds
-                'gateway_status'     => 'success',
-                'collected_by'       => $invoice->issued_by,
-                'paid_at'            => now(),
+                'gateway_status' => 'success',
+                'collected_by' => $invoice->issued_by,
+                'paid_at' => now(),
             ]);
 
             $this->updateInvoiceAfterPayment($invoice, $payment);
@@ -432,7 +432,7 @@ class PaymentService
     {
         if (! in_array($invoice->currency, $supported, true)) {
             throw new RuntimeException(
-                "{$gatewayName} does not support {$invoice->currency} — supported: " . implode(', ', $supported)
+                "{$gatewayName} does not support {$invoice->currency} — supported: ".implode(', ', $supported)
             );
         }
     }
@@ -440,13 +440,13 @@ class PaymentService
     private function updateInvoiceAfterPayment(Invoice $invoice, Payment $payment): void
     {
         $invoice->refresh();
-        $newPaid    = round((float) $invoice->amount_paid + (float) $payment->amount, 2);
-        $amountDue  = (float) $invoice->amount_due;
+        $newPaid = round((float) $invoice->amount_paid + (float) $payment->amount, 2);
+        $amountDue = (float) $invoice->amount_due;
 
         $status = match (true) {
             $newPaid >= $amountDue => 'paid',
-            $newPaid > 0           => 'partial',
-            default                => 'unpaid',
+            $newPaid > 0 => 'partial',
+            default => 'unpaid',
         };
 
         $invoice->update(['amount_paid' => $newPaid, 'status' => $status]);

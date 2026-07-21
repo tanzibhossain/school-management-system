@@ -23,7 +23,7 @@ class AnnouncementRepository extends BaseRepository
     /**
      * Admin list — all non-trashed, including drafts/scheduled/expired.
      *
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      */
     public function paginateForAdmin(int $schoolId, array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
@@ -59,7 +59,7 @@ class AnnouncementRepository extends BaseRepository
     {
         // Corrupt/incomplete cache entries are handled centrally in BaseRepository::remember().
         return $this->remember(
-            $this->cacheKey("school:{$schoolId}:visible:" . implode(',', $audiences)),
+            $this->cacheKey("school:{$schoolId}:visible:".implode(',', $audiences)),
             fn () => Announcement::where('school_id', $schoolId)
                 ->visible()
                 ->whereIn('audience', $audiences)

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Messaging;
 
+use App\Modules\School\Models\ModuleSetting;
+
 class ModerationTest extends MessagingTestCase
 {
     public function test_admin_can_list_all_threads_and_read_any(): void
@@ -49,7 +51,7 @@ class ModerationTest extends MessagingTestCase
         $teacher = $this->makeUser('teacher');
         $this->getJson('/api/v2/messaging/threads')->assertStatus(401);
 
-        \App\Modules\School\Models\ModuleSetting::where('school_id', $this->school->id)
+        ModuleSetting::where('school_id', $this->school->id)
             ->where('module', 'messaging')->delete();
         $this->getJson('/api/v2/messaging/threads', $this->auth($teacher))->assertStatus(403);
     }

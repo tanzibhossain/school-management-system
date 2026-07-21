@@ -26,9 +26,9 @@ class StaffLoanController extends Controller
         }
 
         return view('admin.hr.loans.index', [
-            'loans'   => $query->orderByDesc('id')->limit(500)->get(),
+            'loans' => $query->orderByDesc('id')->limit(500)->get(),
             'filters' => $request->only('status'),
-            'staff'   => Staff::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name', 'employee_id']),
+            'staff' => Staff::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name', 'employee_id']),
         ]);
     }
 
@@ -37,11 +37,11 @@ class StaffLoanController extends Controller
         $schoolId = app('current_school_id');
 
         $data = $request->validate([
-            'staff_id'          => ['required', 'integer', "exists:staff,id,school_id,{$schoolId}"],
-            'requested_amount'  => ['required', 'numeric', 'min:1'],
+            'staff_id' => ['required', 'integer', "exists:staff,id,school_id,{$schoolId}"],
+            'requested_amount' => ['required', 'numeric', 'min:1'],
             'installment_count' => ['required', 'integer', 'min:1', 'max:120'],
-            'reason'            => ['required', 'string', 'max:255'],
-            'start_date'        => ['required', 'date'],
+            'reason' => ['required', 'string', 'max:255'],
+            'start_date' => ['required', 'date'],
         ], [], ['staff_id' => 'staff']);
 
         $staff = Staff::where('school_id', $schoolId)->findOrFail($data['staff_id']);
@@ -80,7 +80,7 @@ class StaffLoanController extends Controller
     {
         $loan = StaffLoan::where('school_id', app('current_school_id'))->findOrFail($id);
         $user = request()->user();
-        $user->withAccessToken(new TransientToken()); // service gates on tokenCan('admin:*'/'accountant:*')
+        $user->withAccessToken(new TransientToken); // service gates on tokenCan('admin:*'/'accountant:*')
 
         try {
             $action($loan, $user);

@@ -5,6 +5,7 @@ namespace Tests\Feature\Announcement;
 use App\Models\User;
 use App\Modules\Announcement\Models\Announcement;
 use App\Modules\School\Models\School;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -13,17 +14,19 @@ class AnnouncementTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private User $teacher;
+
     private School $school;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
-        $this->school  = School::create(['name' => 'Test School', 'is_active' => true]);
-        $this->admin   = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
+        $this->school = School::create(['name' => 'Test School', 'is_active' => true]);
+        $this->admin = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
         $this->teacher = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
 
         $this->admin->assignRole('admin');
@@ -44,17 +47,17 @@ class AnnouncementTest extends TestCase
     {
         $response = $this->withToken($this->adminToken())
             ->postJson('/api/v2/announcements', [
-                'title'    => 'School Closed Tomorrow',
-                'body'     => 'Due to elections, school will remain closed.',
-                'type'     => 'holiday',
+                'title' => 'School Closed Tomorrow',
+                'body' => 'Due to elections, school will remain closed.',
+                'type' => 'holiday',
                 'audience' => 'all',
                 'priority' => 'important',
             ]);
 
         $response->assertCreated()->assertJsonFragment(['title' => 'School Closed Tomorrow']);
         $this->assertDatabaseHas('announcements', [
-            'title'      => 'School Closed Tomorrow',
-            'school_id'  => $this->school->id,
+            'title' => 'School Closed Tomorrow',
+            'school_id' => $this->school->id,
             'publish_at' => null,
         ]);
     }
@@ -62,13 +65,13 @@ class AnnouncementTest extends TestCase
     public function test_admin_can_publish_announcement(): void
     {
         $ann = Announcement::create([
-            'school_id'  => $this->school->id,
+            'school_id' => $this->school->id,
             'created_by' => $this->admin->id,
-            'title'      => 'Test',
-            'body'       => 'Body text.',
-            'type'       => 'general',
-            'audience'   => 'all',
-            'priority'   => 'normal',
+            'title' => 'Test',
+            'body' => 'Body text.',
+            'type' => 'general',
+            'audience' => 'all',
+            'priority' => 'normal',
         ]);
         auth()->forgetGuards();
 
@@ -83,13 +86,13 @@ class AnnouncementTest extends TestCase
     public function test_scheduled_announcement_not_visible_before_publish_at(): void
     {
         Announcement::create([
-            'school_id'  => $this->school->id,
+            'school_id' => $this->school->id,
             'created_by' => $this->admin->id,
-            'title'      => 'Future Notice',
-            'body'       => 'Not yet.',
-            'type'       => 'general',
-            'audience'   => 'all',
-            'priority'   => 'normal',
+            'title' => 'Future Notice',
+            'body' => 'Not yet.',
+            'type' => 'general',
+            'audience' => 'all',
+            'priority' => 'normal',
             'publish_at' => now()->addDays(2),
         ]);
 
@@ -102,15 +105,15 @@ class AnnouncementTest extends TestCase
     public function test_expired_announcement_not_in_feed(): void
     {
         Announcement::create([
-            'school_id'  => $this->school->id,
+            'school_id' => $this->school->id,
             'created_by' => $this->admin->id,
-            'title'      => 'Old Notice',
-            'body'       => 'Expired.',
-            'type'       => 'general',
-            'audience'   => 'all',
-            'priority'   => 'normal',
+            'title' => 'Old Notice',
+            'body' => 'Expired.',
+            'type' => 'general',
+            'audience' => 'all',
+            'priority' => 'normal',
             'publish_at' => now()->subDays(5),
-            'expire_at'  => now()->subDays(1),
+            'expire_at' => now()->subDays(1),
         ]);
 
         $this->withToken($this->teacherToken())
@@ -122,13 +125,13 @@ class AnnouncementTest extends TestCase
     public function test_audience_filtering_teachers_cannot_see_students_only(): void
     {
         Announcement::create([
-            'school_id'  => $this->school->id,
+            'school_id' => $this->school->id,
             'created_by' => $this->admin->id,
-            'title'      => 'Students Only',
-            'body'       => 'For students.',
-            'type'       => 'exam',
-            'audience'   => 'students',
-            'priority'   => 'normal',
+            'title' => 'Students Only',
+            'body' => 'For students.',
+            'type' => 'exam',
+            'audience' => 'students',
+            'priority' => 'normal',
             'publish_at' => now()->subMinute(),
         ]);
 
@@ -141,27 +144,27 @@ class AnnouncementTest extends TestCase
     public function test_pinned_announcement_appears_first(): void
     {
         Announcement::create([
-            'school_id'  => $this->school->id,
+            'school_id' => $this->school->id,
             'created_by' => $this->admin->id,
-            'title'      => 'Regular Notice',
-            'body'       => 'Body.',
-            'type'       => 'general',
-            'audience'   => 'all',
-            'priority'   => 'normal',
+            'title' => 'Regular Notice',
+            'body' => 'Body.',
+            'type' => 'general',
+            'audience' => 'all',
+            'priority' => 'normal',
             'publish_at' => now()->subMinutes(2),
-            'is_pinned'  => false,
+            'is_pinned' => false,
         ]);
 
         Announcement::create([
-            'school_id'  => $this->school->id,
+            'school_id' => $this->school->id,
             'created_by' => $this->admin->id,
-            'title'      => 'Pinned Notice',
-            'body'       => 'Important.',
-            'type'       => 'general',
-            'audience'   => 'all',
-            'priority'   => 'urgent',
+            'title' => 'Pinned Notice',
+            'body' => 'Important.',
+            'type' => 'general',
+            'audience' => 'all',
+            'priority' => 'urgent',
             'publish_at' => now()->subMinute(),
-            'is_pinned'  => true,
+            'is_pinned' => true,
         ]);
 
         $response = $this->withToken($this->teacherToken())
@@ -175,13 +178,13 @@ class AnnouncementTest extends TestCase
     public function test_mark_read_is_idempotent(): void
     {
         $ann = Announcement::create([
-            'school_id'  => $this->school->id,
+            'school_id' => $this->school->id,
             'created_by' => $this->admin->id,
-            'title'      => 'Read Me',
-            'body'       => 'Content.',
-            'type'       => 'general',
-            'audience'   => 'all',
-            'priority'   => 'normal',
+            'title' => 'Read Me',
+            'body' => 'Content.',
+            'type' => 'general',
+            'audience' => 'all',
+            'priority' => 'normal',
             'publish_at' => now()->subMinute(),
         ]);
 
@@ -197,13 +200,13 @@ class AnnouncementTest extends TestCase
     public function test_admin_list_includes_drafts(): void
     {
         Announcement::create([
-            'school_id'  => $this->school->id,
+            'school_id' => $this->school->id,
             'created_by' => $this->admin->id,
-            'title'      => 'Draft Announcement',
-            'body'       => 'Not published yet.',
-            'type'       => 'general',
-            'audience'   => 'all',
-            'priority'   => 'normal',
+            'title' => 'Draft Announcement',
+            'body' => 'Not published yet.',
+            'type' => 'general',
+            'audience' => 'all',
+            'priority' => 'normal',
             // publish_at intentionally null
         ]);
 

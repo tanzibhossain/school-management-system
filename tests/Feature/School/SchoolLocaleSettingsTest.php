@@ -45,18 +45,18 @@ class SchoolLocaleSettingsTest extends TestCase
     public function test_public_profile_exposes_locale_settings_and_institution_code_label(): void
     {
         $this->school->update([
-            'currency'               => 'BDT',
-            'timezone'               => 'Asia/Dhaka',
-            'institution_code'       => '123456',
+            'currency' => 'BDT',
+            'timezone' => 'Asia/Dhaka',
+            'institution_code' => '123456',
             'institution_code_label' => 'EIIN',
         ]);
 
         $this->getJson('/api/v2/public/school')
             ->assertOk()
             ->assertJsonFragment([
-                'currency'               => 'BDT',
-                'timezone'               => 'Asia/Dhaka',
-                'institution_code'       => '123456',
+                'currency' => 'BDT',
+                'timezone' => 'Asia/Dhaka',
+                'institution_code' => '123456',
                 'institution_code_label' => 'EIIN',
             ]);
     }
@@ -73,23 +73,23 @@ class SchoolLocaleSettingsTest extends TestCase
     {
         $this->withToken($this->token())
             ->putJson('/api/v2/school', [
-                'currency'               => 'BDT',
-                'timezone'               => 'Asia/Dhaka',
-                'locale'                 => 'bn',
-                'academic_year_pattern'  => 'jan_dec',
-                'country_code'           => 'BD',
-                'institution_code'       => '654321',
+                'currency' => 'BDT',
+                'timezone' => 'Asia/Dhaka',
+                'locale' => 'bn',
+                'academic_year_pattern' => 'jan_dec',
+                'country_code' => 'BD',
+                'institution_code' => '654321',
                 'institution_code_label' => 'EIIN',
             ])
             ->assertOk();
 
         $this->assertDatabaseHas('schools', [
-            'id'                     => $this->school->id,
-            'currency'               => 'BDT',
-            'timezone'               => 'Asia/Dhaka',
-            'locale'                 => 'bn',
-            'country_code'           => 'BD',
-            'institution_code'       => '654321',
+            'id' => $this->school->id,
+            'currency' => 'BDT',
+            'timezone' => 'Asia/Dhaka',
+            'locale' => 'bn',
+            'country_code' => 'BD',
+            'institution_code' => '654321',
             'institution_code_label' => 'EIIN',
         ]);
     }

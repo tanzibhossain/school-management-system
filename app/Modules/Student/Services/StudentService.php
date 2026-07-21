@@ -2,7 +2,6 @@
 
 namespace App\Modules\Student\Services;
 
-use App\Models\User;
 use App\Modules\Academic\Models\Section;
 use App\Modules\Student\Events\StudentEnrolled;
 use App\Modules\Student\Events\StudentPromoted;
@@ -16,7 +15,6 @@ use App\Modules\Student\Repositories\StudentRepository;
 use App\Services\BaseService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class StudentService extends BaseService
@@ -44,8 +42,8 @@ class StudentService extends BaseService
         return DB::transaction(function () use ($schoolId, $studentData, $academicData, $guardianData): Student {
             // Capacity check
             $sectionId = $academicData['section_id'];
-            $yearId    = $academicData['academic_year_id'];
-            $section   = Section::findOrFail($sectionId);
+            $yearId = $academicData['academic_year_id'];
+            $section = Section::findOrFail($sectionId);
 
             if ($section->capacity !== null) {
                 /** @var StudentRepository $repo */
@@ -63,14 +61,14 @@ class StudentService extends BaseService
             $studentId = $this->idGenerator->generate($schoolId);
 
             $student = Student::create(array_merge($studentData, [
-                'school_id'  => $schoolId,
+                'school_id' => $schoolId,
                 'student_id' => $studentId,
-                'status'     => 'active',
+                'status' => 'active',
             ]));
 
             // Create academic record
             StudentAcademic::create(array_merge($academicData, [
-                'school_id'  => $schoolId,
+                'school_id' => $schoolId,
                 'student_id' => $student->id,
                 'is_current' => true,
             ]));
@@ -78,7 +76,7 @@ class StudentService extends BaseService
             // Create guardians if provided
             foreach ($guardianData as $guardian) {
                 StudentGuardian::create(array_merge($guardian, [
-                    'school_id'  => $schoolId,
+                    'school_id' => $schoolId,
                     'student_id' => $student->id,
                 ]));
             }
@@ -126,16 +124,16 @@ class StudentService extends BaseService
 
             // Create new academic record
             StudentAcademic::create([
-                'school_id'       => $student->school_id,
-                'student_id'      => $student->id,
+                'school_id' => $student->school_id,
+                'student_id' => $student->id,
                 'academic_year_id' => $toYearId,
-                'class_id'        => $toClassId,
-                'section_id'      => $toSectionId,
-                'version_id'      => $toVersionId,
-                'group_id'        => $toGroupId,
-                'shift_id'        => $toShiftId,
-                'roll_number'     => $rollNumber,
-                'is_current'      => true,
+                'class_id' => $toClassId,
+                'section_id' => $toSectionId,
+                'version_id' => $toVersionId,
+                'group_id' => $toGroupId,
+                'shift_id' => $toShiftId,
+                'roll_number' => $rollNumber,
+                'is_current' => true,
             ]);
 
             $this->repository->flush();
@@ -150,7 +148,7 @@ class StudentService extends BaseService
      */
     public function transfer(Student $student, string $reason = 'transfer'): Student
     {
-        DB::transaction(function () use ($student, $reason): void {
+        DB::transaction(function () use ($student): void {
             // Deactivate student portal login
             if ($user = $student->guardians()->whereNotNull('user_id')->with('user')->first()?->user) {
                 $user->tokens()->delete();
@@ -177,7 +175,7 @@ class StudentService extends BaseService
             $student->update(['status' => 'active', 'is_trash' => false]);
 
             StudentAcademic::create(array_merge($academicData, [
-                'school_id'  => $student->school_id,
+                'school_id' => $student->school_id,
                 'student_id' => $student->id,
                 'is_current' => true,
             ]));

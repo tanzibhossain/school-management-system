@@ -2,6 +2,7 @@
 
 namespace App\Modules\Staff\Models;
 
+use App\Modules\Academic\Models\Subject;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,11 +38,11 @@ class Staff extends Model
     ];
 
     protected $casts = [
-        'dob'          => 'date',
+        'dob' => 'date',
         'joining_date' => 'date',
         'leaving_date' => 'date',
         'basic_salary' => 'decimal:2',
-        'is_trash'      => 'boolean',
+        'is_trash' => 'boolean',
         're_hire_count' => 'integer',
     ];
 
@@ -62,7 +63,7 @@ class Staff extends Model
     /** Primary teaching subject (for teachers). @return BelongsTo<\App\Modules\Academic\Models\Subject, Staff> */
     public function subject(): BelongsTo
     {
-        return $this->belongsTo(\App\Modules\Academic\Models\Subject::class);
+        return $this->belongsTo(Subject::class);
     }
 
     /** @return HasMany<StaffAcademic> */

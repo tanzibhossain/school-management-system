@@ -20,20 +20,20 @@ class StaffIdGeneratorService
                 ->firstOrCreate(
                     ['school_id' => $schoolId],
                     [
-                        'prefix'          => 'EMP',
-                        'include_year'    => true,
-                        'year_format'     => 'YYYY',
-                        'separator'       => '/',
+                        'prefix' => 'EMP',
+                        'include_year' => true,
+                        'year_format' => 'YYYY',
+                        'separator' => '/',
                         'sequence_length' => 4,
-                        'reset_yearly'    => true,
-                        'last_sequence'   => 0,
+                        'reset_yearly' => true,
+                        'last_sequence' => 0,
                     ],
                 );
 
             $currentYear = (int) now()->format('Y');
 
             if ($config->reset_yearly && $config->last_reset_year !== $currentYear) {
-                $config->last_sequence   = 0;
+                $config->last_sequence = 0;
                 $config->last_reset_year = $currentYear;
             }
 

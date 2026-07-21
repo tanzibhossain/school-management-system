@@ -53,9 +53,9 @@ class SalaryComponentController extends Controller
     private function validated(Request $request): array
     {
         $data = $request->validate([
-            'name'           => ['required', 'string', 'max:100'],
+            'name' => ['required', 'string', 'max:100'],
             'component_type' => ['required', 'in:earning,deduction'],
-            'sort_order'     => ['nullable', 'integer', 'min:0', 'max:255'],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:255'],
         ], [], ['component_type' => 'type']);
         $data['is_default'] = $request->boolean('is_default');
         $data['sort_order'] = $data['sort_order'] ?? 0;

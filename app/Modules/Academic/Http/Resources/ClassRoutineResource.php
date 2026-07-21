@@ -13,19 +13,19 @@ class ClassRoutineResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'          => $this->id,
-            'class_id'    => $this->class_id,
-            'section_id'  => $this->section_id,
-            'subject_id'  => $this->subject_id,
-            'teacher_id'  => $this->teacher_id,
-            'room_id'     => $this->room_id,
-            'period_id'   => $this->period_id,
-            'shift_id'    => $this->shift_id,
+            'id' => $this->id,
+            'class_id' => $this->class_id,
+            'section_id' => $this->section_id,
+            'subject_id' => $this->subject_id,
+            'teacher_id' => $this->teacher_id,
+            'room_id' => $this->room_id,
+            'period_id' => $this->period_id,
+            'shift_id' => $this->shift_id,
             'day_of_week' => $this->day_of_week,
-            'subject'     => new SubjectResource($this->whenLoaded('subject')),
-            'room'        => new RoutineRoomResource($this->whenLoaded('room')),
-            'period'      => new RoutinePeriodResource($this->whenLoaded('period')),
-            'shift'       => new AcademicShiftResource($this->whenLoaded('shift')),
+            'subject' => new SubjectResource($this->whenLoaded('subject')),
+            'room' => new RoutineRoomResource($this->whenLoaded('room')),
+            'period' => new RoutinePeriodResource($this->whenLoaded('period')),
+            'shift' => new AcademicShiftResource($this->whenLoaded('shift')),
         ];
     }
 }

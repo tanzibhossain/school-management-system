@@ -10,7 +10,7 @@ class LoanScheduleCalculatorTest extends TestCase
 {
     public function test_splits_amount_evenly_when_it_divides_cleanly(): void
     {
-        $calculator = new LoanScheduleCalculator();
+        $calculator = new LoanScheduleCalculator;
 
         $schedule = $calculator->calculateSchedule(12000, 12);
 
@@ -23,7 +23,7 @@ class LoanScheduleCalculatorTest extends TestCase
 
     public function test_last_installment_absorbs_rounding_remainder(): void
     {
-        $calculator = new LoanScheduleCalculator();
+        $calculator = new LoanScheduleCalculator;
 
         $schedule = $calculator->calculateSchedule(1000, 3);
 
@@ -37,7 +37,7 @@ class LoanScheduleCalculatorTest extends TestCase
 
     public function test_installment_numbers_are_sequential_starting_at_one(): void
     {
-        $calculator = new LoanScheduleCalculator();
+        $calculator = new LoanScheduleCalculator;
 
         $schedule = $calculator->calculateSchedule(5000, 5);
 
@@ -46,7 +46,7 @@ class LoanScheduleCalculatorTest extends TestCase
 
     public function test_single_installment_returns_full_amount(): void
     {
-        $calculator = new LoanScheduleCalculator();
+        $calculator = new LoanScheduleCalculator;
 
         $schedule = $calculator->calculateSchedule(500, 1);
 
@@ -58,13 +58,13 @@ class LoanScheduleCalculatorTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        (new LoanScheduleCalculator())->calculateSchedule(0, 5);
+        (new LoanScheduleCalculator)->calculateSchedule(0, 5);
     }
 
     public function test_throws_on_zero_installment_count(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        (new LoanScheduleCalculator())->calculateSchedule(1000, 0);
+        (new LoanScheduleCalculator)->calculateSchedule(1000, 0);
     }
 }

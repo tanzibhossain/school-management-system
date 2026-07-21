@@ -25,15 +25,15 @@ class WebhookController extends Controller
     public function stripe(Request $request): JsonResponse
     {
         $payload = $request->getContent();
-        $event   = json_decode($payload, true) ?: [];
+        $event = json_decode($payload, true) ?: [];
 
         if (($event['type'] ?? '') !== 'checkout.session.completed') {
             return response()->json(['ignored' => true]); // ack unhandled events
         }
 
-        $session   = $event['data']['object'] ?? [];
+        $session = $event['data']['object'] ?? [];
         $sessionId = data_get($session, 'id');
-        $schoolId  = (int) data_get($session, 'metadata.school_id');
+        $schoolId = (int) data_get($session, 'metadata.school_id');
         $invoiceId = (int) data_get($session, 'metadata.invoice_id');
 
         if (! $sessionId || ! $schoolId || ! $invoiceId) {
@@ -62,7 +62,7 @@ class WebhookController extends Controller
         }
 
         $resource = $event['resource'] ?? [];
-        $orderId  = data_get($resource, 'id');
+        $orderId = data_get($resource, 'id');
         $customId = data_get($resource, 'purchase_units.0.custom_id') ?? data_get($resource, 'custom_id');
 
         if (! $orderId || ! $customId) {
@@ -80,10 +80,10 @@ class WebhookController extends Controller
         }
 
         $headers = [
-            'paypal-auth-algo'         => $request->header('PAYPAL-AUTH-ALGO'),
-            'paypal-cert-url'          => $request->header('PAYPAL-CERT-URL'),
-            'paypal-transmission-id'   => $request->header('PAYPAL-TRANSMISSION-ID'),
-            'paypal-transmission-sig'  => $request->header('PAYPAL-TRANSMISSION-SIG'),
+            'paypal-auth-algo' => $request->header('PAYPAL-AUTH-ALGO'),
+            'paypal-cert-url' => $request->header('PAYPAL-CERT-URL'),
+            'paypal-transmission-id' => $request->header('PAYPAL-TRANSMISSION-ID'),
+            'paypal-transmission-sig' => $request->header('PAYPAL-TRANSMISSION-SIG'),
             'paypal-transmission-time' => $request->header('PAYPAL-TRANSMISSION-TIME'),
         ];
 

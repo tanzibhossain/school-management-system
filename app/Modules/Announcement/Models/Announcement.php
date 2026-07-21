@@ -24,9 +24,9 @@ class Announcement extends Model
 
     protected $casts = [
         'publish_at' => 'datetime',
-        'expire_at'  => 'datetime',
-        'is_pinned'  => 'boolean',
-        'is_trash'   => 'boolean',
+        'expire_at' => 'datetime',
+        'is_pinned' => 'boolean',
+        'is_trash' => 'boolean',
     ];
 
     // ── Relationships ─────────────────────────────────────────────────────────

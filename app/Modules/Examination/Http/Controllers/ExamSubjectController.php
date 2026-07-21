@@ -17,7 +17,7 @@ class ExamSubjectController extends Controller
 
     public function index(int $examId): JsonResponse
     {
-        $exam     = Exam::where('school_id', app('current_school_id'))->findOrFail($examId);
+        $exam = Exam::where('school_id', app('current_school_id'))->findOrFail($examId);
         $subjects = $exam->subjects()->with('subjectRelation.subject')->get();
 
         return response()->json([
@@ -41,7 +41,7 @@ class ExamSubjectController extends Controller
 
     public function destroy(int $examId, int $id): JsonResponse
     {
-        $exam    = Exam::where('school_id', app('current_school_id'))->findOrFail($examId);
+        $exam = Exam::where('school_id', app('current_school_id'))->findOrFail($examId);
         $subject = ExamSubject::where('exam_id', $exam->id)->findOrFail($id);
 
         try {

@@ -41,10 +41,10 @@ class DriverController extends Controller
     private function validated(Request $request): array
     {
         return $request->validate([
-            'name'       => ['required', 'string', 'max:120'],
-            'phone'      => ['nullable', 'string', 'max:30'],
+            'name' => ['required', 'string', 'max:120'],
+            'phone' => ['nullable', 'string', 'max:30'],
             'license_no' => ['nullable', 'string', 'max:50'],
-            'status'     => ['required', 'in:active,on_leave,inactive'],
+            'status' => ['required', 'in:active,on_leave,inactive'],
         ], [], ['license_no' => 'license number']);
     }
 }

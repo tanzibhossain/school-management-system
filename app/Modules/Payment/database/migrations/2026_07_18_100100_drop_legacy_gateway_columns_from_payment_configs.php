@@ -27,17 +27,17 @@ return new class extends Migration
                 $store = $this->decodeStore($row->gateways ?? null);
 
                 $this->merge($store, 'bkash', array_filter([
-                    'app_key'    => $this->dec($row->bkash_app_key ?? null),
+                    'app_key' => $this->dec($row->bkash_app_key ?? null),
                     'app_secret' => $this->dec($row->bkash_app_secret ?? null),
-                    'username'   => $this->dec($row->bkash_username ?? null),
-                    'password'   => $this->dec($row->bkash_password ?? null),
-                    'base_url'   => $row->bkash_base_url ?? null,
+                    'username' => $this->dec($row->bkash_username ?? null),
+                    'password' => $this->dec($row->bkash_password ?? null),
+                    'base_url' => $row->bkash_base_url ?? null,
                 ], fn ($v) => filled($v)), $row->bkash_enabled ?? false, $row->bkash_fee_pct ?? 0);
 
                 $this->merge($store, 'sslcommerz', array_filter([
-                    'store_id'   => $this->dec($row->sslcommerz_store_id ?? null),
+                    'store_id' => $this->dec($row->sslcommerz_store_id ?? null),
                     'store_pass' => $this->dec($row->sslcommerz_store_pass ?? null),
-                    'base_url'   => $row->sslcommerz_base_url ?? null,
+                    'base_url' => $row->sslcommerz_base_url ?? null,
                 ], fn ($v) => filled($v)), $row->sslcommerz_enabled ?? false, $row->sslcommerz_fee_pct ?? 0);
 
                 if ($store !== []) {
@@ -77,7 +77,7 @@ return new class extends Migration
         }
         try {
             return json_decode(Crypt::decryptString($raw), true) ?: [];
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return [];
         }
     }
@@ -89,7 +89,7 @@ return new class extends Migration
         }
         try {
             return Crypt::decryptString($value);
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return null;
         }
     }
@@ -102,8 +102,8 @@ return new class extends Migration
         }
 
         $store[$slug] = [
-            'enabled'     => (bool) $enabled,
-            'fee_pct'     => (float) $feePct,
+            'enabled' => (bool) $enabled,
+            'fee_pct' => (float) $feePct,
             'credentials' => $creds,
         ];
     }

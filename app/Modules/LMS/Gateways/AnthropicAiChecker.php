@@ -20,10 +20,10 @@ class AnthropicAiChecker implements AiCheckerContract
         $truncated = mb_substr($content, 0, $maxChars);
 
         $prompt = "Assess this student assignment for likely AI generation and academic integrity.\n\n"
-            . "Submission content:\n---\n{$truncated}\n---\n\n"
-            . 'Return ONLY valid JSON in exactly this shape, with no prose and no markdown code '
-            . 'fences: {"ai_score": <integer 0-100>, "likely_ai_generated": <true|false>, '
-            . '"originality_note": "<one or two sentence explanation>"}';
+            ."Submission content:\n---\n{$truncated}\n---\n\n"
+            .'Return ONLY valid JSON in exactly this shape, with no prose and no markdown code '
+            .'fences: {"ai_score": <integer 0-100>, "likely_ai_generated": <true|false>, '
+            .'"originality_note": "<one or two sentence explanation>"}';
 
         $response = Http::withHeaders([
             'x-api-key' => $apiKey,
@@ -47,7 +47,7 @@ class AnthropicAiChecker implements AiCheckerContract
         $decoded = is_string($text) ? json_decode($text, true) : null;
 
         if (! is_array($decoded) || ! array_key_exists('ai_score', $decoded)) {
-            throw new RuntimeException('Anthropic API returned an unparseable response: ' . $response->body());
+            throw new RuntimeException('Anthropic API returned an unparseable response: '.$response->body());
         }
 
         return AiCheckResult::success(

@@ -22,9 +22,9 @@ class ReferenceController extends Controller
 {
     /** @var array<string, array{model: class-string<Model>, table: string, label: string, singular: string}> */
     private const TYPES = [
-        'groups'   => ['model' => AcademicGroup::class,   'table' => 'groups',   'label' => 'Groups',   'singular' => 'Group'],
+        'groups' => ['model' => AcademicGroup::class,   'table' => 'groups',   'label' => 'Groups',   'singular' => 'Group'],
         'versions' => ['model' => AcademicVersion::class, 'table' => 'versions', 'label' => 'Versions', 'singular' => 'Version'],
-        'shifts'   => ['model' => AcademicShift::class,   'table' => 'shifts',   'label' => 'Shifts',   'singular' => 'Shift'],
+        'shifts' => ['model' => AcademicShift::class,   'table' => 'shifts',   'label' => 'Shifts',   'singular' => 'Shift'],
     ];
 
     public function __construct(private readonly AcademicRepository $academic) {}
@@ -38,7 +38,7 @@ class ReferenceController extends Controller
             ->get();
 
         return view('admin.setup.reference.index', [
-            'type'  => $request->route()->parameter('type'),
+            'type' => $request->route()->parameter('type'),
             'label' => $meta['label'],
             'singular' => $meta['singular'],
             'items' => $items,

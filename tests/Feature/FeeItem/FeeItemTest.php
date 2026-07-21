@@ -9,6 +9,7 @@ use App\Modules\FeeItem\Models\FeeCategory;
 use App\Modules\FeeItem\Models\FeeDiscount;
 use App\Modules\FeeItem\Models\FeeItem;
 use App\Modules\School\Models\School;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -17,28 +18,32 @@ class FeeItemTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private School $school;
+
     private AcademicYear $year;
+
     private SchoolClass $class;
+
     private FeeCategory $category;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
-        $this->school   = School::create(['name' => 'Test School', 'is_active' => true]);
-        $this->admin    = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
+        $this->school = School::create(['name' => 'Test School', 'is_active' => true]);
+        $this->admin = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
         $this->admin->assignRole('admin');
 
-        $this->year     = AcademicYear::create([
-            'school_id'  => $this->school->id,
-            'year'       => '2026',
+        $this->year = AcademicYear::create([
+            'school_id' => $this->school->id,
+            'year' => '2026',
             'is_current' => true,
         ]);
 
-        $this->class    = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 1']);
+        $this->class = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 1']);
         $this->category = FeeCategory::create(['school_id' => $this->school->id, 'name' => 'Academic']);
     }
 
@@ -55,7 +60,7 @@ class FeeItemTest extends TestCase
             ->assertJsonFragment(['name' => 'Transport']);
 
         $this->assertDatabaseHas('fee_categories', [
-            'name'      => 'Transport',
+            'name' => 'Transport',
             'school_id' => $this->school->id,
         ]);
     }
@@ -64,21 +69,21 @@ class FeeItemTest extends TestCase
     {
         $response = $this->withToken($this->token())
             ->postJson('/api/v2/fee-items', [
-                'category_id'      => $this->category->id,
+                'category_id' => $this->category->id,
                 'academic_year_id' => $this->year->id,
-                'class_id'         => $this->class->id,
-                'name'             => 'Tuition Fee',
-                'amount'           => 5000,
-                'frequency'        => 'monthly',
-                'due_day'          => 10,
-                'is_mandatory'     => true,
+                'class_id' => $this->class->id,
+                'name' => 'Tuition Fee',
+                'amount' => 5000,
+                'frequency' => 'monthly',
+                'due_day' => 10,
+                'is_mandatory' => true,
             ]);
 
         $response->assertCreated()->assertJsonFragment(['name' => 'Tuition Fee', 'amount' => '5000.00']);
 
         $this->assertDatabaseHas('fee_items', [
-            'name'             => 'Tuition Fee',
-            'school_id'        => $this->school->id,
+            'name' => 'Tuition Fee',
+            'school_id' => $this->school->id,
             'academic_year_id' => $this->year->id,
         ]);
     }
@@ -86,15 +91,15 @@ class FeeItemTest extends TestCase
     public function test_null_class_id_item_applies_to_all_classes(): void
     {
         FeeItem::create([
-            'school_id'        => $this->school->id,
-            'category_id'      => $this->category->id,
+            'school_id' => $this->school->id,
+            'category_id' => $this->category->id,
             'academic_year_id' => $this->year->id,
-            'class_id'         => null,
-            'name'             => 'School Development Fee',
-            'amount'           => 1000,
-            'frequency'        => 'yearly',
-            'is_mandatory'     => true,
-            'is_active'        => true,
+            'class_id' => null,
+            'name' => 'School Development Fee',
+            'amount' => 1000,
+            'frequency' => 'yearly',
+            'is_mandatory' => true,
+            'is_active' => true,
         ]);
 
         // A class-specific query must include null-class_id items
@@ -113,9 +118,9 @@ class FeeItemTest extends TestCase
     {
         $this->withToken($this->token())
             ->postJson('/api/v2/fee-discounts', [
-                'name'       => 'Sibling Discount',
-                'type'       => 'percentage',
-                'value'      => 10,
+                'name' => 'Sibling Discount',
+                'type' => 'percentage',
+                'value' => 10,
                 'max_amount' => 500,
             ])
             ->assertCreated()
@@ -125,12 +130,12 @@ class FeeItemTest extends TestCase
     public function test_percentage_discount_respects_cap(): void
     {
         $discount = FeeDiscount::create([
-            'school_id'  => $this->school->id,
-            'name'       => 'Merit Scholarship',
-            'type'       => 'percentage',
-            'value'      => 20,
+            'school_id' => $this->school->id,
+            'name' => 'Merit Scholarship',
+            'type' => 'percentage',
+            'value' => 20,
             'max_amount' => 800,
-            'is_active'  => true,
+            'is_active' => true,
         ]);
 
         // 20% of 5000 = 1000, capped at 800
@@ -144,9 +149,9 @@ class FeeItemTest extends TestCase
     {
         $discount = FeeDiscount::create([
             'school_id' => $this->school->id,
-            'name'      => 'Staff Child',
-            'type'      => 'fixed',
-            'value'     => 3000,
+            'name' => 'Staff Child',
+            'type' => 'fixed',
+            'value' => 3000,
             'is_active' => true,
         ]);
 
@@ -158,32 +163,32 @@ class FeeItemTest extends TestCase
     public function test_duplicate_fee_items_to_next_year(): void
     {
         FeeItem::create([
-            'school_id'        => $this->school->id,
-            'category_id'      => $this->category->id,
+            'school_id' => $this->school->id,
+            'category_id' => $this->category->id,
             'academic_year_id' => $this->year->id,
-            'name'             => 'Tuition Fee',
-            'amount'           => 5000,
-            'frequency'        => 'monthly',
-            'is_mandatory'     => true,
-            'is_active'        => true,
+            'name' => 'Tuition Fee',
+            'amount' => 5000,
+            'frequency' => 'monthly',
+            'is_mandatory' => true,
+            'is_active' => true,
         ]);
 
         $nextYear = AcademicYear::create([
-            'school_id'  => $this->school->id,
-            'year'       => '2027',
+            'school_id' => $this->school->id,
+            'year' => '2027',
             'is_current' => false,
         ]);
 
         $this->withToken($this->token())
             ->postJson('/api/v2/fee-items/duplicate', [
                 'from_academic_year_id' => $this->year->id,
-                'to_academic_year_id'   => $nextYear->id,
+                'to_academic_year_id' => $nextYear->id,
             ])
             ->assertOk()
             ->assertJsonFragment(['message' => '1 fee items duplicated.']);
 
         $this->assertDatabaseHas('fee_items', [
-            'name'             => 'Tuition Fee',
+            'name' => 'Tuition Fee',
             'academic_year_id' => $nextYear->id,
         ]);
     }
@@ -197,8 +202,8 @@ class FeeItemTest extends TestCase
         ]);
 
         $nextYear = AcademicYear::create([
-            'school_id'  => $this->school->id,
-            'year'       => '2027',
+            'school_id' => $this->school->id,
+            'year' => '2027',
             'is_current' => false,
         ]);
 

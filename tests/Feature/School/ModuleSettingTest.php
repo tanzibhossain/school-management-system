@@ -5,6 +5,7 @@ namespace Tests\Feature\School;
 use App\Models\User;
 use App\Modules\School\Models\ModuleSetting;
 use App\Modules\School\Models\School;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -13,13 +14,14 @@ class ModuleSettingTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private School $school;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create(['name' => 'Test School', 'timezone' => 'UTC', 'currency' => 'USD', 'is_active' => true]);
         $this->admin = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);

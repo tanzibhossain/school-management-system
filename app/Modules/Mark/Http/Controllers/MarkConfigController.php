@@ -2,6 +2,7 @@
 
 namespace App\Modules\Mark\Http\Controllers;
 
+use App\Modules\Examination\Models\ExamSubject;
 use App\Modules\Mark\Http\Requests\ApplyTemplateRequest;
 use App\Modules\Mark\Http\Requests\StoreMarkDivisionRequest;
 use App\Modules\Mark\Http\Requests\UpdateMarkSettingsRequest;
@@ -12,7 +13,6 @@ use App\Modules\Mark\Models\GradeBoundary;
 use App\Modules\Mark\Models\MarkDivision;
 use App\Modules\Mark\Models\MarkSetting;
 use App\Modules\Mark\Services\GradeTemplateService;
-use App\Modules\Examination\Models\ExamSubject;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
@@ -64,13 +64,13 @@ class MarkConfigController extends Controller
     /** POST /v2/marks/divisions — create one division manually. */
     public function storeDivision(StoreMarkDivisionRequest $request): MarkDivisionResource
     {
-        $schoolId    = app('current_school_id');
+        $schoolId = app('current_school_id');
         $examSubject = ExamSubject::where('school_id', $schoolId)
             ->findOrFail((int) $request->validated('exam_subject_id'));
 
         $division = MarkDivision::create($request->validated() + [
             'school_id' => $schoolId,
-            'exam_id'   => $examSubject->exam_id,
+            'exam_id' => $examSubject->exam_id,
         ]);
 
         return new MarkDivisionResource($division);

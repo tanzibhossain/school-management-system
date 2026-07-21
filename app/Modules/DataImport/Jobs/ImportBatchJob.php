@@ -42,7 +42,7 @@ class ImportBatchJob implements ShouldQueue
             $tmpPath = tempnam(sys_get_temp_dir(), 'import_').'.'.$extension;
             file_put_contents($tmpPath, $bytes);
 
-            $reader = new RowCollectionImport();
+            $reader = new RowCollectionImport;
             Excel::import($reader, $tmpPath);
             $rows = $reader->rows ?? collect();
 

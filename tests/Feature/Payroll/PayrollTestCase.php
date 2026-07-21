@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Modules\School\Models\ModuleSetting;
 use App\Modules\School\Models\School;
 use App\Modules\Staff\Models\Staff;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -25,7 +26,7 @@ abstract class PayrollTestCase extends TestCase
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create(['name' => 'Test School', 'timezone' => 'UTC', 'currency' => 'USD', 'is_active' => true]);
 
@@ -65,7 +66,7 @@ abstract class PayrollTestCase extends TestCase
     /** Token for $this->staffUser — the real abilitiesForRole('teacher') result, since teacher:* now includes staff:*. */
     protected function staffToken(): string
     {
-        return $this->staffUser->createToken('test', \App\Models\User::abilitiesForRole('teacher'))->plainTextToken;
+        return $this->staffUser->createToken('test', User::abilitiesForRole('teacher'))->plainTextToken;
     }
 
     protected function otherStaffToken(): array
@@ -80,6 +81,6 @@ abstract class PayrollTestCase extends TestCase
             'status' => 'active',
         ]);
 
-        return [$user->createToken('test', \App\Models\User::abilitiesForRole('teacher'))->plainTextToken, $staff];
+        return [$user->createToken('test', User::abilitiesForRole('teacher'))->plainTextToken, $staff];
     }
 }

@@ -9,10 +9,12 @@ use App\Modules\Academic\Models\Section;
 use App\Modules\Examination\Models\Exam;
 use App\Modules\Examination\Models\ExamHall;
 use App\Modules\Examination\Models\ExamHallSeat;
+use App\Modules\Examination\Models\ExamSeating;
 use App\Modules\Examination\Models\ExamType;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\StudentAcademic;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -32,7 +34,7 @@ class ExamSeatingAreaTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT',
@@ -52,7 +54,7 @@ class ExamSeatingAreaTest extends TestCase
 
         foreach (['ADM-1', 'ADM-2', 'ADM-3'] as $adm) {
             $student = Student::create([
-                'school_id' => $this->school->id, 'name' => 'S ' . $adm, 'gender' => 'male',
+                'school_id' => $this->school->id, 'name' => 'S '.$adm, 'gender' => 'male',
                 'admission_number' => $adm, 'status' => 'active',
             ]);
             StudentAcademic::create([
@@ -108,7 +110,7 @@ class ExamSeatingAreaTest extends TestCase
         $this->post("/admin/exams/{$this->exam->id}/seating", [
             'hall_id' => $hall->id, 'strategy' => 'sequential',
         ])->assertRedirect();
-        $this->assertEquals(3, \App\Modules\Examination\Models\ExamSeating::where('exam_id', $this->exam->id)->count());
+        $this->assertEquals(3, ExamSeating::where('exam_id', $this->exam->id)->count());
 
         // hall now has assignments → deletion blocked
         $this->delete("/admin/exam-halls/{$hall->id}")->assertRedirect();
@@ -116,7 +118,7 @@ class ExamSeatingAreaTest extends TestCase
 
         // clear then it's deletable
         $this->delete("/admin/exams/{$this->exam->id}/seating")->assertRedirect();
-        $this->assertEquals(0, \App\Modules\Examination\Models\ExamSeating::where('exam_id', $this->exam->id)->count());
+        $this->assertEquals(0, ExamSeating::where('exam_id', $this->exam->id)->count());
     }
 
     public function test_assign_fails_when_not_enough_seats(): void
@@ -126,6 +128,6 @@ class ExamSeatingAreaTest extends TestCase
 
         $this->post("/admin/exams/{$this->exam->id}/seating", ['hall_id' => $hall->id, 'strategy' => 'sequential'])
             ->assertRedirect()->assertSessionHas('error');
-        $this->assertEquals(0, \App\Modules\Examination\Models\ExamSeating::where('exam_id', $this->exam->id)->count());
+        $this->assertEquals(0, ExamSeating::where('exam_id', $this->exam->id)->count());
     }
 }

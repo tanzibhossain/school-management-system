@@ -61,10 +61,10 @@ class MemberController extends Controller
         $ignore = $id ?? 'NULL';
 
         return $request->validate([
-            'user_id'           => ['required', 'integer', "exists:users,id,school_id,{$schoolId}"],
+            'user_id' => ['required', 'integer', "exists:users,id,school_id,{$schoolId}"],
             'membership_number' => ['required', 'string', 'max:50', "unique:library_members,membership_number,{$ignore},id,school_id,{$schoolId}"],
-            'member_type'       => ['required', 'in:student,staff'],
-            'joined_at'         => ['nullable', 'date'],
+            'member_type' => ['required', 'in:student,staff'],
+            'joined_at' => ['nullable', 'date'],
         ], [], ['user_id' => 'user', 'membership_number' => 'membership number', 'member_type' => 'member type']);
     }
 }

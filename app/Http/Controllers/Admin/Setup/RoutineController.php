@@ -33,20 +33,20 @@ class RoutineController extends Controller
                 ->where('class_id', $classId)->where('section_id', $sectionId)
                 ->with(['subject:id,name', 'teacher:id,name', 'room:id,name'])
                 ->get()
-                ->keyBy(fn ($c) => $c->period_id . ':' . $c->day_of_week);
+                ->keyBy(fn ($c) => $c->period_id.':'.$c->day_of_week);
         }
 
         return view('admin.setup.routine.index', [
-            'classes'   => SchoolClass::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
-            'sections'  => Section::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name', 'class_id']),
-            'periods'   => RoutinePeriod::where('school_id', $schoolId)->where('is_trash', false)->orderBy('start_time')->get(),
-            'rooms'     => RoutineRoom::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
-            'subjects'  => $classId ? SubjectRelation::where('school_id', $schoolId)->where('class_id', $classId)->with('subject:id,name')->get() : collect(),
-            'teachers'  => Staff::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
-            'cells'     => $cells,
-            'classId'   => $classId,
+            'classes' => SchoolClass::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
+            'sections' => Section::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name', 'class_id']),
+            'periods' => RoutinePeriod::where('school_id', $schoolId)->where('is_trash', false)->orderBy('start_time')->get(),
+            'rooms' => RoutineRoom::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
+            'subjects' => $classId ? SubjectRelation::where('school_id', $schoolId)->where('class_id', $classId)->with('subject:id,name')->get() : collect(),
+            'teachers' => Staff::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
+            'cells' => $cells,
+            'classId' => $classId,
             'sectionId' => $sectionId,
-            'days'      => self::DAYS,
+            'days' => self::DAYS,
         ]);
     }
 
@@ -55,13 +55,13 @@ class RoutineController extends Controller
         $schoolId = app('current_school_id');
 
         $data = $request->validate([
-            'class_id'    => ['required', 'integer', "exists:classes,id,school_id,{$schoolId}"],
-            'section_id'  => ['required', 'integer', "exists:sections,id,school_id,{$schoolId}"],
-            'subject_id'  => ['required', 'integer', "exists:subjects,id,school_id,{$schoolId}"],
-            'teacher_id'  => ['nullable', 'integer', "exists:staff,id,school_id,{$schoolId}"],
-            'room_id'     => ['required', 'integer', "exists:routine_rooms,id,school_id,{$schoolId}"],
-            'period_id'   => ['required', 'integer', "exists:routine_periods,id,school_id,{$schoolId}"],
-            'day_of_week' => ['required', 'in:' . implode(',', self::DAYS)],
+            'class_id' => ['required', 'integer', "exists:classes,id,school_id,{$schoolId}"],
+            'section_id' => ['required', 'integer', "exists:sections,id,school_id,{$schoolId}"],
+            'subject_id' => ['required', 'integer', "exists:subjects,id,school_id,{$schoolId}"],
+            'teacher_id' => ['nullable', 'integer', "exists:staff,id,school_id,{$schoolId}"],
+            'room_id' => ['required', 'integer', "exists:routine_rooms,id,school_id,{$schoolId}"],
+            'period_id' => ['required', 'integer', "exists:routine_periods,id,school_id,{$schoolId}"],
+            'day_of_week' => ['required', 'in:'.implode(',', self::DAYS)],
         ], [], ['subject_id' => 'subject', 'teacher_id' => 'teacher', 'room_id' => 'room', 'period_id' => 'period']);
 
         if ($this->scheduling->hasConflict($schoolId, $data['room_id'], $data['section_id'], $data['period_id'], $data['day_of_week'])) {

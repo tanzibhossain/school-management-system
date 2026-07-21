@@ -30,18 +30,18 @@ class BkashGateway
     public function grantToken(): string
     {
         $response = Http::withHeaders([
-            'username'     => $this->config->credential('bkash', 'username'),
-            'password'     => $this->config->credential('bkash', 'password'),
+            'username' => $this->config->credential('bkash', 'username'),
+            'password' => $this->config->credential('bkash', 'password'),
             'Content-Type' => 'application/json',
         ])->post($this->url('checkout/token/grant'), [
-            'app_key'    => $this->config->credential('bkash', 'app_key'),
+            'app_key' => $this->config->credential('bkash', 'app_key'),
             'app_secret' => $this->config->credential('bkash', 'app_secret'),
         ]);
 
         $this->log(null, 'grant_token', [], $response->json(), $response->status());
 
         if (! $response->successful() || empty($response->json('id_token'))) {
-            throw new RuntimeException('bKash token grant failed: ' . $response->body());
+            throw new RuntimeException('bKash token grant failed: '.$response->body());
         }
 
         return $response->json('id_token');
@@ -55,12 +55,12 @@ class BkashGateway
     public function createPayment(string $token, string $invoiceNumber, float $amount, string $callbackUrl, int $studentId): array
     {
         $payload = [
-            'mode'                  => '0011',
-            'payerReference'        => (string) $studentId,
-            'callbackURL'           => $callbackUrl,
-            'amount'                => number_format($amount, 2, '.', ''),
-            'currency'              => 'BDT',
-            'intent'                => 'sale',
+            'mode' => '0011',
+            'payerReference' => (string) $studentId,
+            'callbackURL' => $callbackUrl,
+            'amount' => number_format($amount, 2, '.', ''),
+            'currency' => 'BDT',
+            'intent' => 'sale',
             'merchantInvoiceNumber' => $invoiceNumber,
         ];
 
@@ -70,12 +70,12 @@ class BkashGateway
         $this->log(null, 'create', $payload, $response->json(), $response->status());
 
         if (! $response->successful() || $response->json('statusCode') !== '0000') {
-            throw new RuntimeException('bKash create payment failed: ' . $response->body());
+            throw new RuntimeException('bKash create payment failed: '.$response->body());
         }
 
         return [
             'paymentID' => $response->json('paymentID'),
-            'bkashURL'  => $response->json('bkashURL'),
+            'bkashURL' => $response->json('bkashURL'),
         ];
     }
 
@@ -92,7 +92,7 @@ class BkashGateway
         $this->log(null, 'execute', ['paymentID' => $paymentId], $response->json(), $response->status());
 
         if (! $response->successful() || $response->json('statusCode') !== '0000') {
-            throw new RuntimeException('bKash execute failed: ' . $response->body());
+            throw new RuntimeException('bKash execute failed: '.$response->body());
         }
 
         return $response->json();
@@ -118,10 +118,10 @@ class BkashGateway
     {
         $payload = [
             'paymentID' => $paymentId,
-            'trxID'     => $trxId,
-            'amount'    => number_format($amount, 2, '.', ''),
-            'reason'    => $reason,
-            'sku'       => 'fee-refund',
+            'trxID' => $trxId,
+            'amount' => number_format($amount, 2, '.', ''),
+            'reason' => $reason,
+            'sku' => 'fee-refund',
         ];
 
         $response = Http::withHeaders($this->authHeaders($token))
@@ -130,7 +130,7 @@ class BkashGateway
         $this->log(null, 'refund', $payload, $response->json(), $response->status());
 
         if (! $response->successful()) {
-            throw new RuntimeException('bKash refund failed: ' . $response->body());
+            throw new RuntimeException('bKash refund failed: '.$response->body());
         }
 
         return $response->json();
@@ -140,7 +140,7 @@ class BkashGateway
 
     private function url(string $path): string
     {
-        return rtrim($this->config->credential('bkash', 'base_url'), '/') . '/' . $path;
+        return rtrim($this->config->credential('bkash', 'base_url'), '/').'/'.$path;
     }
 
     /** @return array<string, string> */
@@ -149,8 +149,8 @@ class BkashGateway
         // bKash Tokenized Checkout expects the raw id_token — no "Bearer" prefix
         return [
             'Authorization' => $token,
-            'X-APP-Key'     => $this->config->credential('bkash', 'app_key'),
-            'Content-Type'  => 'application/json',
+            'X-APP-Key' => $this->config->credential('bkash', 'app_key'),
+            'Content-Type' => 'application/json',
         ];
     }
 
@@ -160,13 +160,13 @@ class BkashGateway
         unset($payload['app_key'], $payload['app_secret'], $payload['username'], $payload['password']);
 
         PaymentGatewayLog::create([
-            'school_id'  => $this->config->school_id,
+            'school_id' => $this->config->school_id,
             'payment_id' => $paymentId,
-            'gateway'    => 'bkash',
-            'action'     => $action,
-            'payload'    => $payload,
-            'response'   => $response ?? [],
-            'status'     => (string) $httpStatus,
+            'gateway' => 'bkash',
+            'action' => $action,
+            'payload' => $payload,
+            'response' => $response ?? [],
+            'status' => (string) $httpStatus,
         ]);
     }
 }

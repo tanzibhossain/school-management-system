@@ -57,16 +57,16 @@ class AcademicPublicController extends Controller
     public function dropdowns(): JsonResponse
     {
         $schoolId = app('current_school_id');
-        $data     = $this->repository->getDropdownData($schoolId);
+        $data = $this->repository->getDropdownData($schoolId);
 
         return response()->json([
             'data' => [
                 'academic_year' => $data['current_year'] ? new AcademicYearResource($data['current_year']) : null,
-                'classes'       => SchoolClassResource::collection($data['classes']),
-                'shifts'        => AcademicShiftResource::collection($data['shifts']),
-                'versions'      => AcademicVersionResource::collection($data['versions']),
-                'groups'        => AcademicGroupResource::collection($data['groups']),
-                'transports'    => TransportResource::collection($data['transports']),
+                'classes' => SchoolClassResource::collection($data['classes']),
+                'shifts' => AcademicShiftResource::collection($data['shifts']),
+                'versions' => AcademicVersionResource::collection($data['versions']),
+                'groups' => AcademicGroupResource::collection($data['groups']),
+                'transports' => TransportResource::collection($data['transports']),
                 'student_types' => StudentTypeResource::collection($data['student_types']),
             ],
         ]);

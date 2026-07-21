@@ -8,7 +8,7 @@ use App\Modules\Academic\Models\SchoolClass;
 use App\Modules\Academic\Models\Section;
 use App\Modules\DataImport\Models\ImportBatch;
 use App\Modules\School\Models\School;
-use App\Modules\Student\Models\Student;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -37,7 +37,7 @@ class DataImportAreaTest extends TestCase
     {
         parent::setUp();
         Storage::fake('minio');
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT',
@@ -56,11 +56,11 @@ class DataImportAreaTest extends TestCase
      */
     private function upload(array $rows): UploadedFile
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->fromArray(self::HEADINGS, null, 'A1');
         $sheet->fromArray($rows, null, 'A2');
-        $path = tempnam(sys_get_temp_dir(), 'imp_') . '.xlsx';
+        $path = tempnam(sys_get_temp_dir(), 'imp_').'.xlsx';
         (new Xlsx($spreadsheet))->save($path);
 
         return new UploadedFile($path, 'students.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', null, true);

@@ -5,7 +5,9 @@ namespace Tests\Feature\Admin;
 use App\Models\User;
 use App\Modules\Messaging\Models\Message;
 use App\Modules\Messaging\Models\MessageThread;
+use App\Modules\Messaging\Services\ThreadService;
 use App\Modules\School\Models\School;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -25,7 +27,7 @@ class MessagingAreaTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT',
@@ -110,7 +112,7 @@ class MessagingAreaTest extends TestCase
         $student = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
         $student->assignRole('student');
 
-        $thread = app(\App\Modules\Messaging\Services\ThreadService::class)->create(
+        $thread = app(ThreadService::class)->create(
             $this->school->id, $this->teacher, [$student->id], null, 'Hi student',
         );
 

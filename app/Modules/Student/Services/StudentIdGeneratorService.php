@@ -20,13 +20,13 @@ class StudentIdGeneratorService
                 ->firstOrCreate(
                     ['school_id' => $schoolId],
                     [
-                        'prefix'          => 'STU',
-                        'include_year'    => true,
-                        'year_format'     => 'YYYY',
-                        'separator'       => '/',
+                        'prefix' => 'STU',
+                        'include_year' => true,
+                        'year_format' => 'YYYY',
+                        'separator' => '/',
                         'sequence_length' => 4,
-                        'reset_yearly'    => true,
-                        'last_sequence'   => 0,
+                        'reset_yearly' => true,
+                        'last_sequence' => 0,
                     ],
                 );
 
@@ -34,7 +34,7 @@ class StudentIdGeneratorService
 
             // Reset sequence if reset_yearly and we're in a new year
             if ($config->reset_yearly && $config->last_reset_year !== $currentYear) {
-                $config->last_sequence  = 0;
+                $config->last_sequence = 0;
                 $config->last_reset_year = $currentYear;
             }
 

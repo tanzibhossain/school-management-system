@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Transport;
 
-use App\Models\User;
 use App\Modules\School\Models\ModuleSetting;
 
 class TransportRouteTest extends TransportTestCase
@@ -47,7 +46,7 @@ class TransportRouteTest extends TransportTestCase
     public function test_teacher_is_forbidden(): void
     {
         $this->getJson('/api/v2/transport/routes', [
-            'Authorization' => 'Bearer ' . $this->teacherToken(),
+            'Authorization' => 'Bearer '.$this->teacherToken(),
         ])->assertStatus(403);
     }
 

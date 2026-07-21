@@ -2,8 +2,8 @@
 
 namespace App\Modules\Academic\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class RoutineRoom extends Model
 {

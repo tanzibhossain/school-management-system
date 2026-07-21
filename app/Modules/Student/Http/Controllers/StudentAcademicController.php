@@ -31,17 +31,17 @@ class StudentAcademicController extends Controller
     public function promote(PromoteStudentRequest $request, int $studentId): StudentResource
     {
         $student = $this->repository->findOrFail($studentId, app('current_school_id'));
-        $data    = $request->validated();
+        $data = $request->validated();
 
         $student = $this->service->promote(
-            student:     $student,
-            toClassId:   $data['class_id'],
+            student: $student,
+            toClassId: $data['class_id'],
             toSectionId: $data['section_id'],
-            toYearId:    $data['academic_year_id'],
+            toYearId: $data['academic_year_id'],
             toVersionId: $data['version_id'] ?? null,
-            toGroupId:   $data['group_id'] ?? null,
-            toShiftId:   $data['shift_id'] ?? null,
-            rollNumber:  $data['roll_number'] ?? null,
+            toGroupId: $data['group_id'] ?? null,
+            toShiftId: $data['shift_id'] ?? null,
+            rollNumber: $data['roll_number'] ?? null,
         );
 
         return new StudentResource($student->load(['currentAcademic.schoolClass', 'currentAcademic.section']));

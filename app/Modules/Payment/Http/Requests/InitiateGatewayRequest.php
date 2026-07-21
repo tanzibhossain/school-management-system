@@ -16,10 +16,10 @@ class InitiateGatewayRequest extends FormRequest
     {
         return [
             'callback_url' => ['required_without:success_url', 'nullable', 'url'],  // bKash
-            'success_url'  => ['required_without:callback_url', 'nullable', 'url'],  // SSLCommerz
-            'fail_url'     => ['required_with:success_url', 'nullable', 'url'],
-            'cancel_url'   => ['required_with:success_url', 'nullable', 'url'],
-            'ipn_url'      => ['required_with:success_url', 'nullable', 'url'],
+            'success_url' => ['required_without:callback_url', 'nullable', 'url'],  // SSLCommerz
+            'fail_url' => ['required_with:success_url', 'nullable', 'url'],
+            'cancel_url' => ['required_with:success_url', 'nullable', 'url'],
+            'ipn_url' => ['required_with:success_url', 'nullable', 'url'],
         ];
     }
 }

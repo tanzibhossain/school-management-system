@@ -29,11 +29,11 @@ class InvoiceController extends Controller
         }
 
         return view('admin.finance.invoices.index', [
-            'invoices'  => $query->orderByDesc('id')->limit(500)->get(),
-            'filters'   => $request->only('status'),
-            'years'     => AcademicYear::where('school_id', $schoolId)->where('is_trash', false)->orderByDesc('year')->get(['id', 'year', 'is_current']),
-            'classes'   => SchoolClass::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
-            'students'  => Student::where('school_id', $schoolId)->where('status', 'active')->orderBy('name')->get(['id', 'name', 'student_id']),
+            'invoices' => $query->orderByDesc('id')->limit(500)->get(),
+            'filters' => $request->only('status'),
+            'years' => AcademicYear::where('school_id', $schoolId)->where('is_trash', false)->orderByDesc('year')->get(['id', 'year', 'is_current']),
+            'classes' => SchoolClass::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
+            'students' => Student::where('school_id', $schoolId)->where('status', 'active')->orderBy('name')->get(['id', 'name', 'student_id']),
             'discounts' => FeeDiscount::where('school_id', $schoolId)->where('is_active', true)->orderBy('name')->get(['id', 'name']),
         ]);
     }
@@ -51,11 +51,11 @@ class InvoiceController extends Controller
     {
         $schoolId = app('current_school_id');
         $data = $request->validate([
-            'student_id'       => ['required', 'integer', "exists:students,id,school_id,{$schoolId}"],
+            'student_id' => ['required', 'integer', "exists:students,id,school_id,{$schoolId}"],
             'academic_year_id' => ['required', 'integer', "exists:academic_years,id,school_id,{$schoolId}"],
-            'month'            => ['nullable', 'integer', 'min:1', 'max:12'],
-            'discount_id'      => ['nullable', 'integer', "exists:fee_discounts,id,school_id,{$schoolId}"],
-            'due_date'         => ['required', 'date'],
+            'month' => ['nullable', 'integer', 'min:1', 'max:12'],
+            'discount_id' => ['nullable', 'integer', "exists:fee_discounts,id,school_id,{$schoolId}"],
+            'due_date' => ['required', 'date'],
         ]);
 
         $classId = $this->currentClassId($schoolId, $data['student_id'], $data['academic_year_id']);
@@ -77,11 +77,11 @@ class InvoiceController extends Controller
     {
         $schoolId = app('current_school_id');
         $data = $request->validate([
-            'class_id'         => ['required', 'integer', "exists:classes,id,school_id,{$schoolId}"],
+            'class_id' => ['required', 'integer', "exists:classes,id,school_id,{$schoolId}"],
             'academic_year_id' => ['required', 'integer', "exists:academic_years,id,school_id,{$schoolId}"],
-            'month'            => ['nullable', 'integer', 'min:1', 'max:12'],
-            'discount_id'      => ['nullable', 'integer', "exists:fee_discounts,id,school_id,{$schoolId}"],
-            'due_date'         => ['required', 'date'],
+            'month' => ['nullable', 'integer', 'min:1', 'max:12'],
+            'discount_id' => ['nullable', 'integer', "exists:fee_discounts,id,school_id,{$schoolId}"],
+            'due_date' => ['required', 'date'],
         ]);
 
         // students currently in this class for the chosen year (students has no class_id)

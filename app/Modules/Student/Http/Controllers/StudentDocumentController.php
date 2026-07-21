@@ -24,21 +24,21 @@ class StudentDocumentController extends Controller
     {
         $request->validate([
             'document_type' => 'required|in:birth_certificate,previous_tc,nid,photo,other',
-            'file'          => 'required|file|max:5120',
+            'file' => 'required|file|max:5120',
         ]);
 
         $student = Student::where('school_id', app('current_school_id'))->findOrFail($studentId);
-        $path    = $request->file('file')->store(
+        $path = $request->file('file')->store(
             "students/{$student->school_id}/documents", 'minio'
         );
 
         $document = StudentDocument::create([
-            'school_id'     => $student->school_id,
-            'student_id'    => $student->id,
+            'school_id' => $student->school_id,
+            'student_id' => $student->id,
             'document_type' => $request->document_type,
-            'file_path'     => $path,
+            'file_path' => $path,
             'original_name' => $request->file('file')->getClientOriginalName(),
-            'uploaded_by'   => $request->user()->id,
+            'uploaded_by' => $request->user()->id,
         ]);
 
         return new StudentDocumentResource($document);
@@ -46,7 +46,7 @@ class StudentDocumentController extends Controller
 
     public function destroy(int $studentId, int $documentId): JsonResponse
     {
-        $student  = Student::where('school_id', app('current_school_id'))->findOrFail($studentId);
+        $student = Student::where('school_id', app('current_school_id'))->findOrFail($studentId);
         $document = StudentDocument::where('student_id', $student->id)->findOrFail($documentId);
 
         Storage::disk('minio')->delete($document->file_path);

@@ -39,7 +39,7 @@ class AdmissionApplicationService
      * class_id?, academic_year_id?, roll_number?} — class/year default to what
      * the applicant requested but can be overridden if plans changed since.
      *
-     * @param array<string, mixed> $decision
+     * @param  array<string, mixed>  $decision
      */
     public function approve(AdmissionApplication $application, User $user, array $decision): AdmissionApplication
     {

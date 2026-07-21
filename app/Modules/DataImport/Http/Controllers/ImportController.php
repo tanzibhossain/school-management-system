@@ -63,7 +63,7 @@ class ImportController extends Controller
         ])->validate();
 
         return $data['type'] === 'student'
-            ? Excel::download(new StudentImportTemplateExport(), 'student-import-template.xlsx')
-            : Excel::download(new StaffImportTemplateExport(), 'staff-import-template.xlsx');
+            ? Excel::download(new StudentImportTemplateExport, 'student-import-template.xlsx')
+            : Excel::download(new StaffImportTemplateExport, 'staff-import-template.xlsx');
     }
 }

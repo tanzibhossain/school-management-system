@@ -38,14 +38,14 @@ class PageController extends Controller
     {
         $schoolId = app('current_school_id');
         $data = $request->validate([
-            'title'    => ['required', 'string', 'max:150'],
-            'slug'     => ['nullable', 'string', 'max:150'],
+            'title' => ['required', 'string', 'max:150'],
+            'slug' => ['nullable', 'string', 'max:150'],
             'template' => ['required', 'in:full,sidebar'],
         ]);
 
         $page = $this->pages->create($schoolId, [
-            'title'  => $data['title'],
-            'slug'   => $data['slug'] ?? null,
+            'title' => $data['title'],
+            'slug' => $data['slug'] ?? null,
             'status' => 'draft',
         ]);
 
@@ -62,8 +62,8 @@ class PageController extends Controller
         $layout = $page->layouts->first();  // latest revision
 
         return view('admin.website.pages.edit', [
-            'page'   => $page,
-            'view'   => $this->layoutForEditor($layout?->layout_json),
+            'page' => $page,
+            'view' => $this->layoutForEditor($layout?->layout_json),
             'blocks' => PageRenderService::BLOCKS,
             'sidebarBlocks' => PageRenderService::SIDEBAR_BLOCKS,
         ]);
@@ -76,24 +76,24 @@ class PageController extends Controller
         $page = Page::forSchool($schoolId)->findOrFail($id);
 
         $data = $request->validate([
-            'title'    => ['required', 'string', 'max:150'],
-            'slug'     => ['nullable', 'string', 'max:150'],
-            'status'   => ['required', 'in:draft,published'],
+            'title' => ['required', 'string', 'max:150'],
+            'slug' => ['nullable', 'string', 'max:150'],
+            'status' => ['required', 'in:draft,published'],
             'template' => ['required', 'in:full,sidebar'],
-            'blocks'   => ['nullable', 'array'],
-            'sidebar'  => ['nullable', 'array'],
+            'blocks' => ['nullable', 'array'],
+            'sidebar' => ['nullable', 'array'],
         ]);
 
         $this->pages->update($page, [
-            'title'  => $data['title'],
-            'slug'   => $data['slug'] ?? $page->slug,
+            'title' => $data['title'],
+            'slug' => $data['slug'] ?? $page->slug,
             'status' => $data['status'],
         ]);
 
         $layout = [
             'template' => $data['template'],
-            'blocks'   => $this->normalizeBlocks($request->input('blocks', []), PageRenderService::BLOCKS),
-            'sidebar'  => $data['template'] === 'sidebar'
+            'blocks' => $this->normalizeBlocks($request->input('blocks', []), PageRenderService::BLOCKS),
+            'sidebar' => $data['template'] === 'sidebar'
                 ? $this->normalizeBlocks($request->input('sidebar', []), PageRenderService::SIDEBAR_BLOCKS)
                 : [],
         ];
@@ -139,10 +139,10 @@ class PageController extends Controller
                     }
                 }
                 if (isset($data['links']) && is_array($data['links'])) {
-                    $data['links'] = implode("\n", array_map(fn ($l) => ($l['label'] ?? '') . '|' . ($l['url'] ?? ''), $data['links']));
+                    $data['links'] = implode("\n", array_map(fn ($l) => ($l['label'] ?? '').'|'.($l['url'] ?? ''), $data['links']));
                 }
                 if (isset($data['lines']) && is_array($data['lines'])) {
-                    $data['lines'] = implode("\n", array_map(fn ($l) => is_array($l) ? (($l['label'] ?? '') . '|' . ($l['value'] ?? '')) : $l, $data['lines']));
+                    $data['lines'] = implode("\n", array_map(fn ($l) => is_array($l) ? (($l['label'] ?? '').'|'.($l['value'] ?? '')) : $l, $data['lines']));
                 }
 
                 return ['type' => $b['type'] ?? '', 'data' => $data];
@@ -151,8 +151,8 @@ class PageController extends Controller
 
         return [
             'template' => ($layout['template'] ?? 'full') === 'sidebar' ? 'sidebar' : 'full',
-            'blocks'   => $reverse($layout['blocks'] ?? []),
-            'sidebar'  => $reverse($layout['sidebar'] ?? []),
+            'blocks' => $reverse($layout['blocks'] ?? []),
+            'sidebar' => $reverse($layout['sidebar'] ?? []),
         ];
     }
 

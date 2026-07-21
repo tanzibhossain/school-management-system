@@ -26,7 +26,7 @@ class StudentLeaveController extends Controller
 
         return view('admin.hr.student-leave.index', [
             'requests' => $query->orderByDesc('id')->limit(500)->get(),
-            'filters'  => $request->only('status'),
+            'filters' => $request->only('status'),
         ]);
     }
 
@@ -51,7 +51,7 @@ class StudentLeaveController extends Controller
     {
         $req = StudentLeaveRequest::where('school_id', app('current_school_id'))->findOrFail($id);
         $user = request()->user();
-        $user->withAccessToken(new TransientToken()); // service gates on tokenCan('admin:*')
+        $user->withAccessToken(new TransientToken); // service gates on tokenCan('admin:*')
 
         try {
             $action($req, $user);

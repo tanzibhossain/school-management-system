@@ -23,7 +23,7 @@ class StudentRepository extends BaseRepository
     /**
      * Paginated list for admin — filterable by class, section, status, year.
      *
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      */
     public function paginate(int $schoolId, array $filters = [], int $perPage = 20): LengthAwarePaginator
     {

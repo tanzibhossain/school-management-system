@@ -40,17 +40,17 @@ class AnnualResultService
                 $sid = $result->student_id;
 
                 $students[$sid] ??= [
-                    'student_id'     => $sid,
-                    'student'        => [
-                        'id'               => $result->student->id,
-                        'name'             => $result->student->name,
+                    'student_id' => $sid,
+                    'student' => [
+                        'id' => $result->student->id,
+                        'name' => $result->student->name,
                         'admission_number' => $result->student->admission_number,
                     ],
                     'weighted_percentage' => 0.0,
-                    'weighted_gpa'        => 0.0,
-                    'gpa_applicable'      => true,
-                    'exams_counted'       => 0,
-                    'is_pass'             => true,
+                    'weighted_gpa' => 0.0,
+                    'gpa_applicable' => true,
+                    'exams_counted' => 0,
+                    'is_pass' => true,
                 ];
 
                 $w = (float) $weight->weight_percent;
@@ -73,10 +73,10 @@ class AnnualResultService
         $rows = collect($students)->map(function (array $row) use ($expectedExams) {
             // A student missing any weighted exam cannot pass the combined result
             $row['is_complete'] = $row['exams_counted'] === $expectedExams;
-            $row['is_pass']     = $row['is_pass'] && $row['is_complete'];
+            $row['is_pass'] = $row['is_pass'] && $row['is_complete'];
 
             $row['weighted_percentage'] = round($row['weighted_percentage'], 2);
-            $row['weighted_gpa']        = $row['gpa_applicable'] ? round($row['weighted_gpa'], 2) : null;
+            $row['weighted_gpa'] = $row['gpa_applicable'] ? round($row['weighted_gpa'], 2) : null;
             unset($row['gpa_applicable']);
 
             return $row;

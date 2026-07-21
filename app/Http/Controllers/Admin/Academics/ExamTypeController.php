@@ -57,7 +57,7 @@ class ExamTypeController extends Controller
     private function validated(Request $request): array
     {
         $data = $request->validate([
-            'name'        => ['required', 'string', 'max:100'],
+            'name' => ['required', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:255'],
         ]);
         $data['is_active'] = $request->boolean('is_active', true);

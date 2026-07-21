@@ -11,6 +11,7 @@ use App\Modules\Messaging\Services\ThreadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
@@ -31,8 +32,8 @@ class MessageController extends Controller
         $threads = $this->threads->inbox($sid, auth()->id());
 
         return view('portal.messages.index', [
-            'threads'    => $threads,
-            'userMap'    => $this->userMap($threads),
+            'threads' => $threads,
+            'userMap' => $this->userMap($threads),
             'staffUsers' => $this->staffUsers($sid),
             'isGuardian' => auth()->user()->hasRole('parent'),
         ]);
@@ -55,9 +56,9 @@ class MessageController extends Controller
         $ids = $thread->participants->pluck('user_id')->merge($messages->pluck('sender_id'))->unique();
 
         return view('portal.messages.show', [
-            'thread'     => $thread,
-            'messages'   => $messages,
-            'userMap'    => User::whereIn('id', $ids)->pluck('name', 'id'),
+            'thread' => $thread,
+            'messages' => $messages,
+            'userMap' => User::whereIn('id', $ids)->pluck('name', 'id'),
             'isGuardian' => auth()->user()->hasRole('parent'),
         ]);
     }
@@ -66,10 +67,10 @@ class MessageController extends Controller
     {
         $sid = app('current_school_id');
         $data = $request->validate([
-            'participant_ids'   => ['required', 'array', 'min:1'],
+            'participant_ids' => ['required', 'array', 'min:1'],
             'participant_ids.*' => ['integer'],
-            'subject'           => ['nullable', 'string', 'max:150'],
-            'body'              => ['required', 'string'],
+            'subject' => ['nullable', 'string', 'max:150'],
+            'body' => ['required', 'string'],
         ]);
 
         try {
@@ -98,7 +99,7 @@ class MessageController extends Controller
         return back()->with('status', 'Reply sent.');
     }
 
-    private function userMap($threads): \Illuminate\Support\Collection
+    private function userMap($threads): Collection
     {
         $ids = collect($threads)->flatMap(fn ($t) => $t->participants->pluck('user_id'))->unique();
 
@@ -106,12 +107,12 @@ class MessageController extends Controller
     }
 
     /** Staff a family member is allowed to message. */
-    private function staffUsers(int $schoolId): \Illuminate\Support\Collection
+    private function staffUsers(int $schoolId): Collection
     {
         return User::where('school_id', $schoolId)->where('is_active', true)
             ->where('id', '!=', auth()->id())
             ->role(MessagingPolicyService::STAFF_ROLES)
             ->orderBy('name')->get(['id', 'name'])
-            ->map(fn ($u) => ['id' => $u->id, 'label' => $u->name . ' — ' . ($u->getRoleNames()->first() ?? 'staff')]);
+            ->map(fn ($u) => ['id' => $u->id, 'label' => $u->name.' — '.($u->getRoleNames()->first() ?? 'staff')]);
     }
 }

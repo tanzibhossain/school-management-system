@@ -39,10 +39,10 @@ class PageController extends Controller
         $layout = $page->publishedLayout->first();
 
         return view('public.page', [
-            'page'     => $page,
-            'view'     => $this->render->buildView($school->id, $layout?->layout_json),
+            'page' => $page,
+            'view' => $this->render->buildView($school->id, $layout?->layout_json),
             'settings' => SiteSetting::forSchool($school->id),
-            'school'   => $school,
+            'school' => $school,
         ]);
     }
 }

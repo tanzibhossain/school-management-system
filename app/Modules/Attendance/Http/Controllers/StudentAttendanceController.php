@@ -37,9 +37,9 @@ class StudentAttendanceController extends Controller
     public function register(Request $request): AnonymousResourceCollection
     {
         $request->validate([
-            'class_id'   => ['required', 'integer'],
+            'class_id' => ['required', 'integer'],
             'section_id' => ['nullable', 'integer'],
-            'date'       => ['required', 'date_format:Y-m-d'],
+            'date' => ['required', 'date_format:Y-m-d'],
         ]);
 
         $records = $this->repository->register(
@@ -57,7 +57,7 @@ class StudentAttendanceController extends Controller
     {
         $request->validate([
             'from' => ['required', 'date_format:Y-m-d'],
-            'to'   => ['required', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'to' => ['required', 'date_format:Y-m-d', 'after_or_equal:from'],
         ]);
 
         $summary = $this->service->studentSummary(

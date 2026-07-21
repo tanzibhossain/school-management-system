@@ -7,9 +7,9 @@ use App\Modules\School\Models\ModuleSetting;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
 use App\Modules\Transport\Models\StudentTransportAssignment;
-use App\Modules\Transport\Models\TransportDriver;
 use App\Modules\Transport\Models\TransportRoute;
 use App\Modules\Transport\Models\TransportVehicle;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -28,7 +28,7 @@ class TransportModuleTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT',

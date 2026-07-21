@@ -2,6 +2,7 @@
 
 namespace App\Modules\FeeItem\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -13,10 +14,10 @@ class FeeItem extends Model
     ];
 
     protected $casts = [
-        'amount'       => 'decimal:2',
-        'due_day'      => 'integer',
+        'amount' => 'decimal:2',
+        'due_day' => 'integer',
         'is_mandatory' => 'boolean',
-        'is_active'    => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     public function category(): BelongsTo
@@ -24,19 +25,19 @@ class FeeItem extends Model
         return $this->belongsTo(FeeCategory::class, 'category_id');
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeActive($query): void
     {
         $query->where('is_active', true);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForSchool($query, int $schoolId): void
     {
         $query->where('school_id', $schoolId);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForYear($query, int $academicYearId): void
     {
         $query->where('academic_year_id', $academicYearId);
@@ -45,7 +46,7 @@ class FeeItem extends Model
     /**
      * Include items with null class_id (school-wide) OR matching the given class.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  Builder  $query
      */
     public function scopeForClass($query, int $classId): void
     {
@@ -54,7 +55,7 @@ class FeeItem extends Model
         });
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeMandatory($query): void
     {
         $query->where('is_mandatory', true);

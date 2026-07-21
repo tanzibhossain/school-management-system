@@ -3,6 +3,7 @@
 namespace App\Modules\Mark\Models;
 
 use App\Modules\Examination\Models\ExamSubject;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,8 +15,8 @@ class MarkDivision extends Model
     ];
 
     protected $casts = [
-        'max_marks'     => 'decimal:2',
-        'pass_mark'     => 'decimal:2',
+        'max_marks' => 'decimal:2',
+        'pass_mark' => 'decimal:2',
         'display_order' => 'integer',
     ];
 
@@ -29,7 +30,7 @@ class MarkDivision extends Model
         return $this->hasMany(Mark::class);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForSchool($query, int $schoolId): void
     {
         $query->where('school_id', $schoolId);

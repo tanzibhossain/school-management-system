@@ -29,7 +29,7 @@ class PayrollRunController extends Controller
         $schoolId = app('current_school_id');
         $data = $request->validate([
             'month' => ['required', 'integer', 'min:1', 'max:12'],
-            'year'  => ['required', 'integer', 'min:2000', 'max:2100'],
+            'year' => ['required', 'integer', 'min:2000', 'max:2100'],
             'notes' => ['nullable', 'string', 'max:255'],
         ]);
 

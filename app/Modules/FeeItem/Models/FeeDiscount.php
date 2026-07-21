@@ -2,6 +2,7 @@
 
 namespace App\Modules\FeeItem\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class FeeDiscount extends Model
@@ -11,18 +12,18 @@ class FeeDiscount extends Model
     ];
 
     protected $casts = [
-        'value'      => 'decimal:2',
+        'value' => 'decimal:2',
         'max_amount' => 'decimal:2',
-        'is_active'  => 'boolean',
+        'is_active' => 'boolean',
     ];
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeActive($query): void
     {
         $query->where('is_active', true);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForSchool($query, int $schoolId): void
     {
         $query->where('school_id', $schoolId);

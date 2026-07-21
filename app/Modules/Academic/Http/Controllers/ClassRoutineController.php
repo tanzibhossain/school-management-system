@@ -22,8 +22,8 @@ class ClassRoutineController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        $schoolId  = app('current_school_id');
-        $classId   = (int) $request->query('class_id', 0);
+        $schoolId = app('current_school_id');
+        $classId = (int) $request->query('class_id', 0);
         $sectionId = (int) $request->query('section_id', 0);
 
         $routines = $this->repository->getRoutineForClass($schoolId, $classId, $sectionId);
@@ -34,7 +34,7 @@ class ClassRoutineController extends Controller
     public function store(StoreClassRoutineRequest $request): ClassRoutineResource|JsonResponse
     {
         $schoolId = app('current_school_id');
-        $data     = $request->validated();
+        $data = $request->validated();
 
         if ($this->scheduling->hasConflict($schoolId, $data['room_id'], $data['section_id'], $data['period_id'], $data['day_of_week'])) {
             return response()->json(['message' => 'Time slot conflict: room or section already booked.'], 422);
@@ -57,13 +57,13 @@ class ClassRoutineController extends Controller
     public function update(UpdateClassRoutineRequest $request, int $id): ClassRoutineResource|JsonResponse
     {
         $schoolId = app('current_school_id');
-        $routine  = ClassRoutine::where('school_id', $schoolId)->findOrFail($id);
-        $data     = $request->validated();
+        $routine = ClassRoutine::where('school_id', $schoolId)->findOrFail($id);
+        $data = $request->validated();
 
-        $roomId    = $data['room_id']    ?? $routine->room_id;
+        $roomId = $data['room_id'] ?? $routine->room_id;
         $sectionId = $data['section_id'] ?? $routine->section_id;
-        $periodId  = $data['period_id']  ?? $routine->period_id;
-        $day       = $data['day_of_week'] ?? $routine->day_of_week;
+        $periodId = $data['period_id'] ?? $routine->period_id;
+        $day = $data['day_of_week'] ?? $routine->day_of_week;
 
         if ($this->scheduling->hasConflict($schoolId, $roomId, $sectionId, $periodId, $day, $id)) {
             return response()->json(['message' => 'Time slot conflict: room or section already booked.'], 422);

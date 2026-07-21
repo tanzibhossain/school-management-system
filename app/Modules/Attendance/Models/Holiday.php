@@ -2,6 +2,7 @@
 
 namespace App\Modules\Attendance\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Holiday extends Model
@@ -17,13 +18,13 @@ class Holiday extends Model
     // Mirror DB-level default
     protected $attributes = ['type' => 'school'];
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForSchool($query, int $schoolId): void
     {
         $query->where('school_id', $schoolId);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForYear($query, int $year): void
     {
         $query->whereYear('date', $year);

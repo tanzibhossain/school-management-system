@@ -42,9 +42,9 @@ class InvoiceController extends Controller
 
     public function generate(GenerateInvoiceRequest $request): JsonResponse
     {
-        $schoolId  = app('current_school_id');
-        $data      = $request->validated();
-        $issuedBy  = $request->user()->id;
+        $schoolId = app('current_school_id');
+        $data = $request->validated();
+        $issuedBy = $request->user()->id;
 
         // Bulk generation (by class)
         if (isset($data['class_id']) && ! isset($data['student_id'])) {
@@ -59,9 +59,9 @@ class InvoiceController extends Controller
             );
 
             return response()->json([
-                'message'   => "{$result['generated']} invoice(s) generated, {$result['skipped']} skipped.",
+                'message' => "{$result['generated']} invoice(s) generated, {$result['skipped']} skipped.",
                 'generated' => $result['generated'],
-                'skipped'   => $result['skipped'],
+                'skipped' => $result['skipped'],
             ]);
         }
 
@@ -111,12 +111,12 @@ class InvoiceController extends Controller
     /** Portal: student's own invoices. */
     public function myInvoices(Request $request): InvoiceCollection
     {
-        $user      = $request->user();
-        $student   = Student::where('school_id', app('current_school_id'))
+        $user = $request->user();
+        $student = Student::where('school_id', app('current_school_id'))
             ->where('user_id', $user->id)
             ->firstOrFail();
 
-        $invoices  = $this->repository->unpaidForStudent(app('current_school_id'), $student->id);
+        $invoices = $this->repository->unpaidForStudent(app('current_school_id'), $student->id);
 
         return new InvoiceCollection($invoices);
     }

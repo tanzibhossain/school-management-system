@@ -12,7 +12,7 @@ class PaymentGatewayLog extends Model
     ];
 
     protected $casts = [
-        'payload'  => 'array',
+        'payload' => 'array',
         'response' => 'array',
     ];
 

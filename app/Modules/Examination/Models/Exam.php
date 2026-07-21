@@ -2,6 +2,7 @@
 
 namespace App\Modules\Examination\Models;
 
+use App\Modules\Academic\Models\SchoolClass;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,13 +28,13 @@ class Exam extends Model
     // Eloquent doesn't auto-populate DB-level defaults after create().
     // These ensure the in-memory model reflects the correct defaults immediately.
     protected $attributes = [
-        'status'           => 'draft',
+        'status' => 'draft',
         'seating_strategy' => 'sequential',
     ];
 
     protected $casts = [
         'start_date' => 'date',
-        'end_date'   => 'date',
+        'end_date' => 'date',
     ];
 
     // ── Relationships ──────────────────────────────────────────────────────────
@@ -44,10 +45,10 @@ class Exam extends Model
         return $this->belongsTo(ExamType::class);
     }
 
-    /** @return BelongsTo<\App\Modules\Academic\Models\SchoolClass, Exam> */
+    /** @return BelongsTo<SchoolClass, Exam> */
     public function schoolClass(): BelongsTo
     {
-        return $this->belongsTo(\App\Modules\Academic\Models\SchoolClass::class, 'class_id');
+        return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
     /** @return HasMany<ExamSubject> */

@@ -21,7 +21,7 @@ class SubmissionController extends Controller
 
         $data = $request->validate([
             'marks_awarded' => ['required', 'integer', 'min:0'],
-            'feedback'      => ['nullable', 'string', 'max:1000'],
+            'feedback' => ['nullable', 'string', 'max:1000'],
         ]);
 
         try {

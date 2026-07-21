@@ -8,6 +8,7 @@ use App\Modules\Mark\Models\ExamResult;
 use App\Modules\Mark\Models\MarkSetting;
 use App\Modules\Mark\Services\AnnualResultService;
 use App\Modules\Mark\Services\ResultCalculationService;
+use App\Modules\Student\Models\Student;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -40,7 +41,7 @@ class ExamResultController extends Controller
     public function tabulation(Request $request, int $examId): AnonymousResourceCollection
     {
         $schoolId = app('current_school_id');
-        $results  = $this->results->tabulation($schoolId, $examId);
+        $results = $this->results->tabulation($schoolId, $examId);
 
         $request->attributes->set(
             'show_merit',
@@ -56,13 +57,13 @@ class ExamResultController extends Controller
         $request->validate(['exam_id' => ['required', 'integer']]);
 
         $schoolId = app('current_school_id');
-        $examId   = (int) $request->query('exam_id');
+        $examId = (int) $request->query('exam_id');
 
         // Students/parents may only view their own record
         $user = $request->user();
         if (! $user->tokenCan('admin:*') && ! $user->tokenCan('teacher:*')) {
             abort_unless(
-                \App\Modules\Student\Models\Student::where('school_id', $schoolId)
+                Student::where('school_id', $schoolId)
                     ->whereKey($studentId)
                     ->where('user_id', $user->id)
                     ->exists(),
@@ -89,7 +90,7 @@ class ExamResultController extends Controller
     public function annual(Request $request): JsonResponse
     {
         $request->validate([
-            'class_id'         => ['required', 'integer'],
+            'class_id' => ['required', 'integer'],
             'academic_year_id' => ['required', 'integer'],
         ]);
 

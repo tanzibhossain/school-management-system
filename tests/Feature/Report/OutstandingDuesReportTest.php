@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Report;
 
+use App\Modules\Academic\Models\SchoolClass;
+use App\Modules\Academic\Models\Section;
 use App\Modules\Payment\Models\Invoice;
 
 class OutstandingDuesReportTest extends ReportTestCase
@@ -72,8 +74,8 @@ class OutstandingDuesReportTest extends ReportTestCase
 
     public function test_class_filter_scopes_results(): void
     {
-        $otherClass = \App\Modules\Academic\Models\SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 9']);
-        $otherSection = \App\Modules\Academic\Models\Section::create(['school_id' => $this->school->id, 'class_id' => $otherClass->id, 'name' => 'A']);
+        $otherClass = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 9']);
+        $otherSection = Section::create(['school_id' => $this->school->id, 'class_id' => $otherClass->id, 'name' => 'A']);
 
         $inClass = $this->makeStudent();
         $outOfClass = $this->makeStudent($otherClass->id, $otherSection->id);

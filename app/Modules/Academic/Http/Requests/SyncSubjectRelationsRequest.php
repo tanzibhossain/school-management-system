@@ -17,9 +17,9 @@ class SyncSubjectRelationsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'relations'              => 'required|array',
+            'relations' => 'required|array',
             'relations.*.subject_id' => 'required|integer|exists:subjects,id',
-            'relations.*.group_id'   => 'nullable|integer|exists:groups,id',
+            'relations.*.group_id' => 'nullable|integer|exists:groups,id',
         ];
     }
 }

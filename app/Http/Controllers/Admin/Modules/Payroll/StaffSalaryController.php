@@ -40,7 +40,7 @@ class StaffSalaryController extends Controller
         Staff::where('school_id', $schoolId)->findOrFail($staffId);
 
         $request->validate([
-            'amounts'   => ['array'],
+            'amounts' => ['array'],
             'amounts.*' => ['nullable', 'numeric', 'min:0'],
         ]);
 

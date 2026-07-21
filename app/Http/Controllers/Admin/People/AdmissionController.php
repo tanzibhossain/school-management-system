@@ -29,7 +29,7 @@ class AdmissionController extends Controller
 
         return view('admin.people.admissions.index', [
             'applications' => $query->orderByDesc('id')->limit(500)->get(),
-            'filters'      => $request->only('status'),
+            'filters' => $request->only('status'),
         ]);
     }
 
@@ -44,9 +44,9 @@ class AdmissionController extends Controller
 
         return view('admin.people.admissions.show', [
             'application' => $application,
-            'sections'    => $sections,
-            'class'       => $application->desired_class_id ? SchoolClass::find($application->desired_class_id) : null,
-            'year'        => $application->desired_academic_year_id ? AcademicYear::find($application->desired_academic_year_id) : null,
+            'sections' => $sections,
+            'class' => $application->desired_class_id ? SchoolClass::find($application->desired_class_id) : null,
+            'year' => $application->desired_academic_year_id ? AcademicYear::find($application->desired_academic_year_id) : null,
         ]);
     }
 
@@ -57,8 +57,8 @@ class AdmissionController extends Controller
 
         $data = $request->validate([
             'admission_number' => ['required', 'string', 'max:30', "unique:students,admission_number,NULL,id,school_id,{$schoolId}"],
-            'section_id'       => ['required', 'integer', "exists:sections,id,school_id,{$schoolId}"],
-            'roll_number'      => ['nullable', 'string', 'max:50'],
+            'section_id' => ['required', 'integer', "exists:sections,id,school_id,{$schoolId}"],
+            'roll_number' => ['nullable', 'string', 'max:50'],
         ], [], ['section_id' => 'section', 'admission_number' => 'admission number']);
 
         try {

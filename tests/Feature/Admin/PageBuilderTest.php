@@ -7,6 +7,7 @@ use App\Modules\School\Models\School;
 use App\Modules\Website\Models\Page;
 use App\Modules\Website\Models\PageLayout;
 use App\Modules\Website\Models\SiteSetting;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -25,7 +26,7 @@ class PageBuilderTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT',
@@ -95,7 +96,7 @@ class PageBuilderTest extends TestCase
 
         $this->put("/admin/pages/{$page->id}", [
             'title' => 'Contact', 'slug' => 'contact', 'status' => 'published', 'template' => 'sidebar',
-            'blocks'  => [['type' => 'contact', 'data' => ['heading' => 'Reach us']]],
+            'blocks' => [['type' => 'contact', 'data' => ['heading' => 'Reach us']]],
             'sidebar' => [['type' => 'quick_links', 'data' => ['heading' => 'Links', 'links' => "Notices|/notices\nStaff|/staff"]]],
         ])->assertRedirect();
 

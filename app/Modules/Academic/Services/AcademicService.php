@@ -56,10 +56,10 @@ class AcademicService extends BaseService
 
             foreach ($relations as $rel) {
                 SubjectRelation::create([
-                    'school_id'  => $schoolId,
-                    'class_id'   => $classId,
+                    'school_id' => $schoolId,
+                    'class_id' => $classId,
                     'subject_id' => $rel['subject_id'],
-                    'group_id'   => $rel['group_id'] ?? null,
+                    'group_id' => $rel['group_id'] ?? null,
                 ]);
             }
         });

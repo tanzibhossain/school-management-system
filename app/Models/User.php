@@ -36,8 +36,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'is_active'         => 'boolean',
+            'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -78,14 +78,14 @@ class User extends Authenticatable
     public static function abilitiesForRole(string $role): array
     {
         return match ($role) {
-            'admin'                => ['*'],
-            'teacher'              => ['teacher:*', 'staff:*', 'teacher:marks', 'teacher:routine', 'teacher:leave', 'teacher:profile'],
-            'accountant'           => ['accountant:*', 'staff:*', 'accountant:payment', 'accountant:report', 'accountant:profile'],
-            'librarian'            => ['librarian:*', 'staff:*', 'librarian:books', 'librarian:profile'],
-            'receptionist'         => ['receptionist:*', 'staff:*', 'receptionist:admission', 'receptionist:profile'],
-            'student'              => ['student:*', 'student:profile', 'student:result', 'student:routine'],
-            'parent'               => ['parent:*', 'parent:view'],
-            default                => ['student:profile'],
+            'admin' => ['*'],
+            'teacher' => ['teacher:*', 'staff:*', 'teacher:marks', 'teacher:routine', 'teacher:leave', 'teacher:profile'],
+            'accountant' => ['accountant:*', 'staff:*', 'accountant:payment', 'accountant:report', 'accountant:profile'],
+            'librarian' => ['librarian:*', 'staff:*', 'librarian:books', 'librarian:profile'],
+            'receptionist' => ['receptionist:*', 'staff:*', 'receptionist:admission', 'receptionist:profile'],
+            'student' => ['student:*', 'student:profile', 'student:result', 'student:routine'],
+            'parent' => ['parent:*', 'parent:view'],
+            default => ['student:profile'],
         };
     }
 }

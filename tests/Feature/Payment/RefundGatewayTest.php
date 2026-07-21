@@ -10,6 +10,7 @@ use App\Modules\Payment\Models\PaymentConfig;
 use App\Modules\Payment\Services\RefundService;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -31,10 +32,10 @@ class RefundGatewayTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create(['name' => 'Test School', 'is_active' => true]);
-        $this->admin  = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
+        $this->admin = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
         $this->admin->assignRole('admin');
 
         $year = AcademicYear::create(['school_id' => $this->school->id, 'year' => '2026', 'is_current' => true]);
@@ -52,7 +53,7 @@ class RefundGatewayTest extends TestCase
     private function payment(string $method, string $gatewayPaymentId): Payment
     {
         return Payment::create([
-            'school_id' => $this->school->id, 'receipt_number' => 'RCP-' . $method,
+            'school_id' => $this->school->id, 'receipt_number' => 'RCP-'.$method,
             'invoice_id' => $this->invoice->id, 'student_id' => $this->invoice->student_id,
             'amount' => 5000, 'currency' => 'USD', 'method' => $method,
             'transaction_ref' => $gatewayPaymentId, 'gateway_payment_id' => $gatewayPaymentId,
@@ -84,7 +85,7 @@ class RefundGatewayTest extends TestCase
     public function test_paypal_refund_calls_the_gateway_and_completes(): void
     {
         Http::fake([
-            'https://api-m.sandbox.paypal.com/v1/oauth2/token'        => Http::response(['access_token' => 'tok']),
+            'https://api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response(['access_token' => 'tok']),
             'https://api-m.sandbox.paypal.com/v2/payments/captures/*' => Http::response(['id' => 'ref_1', 'status' => 'COMPLETED']),
         ]);
         $this->config('paypal', ['client_id' => 'cid', 'client_secret' => 'csec', 'mode' => 'sandbox']);

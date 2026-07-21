@@ -23,7 +23,7 @@ class StaffRepository extends BaseRepository
     /**
      * Paginated list — filterable by status, designation, department, search.
      *
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      */
     public function paginate(int $schoolId, array $filters = [], int $perPage = 20): LengthAwarePaginator
     {

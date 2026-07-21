@@ -34,8 +34,8 @@ class WaitlistService extends BaseService
 
         $entry = StudentWaitlist::create(array_merge($data, [
             'school_id' => $schoolId,
-            'position'  => $position,
-            'status'    => 'waiting',
+            'position' => $position,
+            'status' => 'waiting',
         ]));
 
         $this->repository->flush();

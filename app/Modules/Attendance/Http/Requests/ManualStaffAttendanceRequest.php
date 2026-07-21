@@ -15,11 +15,11 @@ class ManualStaffAttendanceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'staff_id'  => ['required', 'integer', 'exists:staff,id'],
-            'date'      => ['required', 'date_format:Y-m-d'],
-            'check_in'  => ['nullable', 'date'],
+            'staff_id' => ['required', 'integer', 'exists:staff,id'],
+            'date' => ['required', 'date_format:Y-m-d'],
+            'check_in' => ['nullable', 'date'],
             'check_out' => ['nullable', 'date', 'after:check_in'],
-            'note'      => ['nullable', 'string', 'max:255'],
+            'note' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

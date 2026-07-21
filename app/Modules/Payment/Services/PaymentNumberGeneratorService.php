@@ -13,10 +13,10 @@ class PaymentNumberGeneratorService
 {
     /** Default config values for first-time generation. */
     private const DEFAULTS = [
-        'invoice_prefix'    => 'INV',
-        'invoice_last_seq'  => 0,
-        'receipt_prefix'    => 'REC',
-        'receipt_last_seq'  => 0,
+        'invoice_prefix' => 'INV',
+        'invoice_last_seq' => 0,
+        'receipt_prefix' => 'REC',
+        'receipt_last_seq' => 0,
         'bounce_fee_amount' => 0.00,
     ];
 

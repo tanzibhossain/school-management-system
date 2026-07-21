@@ -32,9 +32,9 @@ class StudentCreditController extends Controller
         }
 
         return view('admin.finance.student-credit.index', [
-            'students'     => Student::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name', 'student_id']),
-            'student'      => $student,
-            'balance'      => $balance,
+            'students' => Student::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name', 'student_id']),
+            'student' => $student,
+            'balance' => $balance,
             'transactions' => $transactions,
         ]);
     }
@@ -45,9 +45,9 @@ class StudentCreditController extends Controller
 
         $data = $request->validate([
             'student_id' => ['required', 'integer', "exists:students,id,school_id,{$schoolId}"],
-            'direction'  => ['required', 'in:credit,debit'],
-            'amount'     => ['required', 'numeric', 'min:0.01'],
-            'note'       => ['nullable', 'string', 'max:255'],
+            'direction' => ['required', 'in:credit,debit'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'note' => ['nullable', 'string', 'max:255'],
         ]);
 
         try {

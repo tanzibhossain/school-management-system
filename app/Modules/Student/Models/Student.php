@@ -30,8 +30,8 @@ class Student extends Model
     ];
 
     protected $casts = [
-        'dob'               => 'date',
-        'is_trash'          => 'boolean',
+        'dob' => 'date',
+        'is_trash' => 'boolean',
         're_admission_count' => 'integer',
     ];
 

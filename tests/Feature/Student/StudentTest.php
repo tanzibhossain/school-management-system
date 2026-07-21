@@ -9,6 +9,7 @@ use App\Modules\Academic\Models\Section;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\StudentIdConfig;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -17,34 +18,38 @@ class StudentTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private School $school;
+
     private AcademicYear $year;
+
     private SchoolClass $class;
+
     private Section $section;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
-        $this->school  = School::create(['name' => 'Test School', 'is_active' => true]);
-        $this->admin   = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
+        $this->school = School::create(['name' => 'Test School', 'is_active' => true]);
+        $this->admin = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
         $this->admin->assignRole('admin');
 
-        $this->year    = AcademicYear::create(['school_id' => $this->school->id, 'year' => '2026', 'is_current' => true, 'is_trash' => false]);
-        $this->class   = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 5', 'weight' => 5, 'is_trash' => false]);
+        $this->year = AcademicYear::create(['school_id' => $this->school->id, 'year' => '2026', 'is_current' => true, 'is_trash' => false]);
+        $this->class = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 5', 'weight' => 5, 'is_trash' => false]);
         $this->section = Section::create(['school_id' => $this->school->id, 'class_id' => $this->class->id, 'name' => 'A', 'is_trash' => false]);
 
         StudentIdConfig::create([
-            'school_id'       => $this->school->id,
-            'prefix'          => 'SMS',
-            'include_year'    => true,
-            'year_format'     => 'YYYY',
-            'separator'       => '/',
+            'school_id' => $this->school->id,
+            'prefix' => 'SMS',
+            'include_year' => true,
+            'year_format' => 'YYYY',
+            'separator' => '/',
             'sequence_length' => 4,
-            'reset_yearly'    => true,
-            'last_sequence'   => 0,
+            'reset_yearly' => true,
+            'last_sequence' => 0,
         ]);
     }
 
@@ -57,11 +62,11 @@ class StudentTest extends TestCase
     {
         return array_merge([
             'admission_number' => 'ADM-001',
-            'name'             => 'John Doe',
-            'gender'           => 'male',
+            'name' => 'John Doe',
+            'gender' => 'male',
             'academic_year_id' => $this->year->id,
-            'class_id'         => $this->class->id,
-            'section_id'       => $this->section->id,
+            'class_id' => $this->class->id,
+            'section_id' => $this->section->id,
         ], $overrides);
     }
 
@@ -82,7 +87,7 @@ class StudentTest extends TestCase
             ->assertCreated();
 
         $student = Student::where('admission_number', 'ADM-001')->first();
-        $year    = now()->format('Y');
+        $year = now()->format('Y');
 
         $this->assertNotNull($student->student_id);
         $this->assertStringStartsWith("SMS/{$year}/", $student->student_id);
@@ -108,18 +113,18 @@ class StudentTest extends TestCase
         $this->withToken($this->token())
             ->postJson('/api/v2/students', $this->enrolPayload());
 
-        $student  = Student::where('admission_number', 'ADM-001')->first();
-        $newYear  = AcademicYear::create(['school_id' => $this->school->id, 'year' => '2027', 'is_current' => false, 'is_trash' => false]);
+        $student = Student::where('admission_number', 'ADM-001')->first();
+        $newYear = AcademicYear::create(['school_id' => $this->school->id, 'year' => '2027', 'is_current' => false, 'is_trash' => false]);
         $newClass = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 6', 'weight' => 6, 'is_trash' => false]);
-        $newSec   = Section::create(['school_id' => $this->school->id, 'class_id' => $newClass->id, 'name' => 'A', 'is_trash' => false]);
+        $newSec = Section::create(['school_id' => $this->school->id, 'class_id' => $newClass->id, 'name' => 'A', 'is_trash' => false]);
 
         auth()->forgetGuards();
 
         $this->withToken($this->token())
             ->postJson("/api/v2/students/{$student->id}/academics/promote", [
                 'academic_year_id' => $newYear->id,
-                'class_id'         => $newClass->id,
-                'section_id'       => $newSec->id,
+                'class_id' => $newClass->id,
+                'section_id' => $newSec->id,
             ])
             ->assertOk();
 
@@ -159,8 +164,8 @@ class StudentTest extends TestCase
         $this->withToken($this->token())
             ->postJson("/api/v2/students/{$student->id}/re-admit", [
                 'academic_year_id' => $newYear->id,
-                'class_id'         => $this->class->id,
-                'section_id'       => $this->section->id,
+                'class_id' => $this->class->id,
+                'section_id' => $this->section->id,
             ])
             ->assertOk();
 
@@ -178,8 +183,8 @@ class StudentTest extends TestCase
 
         $this->withToken($this->token())
             ->postJson('/api/v2/students', $this->enrolPayload([
-                'admission_number'       => 'ADM-002',
-                'name'                   => 'Jane Doe',
+                'admission_number' => 'ADM-002',
+                'name' => 'Jane Doe',
                 'sibling_admission_number' => 'ADM-001',
             ]));
 
@@ -194,11 +199,11 @@ class StudentTest extends TestCase
         $response = $this->withToken($this->token())
             ->postJson('/api/v2/waitlist', [
                 'academic_year_id' => $this->year->id,
-                'class_id'         => $this->class->id,
-                'section_id'       => $this->section->id,
-                'applicant_name'   => 'Ali Hassan',
-                'guardian_name'    => 'Hassan Ali',
-                'guardian_phone'   => '01711111111',
+                'class_id' => $this->class->id,
+                'section_id' => $this->section->id,
+                'applicant_name' => 'Ali Hassan',
+                'guardian_name' => 'Hassan Ali',
+                'guardian_phone' => '01711111111',
             ])
             ->assertCreated();
 
@@ -210,11 +215,11 @@ class StudentTest extends TestCase
         $response2 = $this->withToken($this->token())
             ->postJson('/api/v2/waitlist', [
                 'academic_year_id' => $this->year->id,
-                'class_id'         => $this->class->id,
-                'section_id'       => $this->section->id,
-                'applicant_name'   => 'Rina Begum',
-                'guardian_name'    => 'Begum Ali',
-                'guardian_phone'   => '01722222222',
+                'class_id' => $this->class->id,
+                'section_id' => $this->section->id,
+                'applicant_name' => 'Rina Begum',
+                'guardian_name' => 'Begum Ali',
+                'guardian_phone' => '01722222222',
             ])
             ->assertCreated();
 

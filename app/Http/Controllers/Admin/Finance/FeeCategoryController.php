@@ -30,7 +30,7 @@ class FeeCategoryController extends Controller
 
         FeeCategory::create([
             'school_id' => $schoolId,
-            'name'      => $data['name'],
+            'name' => $data['name'],
             'is_active' => $request->boolean('is_active', true),
         ]);
 
@@ -47,7 +47,7 @@ class FeeCategoryController extends Controller
         ]);
 
         $category->update([
-            'name'      => $data['name'],
+            'name' => $data['name'],
             'is_active' => $request->boolean('is_active'),
         ]);
 

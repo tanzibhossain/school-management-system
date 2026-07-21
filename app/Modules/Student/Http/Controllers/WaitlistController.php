@@ -23,7 +23,7 @@ class WaitlistController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $schoolId = app('current_school_id');
-        $entries  = $this->repository->getWaiting(
+        $entries = $this->repository->getWaiting(
             $schoolId,
             $request->integer('class_id'),
             $request->input('section_id') ? (int) $request->section_id : null,

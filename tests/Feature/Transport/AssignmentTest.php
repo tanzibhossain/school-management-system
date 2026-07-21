@@ -83,7 +83,7 @@ class AssignmentTest extends TransportTestCase
             'status' => 'active',
         ]);
 
-        $res = $this->getJson("/api/v2/transport/assignments?status=active", $this->auth());
+        $res = $this->getJson('/api/v2/transport/assignments?status=active', $this->auth());
         $res->assertStatus(200);
         $res->assertJsonFragment(['is_expired' => true]);
 

@@ -23,7 +23,7 @@ class ExamController extends Controller
     public function index(): ExamCollection
     {
         $schoolId = app('current_school_id');
-        $filters  = request()->only(['class_id', 'academic_year_id', 'status', 'exam_type_id']);
+        $filters = request()->only(['class_id', 'academic_year_id', 'status', 'exam_type_id']);
 
         return new ExamCollection($this->repository->paginate($schoolId, $filters));
     }

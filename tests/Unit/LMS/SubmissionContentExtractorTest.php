@@ -14,7 +14,7 @@ class SubmissionContentExtractorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->extractor = new SubmissionContentExtractor();
+        $this->extractor = new SubmissionContentExtractor;
     }
 
     public function test_extracts_plain_text_verbatim(): void
@@ -29,16 +29,16 @@ class SubmissionContentExtractorTest extends TestCase
 
     public function test_extracts_text_from_a_docx_file(): void
     {
-        $path = tempnam(sys_get_temp_dir(), 'lms_test_') . '.docx';
+        $path = tempnam(sys_get_temp_dir(), 'lms_test_').'.docx';
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         $zip->open($path, ZipArchive::CREATE);
         $zip->addFromString(
             'word/document.xml',
             '<?xml version="1.0"?><w:document xmlns:w="ns"><w:body>'
-            . '<w:p><w:r><w:t>First paragraph.</w:t></w:r></w:p>'
-            . '<w:p><w:r><w:t>Second paragraph.</w:t></w:r></w:p>'
-            . '</w:body></w:document>'
+            .'<w:p><w:r><w:t>First paragraph.</w:t></w:r></w:p>'
+            .'<w:p><w:r><w:t>Second paragraph.</w:t></w:r></w:p>'
+            .'</w:body></w:document>'
         );
         $zip->close();
 

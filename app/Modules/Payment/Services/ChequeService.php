@@ -41,24 +41,24 @@ class ChequeService
             throw new RuntimeException("Cheque is already {$payment->cheque_status}.");
         }
 
-        DB::transaction(function () use ($payment, $bouncedBy, $customBounceFee): void {
+        DB::transaction(function () use ($payment, $customBounceFee): void {
             // Reverse the payment
             $payment->update(['cheque_status' => 'bounced', 'is_reversed' => true]);
 
-            $invoice   = $payment->invoice;
-            $newPaid   = round((float) $invoice->amount_paid - (float) $payment->amount, 2);
-            $newPaid   = max($newPaid, 0);
-            $status    = $newPaid > 0 ? 'partial' : 'unpaid';
+            $invoice = $payment->invoice;
+            $newPaid = round((float) $invoice->amount_paid - (float) $payment->amount, 2);
+            $newPaid = max($newPaid, 0);
+            $status = $newPaid > 0 ? 'partial' : 'unpaid';
 
             // Determine bounce fee
-            $config    = PaymentConfig::where('school_id', $payment->school_id)->first();
+            $config = PaymentConfig::where('school_id', $payment->school_id)->first();
             $bounceFee = $customBounceFee ?? ($config ? (float) $config->bounce_fee_amount : 0.0);
 
             $invoice->update([
                 'amount_paid' => $newPaid,
-                'amount_due'  => round((float) $invoice->amount_due + $bounceFee, 2),
-                'status'      => $status,
-                'note'        => ($invoice->note ? $invoice->note . ' | ' : '') . "Cheque #{$payment->cheque_number} bounced.",
+                'amount_due' => round((float) $invoice->amount_due + $bounceFee, 2),
+                'status' => $status,
+                'note' => ($invoice->note ? $invoice->note.' | ' : '')."Cheque #{$payment->cheque_number} bounced.",
             ]);
 
             event(new ChequeBounced($payment->fresh()));

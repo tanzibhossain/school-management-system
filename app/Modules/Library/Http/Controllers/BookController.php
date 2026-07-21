@@ -17,8 +17,7 @@ class BookController extends Controller
     public function __construct(
         private readonly BookService $service,
         private readonly BookRepository $repository,
-    ) {
-    }
+    ) {}
 
     public function index(): AnonymousResourceCollection
     {

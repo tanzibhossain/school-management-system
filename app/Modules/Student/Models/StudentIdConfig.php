@@ -21,10 +21,10 @@ class StudentIdConfig extends Model
     ];
 
     protected $casts = [
-        'include_year'    => 'boolean',
-        'reset_yearly'    => 'boolean',
+        'include_year' => 'boolean',
+        'reset_yearly' => 'boolean',
         'sequence_length' => 'integer',
-        'last_sequence'   => 'integer',
+        'last_sequence' => 'integer',
         'last_reset_year' => 'integer',
     ];
 

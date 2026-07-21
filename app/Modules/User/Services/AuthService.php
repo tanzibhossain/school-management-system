@@ -4,7 +4,8 @@ namespace App\Modules\User\Services;
 
 use App\Models\User;
 use App\Modules\User\Models\LoginHistory;
-use Illuminate\Auth\AuthenticationException;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -14,17 +15,20 @@ use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 class AuthService
 {
-    private const MAX_ATTEMPTS    = 3;
+    private const MAX_ATTEMPTS = 3;
+
     private const LOCKOUT_SECONDS = 900; // 15 minutes
 
-    private const EXPIRY_DEFAULT    = 12;  // hours
-    private const EXPIRY_REMEMBER   = 90;  // days
+    private const EXPIRY_DEFAULT = 12;  // hours
+
+    private const EXPIRY_REMEMBER = 90;  // days
+
     private const EXPIRY_SUPER_ADMIN = 4;  // hours
 
     // ── Login ─────────────────────────────────────────────────────────────────
 
     /**
-     * @return array{token: string, expires_at: \Carbon\Carbon, user: User}
+     * @return array{token: string, expires_at: Carbon, user: User}
      */
     public function login(
         string $email,
@@ -77,7 +81,7 @@ class AuthService
 
         RateLimiter::clear($this->throttleKey($email, $ip));
 
-        $role      = $user->getRoleNames()->first() ?? 'student';
+        $role = $user->getRoleNames()->first() ?? 'student';
         $abilities = User::abilitiesForRole($role);
         $expiresAt = $this->tokenExpiry($role, $rememberMe);
 
@@ -101,9 +105,9 @@ class AuthService
         $newToken->accessToken->forceFill(['name' => $deviceName])->save();
 
         return [
-            'token'      => $newToken->plainTextToken,
+            'token' => $newToken->plainTextToken,
             'expires_at' => $expiresAt,
-            'user'       => $user->load('roles'),
+            'user' => $user->load('roles'),
             'history_id' => $history->id,
         ];
     }
@@ -140,9 +144,9 @@ class AuthService
     // ── Devices ───────────────────────────────────────────────────────────────
 
     /**
-     * @return \Illuminate\Database\Eloquent\Collection<int, PersonalAccessToken>
+     * @return Collection<int, PersonalAccessToken>
      */
-    public function getDevices(User $user): \Illuminate\Database\Eloquent\Collection
+    public function getDevices(User $user): Collection
     {
         return $user->tokens()->orderByDesc('last_used_at')->get();
     }
@@ -164,7 +168,7 @@ class AuthService
 
     private function throttleKey(string $email, string $ip): string
     {
-        return 'login:' . Str::lower($email) . '|' . $ip;
+        return 'login:'.Str::lower($email).'|'.$ip;
     }
 
     private function enforceLockout(string $email, string $ip): void
@@ -179,7 +183,7 @@ class AuthService
         }
     }
 
-    private function tokenExpiry(string $role, bool $rememberMe): \Carbon\Carbon
+    private function tokenExpiry(string $role, bool $rememberMe): Carbon
     {
         if ($role === 'admin' && ! $rememberMe) {
             return now()->addHours(self::EXPIRY_SUPER_ADMIN);
@@ -200,15 +204,15 @@ class AuthService
         ?string $reason = null,
     ): LoginHistory {
         return LoginHistory::create([
-            'school_id'     => $user?->school_id,
-            'user_id'       => $user?->id,
-            'email'         => $email,
-            'ip_address'    => $ip,
-            'device_name'   => $deviceName,
-            'user_agent'    => $userAgent,
-            'status'        => $status,
+            'school_id' => $user?->school_id,
+            'user_id' => $user?->id,
+            'email' => $email,
+            'ip_address' => $ip,
+            'device_name' => $deviceName,
+            'user_agent' => $userAgent,
+            'status' => $status,
             'failed_reason' => $reason,
-            'logged_in_at'  => now(),
+            'logged_in_at' => now(),
         ]);
     }
 }

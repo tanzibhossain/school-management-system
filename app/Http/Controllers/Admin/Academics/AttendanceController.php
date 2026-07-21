@@ -43,19 +43,19 @@ class AttendanceController extends Controller
                 ->filter(fn ($a) => $a->student !== null)
                 ->map(fn ($a) => (object) [
                     'student_id' => $a->student_id,
-                    'name'       => $a->student->name,
-                    'code'       => $a->student->student_id,
-                    'status'     => $marked[$a->student_id] ?? 'present',
+                    'name' => $a->student->name,
+                    'code' => $a->student->student_id,
+                    'status' => $marked[$a->student_id] ?? 'present',
                 ])->sortBy('name')->values();
         }
 
         return view('admin.academics.attendance.index', [
-            'classes'   => SchoolClass::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
-            'sections'  => Section::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name', 'class_id']),
-            'roster'    => $roster,
-            'classId'   => $classId,
+            'classes' => SchoolClass::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
+            'sections' => Section::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name', 'class_id']),
+            'roster' => $roster,
+            'classId' => $classId,
             'sectionId' => $sectionId,
-            'date'      => $date,
+            'date' => $date,
         ]);
     }
 
@@ -64,11 +64,11 @@ class AttendanceController extends Controller
         $schoolId = app('current_school_id');
 
         $data = $request->validate([
-            'class_id'          => ['required', 'integer', "exists:classes,id,school_id,{$schoolId}"],
-            'section_id'        => ['nullable', 'integer', "exists:sections,id,school_id,{$schoolId}"],
-            'date'              => ['required', 'date'],
-            'statuses'          => ['required', 'array'],
-            'statuses.*'        => ['required', 'in:present,absent,late,half_day,leave'],
+            'class_id' => ['required', 'integer', "exists:classes,id,school_id,{$schoolId}"],
+            'section_id' => ['nullable', 'integer', "exists:sections,id,school_id,{$schoolId}"],
+            'date' => ['required', 'date'],
+            'statuses' => ['required', 'array'],
+            'statuses.*' => ['required', 'in:present,absent,late,half_day,leave'],
         ]);
 
         $entries = [];
@@ -81,16 +81,16 @@ class AttendanceController extends Controller
         // (its can() returns true) — the same primitive Sanctum uses for SPA
         // session auth — so a role-gated admin can record for any section.
         $recorder = $request->user();
-        $recorder->withAccessToken(new TransientToken());
+        $recorder->withAccessToken(new TransientToken);
 
         $result = $this->attendance->bulkUpsert(
             $schoolId, $data['class_id'], $data['section_id'] ?? null, $data['date'], $entries, $recorder,
         );
 
         return redirect()->route('admin.attendance.index', array_filter([
-            'class_id'   => $data['class_id'],
+            'class_id' => $data['class_id'],
             'section_id' => $data['section_id'] ?? null,
-            'date'       => $data['date'],
+            'date' => $data['date'],
         ]))->with('status', "Attendance saved — {$result['created']} new, {$result['updated']} updated.");
     }
 }

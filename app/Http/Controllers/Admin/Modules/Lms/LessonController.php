@@ -18,11 +18,11 @@ class LessonController extends Controller
         $course = Course::where('school_id', app('current_school_id'))->findOrFail($courseId);
 
         $data = $request->validate([
-            'title'        => ['required', 'string', 'max:150'],
+            'title' => ['required', 'string', 'max:150'],
             'content_type' => ['required', 'in:text,video'],
-            'body_text'    => ['nullable', 'required_if:content_type,text', 'string'],
-            'video_url'    => ['nullable', 'required_if:content_type,video', 'url', 'max:500'],
-            'sort_order'   => ['nullable', 'integer', 'min:0', 'max:255'],
+            'body_text' => ['nullable', 'required_if:content_type,text', 'string'],
+            'video_url' => ['nullable', 'required_if:content_type,video', 'url', 'max:500'],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:255'],
         ], [], ['content_type' => 'type', 'body_text' => 'content', 'video_url' => 'video URL']);
         $data['sort_order'] = $data['sort_order'] ?? 0;
         $data['is_published'] = $request->boolean('is_published');

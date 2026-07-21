@@ -31,9 +31,9 @@ class ExamController extends Controller
             ->get();
 
         return view('admin.academics.exams.index', [
-            'exams'   => $exams,
-            'types'   => ExamType::where('school_id', $schoolId)->where('is_active', true)->orderBy('name')->get(['id', 'name']),
-            'years'   => AcademicYear::where('school_id', $schoolId)->where('is_trash', false)->orderByDesc('year')->get(['id', 'year', 'is_current']),
+            'exams' => $exams,
+            'types' => ExamType::where('school_id', $schoolId)->where('is_active', true)->orderBy('name')->get(['id', 'name']),
+            'years' => AcademicYear::where('school_id', $schoolId)->where('is_trash', false)->orderByDesc('year')->get(['id', 'year', 'is_current']),
             'classes' => SchoolClass::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
             'sections' => Section::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name', 'class_id']),
         ]);
@@ -44,13 +44,13 @@ class ExamController extends Controller
         $schoolId = app('current_school_id');
 
         $data = $request->validate([
-            'exam_type_id'     => ['required', 'integer', "exists:exam_types,id,school_id,{$schoolId}"],
+            'exam_type_id' => ['required', 'integer', "exists:exam_types,id,school_id,{$schoolId}"],
             'academic_year_id' => ['required', 'integer', "exists:academic_years,id,school_id,{$schoolId}"],
-            'class_id'         => ['required', 'integer', "exists:classes,id,school_id,{$schoolId}"],
-            'section_id'       => ['nullable', 'integer', "exists:sections,id,school_id,{$schoolId}"],
-            'title'            => ['required', 'string', 'max:150'],
-            'start_date'       => ['required', 'date'],
-            'end_date'         => ['required', 'date', 'after_or_equal:start_date'],
+            'class_id' => ['required', 'integer', "exists:classes,id,school_id,{$schoolId}"],
+            'section_id' => ['nullable', 'integer', "exists:sections,id,school_id,{$schoolId}"],
+            'title' => ['required', 'string', 'max:150'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'seating_strategy' => ['nullable', 'in:sequential,interleave_group,interleave_section,anti_adjacency'],
         ]);
         $data['seating_strategy'] = $data['seating_strategy'] ?? 'sequential';
@@ -92,11 +92,11 @@ class ExamController extends Controller
 
         $data = $request->validate([
             'subject_relation_id' => ['required', 'integer', "exists:subject_relations,id,school_id,{$schoolId}"],
-            'exam_date'           => ['required', 'date'],
-            'start_time'          => ['required', 'date_format:H:i'],
-            'end_time'            => ['required', 'date_format:H:i', 'after:start_time'],
-            'full_marks'          => ['required', 'numeric', 'min:1'],
-            'pass_marks'          => ['required', 'numeric', 'min:0', 'lte:full_marks'],
+            'exam_date' => ['required', 'date'],
+            'start_time' => ['required', 'date_format:H:i'],
+            'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
+            'full_marks' => ['required', 'numeric', 'min:1'],
+            'pass_marks' => ['required', 'numeric', 'min:0', 'lte:full_marks'],
         ], [], ['subject_relation_id' => 'subject']);
 
         try {

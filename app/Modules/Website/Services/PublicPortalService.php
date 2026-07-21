@@ -3,6 +3,7 @@
 namespace App\Modules\Website\Services;
 
 use App\Modules\Academic\Models\ClassRoutine;
+use App\Modules\Announcement\Models\Announcement;
 use App\Modules\Announcement\Repositories\AnnouncementRepository;
 use App\Modules\Examination\Models\Exam;
 use App\Modules\Mark\Models\ExamResult;
@@ -65,7 +66,7 @@ class PublicPortalService
         return $resolved;
     }
 
-    /** @return Collection<int, \App\Modules\Announcement\Models\Announcement> */
+    /** @return Collection<int, Announcement> */
     public function notices(int $schoolId): Collection
     {
         return $this->announcements->listVisible($schoolId, ['all']);

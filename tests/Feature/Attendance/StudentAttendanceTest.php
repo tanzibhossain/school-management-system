@@ -13,6 +13,7 @@ use App\Modules\School\Models\SchoolOpeningHour;
 use App\Modules\Staff\Models\Staff;
 use App\Modules\Student\Models\Student;
 use Carbon\CarbonImmutable;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -21,18 +22,24 @@ class StudentAttendanceTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private School $school;
+
     private AcademicYear $year;
+
     private SchoolClass $class;
+
     private Section $section;
+
     private Student $student;
+
     private Student $student2;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         // UTC keeps date logic deterministic in tests
         $this->school = School::create(['name' => 'Test School', 'timezone' => 'UTC', 'is_active' => true]);
@@ -40,11 +47,11 @@ class StudentAttendanceTest extends TestCase
         // All 7 days open, closing 16:00 — weekend behaviour is tested explicitly below
         foreach (range(0, 6) as $day) {
             SchoolOpeningHour::create([
-                'school_id'   => $this->school->id,
+                'school_id' => $this->school->id,
                 'day_of_week' => $day,
-                'is_open'     => true,
-                'open_time'   => '08:00:00',
-                'close_time'  => '16:00:00',
+                'is_open' => true,
+                'open_time' => '08:00:00',
+                'close_time' => '16:00:00',
             ]);
         }
 
@@ -52,15 +59,15 @@ class StudentAttendanceTest extends TestCase
         $this->admin->assignRole('admin');
 
         $this->year = AcademicYear::create([
-            'school_id'  => $this->school->id,
-            'year'       => '2026',
+            'school_id' => $this->school->id,
+            'year' => '2026',
             'is_current' => true,
         ]);
 
-        $this->class   = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 5']);
+        $this->class = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 5']);
         $this->section = Section::create(['school_id' => $this->school->id, 'class_id' => $this->class->id, 'name' => 'A']);
 
-        $this->student  = $this->makeStudent('ADM-001');
+        $this->student = $this->makeStudent('ADM-001');
         $this->student2 = $this->makeStudent('ADM-002');
     }
 
@@ -69,12 +76,12 @@ class StudentAttendanceTest extends TestCase
         $user = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
 
         return Student::create([
-            'school_id'        => $this->school->id,
-            'user_id'          => $user->id,
+            'school_id' => $this->school->id,
+            'user_id' => $user->id,
             'admission_number' => $admissionNumber,
-            'name'             => "Student {$admissionNumber}",
-            'gender'           => 'male',
-            'status'           => 'active',
+            'name' => "Student {$admissionNumber}",
+            'gender' => 'male',
+            'status' => 'active',
         ]);
     }
 
@@ -89,9 +96,9 @@ class StudentAttendanceTest extends TestCase
 
         $staff = Staff::create([
             'school_id' => $this->school->id,
-            'user_id'   => $user->id,
-            'name'      => 'Teacher One',
-            'gender'    => 'female',
+            'user_id' => $user->id,
+            'name' => 'Teacher One',
+            'gender' => 'female',
         ]);
 
         if ($classTeacherOfSection !== null) {
@@ -104,10 +111,10 @@ class StudentAttendanceTest extends TestCase
     private function bulkPayload(string $date, string $status = 'present'): array
     {
         return [
-            'class_id'   => $this->class->id,
+            'class_id' => $this->class->id,
             'section_id' => $this->section->id,
-            'date'       => $date,
-            'entries'    => [
+            'date' => $date,
+            'entries' => [
                 ['student_id' => $this->student->id,  'status' => $status],
                 ['student_id' => $this->student2->id, 'status' => 'absent'],
             ],
@@ -124,7 +131,7 @@ class StudentAttendanceTest extends TestCase
     public function test_bulk_creates_records_and_resubmission_updates_without_duplicates(): void
     {
         $token = $this->adminToken();
-        $date  = $this->yesterday();
+        $date = $this->yesterday();
 
         $this->withToken($token)
             ->postJson('/api/v2/attendance/students/bulk', $this->bulkPayload($date))
@@ -140,8 +147,8 @@ class StudentAttendanceTest extends TestCase
         $this->assertDatabaseCount('student_attendances', 2);
         $this->assertDatabaseHas('student_attendances', [
             'student_id' => $this->student->id,
-            'status'     => 'late',
-            'edited_by'  => $this->admin->id,
+            'status' => 'late',
+            'edited_by' => $this->admin->id,
         ]);
     }
 
@@ -151,9 +158,9 @@ class StudentAttendanceTest extends TestCase
 
         Holiday::create([
             'school_id' => $this->school->id,
-            'date'      => $date,
-            'name'      => 'Sudden Closure',
-            'type'      => 'closure',
+            'date' => $date,
+            'name' => 'Sudden Closure',
+            'type' => 'closure',
         ]);
 
         $this->withToken($this->adminToken())
@@ -178,7 +185,7 @@ class StudentAttendanceTest extends TestCase
 
     public function test_future_date_rejected_for_non_admin(): void
     {
-        $token  = $this->teacherToken($this->section->id);
+        $token = $this->teacherToken($this->section->id);
         $future = CarbonImmutable::now('UTC')->addDays(2)->toDateString();
 
         $this->withToken($token)
@@ -233,7 +240,7 @@ class StudentAttendanceTest extends TestCase
     public function test_register_returns_day_records(): void
     {
         $token = $this->adminToken();
-        $date  = $this->yesterday();
+        $date = $this->yesterday();
 
         $this->withToken($token)->postJson('/api/v2/attendance/students/bulk', $this->bulkPayload($date));
 
@@ -250,8 +257,8 @@ class StudentAttendanceTest extends TestCase
         // Fixed past week: Mon 2026-01-05 … Fri 2026-01-09, holiday on Wed 07
         Holiday::create([
             'school_id' => $this->school->id,
-            'date'      => '2026-01-07',
-            'name'      => 'Holiday',
+            'date' => '2026-01-07',
+            'name' => 'Holiday',
         ]);
 
         // Enrollment clamp uses created_at — backdate the student
@@ -265,14 +272,14 @@ class StudentAttendanceTest extends TestCase
             '2026-01-09' => 'leave',
         ] as $date => $status) {
             StudentAttendance::create([
-                'school_id'        => $this->school->id,
-                'student_id'       => $this->student->id,
-                'class_id'         => $this->class->id,
-                'section_id'       => $this->section->id,
+                'school_id' => $this->school->id,
+                'student_id' => $this->student->id,
+                'class_id' => $this->class->id,
+                'section_id' => $this->section->id,
                 'academic_year_id' => $this->year->id,
-                'date'             => $date,
-                'status'           => $status,
-                'recorded_by'      => $this->admin->id,
+                'date' => $date,
+                'status' => $status,
+                'recorded_by' => $this->admin->id,
             ]);
         }
 
@@ -281,10 +288,10 @@ class StudentAttendanceTest extends TestCase
             ->assertOk()
             ->assertJsonFragment([
                 'working_days' => 4,   // 5 days minus the holiday
-                'present'      => 2,
-                'absent'       => 1,
-                'leave'        => 1,
-                'percentage'   => 50.0, // 2 attended / 4 working days
+                'present' => 2,
+                'absent' => 1,
+                'leave' => 1,
+                'percentage' => 50.0, // 2 attended / 4 working days
             ]);
     }
 }

@@ -23,10 +23,10 @@ class AssignmentController extends Controller
         $course = Course::where('school_id', app('current_school_id'))->findOrFail($courseId);
 
         $data = $request->validate([
-            'title'                 => ['required', 'string', 'max:150'],
-            'instructions'          => ['nullable', 'string'],
-            'due_date'              => ['required', 'date'],
-            'max_marks'             => ['required', 'integer', 'min:1', 'max:1000'],
+            'title' => ['required', 'string', 'max:150'],
+            'instructions' => ['nullable', 'string'],
+            'due_date' => ['required', 'date'],
+            'max_marks' => ['required', 'integer', 'min:1', 'max:1000'],
             'allow_late_submission' => ['nullable', 'boolean'],
         ]);
         $data['allow_late_submission'] = $request->boolean('allow_late_submission');

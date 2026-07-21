@@ -17,15 +17,15 @@ class MarkSetting extends Model
 
     protected $casts = [
         'show_merit_position' => 'boolean',
-        'grace_marks_cap'     => 'decimal:2',
+        'grace_marks_cap' => 'decimal:2',
     ];
 
     // Mirror DB-level defaults
     protected $attributes = [
-        'mode'                => 'mark',
-        'result_strategy'     => 'bd_national',
+        'mode' => 'mark',
+        'result_strategy' => 'bd_national',
         'show_merit_position' => true,
-        'grace_marks_cap'     => 5.00,
+        'grace_marks_cap' => 5.00,
     ];
 
     /** Get (or lazily create) settings for a class. */

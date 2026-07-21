@@ -13,8 +13,8 @@ use App\Modules\Mark\Strategies\ResultStrategyFactory;
 use App\Modules\Mark\Support\GradeResolver;
 use App\Modules\Student\Models\StudentAcademic;
 use App\Modules\Student\Models\StudentSubject;
-use Illuminate\Support\Collection;
 use App\Support\CacheTags;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -28,7 +28,7 @@ class ResultCalculationService
     {
         $exam = Exam::where('school_id', $schoolId)->findOrFail($examId);
 
-        $settings   = MarkSetting::forClass($schoolId, $exam->class_id);
+        $settings = MarkSetting::forClass($schoolId, $exam->class_id);
         $boundaries = GradeBoundary::forClass($schoolId, $exam->class_id)->get();
 
         if ($boundaries->isEmpty()) {
@@ -83,19 +83,19 @@ class ResultCalculationService
             );
 
             $applicable = $units->where('not_applicable', false)->values();
-            $overall    = $strategy->calculate($applicable, $boundaries);
+            $overall = $strategy->calculate($applicable, $boundaries);
 
             $obtained = $applicable->sum('obtained');
             $possible = $applicable->sum('possible');
 
             $computed[$studentId] = [
-                'units'      => $units,
-                'obtained'   => round($obtained, 2),
-                'possible'   => round($possible, 2),
+                'units' => $units,
+                'obtained' => round($obtained, 2),
+                'possible' => round($possible, 2),
                 'percentage' => $possible > 0 ? round(($obtained / $possible) * 100, 2) : 0.0,
-                'gpa'        => $overall['gpa'],
-                'grade'      => $overall['grade'],
-                'is_pass'    => $overall['is_pass'],
+                'gpa' => $overall['gpa'],
+                'grade' => $overall['grade'],
+                'is_pass' => $overall['is_pass'],
             ];
         }
 
@@ -117,16 +117,16 @@ class ResultCalculationService
                 ExamResult::updateOrCreate(
                     ['exam_id' => $exam->id, 'student_id' => $studentId],
                     [
-                        'school_id'         => $schoolId,
-                        'total_marks'       => $result['obtained'],
-                        'total_possible'    => $result['possible'],
-                        'percentage'        => $result['percentage'],
-                        'grade'             => $result['grade'],
-                        'gpa'               => $result['gpa'],
-                        'is_pass'           => $result['is_pass'],
-                        'merit_position'    => $result['merit_position'],
+                        'school_id' => $schoolId,
+                        'total_marks' => $result['obtained'],
+                        'total_possible' => $result['possible'],
+                        'percentage' => $result['percentage'],
+                        'grade' => $result['grade'],
+                        'gpa' => $result['gpa'],
+                        'is_pass' => $result['is_pass'],
+                        'merit_position' => $result['merit_position'],
                         'subject_breakdown' => $result['units']->values()->all(),
-                        'calculated_at'     => now(),
+                        'calculated_at' => now(),
                     ],
                 );
                 $written++;
@@ -161,7 +161,7 @@ class ResultCalculationService
     /** Tabulation sheet — persisted results, cached 30 min, flushed by MarkObserver. */
     public function tabulation(int $schoolId, int $examId): Collection
     {
-        return CacheTags::remember(['tabulation'], 
+        return CacheTags::remember(['tabulation'],
             "tabulation:school:{$schoolId}:exam:{$examId}",
             1800,
             fn () => ExamResult::forSchool($schoolId)
@@ -192,15 +192,15 @@ class ResultCalculationService
         // Raw per-exam-subject computation
         $raw = $examSubjects->map(function (ExamSubject $examSubject) use ($divisionsBySubject, $studentMarks, $enrollment, $hasEnrollmentData) {
             $divisions = $divisionsBySubject->get($examSubject->id, collect());
-            $possible  = (float) $divisions->sum('max_marks');
+            $possible = (float) $divisions->sum('max_marks');
 
             $enrollmentRow = $hasEnrollmentData
                 ? $enrollment->firstWhere('subject_relation_id', $examSubject->subject_relation_id)
                 : null;
 
-            $obtained         = 0.0;
-            $isAbsent         = false;
-            $hasMarks         = false;
+            $obtained = 0.0;
+            $isAbsent = false;
+            $hasMarks = false;
             $divisionPassFail = false;
 
             foreach ($divisions as $division) {
@@ -214,6 +214,7 @@ class ResultCalculationService
 
                 if ($mark->is_absent) {
                     $isAbsent = true;
+
                     continue;
                 }
 
@@ -230,16 +231,16 @@ class ResultCalculationService
 
             return [
                 'exam_subject_id' => $examSubject->id,
-                'subject_name'    => $examSubject->subjectRelation?->subject?->name,
-                'combined_group'  => $examSubject->combined_group,
-                'pass_marks'      => (float) $examSubject->pass_marks,
-                'is_optional'     => (bool) ($enrollmentRow?->is_optional ?? false),
-                'not_applicable'  => $notApplicable,
-                'is_absent'       => $isAbsent,
-                'has_marks'       => $hasMarks,
-                'division_fail'   => $divisionPassFail,
-                'obtained'        => round($obtained, 2),
-                'possible'        => $possible,
+                'subject_name' => $examSubject->subjectRelation?->subject?->name,
+                'combined_group' => $examSubject->combined_group,
+                'pass_marks' => (float) $examSubject->pass_marks,
+                'is_optional' => (bool) ($enrollmentRow?->is_optional ?? false),
+                'not_applicable' => $notApplicable,
+                'is_absent' => $isAbsent,
+                'has_marks' => $hasMarks,
+                'division_fail' => $divisionPassFail,
+                'obtained' => round($obtained, 2),
+                'possible' => $possible,
             ];
         });
 
@@ -255,16 +256,16 @@ class ResultCalculationService
         foreach ($grouped->groupBy('combined_group') as $members) {
             $merged = [
                 'exam_subject_id' => $members->pluck('exam_subject_id')->all(),
-                'subject_name'    => $members->pluck('subject_name')->filter()->implode(' + '),
-                'combined_group'  => $members->first()['combined_group'],
-                'pass_marks'      => $members->sum('pass_marks'),   // combined pass mark (v1 rule)
-                'is_optional'     => $members->contains(fn ($m) => $m['is_optional']),
-                'not_applicable'  => ! $members->contains(fn ($m) => ! $m['not_applicable']),
-                'is_absent'       => $members->contains(fn ($m) => $m['is_absent']),
-                'has_marks'       => $members->contains(fn ($m) => $m['has_marks']),
-                'division_fail'   => $members->contains(fn ($m) => $m['division_fail']),
-                'obtained'        => round($members->sum('obtained'), 2),
-                'possible'        => $members->sum('possible'),
+                'subject_name' => $members->pluck('subject_name')->filter()->implode(' + '),
+                'combined_group' => $members->first()['combined_group'],
+                'pass_marks' => $members->sum('pass_marks'),   // combined pass mark (v1 rule)
+                'is_optional' => $members->contains(fn ($m) => $m['is_optional']),
+                'not_applicable' => ! $members->contains(fn ($m) => ! $m['not_applicable']),
+                'is_absent' => $members->contains(fn ($m) => $m['is_absent']),
+                'has_marks' => $members->contains(fn ($m) => $m['has_marks']),
+                'division_fail' => $members->contains(fn ($m) => $m['division_fail']),
+                'obtained' => round($members->sum('obtained'), 2),
+                'possible' => $members->sum('possible'),
             ];
 
             $units->push($this->finaliseUnit($merged, $boundaries));
@@ -285,31 +286,31 @@ class ResultCalculationService
             && $unit['obtained'] >= $unit['pass_marks'];
 
         if ($unit['not_applicable']) {
-            $grade    = null;
+            $grade = null;
             $gpaPoint = null;
         } elseif ($isPass) {
             $resolved = GradeResolver::byPercentage($boundaries, $pct);
-            $grade    = $resolved['grade'];
+            $grade = $resolved['grade'];
             $gpaPoint = $resolved['gpa_point'];
         } else {
-            $grade    = GradeResolver::byGpaPoint($boundaries, 0.0)
+            $grade = GradeResolver::byGpaPoint($boundaries, 0.0)
                 ?? GradeResolver::byPercentage($boundaries, 0.0)['grade'];
             $gpaPoint = 0.0;
         }
 
         return [
             'exam_subject_id' => $unit['exam_subject_id'],
-            'subject_name'    => $unit['subject_name'],
-            'is_optional'     => $unit['is_optional'],
-            'not_applicable'  => $unit['not_applicable'],
-            'is_absent'       => $unit['is_absent'],
-            'display_mark'    => $unit['not_applicable'] ? 'N/A' : ($unit['is_absent'] ? 'Ab' : $unit['obtained']),
-            'obtained'        => $unit['obtained'],
-            'possible'        => $unit['possible'],
-            'percentage'      => $pct,
-            'grade'           => $grade,
-            'gpa_point'       => $gpaPoint,
-            'is_pass'         => $isPass,
+            'subject_name' => $unit['subject_name'],
+            'is_optional' => $unit['is_optional'],
+            'not_applicable' => $unit['not_applicable'],
+            'is_absent' => $unit['is_absent'],
+            'display_mark' => $unit['not_applicable'] ? 'N/A' : ($unit['is_absent'] ? 'Ab' : $unit['obtained']),
+            'obtained' => $unit['obtained'],
+            'possible' => $unit['possible'],
+            'percentage' => $pct,
+            'grade' => $grade,
+            'gpa_point' => $gpaPoint,
+            'is_pass' => $isPass,
         ];
     }
 
@@ -321,10 +322,10 @@ class ResultCalculationService
     {
         $rankable = collect($computed)->map(fn ($r, $id) => [
             'student_id' => $id,
-            'is_pass'    => $r['is_pass'],
-            'gpa'        => $r['gpa'] ?? -1.0,
-            'total'      => $r['obtained'],
-            'pct'        => $r['percentage'],
+            'is_pass' => $r['is_pass'],
+            'gpa' => $r['gpa'] ?? -1.0,
+            'total' => $r['obtained'],
+            'pct' => $r['percentage'],
         ])->values();
 
         $sorted = $rankable

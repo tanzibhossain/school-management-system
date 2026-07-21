@@ -17,8 +17,7 @@ class LibraryMemberController extends Controller
     public function __construct(
         private readonly LibraryMemberService $service,
         private readonly LibraryMemberRepository $repository,
-    ) {
-    }
+    ) {}
 
     public function index(): AnonymousResourceCollection
     {

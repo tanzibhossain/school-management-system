@@ -9,6 +9,7 @@ use App\Modules\Academic\Models\Section;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Services\StudentService;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -28,7 +29,7 @@ class StudentDetailTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT',

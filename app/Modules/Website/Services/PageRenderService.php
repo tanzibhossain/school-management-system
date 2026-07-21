@@ -2,9 +2,12 @@
 
 namespace App\Modules\Website\Services;
 
+use App\Modules\Academic\Models\AcademicYear;
+use App\Modules\Academic\Models\SchoolClass;
 use App\Modules\School\Models\School;
 use App\Modules\Staff\Models\Staff;
 use App\Modules\Website\Models\Page;
+use Illuminate\Support\Collection;
 
 /**
  * Turns a page's stored layout_json (an ordered list of typed blocks + a
@@ -18,25 +21,25 @@ class PageRenderService
 {
     /** Every block type the builder/renderer understands (main column). */
     public const BLOCKS = [
-        'hero'          => 'Hero banner',
-        'heading'       => 'Heading',
-        'richtext'      => 'Rich text',
-        'image'         => 'Image',
-        'image_text'    => 'Image + text',
-        'staff'         => 'Staff list',
-        'notices'       => 'Notices',
-        'stats'         => 'Statistics',
+        'hero' => 'Hero banner',
+        'heading' => 'Heading',
+        'richtext' => 'Rich text',
+        'image' => 'Image',
+        'image_text' => 'Image + text',
+        'staff' => 'Staff list',
+        'notices' => 'Notices',
+        'stats' => 'Statistics',
         'gallery_photo' => 'Photo gallery',
         'gallery_video' => 'Video gallery',
         'admission_form' => 'Admission form',
-        'contact'       => 'Contact',
+        'contact' => 'Contact',
     ];
 
     /** Sidebar-only block types. */
     public const SIDEBAR_BLOCKS = [
-        'quick_links'   => 'Quick links',
-        'office_hours'  => 'Office hours',
-        'contact_info'  => 'Contact info',
+        'quick_links' => 'Quick links',
+        'office_hours' => 'Office hours',
+        'contact_info' => 'Contact info',
         'recent_notices' => 'Recent notices',
     ];
 
@@ -54,8 +57,8 @@ class PageRenderService
 
         return [
             'template' => $template,
-            'blocks'   => $this->cleanBlocks($layout['blocks'] ?? [], self::BLOCKS),
-            'sidebar'  => $template === 'sidebar'
+            'blocks' => $this->cleanBlocks($layout['blocks'] ?? [], self::BLOCKS),
+            'sidebar' => $template === 'sidebar'
                 ? $this->cleanBlocks($layout['sidebar'] ?? [], self::SIDEBAR_BLOCKS)
                 : [],
         ];
@@ -78,9 +81,9 @@ class PageRenderService
             'staff' => $data + ['members' => $this->staffFor($schoolId, $data)],
             'contact_info', 'contact' => $data + ['school' => School::find($schoolId)],
             'admission_form' => $data + [
-                'classes' => \App\Modules\Academic\Models\SchoolClass::where('school_id', $schoolId)
+                'classes' => SchoolClass::where('school_id', $schoolId)
                     ->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
-                'years' => \App\Modules\Academic\Models\AcademicYear::where('school_id', $schoolId)
+                'years' => AcademicYear::where('school_id', $schoolId)
                     ->where('is_trash', false)->orderByDesc('is_current')->orderByDesc('year')->get(['id', 'year']),
                 'field_data' => $this->prepareAdmissionFormFields($data['fields'] ?? $data['hidden'] ?? []),
             ],
@@ -95,9 +98,9 @@ class PageRenderService
      * else return all active staff.
      *
      * @param  array<string, mixed>  $data
-     * @return \Illuminate\Support\Collection<int, Staff>
+     * @return Collection<int, Staff>
      */
-    private function staffFor(int $schoolId, array $data): \Illuminate\Support\Collection
+    private function staffFor(int $schoolId, array $data): Collection
     {
         $filters = [];
         if (! empty($data['designation_id'])) {
@@ -143,13 +146,13 @@ class PageRenderService
     private function normalizeAdmissionFields($fields): array
     {
         $defaults = [
-            'last_name'         => ['label' => 'Last name',          'required' => false],
-            'blood_group'       => ['label' => 'Blood group',        'required' => false],
-            'student_phone'     => ['label' => 'Student phone',      'required' => false],
-            'photo'             => ['label' => 'Student photo',      'required' => false],
-            'guardian'          => ['label' => 'Guardian information','required' => false],
+            'last_name' => ['label' => 'Last name',          'required' => false],
+            'blood_group' => ['label' => 'Blood group',        'required' => false],
+            'student_phone' => ['label' => 'Student phone',      'required' => false],
+            'photo' => ['label' => 'Student photo',      'required' => false],
+            'guardian' => ['label' => 'Guardian information', 'required' => false],
             'permanent_address' => ['label' => 'Permanent address',  'required' => false],
-            'notes'             => ['label' => 'Notes',              'required' => false],
+            'notes' => ['label' => 'Notes',              'required' => false],
         ];
 
         // Handle old "hidden" format (string of comma-separated field keys)
@@ -158,11 +161,12 @@ class PageRenderService
             $normalized = [];
             foreach ($defaults as $key => $def) {
                 $normalized[$key] = [
-                    'enabled'   => ! in_array($key, $hidden, true),
-                    'label'     => $def['label'],
-                    'required'  => $def['required'],
+                    'enabled' => ! in_array($key, $hidden, true),
+                    'label' => $def['label'],
+                    'required' => $def['required'],
                 ];
             }
+
             return $normalized;
         }
 
@@ -172,22 +176,23 @@ class PageRenderService
             foreach ($defaults as $key => $def) {
                 $cfg = $fields[$key] ?? [];
                 $normalized[$key] = [
-                    'enabled'   => (bool) ($cfg['enabled'] ?? true),
-                    'label'     => $cfg['label'] ?? $def['label'],
-                    'required'  => (bool) ($cfg['required'] ?? $def['required']),
+                    'enabled' => (bool) ($cfg['enabled'] ?? true),
+                    'label' => $cfg['label'] ?? $def['label'],
+                    'required' => (bool) ($cfg['required'] ?? $def['required']),
                 ];
             }
             // Also include any custom fields
             foreach ($fields as $key => $cfg) {
                 if (! array_key_exists($key, $defaults)) {
                     $normalized[$key] = [
-                        'enabled'   => (bool) ($cfg['enabled'] ?? true),
-                        'label'     => $cfg['label'] ?? ucfirst(str_replace('_', ' ', $key)),
-                        'required'  => (bool) ($cfg['required'] ?? false),
-                        'type'      => $cfg['type'] ?? 'text',
+                        'enabled' => (bool) ($cfg['enabled'] ?? true),
+                        'label' => $cfg['label'] ?? ucfirst(str_replace('_', ' ', $key)),
+                        'required' => (bool) ($cfg['required'] ?? false),
+                        'type' => $cfg['type'] ?? 'text',
                     ];
                 }
             }
+
             return $normalized;
         }
 
@@ -210,23 +215,23 @@ class PageRenderService
         $customFields = [];
 
         foreach ($normalized as $key => $cfg) {
-            if (!in_array($key, $standardKeys, true)) {
+            if (! in_array($key, $standardKeys, true)) {
                 $customFields[$key] = [
-                    'enabled'   => (bool) ($cfg['enabled'] ?? true),
-                    'label'     => $cfg['label'] ?? ucfirst(str_replace('_', ' ', $key)),
-                    'required'  => (bool) ($cfg['required'] ?? false),
-                    'type'      => $cfg['type'] ?? 'text',
-                    'options'   => is_array($cfg['options'] ?? null) ? $cfg['options'] : (is_string($cfg['options'] ?? null) ? array_map('trim', explode(',', $cfg['options'])) : []),
+                    'enabled' => (bool) ($cfg['enabled'] ?? true),
+                    'label' => $cfg['label'] ?? ucfirst(str_replace('_', ' ', $key)),
+                    'required' => (bool) ($cfg['required'] ?? false),
+                    'type' => $cfg['type'] ?? 'text',
+                    'options' => is_array($cfg['options'] ?? null) ? $cfg['options'] : (is_string($cfg['options'] ?? null) ? array_map('trim', explode(',', $cfg['options'])) : []),
                 ];
             }
         }
 
         return [
             'standard' => array_intersect_key($normalized, array_flip($standardKeys)),
-            'custom'   => $customFields,
-            'show'     => fn($key) => !empty($normalized[$key]['enabled']),
-            'getLabel' => fn($key, $default) => $normalized[$key]['label'] ?? $default,
-            'isRequired' => fn($key) => !empty($normalized[$key]['required']),
+            'custom' => $customFields,
+            'show' => fn ($key) => ! empty($normalized[$key]['enabled']),
+            'getLabel' => fn ($key, $default) => $normalized[$key]['label'] ?? $default,
+            'isRequired' => fn ($key) => ! empty($normalized[$key]['required']),
         ];
     }
 
@@ -251,8 +256,8 @@ class PageRenderService
 
         return [
             'template' => $norm['template'],
-            'blocks'   => array_map($map, $norm['blocks']),
-            'sidebar'  => array_map($map, $norm['sidebar']),
+            'blocks' => array_map($map, $norm['blocks']),
+            'sidebar' => array_map($map, $norm['sidebar']),
         ];
     }
 }

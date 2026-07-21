@@ -75,43 +75,43 @@ class InvoiceService
                 throw new RuntimeException('No active fee items found for this class and year.');
             }
 
-            $discount   = $discountId ? FeeDiscount::find($discountId) : null;
-            $totalDue   = 0.0;
-            $lineItems  = [];
+            $discount = $discountId ? FeeDiscount::find($discountId) : null;
+            $totalDue = 0.0;
+            $lineItems = [];
 
             foreach ($feeItems as $item) {
                 $discountAmt = $discount ? $discount->calculate((float) $item->amount) : 0.0;
-                $netAmount   = round((float) $item->amount - $discountAmt, 2);
-                $totalDue   += $netAmount;
+                $netAmount = round((float) $item->amount - $discountAmt, 2);
+                $totalDue += $netAmount;
 
                 $lineItems[] = [
-                    'fee_item_id'     => $item->id,
-                    'name'            => $item->name,
-                    'amount'          => $item->amount,
-                    'discount_id'     => $discountId,
+                    'fee_item_id' => $item->id,
+                    'name' => $item->name,
+                    'amount' => $item->amount,
+                    'discount_id' => $discountId,
                     'discount_amount' => $discountAmt,
-                    'net_amount'      => $netAmount,
+                    'net_amount' => $netAmount,
                 ];
             }
 
             // Auto-apply available student credit
             $creditBalance = $this->creditService->balance($schoolId, $studentId);
             $creditToApply = min($creditBalance, $totalDue);
-            $amountDue     = round($totalDue - $creditToApply, 2);
+            $amountDue = round($totalDue - $creditToApply, 2);
 
             $invoice = Invoice::create([
-                'school_id'        => $schoolId,
-                'invoice_number'   => $invoiceNumber,
-                'student_id'       => $studentId,
+                'school_id' => $schoolId,
+                'invoice_number' => $invoiceNumber,
+                'student_id' => $studentId,
                 'academic_year_id' => $yearId,
-                'month'            => $month,
-                'amount_due'       => $amountDue,
-                'currency'         => School::whereKey($schoolId)->value('currency') ?? 'USD',
-                'amount_paid'      => 0,
-                'credit_applied'   => $creditToApply,
-                'status'           => $amountDue == 0 ? 'paid' : 'unpaid',
-                'due_date'         => $dueDate,
-                'issued_by'        => $issuedBy,
+                'month' => $month,
+                'amount_due' => $amountDue,
+                'currency' => School::whereKey($schoolId)->value('currency') ?? 'USD',
+                'amount_paid' => 0,
+                'credit_applied' => $creditToApply,
+                'status' => $amountDue == 0 ? 'paid' : 'unpaid',
+                'due_date' => $dueDate,
+                'issued_by' => $issuedBy,
             ]);
 
             foreach ($lineItems as $lineItem) {
@@ -157,7 +157,7 @@ class InvoiceService
             ->get(['id', 'class_id']);
 
         $generated = 0;
-        $skipped   = 0;
+        $skipped = 0;
 
         foreach ($students as $student) {
             $exists = Invoice::where('school_id', $schoolId)
@@ -169,6 +169,7 @@ class InvoiceService
 
             if ($exists) {
                 $skipped++;
+
                 continue;
             }
 

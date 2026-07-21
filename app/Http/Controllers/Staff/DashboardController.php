@@ -36,10 +36,10 @@ class DashboardController extends Controller
             ->orderByDesc('is_pinned')->orderByDesc('publish_at')->take(5)->get();
 
         return view('staff.dashboard', [
-            'staff'        => $staff,
-            'sections'     => $sections,
+            'staff' => $staff,
+            'sections' => $sections,
             'studentCount' => $studentCount,
-            'notices'      => $notices,
+            'notices' => $notices,
         ]);
     }
 

@@ -43,9 +43,9 @@ class MarkController extends Controller
         }
 
         return view('staff.marks.index', [
-            'staff'   => $staff,
+            'staff' => $staff,
             'grouped' => $grouped,
-            'exams'   => $exams,
+            'exams' => $exams,
         ]);
     }
 
@@ -72,11 +72,11 @@ class MarkController extends Controller
 
             return (object) [
                 'student_id' => $a->student_id,
-                'name'       => $a->student->name,
-                'code'       => $a->student->student_id,
-                'obtained'   => $m?->marks_obtained,
-                'is_absent'  => (bool) ($m?->is_absent ?? false),
-                'locked'     => $m?->isLocked() ?? false,
+                'name' => $a->student->name,
+                'code' => $a->student->student_id,
+                'obtained' => $m?->marks_obtained,
+                'is_absent' => (bool) ($m?->is_absent ?? false),
+                'locked' => $m?->isLocked() ?? false,
             ];
         })->sortBy('name')->values();
 
@@ -92,9 +92,9 @@ class MarkController extends Controller
         $this->assertOwnsSubject($staff, $division);
 
         $request->validate([
-            'marks'   => ['array'],
+            'marks' => ['array'],
             'marks.*' => ['nullable', 'numeric', 'min:0'],
-            'absent'  => ['array'],
+            'absent' => ['array'],
         ]);
 
         $marks = $request->input('marks', []);

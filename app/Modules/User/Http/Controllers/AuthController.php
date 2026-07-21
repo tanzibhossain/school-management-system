@@ -18,26 +18,26 @@ use Illuminate\Routing\Controller;
 class AuthController extends Controller
 {
     public function __construct(
-        private readonly AuthService   $authService,
-        private readonly UserService   $userService,
+        private readonly AuthService $authService,
+        private readonly UserService $userService,
         private readonly UserRepository $repository,
     ) {}
 
     public function login(LoginRequest $request): JsonResponse
     {
         $result = $this->authService->login(
-            email:      $request->input('email'),
-            password:   $request->input('password'),
+            email: $request->input('email'),
+            password: $request->input('password'),
             rememberMe: (bool) $request->input('remember_me', false),
             deviceName: $request->input('device_name') ?? $this->parseDeviceName($request),
-            ip:         $request->ip(),
-            userAgent:  $request->userAgent() ?? '',
+            ip: $request->ip(),
+            userAgent: $request->userAgent() ?? '',
         );
 
         return response()->json([
-            'token'      => $result['token'],
+            'token' => $result['token'],
             'expires_at' => $result['expires_at'],
-            'user'       => new UserResource($result['user']),
+            'user' => new UserResource($result['user']),
         ]);
     }
 

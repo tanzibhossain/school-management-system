@@ -42,9 +42,9 @@ class AttendanceController extends Controller
             $roster = $academics->filter(fn ($a) => $a->student !== null)
                 ->map(fn ($a) => (object) [
                     'student_id' => $a->student_id,
-                    'name'       => $a->student->name,
-                    'code'       => $a->student->student_id,
-                    'status'     => $marked[$a->student_id] ?? 'present',
+                    'name' => $a->student->name,
+                    'code' => $a->student->student_id,
+                    'status' => $marked[$a->student_id] ?? 'present',
                 ])->sortBy('name')->values();
         }
 
@@ -56,10 +56,10 @@ class AttendanceController extends Controller
         [$sid, $staff] = $this->context();
 
         $data = $request->validate([
-            'section_id'  => ['required', 'integer'],
-            'date'        => ['required', 'date'],
-            'statuses'    => ['required', 'array'],
-            'statuses.*'  => ['required', 'in:present,absent,late,half_day,leave'],
+            'section_id' => ['required', 'integer'],
+            'date' => ['required', 'date'],
+            'statuses' => ['required', 'array'],
+            'statuses.*' => ['required', 'in:present,absent,late,half_day,leave'],
         ]);
 
         // The section must be one this teacher leads (service double-checks too).

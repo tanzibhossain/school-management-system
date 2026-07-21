@@ -48,7 +48,7 @@ class HallLayoutService
         $hall->seats()->delete();
 
         $config = $hall->layout_config;
-        $count  = 0;
+        $count = 0;
 
         for ($row = 1; $row <= $config['rows']; $row++) {
             foreach ($config['sides'] as $side) {
@@ -60,11 +60,11 @@ class HallLayoutService
 
                 for ($pos = 1; $pos <= $side['seats_per_row']; $pos++) {
                     ExamHallSeat::create([
-                        'hall_id'      => $hall->id,
-                        'row'          => $row,
-                        'side'         => $side['label'],
-                        'position'     => $pos,
-                        'label'        => sprintf('R%02d-%s%d', $row, $side['label'], $pos),
+                        'hall_id' => $hall->id,
+                        'row' => $row,
+                        'side' => $side['label'],
+                        'position' => $pos,
+                        'label' => sprintf('R%02d-%s%d', $row, $side['label'], $pos),
                         'is_available' => true,
                     ]);
                     $count++;

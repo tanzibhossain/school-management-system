@@ -23,11 +23,11 @@ class SchoolTest extends TestCase
         // Seed opening hours
         foreach (range(0, 6) as $day) {
             SchoolOpeningHour::create([
-                'school_id'   => $this->school->id,
+                'school_id' => $this->school->id,
                 'day_of_week' => $day,
-                'is_open'     => in_array($day, [1, 2, 3, 4]),
-                'open_time'   => in_array($day, [1, 2, 3, 4]) ? '08:00:00' : null,
-                'close_time'  => in_array($day, [1, 2, 3, 4]) ? '16:00:00' : null,
+                'is_open' => in_array($day, [1, 2, 3, 4]),
+                'open_time' => in_array($day, [1, 2, 3, 4]) ? '08:00:00' : null,
+                'close_time' => in_array($day, [1, 2, 3, 4]) ? '16:00:00' : null,
             ]);
         }
     }
@@ -43,9 +43,9 @@ class SchoolTest extends TestCase
     public function test_public_school_response_includes_phones_and_opening_hours(): void
     {
         SchoolPhone::create([
-            'school_id'  => $this->school->id,
-            'phone'      => '01700000000',
-            'label'      => 'Main',
+            'school_id' => $this->school->id,
+            'phone' => '01700000000',
+            'label' => 'Main',
             'is_primary' => true,
         ]);
 
@@ -76,8 +76,8 @@ class SchoolTest extends TestCase
     public function test_update_opening_hour_requires_auth(): void
     {
         $response = $this->putJson('/api/v2/school/hours/1', [
-            'is_open'    => true,
-            'open_time'  => '09:00',
+            'is_open' => true,
+            'open_time' => '09:00',
             'close_time' => '17:00',
         ]);
 

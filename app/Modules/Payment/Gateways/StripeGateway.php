@@ -38,15 +38,15 @@ class StripeGateway
     public function createCheckoutSession(string $invoiceNumber, float $amount, string $currency, string $successUrl, string $cancelUrl, int $invoiceId, int $schoolId): array
     {
         $payload = [
-            'mode'                 => 'payment',
-            'success_url'          => $successUrl,
-            'cancel_url'           => $cancelUrl,
-            'client_reference_id'  => $invoiceNumber,
+            'mode' => 'payment',
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+            'client_reference_id' => $invoiceNumber,
             'line_items' => [[
-                'quantity'   => 1,
+                'quantity' => 1,
                 'price_data' => [
-                    'currency'     => strtolower($currency),
-                    'unit_amount'  => $this->toMinorUnits($amount, $currency),
+                    'currency' => strtolower($currency),
+                    'unit_amount' => $this->toMinorUnits($amount, $currency),
                     'product_data' => ['name' => "Invoice {$invoiceNumber}"],
                 ],
             ]],
@@ -54,12 +54,12 @@ class StripeGateway
         ];
 
         $response = Http::withToken($this->secretKey())->asForm()
-            ->post(self::API_BASE . '/checkout/sessions', $payload);
+            ->post(self::API_BASE.'/checkout/sessions', $payload);
 
         $this->log(null, 'create_session', $payload, $response->json(), $response->status());
 
         if (! $response->successful() || empty($response->json('url'))) {
-            throw new RuntimeException('Stripe checkout session failed: ' . $response->body());
+            throw new RuntimeException('Stripe checkout session failed: '.$response->body());
         }
 
         return ['id' => $response->json('id'), 'url' => $response->json('url')];
@@ -73,12 +73,12 @@ class StripeGateway
     public function retrieveSession(string $sessionId): array
     {
         $response = Http::withToken($this->secretKey())
-            ->get(self::API_BASE . '/checkout/sessions/' . $sessionId);
+            ->get(self::API_BASE.'/checkout/sessions/'.$sessionId);
 
         $this->log(null, 'retrieve_session', ['id' => $sessionId], $response->json(), $response->status());
 
         if (! $response->successful()) {
-            throw new RuntimeException('Stripe session retrieval failed: ' . $response->body());
+            throw new RuntimeException('Stripe session retrieval failed: '.$response->body());
         }
 
         return $response->json();
@@ -93,16 +93,16 @@ class StripeGateway
     {
         $payload = [
             'payment_intent' => $paymentIntentId,
-            'amount'         => $this->toMinorUnits($amount, $currency),
+            'amount' => $this->toMinorUnits($amount, $currency),
         ];
 
         $response = Http::withToken($this->secretKey())->asForm()
-            ->post(self::API_BASE . '/refunds', $payload);
+            ->post(self::API_BASE.'/refunds', $payload);
 
         $this->log(null, 'refund', $payload, $response->json(), $response->status());
 
         if (! $response->successful()) {
-            throw new RuntimeException('Stripe refund failed: ' . $response->body());
+            throw new RuntimeException('Stripe refund failed: '.$response->body());
         }
 
         return $response->json();
@@ -136,7 +136,7 @@ class StripeGateway
             return false;
         }
 
-        $expected = hash_hmac('sha256', $timestamp . '.' . $payload, $secret);
+        $expected = hash_hmac('sha256', $timestamp.'.'.$payload, $secret);
 
         foreach ($signatures as $candidate) {
             if (is_string($candidate) && hash_equals($expected, $candidate)) {
@@ -178,13 +178,13 @@ class StripeGateway
     private function log(?int $paymentId, string $action, array $payload, ?array $response, int $httpStatus): void
     {
         PaymentGatewayLog::create([
-            'school_id'  => $this->config->school_id,
+            'school_id' => $this->config->school_id,
             'payment_id' => $paymentId,
-            'gateway'    => 'stripe',
-            'action'     => $action,
-            'payload'    => $payload,
-            'response'   => $response ?? [],
-            'status'     => (string) $httpStatus,
+            'gateway' => 'stripe',
+            'action' => $action,
+            'payload' => $payload,
+            'response' => $response ?? [],
+            'status' => (string) $httpStatus,
         ]);
     }
 }

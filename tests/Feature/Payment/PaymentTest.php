@@ -9,6 +9,7 @@ use App\Modules\Payment\Models\Invoice;
 use App\Modules\Payment\Models\Payment;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -17,25 +18,30 @@ class PaymentTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private School $school;
+
     private AcademicYear $year;
+
     private SchoolClass $class;
+
     private Student $student;
+
     private Invoice $invoice;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create(['name' => 'Test School', 'is_active' => true]);
-        $this->admin  = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
+        $this->admin = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
         $this->admin->assignRole('admin');
 
         $this->year = AcademicYear::create([
-            'school_id'  => $this->school->id,
-            'year'       => '2026',
+            'school_id' => $this->school->id,
+            'year' => '2026',
             'is_current' => true,
         ]);
 
@@ -44,24 +50,24 @@ class PaymentTest extends TestCase
         $studentUser = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
 
         $this->student = Student::create([
-            'school_id'        => $this->school->id,
-            'user_id'          => $studentUser->id,
+            'school_id' => $this->school->id,
+            'user_id' => $studentUser->id,
             'admission_number' => 'ADM-2026-001',
-            'name'             => 'Test Student',
-            'gender'           => 'male',
-            'status'           => 'active',
+            'name' => 'Test Student',
+            'gender' => 'male',
+            'status' => 'active',
         ]);
 
         $this->invoice = Invoice::create([
-            'school_id'        => $this->school->id,
-            'student_id'       => $this->student->id,
+            'school_id' => $this->school->id,
+            'student_id' => $this->student->id,
             'academic_year_id' => $this->year->id,
-            'invoice_number'   => 'INV-2026-00001',
-            'credit_applied'   => 0,
-            'amount_due'       => 5000,
-            'status'           => 'unpaid',
-            'due_date'         => '2026-01-31',
-            'issued_by'        => $this->admin->id,
+            'invoice_number' => 'INV-2026-00001',
+            'credit_applied' => 0,
+            'amount_due' => 5000,
+            'status' => 'unpaid',
+            'due_date' => '2026-01-31',
+            'issued_by' => $this->admin->id,
         ]);
     }
 
@@ -77,13 +83,13 @@ class PaymentTest extends TestCase
         $this->withToken($this->token())
             ->postJson("/api/v2/payments/invoices/{$this->invoice->id}/record", [
                 'method' => 'cash',
-                'amount'         => 5000,
+                'amount' => 5000,
             ])
             ->assertCreated()
             ->assertJsonFragment(['method' => 'cash']);
 
         $this->assertDatabaseHas('invoices', [
-            'id'     => $this->invoice->id,
+            'id' => $this->invoice->id,
             'status' => 'paid',
         ]);
     }
@@ -93,10 +99,10 @@ class PaymentTest extends TestCase
         $this->withToken($this->token())
             ->postJson("/api/v2/payments/invoices/{$this->invoice->id}/record", [
                 'method' => 'cheque',
-                'amount'         => 5000,
-                'cheque_number'  => 'CHQ-001',
-                'bank_name'      => 'Dhaka Bank',
-                'cheque_date'    => '2026-01-25',
+                'amount' => 5000,
+                'cheque_number' => 'CHQ-001',
+                'bank_name' => 'Dhaka Bank',
+                'cheque_date' => '2026-01-25',
             ])
             ->assertCreated()
             ->assertJsonFragment(['cheque_status' => 'submitted']);
@@ -112,12 +118,12 @@ class PaymentTest extends TestCase
         $this->withToken($this->token())
             ->postJson("/api/v2/payments/invoices/{$this->invoice->id}/record", [
                 'method' => 'cash',
-                'amount'         => 2000,
+                'amount' => 2000,
             ])
             ->assertCreated();
 
         $this->assertDatabaseHas('invoices', [
-            'id'     => $this->invoice->id,
+            'id' => $this->invoice->id,
             'status' => 'partial',
         ]);
     }
@@ -127,28 +133,28 @@ class PaymentTest extends TestCase
         $this->withToken($this->token())
             ->postJson("/api/v2/payments/invoices/{$this->invoice->id}/record", [
                 'method' => 'cash',
-                'amount'         => 6000, // 1000 overpayment
+                'amount' => 6000, // 1000 overpayment
             ])
             ->assertCreated();
 
         $this->assertDatabaseHas('invoices', ['id' => $this->invoice->id, 'status' => 'paid']);
         $this->assertDatabaseHas('student_credits', [
             'student_id' => $this->student->id,
-            'balance'    => 1000,
+            'balance' => 1000,
         ]);
     }
 
     public function test_admin_can_view_payment(): void
     {
         $payment = Payment::create([
-            'school_id'      => $this->school->id,
-            'invoice_id'     => $this->invoice->id,
-            'student_id'     => $this->student->id,
+            'school_id' => $this->school->id,
+            'invoice_id' => $this->invoice->id,
+            'student_id' => $this->student->id,
             'receipt_number' => 'REC-2026-00001',
             'method' => 'cash',
-            'amount'         => 5000,
-            'collected_by'   => $this->admin->id,
-            'paid_at'        => now(),
+            'amount' => 5000,
+            'collected_by' => $this->admin->id,
+            'paid_at' => now(),
         ]);
 
         $this->withToken($this->token())
@@ -160,18 +166,18 @@ class PaymentTest extends TestCase
     public function test_admin_can_clear_cheque(): void
     {
         $payment = Payment::create([
-            'school_id'      => $this->school->id,
-            'invoice_id'     => $this->invoice->id,
-            'student_id'     => $this->student->id,
+            'school_id' => $this->school->id,
+            'invoice_id' => $this->invoice->id,
+            'student_id' => $this->student->id,
             'receipt_number' => 'REC-2026-00001',
             'method' => 'cheque',
-            'amount'         => 5000,
-            'cheque_number'  => 'CHQ-001',
-            'bank_name'      => 'Dhaka Bank',
-            'cheque_date'    => '2026-01-25',
-            'cheque_status'  => 'submitted',
-            'collected_by'   => $this->admin->id,
-            'paid_at'        => now(),
+            'amount' => 5000,
+            'cheque_number' => 'CHQ-001',
+            'bank_name' => 'Dhaka Bank',
+            'cheque_date' => '2026-01-25',
+            'cheque_status' => 'submitted',
+            'collected_by' => $this->admin->id,
+            'paid_at' => now(),
         ]);
 
         // Mark invoice as paid for this test
@@ -186,18 +192,18 @@ class PaymentTest extends TestCase
     public function test_admin_can_bounce_cheque(): void
     {
         $payment = Payment::create([
-            'school_id'      => $this->school->id,
-            'invoice_id'     => $this->invoice->id,
-            'student_id'     => $this->student->id,
+            'school_id' => $this->school->id,
+            'invoice_id' => $this->invoice->id,
+            'student_id' => $this->student->id,
             'receipt_number' => 'REC-2026-00001',
             'method' => 'cheque',
-            'amount'         => 5000,
-            'cheque_number'  => 'CHQ-001',
-            'bank_name'      => 'Dhaka Bank',
-            'cheque_date'    => '2026-01-25',
-            'cheque_status'  => 'submitted',
-            'collected_by'   => $this->admin->id,
-            'paid_at'        => now(),
+            'amount' => 5000,
+            'cheque_number' => 'CHQ-001',
+            'bank_name' => 'Dhaka Bank',
+            'cheque_date' => '2026-01-25',
+            'cheque_status' => 'submitted',
+            'collected_by' => $this->admin->id,
+            'paid_at' => now(),
         ]);
 
         // Invoice was partially or fully paid before cheque submitted
@@ -212,7 +218,7 @@ class PaymentTest extends TestCase
 
         // Invoice should be reopened with bounce fee added
         $this->assertDatabaseHas('invoices', [
-            'id'     => $this->invoice->id,
+            'id' => $this->invoice->id,
             'status' => 'unpaid',
         ]);
     }
@@ -224,7 +230,7 @@ class PaymentTest extends TestCase
         $this->withToken($this->token())
             ->postJson("/api/v2/payments/invoices/{$this->invoice->id}/record", [
                 'method' => 'cash',
-                'amount'         => 5000,
+                'amount' => 5000,
             ])
             ->assertStatus(422);
     }

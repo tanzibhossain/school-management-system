@@ -52,24 +52,24 @@ class AdmitCardTest extends CertificateTestCase
     {
         $hall = ExamHall::create([
             'school_id' => $this->school->id,
-            'name'      => 'Hall A',
+            'name' => 'Hall A',
             'layout_config' => ['rows' => 1, 'sides' => [['label' => 'L', 'seats_per_row' => 1, 'blocked_rows' => []]]],
         ]);
 
         $seat = ExamHallSeat::create([
-            'hall_id'  => $hall->id,
-            'row'      => 1,
-            'side'     => 'L',
+            'hall_id' => $hall->id,
+            'row' => 1,
+            'side' => 'L',
             'position' => 1,
-            'label'    => 'R01-L1',
+            'label' => 'R01-L1',
         ]);
 
         ExamSeating::create([
-            'school_id'    => $this->school->id,
-            'exam_id'      => $this->exam->id,
-            'student_id'   => $this->student->id,
+            'school_id' => $this->school->id,
+            'exam_id' => $this->exam->id,
+            'student_id' => $this->student->id,
             'hall_seat_id' => $seat->id,
-            'exam_roll'    => '001',
+            'exam_roll' => '001',
         ]);
 
         $this->withToken($this->adminToken())

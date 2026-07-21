@@ -104,7 +104,7 @@ class AssignmentAiCheckJob implements ShouldQueue
     {
         $contents = Storage::disk('minio')->get($storedPath);
         $extension = pathinfo($storedPath, PATHINFO_EXTENSION);
-        $tempPath = tempnam(sys_get_temp_dir(), 'lms_ai_') . '.' . $extension;
+        $tempPath = tempnam(sys_get_temp_dir(), 'lms_ai_').'.'.$extension;
 
         file_put_contents($tempPath, $contents);
 

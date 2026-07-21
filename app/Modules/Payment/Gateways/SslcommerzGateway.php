@@ -40,23 +40,23 @@ class SslcommerzGateway
         string $ipnUrl,
     ): array {
         $payload = [
-            'store_id'          => $this->config->credential('sslcommerz', 'store_id'),
-            'store_passwd'      => $this->config->credential('sslcommerz', 'store_pass'),
-            'total_amount'      => $amount,
-            'currency'          => 'BDT',
-            'tran_id'           => $invoiceNumber,
-            'success_url'       => $successUrl,
-            'fail_url'          => $failUrl,
-            'cancel_url'        => $cancelUrl,
-            'ipn_url'           => $ipnUrl,
-            'product_name'      => 'School Fee',
-            'product_category'  => 'Education',
-            'product_profile'   => 'general',
-            'cus_name'          => "Student#{$studentId}",
-            'cus_email'         => 'noreply@school.edu',
-            'cus_phone'         => '01700000000',
-            'shipping_method'   => 'NO',
-            'num_of_item'       => 1,          // correct field name per SSLCommerz SDK
+            'store_id' => $this->config->credential('sslcommerz', 'store_id'),
+            'store_passwd' => $this->config->credential('sslcommerz', 'store_pass'),
+            'total_amount' => $amount,
+            'currency' => 'BDT',
+            'tran_id' => $invoiceNumber,
+            'success_url' => $successUrl,
+            'fail_url' => $failUrl,
+            'cancel_url' => $cancelUrl,
+            'ipn_url' => $ipnUrl,
+            'product_name' => 'School Fee',
+            'product_category' => 'Education',
+            'product_profile' => 'general',
+            'cus_name' => "Student#{$studentId}",
+            'cus_email' => 'noreply@school.edu',
+            'cus_phone' => '01700000000',
+            'shipping_method' => 'NO',
+            'num_of_item' => 1,          // correct field name per SSLCommerz SDK
         ];
 
         $response = Http::asForm()
@@ -66,12 +66,12 @@ class SslcommerzGateway
 
         // Sandbox returns 'success' (lowercase), production returns 'SUCCESS'
         if (! $response->successful() || strtoupper($response->json('status', '')) !== 'SUCCESS') {
-            throw new RuntimeException('SSLCommerz session init failed: ' . $response->body());
+            throw new RuntimeException('SSLCommerz session init failed: '.$response->body());
         }
 
         return [
             'GatewayPageURL' => $response->json('GatewayPageURL'),
-            'sessionkey'     => $response->json('sessionkey'),
+            'sessionkey' => $response->json('sessionkey'),
         ];
     }
 
@@ -81,17 +81,17 @@ class SslcommerzGateway
     public function validatePayment(string $valId): array
     {
         $response = Http::get($this->url('validator/api/validationserverAPI.php'), [
-            'val_id'       => $valId,
-            'store_id'     => $this->config->credential('sslcommerz', 'store_id'),
+            'val_id' => $valId,
+            'store_id' => $this->config->credential('sslcommerz', 'store_id'),
             'store_passwd' => $this->config->credential('sslcommerz', 'store_pass'),
-            'v'            => 1,       // required per SSLCommerz validation API
-            'format'       => 'json',
+            'v' => 1,       // required per SSLCommerz validation API
+            'format' => 'json',
         ]);
 
         $this->log(null, 'verify', ['val_id' => $valId], $response->json(), $response->status());
 
         if (! $response->successful()) {
-            throw new RuntimeException('SSLCommerz validation failed: ' . $response->body());
+            throw new RuntimeException('SSLCommerz validation failed: '.$response->body());
         }
 
         return $response->json();
@@ -103,13 +103,13 @@ class SslcommerzGateway
     public function refund(string $bankTranId, float $amount, string $remarks, string $refeId): array
     {
         $payload = [
-            'store_id'        => $this->config->credential('sslcommerz', 'store_id'),
-            'store_passwd'    => $this->config->credential('sslcommerz', 'store_pass'),
-            'bank_tran_id'    => $bankTranId,
-            'refund_amount'   => $amount,
-            'refund_remarks'  => $remarks,
-            'refe_id'         => $refeId,
-            'v1'              => '',
+            'store_id' => $this->config->credential('sslcommerz', 'store_id'),
+            'store_passwd' => $this->config->credential('sslcommerz', 'store_pass'),
+            'bank_tran_id' => $bankTranId,
+            'refund_amount' => $amount,
+            'refund_remarks' => $remarks,
+            'refe_id' => $refeId,
+            'v1' => '',
         ];
 
         $response = Http::asForm()
@@ -118,7 +118,7 @@ class SslcommerzGateway
         $this->log(null, 'refund', $payload, $response->json(), $response->status());
 
         if (! $response->successful()) {
-            throw new RuntimeException('SSLCommerz refund failed: ' . $response->body());
+            throw new RuntimeException('SSLCommerz refund failed: '.$response->body());
         }
 
         return $response->json();
@@ -128,7 +128,7 @@ class SslcommerzGateway
 
     private function url(string $path): string
     {
-        return rtrim($this->config->credential('sslcommerz', 'base_url'), '/') . '/' . $path;
+        return rtrim($this->config->credential('sslcommerz', 'base_url'), '/').'/'.$path;
     }
 
     private function log(?int $paymentId, string $action, array $payload, ?array $response, int $httpStatus): void
@@ -137,13 +137,13 @@ class SslcommerzGateway
         unset($payload['store_passwd'], $payload['store_id']);
 
         PaymentGatewayLog::create([
-            'school_id'  => $this->config->school_id,
+            'school_id' => $this->config->school_id,
             'payment_id' => $paymentId,
-            'gateway'    => 'sslcommerz',
-            'action'     => $action,
-            'payload'    => $payload,
-            'response'   => $response ?? [],
-            'status'     => (string) $httpStatus,
+            'gateway' => 'sslcommerz',
+            'action' => $action,
+            'payload' => $payload,
+            'response' => $response ?? [],
+            'status' => (string) $httpStatus,
         ]);
     }
 }

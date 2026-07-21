@@ -9,7 +9,6 @@ use App\Modules\Payment\Models\Invoice;
 use App\Modules\Payment\Models\Payment;
 use App\Modules\Payment\Services\PaymentService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use RuntimeException;
 
@@ -44,7 +43,7 @@ class PaymentController extends Controller
     public function initiateBkash(InitiateGatewayRequest $request, int $invoiceId): JsonResponse
     {
         $invoice = Invoice::where('school_id', app('current_school_id'))->findOrFail($invoiceId);
-        $result  = $this->service->initiateBkash($invoice, $request->validated()['callback_url']);
+        $result = $this->service->initiateBkash($invoice, $request->validated()['callback_url']);
 
         return response()->json($result);
     }
@@ -53,7 +52,7 @@ class PaymentController extends Controller
     public function initiateSslcommerz(InitiateGatewayRequest $request, int $invoiceId): JsonResponse
     {
         $invoice = Invoice::where('school_id', app('current_school_id'))->findOrFail($invoiceId);
-        $data    = $request->validated();
+        $data = $request->validated();
 
         $result = $this->service->initiateSslcommerz(
             $invoice,

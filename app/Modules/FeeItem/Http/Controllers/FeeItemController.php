@@ -65,7 +65,7 @@ class FeeItemController extends Controller
     {
         $request->validate([
             'from_academic_year_id' => ['required', 'integer', 'exists:academic_years,id'],
-            'to_academic_year_id'   => ['required', 'integer', 'exists:academic_years,id', 'different:from_academic_year_id'],
+            'to_academic_year_id' => ['required', 'integer', 'exists:academic_years,id', 'different:from_academic_year_id'],
         ]);
 
         $count = $this->service->duplicateToYear(

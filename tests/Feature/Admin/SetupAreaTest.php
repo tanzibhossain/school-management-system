@@ -6,9 +6,8 @@ use App\Models\User;
 use App\Modules\Academic\Models\AcademicYear;
 use App\Modules\Academic\Models\SchoolClass;
 use App\Modules\Academic\Models\Section;
-use App\Modules\Academic\Models\Subject;
-use App\Modules\School\Models\ModuleSetting;
 use App\Modules\School\Models\School;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -27,14 +26,14 @@ class SetupAreaTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
-            'name'                  => 'Test School',
-            'is_active'             => true,
-            'currency'              => 'BDT',
-            'timezone'              => 'Asia/Dhaka',
-            'locale'                => 'en',
+            'name' => 'Test School',
+            'is_active' => true,
+            'currency' => 'BDT',
+            'timezone' => 'Asia/Dhaka',
+            'locale' => 'en',
             'academic_year_pattern' => 'jan_dec',
         ]);
 
@@ -147,23 +146,23 @@ class SetupAreaTest extends TestCase
         $this->actingAs($this->admin);
 
         $this->put('/admin/school', [
-            'name'                  => 'Renamed School',
-            'currency'              => 'usd',
-            'country_code'          => 'bd',
-            'established'            => '1942',
-            'timezone'              => 'Asia/Dhaka',
-            'locale'                => 'en',
+            'name' => 'Renamed School',
+            'currency' => 'usd',
+            'country_code' => 'bd',
+            'established' => '1942',
+            'timezone' => 'Asia/Dhaka',
+            'locale' => 'en',
             'academic_year_pattern' => 'jul_jun',
-            'phones'                => [['phone' => '01700000000', 'show_in_header' => '1']],
-            'primary_phone'         => 0,
+            'phones' => [['phone' => '01700000000', 'show_in_header' => '1']],
+            'primary_phone' => 0,
             // School codes (three label/value pairs)
             'institution_code_label' => 'EIIN',
-            'institution_code'       => '115394',
-            'school_code_label'      => 'School code',
-            'school_code'            => '5556',
+            'institution_code' => '115394',
+            'school_code_label' => 'School code',
+            'school_code' => '5556',
             // Appearance / SEO (merged into School settings)
-            'primary_color'         => '#123456',
-            'meta_title'            => 'Welcome to Renamed School',
+            'primary_color' => '#123456',
+            'meta_title' => 'Welcome to Renamed School',
         ])->assertSessionHasNoErrors()->assertRedirect();
 
         $this->assertDatabaseHas('schools', [

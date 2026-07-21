@@ -18,6 +18,7 @@ use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\StudentAcademic;
 use App\Modules\Student\Models\StudentSubject;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -30,10 +31,15 @@ abstract class MarkTestCase extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected School $school;
+
     protected AcademicYear $year;
+
     protected SchoolClass $class;
+
     protected Section $section;
+
     protected Exam $exam;
 
     /** @var array<string, ExamSubject> keyed by subject name */
@@ -43,21 +49,22 @@ abstract class MarkTestCase extends TestCase
     protected array $divisions = [];
 
     protected Student $student;   // enrolled in all three, Music optional
+
     protected Student $student2;  // enrolled in Math + English only (Music = N/A)
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create(['name' => 'Test School', 'timezone' => 'UTC', 'is_active' => true]);
 
         $this->admin = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
         $this->admin->assignRole('admin');
 
-        $this->year    = AcademicYear::create(['school_id' => $this->school->id, 'year' => '2026', 'is_current' => true]);
-        $this->class   = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 8']);
+        $this->year = AcademicYear::create(['school_id' => $this->school->id, 'year' => '2026', 'is_current' => true]);
+        $this->class = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 8']);
         $this->section = Section::create(['school_id' => $this->school->id, 'class_id' => $this->class->id, 'name' => 'A']);
 
         // BD national boundaries for the class
@@ -67,14 +74,14 @@ abstract class MarkTestCase extends TestCase
         $type = ExamType::create(['school_id' => $this->school->id, 'name' => 'Half-Yearly']);
 
         $this->exam = Exam::create([
-            'school_id'        => $this->school->id,
-            'exam_type_id'     => $type->id,
+            'school_id' => $this->school->id,
+            'exam_type_id' => $type->id,
             'academic_year_id' => $this->year->id,
-            'class_id'         => $this->class->id,
-            'title'            => 'Half-Yearly 2026',
-            'start_date'       => '2026-06-01',
-            'end_date'         => '2026-06-10',
-            'status'           => 'published',
+            'class_id' => $this->class->id,
+            'title' => 'Half-Yearly 2026',
+            'start_date' => '2026-06-01',
+            'end_date' => '2026-06-10',
+            'status' => 'published',
         ]);
 
         // Subjects: Math, English (compulsory), Music (optional 4th)
@@ -83,7 +90,7 @@ abstract class MarkTestCase extends TestCase
         }
 
         // Students
-        $this->student  = $this->makeStudent('ADM-001');
+        $this->student = $this->makeStudent('ADM-001');
         $this->student2 = $this->makeStudent('ADM-002');
 
         $this->enroll($this->student, ['Math' => false, 'English' => false, 'Music' => true]);
@@ -96,21 +103,21 @@ abstract class MarkTestCase extends TestCase
         $subject = Subject::firstOrCreate(['school_id' => $this->school->id, 'name' => $name], ['weight' => 0]);
 
         $relation = SubjectRelation::firstOrCreate([
-            'school_id'  => $this->school->id,
+            'school_id' => $this->school->id,
             'subject_id' => $subject->id,
-            'class_id'   => $this->class->id,
+            'class_id' => $this->class->id,
         ]);
 
         $examSubject = ExamSubject::create([
-            'school_id'           => $this->school->id,
-            'exam_id'             => $exam->id,
+            'school_id' => $this->school->id,
+            'exam_id' => $exam->id,
             'subject_relation_id' => $relation->id,
-            'exam_date'           => '2026-06-02',
-            'start_time'          => '10:00',
-            'end_time'            => '13:00',
-            'full_marks'          => $fullMarks,
-            'pass_marks'          => $passMarks,
-            'combined_group'      => $combinedGroup,
+            'exam_date' => '2026-06-02',
+            'start_time' => '10:00',
+            'end_time' => '13:00',
+            'full_marks' => $fullMarks,
+            'pass_marks' => $passMarks,
+            'combined_group' => $combinedGroup,
         ]);
 
         $mid = MarkDivision::create([
@@ -125,7 +132,7 @@ abstract class MarkTestCase extends TestCase
         ]);
 
         $this->examSubjects[$name] = $examSubject;
-        $this->divisions[$name]    = ['mid' => $mid, 'final' => $final];
+        $this->divisions[$name] = ['mid' => $mid, 'final' => $final];
 
         return $examSubject;
     }
@@ -135,21 +142,21 @@ abstract class MarkTestCase extends TestCase
         $user = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
 
         $student = Student::create([
-            'school_id'        => $this->school->id,
-            'user_id'          => $user->id,
+            'school_id' => $this->school->id,
+            'user_id' => $user->id,
             'admission_number' => $admissionNumber,
-            'name'             => "Student {$admissionNumber}",
-            'gender'           => 'male',
-            'status'           => 'active',
+            'name' => "Student {$admissionNumber}",
+            'gender' => 'male',
+            'status' => 'active',
         ]);
 
         StudentAcademic::create([
-            'school_id'        => $this->school->id,
-            'student_id'       => $student->id,
+            'school_id' => $this->school->id,
+            'student_id' => $student->id,
             'academic_year_id' => $this->year->id,
-            'class_id'         => $this->class->id,
-            'section_id'       => $this->section->id,
-            'is_current'       => true,
+            'class_id' => $this->class->id,
+            'section_id' => $this->section->id,
+            'is_current' => true,
         ]);
 
         return $student;
@@ -160,11 +167,11 @@ abstract class MarkTestCase extends TestCase
     {
         foreach ($subjects as $name => $isOptional) {
             StudentSubject::create([
-                'school_id'           => $this->school->id,
-                'student_id'          => $student->id,
+                'school_id' => $this->school->id,
+                'student_id' => $student->id,
                 'subject_relation_id' => $this->examSubjects[$name]->subject_relation_id,
-                'academic_year_id'    => $this->year->id,
-                'is_optional'         => $isOptional,
+                'academic_year_id' => $this->year->id,
+                'is_optional' => $isOptional,
             ]);
         }
     }
@@ -174,13 +181,13 @@ abstract class MarkTestCase extends TestCase
     {
         foreach (['mid' => 0.4, 'final' => 0.6] as $key => $share) {
             Mark::create([
-                'school_id'        => $this->school->id,
-                'exam_id'          => $this->exam->id,
-                'student_id'       => $student->id,
+                'school_id' => $this->school->id,
+                'exam_id' => $this->exam->id,
+                'student_id' => $student->id,
                 'mark_division_id' => $this->divisions[$subject][$key]->id,
-                'marks_obtained'   => $absent ? null : round($total * $share, 2),
-                'is_absent'        => $absent,
-                'entered_by'       => $this->admin->id,
+                'marks_obtained' => $absent ? null : round($total * $share, 2),
+                'is_absent' => $absent,
+                'entered_by' => $this->admin->id,
             ]);
         }
     }

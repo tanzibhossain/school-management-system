@@ -38,31 +38,31 @@ class RefundService
         }
 
         return DB::transaction(function () use ($payment, $amount, $requestedBy, $note): Refund {
-            $config         = PaymentConfig::where('school_id', $payment->school_id)->first();
-            $processingFee  = $this->calculateFee($payment->method, $amount, $config);
-            $netRefund      = round($amount - $processingFee, 2);
+            $config = PaymentConfig::where('school_id', $payment->school_id)->first();
+            $processingFee = $this->calculateFee($payment->method, $amount, $config);
+            $netRefund = round($amount - $processingFee, 2);
 
             $refund = Refund::create([
-                'school_id'      => $payment->school_id,
-                'payment_id'     => $payment->id,
-                'amount'         => $amount,
+                'school_id' => $payment->school_id,
+                'payment_id' => $payment->id,
+                'amount' => $amount,
                 'processing_fee' => $processingFee,
-                'net_refund'     => $netRefund,
-                'method'         => $payment->method,
-                'status'         => 'pending',
-                'requested_by'   => $requestedBy,
-                'note'           => $note,
+                'net_refund' => $netRefund,
+                'method' => $payment->method,
+                'status' => 'pending',
+                'requested_by' => $requestedBy,
+                'note' => $note,
             ]);
 
             event(new RefundRequested($refund));
 
             // Initiate gateway refund immediately
             match ($payment->method) {
-                'bkash'      => $this->initiateBkashRefund($refund, $payment, $config),
+                'bkash' => $this->initiateBkashRefund($refund, $payment, $config),
                 'sslcommerz' => $this->initiateSslcommerzRefund($refund, $payment, $config),
-                'stripe'     => $this->initiateStripeRefund($refund, $payment, $config),
-                'paypal'     => $this->initiatePayPalRefund($refund, $payment, $config),
-                default      => null, // cash/bank/cheque — admin processes manually
+                'stripe' => $this->initiateStripeRefund($refund, $payment, $config),
+                'paypal' => $this->initiatePayPalRefund($refund, $payment, $config),
+                default => null, // cash/bank/cheque — admin processes manually
             };
 
             return $refund->fresh();
@@ -78,8 +78,8 @@ class RefundService
     {
         DB::transaction(function () use ($refund, $response, $status): void {
             $refund->update([
-                'status'       => $status,
-                'gateway_ref'  => $response['refundTrxID'] ?? $response['refund_ref_id'] ?? null,
+                'status' => $status,
+                'gateway_ref' => $response['refundTrxID'] ?? $response['refund_ref_id'] ?? null,
                 'processed_at' => $status === 'completed' ? now() : null,
             ]);
 
@@ -112,8 +112,8 @@ class RefundService
 
         try {
             $gateway = $this->manager->driver('bkash', $config);
-            $token   = $gateway->grantToken();
-            $result  = $gateway->refund(
+            $token = $gateway->grantToken();
+            $result = $gateway->refund(
                 $token,
                 $payment->gateway_payment_id,   // bKash paymentID (from createPayment)
                 $payment->transaction_ref,       // bKash trxID (from executePayment)
@@ -123,8 +123,8 @@ class RefundService
 
             $status = ($result['statusCode'] ?? '') === '0000' ? 'completed' : 'failed';
             $refund->update([
-                'status'       => $status,
-                'gateway_ref'  => $result['refundTrxID'] ?? null,
+                'status' => $status,
+                'gateway_ref' => $result['refundTrxID'] ?? null,
                 'processed_at' => $status === 'completed' ? now() : null,
             ]);
         } catch (\Throwable $e) {
@@ -140,7 +140,7 @@ class RefundService
 
         try {
             $gateway = $this->manager->driver('sslcommerz', $config);
-            $result  = $gateway->refund(
+            $result = $gateway->refund(
                 $payment->gateway_payment_id,  // SSLCommerz bank_tran_id (from validation)
                 $refund->amount,
                 'Fee refund',
@@ -162,7 +162,7 @@ class RefundService
 
         try {
             $gateway = $this->manager->driver('stripe', $config);
-            $result  = $gateway->refund(
+            $result = $gateway->refund(
                 $payment->gateway_payment_id,  // Stripe PaymentIntent id
                 $refund->amount,
                 $payment->currency,
@@ -170,13 +170,13 @@ class RefundService
 
             // Stripe refund status: succeeded | pending | requires_action | failed | canceled
             $status = match ($result['status'] ?? '') {
-                'succeeded'                  => 'completed',
+                'succeeded' => 'completed',
                 'pending', 'requires_action' => 'processing',
-                default                      => 'failed',
+                default => 'failed',
             };
             $refund->update([
-                'status'       => $status,
-                'gateway_ref'  => $result['id'] ?? null,
+                'status' => $status,
+                'gateway_ref' => $result['id'] ?? null,
                 'processed_at' => $status === 'completed' ? now() : null,
             ]);
         } catch (\Throwable $e) {
@@ -192,7 +192,7 @@ class RefundService
 
         try {
             $gateway = $this->manager->driver('paypal', $config);
-            $result  = $gateway->refund(
+            $result = $gateway->refund(
                 $payment->gateway_payment_id,  // PayPal capture id
                 $refund->amount,
                 $payment->currency,
@@ -201,12 +201,12 @@ class RefundService
             // PayPal refund status: COMPLETED | PENDING | FAILED
             $status = match ($result['status'] ?? '') {
                 'COMPLETED' => 'completed',
-                'PENDING'   => 'processing',
-                default     => 'failed',
+                'PENDING' => 'processing',
+                default => 'failed',
             };
             $refund->update([
-                'status'       => $status,
-                'gateway_ref'  => $result['id'] ?? null,
+                'status' => $status,
+                'gateway_ref' => $result['id'] ?? null,
                 'processed_at' => $status === 'completed' ? now() : null,
             ]);
         } catch (\Throwable $e) {

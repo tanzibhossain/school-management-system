@@ -29,7 +29,7 @@ class BorrowController extends Controller
 
         return view('admin.modules.library.borrow.index', [
             'records' => $records,
-            'books'   => Book::where('school_id', $schoolId)->where('is_trash', false)->where('available_copies', '>', 0)->orderBy('title')->get(['id', 'title', 'available_copies']),
+            'books' => Book::where('school_id', $schoolId)->where('is_trash', false)->where('available_copies', '>', 0)->orderBy('title')->get(['id', 'title', 'available_copies']),
             'members' => LibraryMember::where('school_id', $schoolId)->where('is_trash', false)->where('is_active', true)->orderBy('membership_number')->get(['id', 'membership_number', 'member_type']),
         ]);
     }
@@ -40,16 +40,16 @@ class BorrowController extends Controller
 
         $data = $request->validate([
             'library_member_id' => ['required', 'integer', "exists:library_members,id,school_id,{$schoolId}"],
-            'book_id'           => ['required', 'integer', "exists:books,id,school_id,{$schoolId}"],
-            'due_at'            => ['required', 'date', 'after:today'],
+            'book_id' => ['required', 'integer', "exists:books,id,school_id,{$schoolId}"],
+            'due_at' => ['required', 'date', 'after:today'],
         ], [], ['library_member_id' => 'member']);
 
         try {
             $this->borrows->borrow($schoolId, [
                 'library_member_id' => $data['library_member_id'],
-                'book_id'           => $data['book_id'],
-                'borrowed_at'       => now(),
-                'due_at'            => $data['due_at'],
+                'book_id' => $data['book_id'],
+                'borrowed_at' => now(),
+                'due_at' => $data['due_at'],
             ]);
         } catch (InvalidArgumentException $e) {
             return back()->with('error', $e->getMessage());

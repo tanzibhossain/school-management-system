@@ -7,6 +7,7 @@ use App\Modules\Academic\Models\AcademicYear;
 use App\Modules\Academic\Models\SchoolClass;
 use App\Modules\Academic\Models\Section;
 use App\Modules\School\Models\School;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -32,7 +33,7 @@ abstract class DataImportTestCase extends TestCase
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create(['name' => 'Test School', 'timezone' => 'UTC', 'is_active' => true]);
 
@@ -54,7 +55,7 @@ abstract class DataImportTestCase extends TestCase
      */
     protected function makeXlsxUpload(array $headings, array $rows, string $filename = 'import.xlsx'): UploadedFile
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->fromArray($headings, null, 'A1');
         $sheet->fromArray($rows, null, 'A2');

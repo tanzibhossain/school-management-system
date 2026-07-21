@@ -9,9 +9,11 @@ use App\Modules\Academic\Models\Section;
 use App\Modules\FeeItem\Models\FeeCategory;
 use App\Modules\FeeItem\Models\FeeItem;
 use App\Modules\Payment\Models\Invoice;
+use App\Modules\Payment\Models\PaymentConfig;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\StudentAcademic;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -34,7 +36,7 @@ class FinanceAreaTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT', 'country_code' => 'BD',
@@ -50,7 +52,7 @@ class FinanceAreaTest extends TestCase
     private function enrolStudent(string $admission): Student
     {
         $student = Student::create([
-            'school_id' => $this->school->id, 'name' => 'Student ' . $admission,
+            'school_id' => $this->school->id, 'name' => 'Student '.$admission,
             'gender' => 'male', 'admission_number' => $admission, 'status' => 'active',
         ]);
         StudentAcademic::create([
@@ -193,7 +195,7 @@ class FinanceAreaTest extends TestCase
         ]);
 
         // Stored in the generic JSON store and readable back through the model.
-        $config = \App\Modules\Payment\Models\PaymentConfig::where('school_id', $this->school->id)->first();
+        $config = PaymentConfig::where('school_id', $this->school->id)->first();
         $this->assertTrue($config->gatewayEnabled('bkash'));
         $this->assertSame('test-app-key', $config->credential('bkash', 'app_key'));
     }
@@ -207,7 +209,7 @@ class FinanceAreaTest extends TestCase
         // Second save without the key must not clear it.
         $this->put('/admin/payment-config', ['payment_mode' => 'online'])->assertRedirect();
 
-        $config = \App\Modules\Payment\Models\PaymentConfig::where('school_id', $this->school->id)->first();
+        $config = PaymentConfig::where('school_id', $this->school->id)->first();
         $this->assertSame('keep-me', $config->credential('bkash', 'app_key'));
     }
 }

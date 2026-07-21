@@ -2,10 +2,11 @@
 
 namespace App\Modules\Library\Http\Resources;
 
+use App\Modules\Library\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin \App\Modules\Library\Models\Book */
+/** @mixin Book */
 class BookResource extends JsonResource
 {
     public function toArray(Request $request): array

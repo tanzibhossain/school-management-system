@@ -15,11 +15,11 @@ class AnnouncementService extends BaseService
 {
     /** Audience groups visible to each role. */
     private const ROLE_AUDIENCES = [
-        'admin'     => ['all', 'teachers', 'students', 'parents'],
-        'teacher'   => ['all', 'teachers'],
-        'staff'     => ['all', 'teachers'],
-        'student'   => ['all', 'students'],
-        'accountant'=> ['all', 'teachers'],
+        'admin' => ['all', 'teachers', 'students', 'parents'],
+        'teacher' => ['all', 'teachers'],
+        'staff' => ['all', 'teachers'],
+        'student' => ['all', 'students'],
+        'accountant' => ['all', 'teachers'],
     ];
 
     public function __construct(AnnouncementRepository $repository)
@@ -37,7 +37,7 @@ class AnnouncementService extends BaseService
     {
         return DB::transaction(function () use ($schoolId, $author, $data, $targets): Announcement {
             $announcement = Announcement::create(array_merge($data, [
-                'school_id'  => $schoolId,
+                'school_id' => $schoolId,
                 'created_by' => $author->id,
             ]));
 
@@ -107,10 +107,10 @@ class AnnouncementService extends BaseService
         $path = $file->store("announcements/{$announcement->school_id}/{$announcement->id}", 'minio');
 
         $announcement->attachments()->create([
-            'file_path'     => $path,
+            'file_path' => $path,
             'original_name' => $file->getClientOriginalName(),
-            'mime_type'     => $file->getMimeType(),
-            'size_bytes'    => $file->getSize(),
+            'mime_type' => $file->getMimeType(),
+            'size_bytes' => $file->getSize(),
         ]);
 
         $this->repository->flush();

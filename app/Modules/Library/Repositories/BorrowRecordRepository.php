@@ -24,7 +24,7 @@ class BorrowRecordRepository extends BaseRepository
     {
         return $this->remember(
             $this->cacheKey("school:{$schoolId}:all"),
-            fn() => BorrowRecord::forSchool($schoolId)->with(['book', 'member.user'])->get(),
+            fn () => BorrowRecord::forSchool($schoolId)->with(['book', 'member.user'])->get(),
         );
     }
 }

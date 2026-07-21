@@ -73,16 +73,16 @@ class FeeItemService extends BaseService
 
             if (! $exists) {
                 FeeItem::create([
-                    'school_id'        => $schoolId,
-                    'category_id'      => $item->category_id,
+                    'school_id' => $schoolId,
+                    'category_id' => $item->category_id,
                     'academic_year_id' => $toYearId,
-                    'class_id'         => $item->class_id,
-                    'name'             => $item->name,
-                    'amount'           => $item->amount,
-                    'frequency'        => $item->frequency,
-                    'due_day'          => $item->due_day,
-                    'is_mandatory'     => $item->is_mandatory,
-                    'is_active'        => true,
+                    'class_id' => $item->class_id,
+                    'name' => $item->name,
+                    'amount' => $item->amount,
+                    'frequency' => $item->frequency,
+                    'due_day' => $item->due_day,
+                    'is_mandatory' => $item->is_mandatory,
+                    'is_active' => true,
                 ]);
 
                 $created++;

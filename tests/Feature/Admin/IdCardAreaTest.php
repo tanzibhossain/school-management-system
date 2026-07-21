@@ -11,6 +11,7 @@ use App\Modules\IdCard\Models\IdCardTemplate;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\StudentAcademic;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -36,7 +37,7 @@ class IdCardAreaTest extends TestCase
     {
         parent::setUp();
         Storage::fake('minio');
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT',
@@ -52,7 +53,7 @@ class IdCardAreaTest extends TestCase
 
     private function enrol(string $adm): void
     {
-        $student = Student::create(['school_id' => $this->school->id, 'name' => 'S' . $adm, 'gender' => 'male', 'admission_number' => $adm, 'status' => 'active']);
+        $student = Student::create(['school_id' => $this->school->id, 'name' => 'S'.$adm, 'gender' => 'male', 'admission_number' => $adm, 'status' => 'active']);
         StudentAcademic::create([
             'school_id' => $this->school->id, 'student_id' => $student->id, 'academic_year_id' => $this->year->id,
             'class_id' => $this->class->id, 'section_id' => $this->section->id, 'is_current' => true,

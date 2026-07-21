@@ -67,19 +67,19 @@ class MarkEntryService
                 if ($current !== null) {
                     $current->update([
                         'marks_obtained' => $obtained,
-                        'is_absent'      => $isAbsent,
-                        'entered_by'     => $user->id,
+                        'is_absent' => $isAbsent,
+                        'entered_by' => $user->id,
                     ]);
                     $updated++;
                 } else {
                     Mark::create([
-                        'school_id'        => $schoolId,
-                        'exam_id'          => $division->exam_id,
-                        'student_id'       => $entry['student_id'],
+                        'school_id' => $schoolId,
+                        'exam_id' => $division->exam_id,
+                        'student_id' => $entry['student_id'],
                         'mark_division_id' => $division->id,
-                        'marks_obtained'   => $obtained,
-                        'is_absent'        => $isAbsent,
-                        'entered_by'       => $user->id,
+                        'marks_obtained' => $obtained,
+                        'is_absent' => $isAbsent,
+                        'entered_by' => $user->id,
                     ]);
                     $created++;
                 }
@@ -103,7 +103,7 @@ class MarkEntryService
             ]);
         }
 
-        $exam     = Exam::findOrFail($mark->exam_id);
+        $exam = Exam::findOrFail($mark->exam_id);
         $settings = MarkSetting::forClass($schoolId, $exam->class_id);
 
         if ($grace > (float) $settings->grace_marks_cap) {
@@ -113,7 +113,7 @@ class MarkEntryService
         }
 
         $mark->update([
-            'grace_marks'    => $grace,
+            'grace_marks' => $grace,
             'grace_given_by' => $user->id,
         ]);
 
@@ -132,7 +132,7 @@ class MarkEntryService
 
         $staff = Staff::where('school_id', $schoolId)->where('user_id', $user->id)->first();
 
-        $exam      = Exam::findOrFail($division->exam_id);
+        $exam = Exam::findOrFail($division->exam_id);
         $subjectId = $division->examSubject?->subjectRelation?->subject_id;
 
         // A teacher may enter marks for their assigned subject, or any subject they

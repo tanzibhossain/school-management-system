@@ -4,7 +4,6 @@ namespace Tests\Feature\Transport;
 
 use App\Modules\Transport\Models\TransportDriver;
 use App\Modules\Transport\Models\TransportRoute;
-use App\Modules\Transport\Models\TransportVehicle;
 
 class VehicleSwapTest extends TransportTestCase
 {

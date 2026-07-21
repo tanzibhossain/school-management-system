@@ -2,13 +2,14 @@
 
 namespace Tests\Feature\Academic;
 
-use App\Modules\Academic\Models\AcademicShift;
+use App\Modules\Academic\Models\AcademicYear;
 use App\Modules\Academic\Models\ClassRoutine;
 use App\Modules\Academic\Models\RoutinePeriod;
 use App\Modules\Academic\Models\RoutineRoom;
 use App\Modules\Academic\Models\SchoolClass;
 use App\Modules\Academic\Models\Section;
 use App\Modules\Academic\Models\Subject;
+use App\Modules\Academic\Services\AcademicService;
 use App\Modules\School\Models\School;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -67,21 +68,21 @@ class AcademicTest extends TestCase
 
     public function test_store_routine_returns_422_when_room_is_double_booked(): void
     {
-        $class   = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 6']);
+        $class = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 6']);
         $section = Section::create(['school_id' => $this->school->id, 'class_id' => $class->id, 'name' => 'A']);
-        $subj1   = Subject::create(['school_id' => $this->school->id, 'name' => 'Math']);
-        $subj2   = Subject::create(['school_id' => $this->school->id, 'name' => 'Science']);
-        $room    = RoutineRoom::create(['school_id' => $this->school->id, 'name' => 'Room 101']);
-        $period  = RoutinePeriod::create(['school_id' => $this->school->id, 'name' => 'P1', 'start_time' => '08:00', 'end_time' => '09:00']);
+        $subj1 = Subject::create(['school_id' => $this->school->id, 'name' => 'Math']);
+        $subj2 = Subject::create(['school_id' => $this->school->id, 'name' => 'Science']);
+        $room = RoutineRoom::create(['school_id' => $this->school->id, 'name' => 'Room 101']);
+        $period = RoutinePeriod::create(['school_id' => $this->school->id, 'name' => 'P1', 'start_time' => '08:00', 'end_time' => '09:00']);
 
         // First booking
         ClassRoutine::create([
-            'school_id'   => $this->school->id,
-            'class_id'    => $class->id,
-            'section_id'  => $section->id,
-            'subject_id'  => $subj1->id,
-            'room_id'     => $room->id,
-            'period_id'   => $period->id,
+            'school_id' => $this->school->id,
+            'class_id' => $class->id,
+            'section_id' => $section->id,
+            'subject_id' => $subj1->id,
+            'room_id' => $room->id,
+            'period_id' => $period->id,
             'day_of_week' => 'monday',
         ]);
 
@@ -91,11 +92,11 @@ class AcademicTest extends TestCase
         // Attempt to double-book same room+period+day via route (unauthenticated — expect 401, not 422)
         // To test 422 properly we would need a valid auth token; here we verify 401 proves the route exists
         $response = $this->postJson('/api/v2/academic/routines', [
-            'class_id'    => $class->id,
-            'section_id'  => $section2->id,
-            'subject_id'  => $subj2->id,
-            'room_id'     => $room->id,
-            'period_id'   => $period->id,
+            'class_id' => $class->id,
+            'section_id' => $section2->id,
+            'subject_id' => $subj2->id,
+            'room_id' => $room->id,
+            'period_id' => $period->id,
             'day_of_week' => 'monday',
         ]);
 
@@ -106,18 +107,18 @@ class AcademicTest extends TestCase
 
     public function test_set_current_year_flips_flag(): void
     {
-        $year1 = \App\Modules\Academic\Models\AcademicYear::create([
-            'school_id'  => $this->school->id,
-            'year'       => '2024-2025',
+        $year1 = AcademicYear::create([
+            'school_id' => $this->school->id,
+            'year' => '2024-2025',
             'is_current' => true,
         ]);
-        $year2 = \App\Modules\Academic\Models\AcademicYear::create([
-            'school_id'  => $this->school->id,
-            'year'       => '2025-2026',
+        $year2 = AcademicYear::create([
+            'school_id' => $this->school->id,
+            'year' => '2025-2026',
             'is_current' => false,
         ]);
 
-        $service = app(\App\Modules\Academic\Services\AcademicService::class);
+        $service = app(AcademicService::class);
         $service->setCurrentYear($this->school->id, $year2->id);
 
         $this->assertDatabaseHas('academic_years', ['id' => $year1->id, 'is_current' => false]);

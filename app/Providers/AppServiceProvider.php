@@ -2,16 +2,93 @@
 
 namespace App\Providers;
 
+use App\Models\User;
+use App\Modules\Academic\Models\AcademicYear;
+use App\Modules\Academic\Models\ClassRoutine;
+use App\Modules\Academic\Observers\AcademicYearObserver;
+use App\Modules\Academic\Observers\ClassRoutineObserver;
+use App\Modules\Announcement\Models\Announcement;
+use App\Modules\Announcement\Observers\AnnouncementObserver;
+use App\Modules\Attendance\Models\StaffAttendance;
+use App\Modules\Attendance\Models\StudentAttendance;
+use App\Modules\Attendance\Observers\StaffAttendanceObserver;
+use App\Modules\Attendance\Observers\StudentAttendanceObserver;
+use App\Modules\Certificate\Models\AdmitCard;
+use App\Modules\Certificate\Models\Testimonial;
+use App\Modules\Certificate\Models\TestimonialTemplate;
+use App\Modules\Certificate\Observers\AdmitCardObserver;
+use App\Modules\Certificate\Observers\TestimonialObserver;
+use App\Modules\Certificate\Observers\TestimonialTemplateObserver;
+use App\Modules\DataImport\Models\ImportBatch;
+use App\Modules\DataImport\Observers\ImportBatchObserver;
+use App\Modules\Examination\Models\Exam;
+use App\Modules\Examination\Observers\ExamObserver;
+use App\Modules\FeeItem\Models\FeeItem;
+use App\Modules\FeeItem\Observers\FeeItemObserver;
+use App\Modules\IdCard\Models\IdCardBatch;
+use App\Modules\IdCard\Models\IdCardBatchFile;
+use App\Modules\IdCard\Models\IdCardTemplate;
+use App\Modules\IdCard\Observers\IdCardBatchFileObserver;
+use App\Modules\IdCard\Observers\IdCardBatchObserver;
+use App\Modules\IdCard\Observers\IdCardTemplateObserver;
+use App\Modules\Leave\Models\LeaveType;
+use App\Modules\Leave\Models\StaffLeaveRequest;
+use App\Modules\Leave\Models\StudentLeaveRequest;
+use App\Modules\Leave\Observers\LeaveTypeObserver;
+use App\Modules\Leave\Observers\StaffLeaveRequestObserver;
+use App\Modules\Leave\Observers\StudentLeaveRequestObserver;
+use App\Modules\LMS\Gateways\AiCheckerContract;
+use App\Modules\LMS\Gateways\AnthropicAiChecker;
+use App\Modules\LMS\Models\Assignment;
+use App\Modules\LMS\Models\Course;
+use App\Modules\LMS\Models\Lesson;
+use App\Modules\LMS\Models\Submission;
+use App\Modules\LMS\Models\SubmissionAiCheck;
+use App\Modules\LMS\Observers\AssignmentObserver;
+use App\Modules\LMS\Observers\CourseObserver;
+use App\Modules\LMS\Observers\LessonObserver;
+use App\Modules\LMS\Observers\SubmissionAiCheckObserver;
+use App\Modules\LMS\Observers\SubmissionObserver;
+use App\Modules\Loan\Models\LoanSchedule;
+use App\Modules\Loan\Models\StaffLoan;
+use App\Modules\Loan\Observers\LoanScheduleObserver;
+use App\Modules\Loan\Observers\StaffLoanObserver;
+use App\Modules\Mark\Models\Mark;
+use App\Modules\Mark\Observers\MarkObserver;
+use App\Modules\Messaging\Services\MessageService;
+use App\Modules\OnlineAdmission\Models\AdmissionApplication;
+use App\Modules\OnlineAdmission\Observers\AdmissionApplicationObserver;
+use App\Modules\Payment\Models\Invoice;
+use App\Modules\Payment\Observers\InvoiceObserver;
+use App\Modules\Payroll\Models\PayrollEntry;
+use App\Modules\Payroll\Models\PayrollRun;
+use App\Modules\Payroll\Models\SalaryCertificateRequest;
+use App\Modules\Payroll\Models\SalaryComponent;
+use App\Modules\Payroll\Models\StaffSalaryValue;
+use App\Modules\Payroll\Observers\PayrollEntryObserver;
+use App\Modules\Payroll\Observers\PayrollRunObserver;
+use App\Modules\Payroll\Observers\SalaryCertificateRequestObserver;
+use App\Modules\Payroll\Observers\SalaryComponentObserver;
+use App\Modules\Payroll\Observers\StaffSalaryValueObserver;
+use App\Modules\School\Models\ModuleSetting;
+use App\Modules\School\Models\School;
+use App\Modules\School\Models\SchoolOpeningHour;
+use App\Modules\School\Models\SchoolPhone;
+use App\Modules\School\Observers\ModuleSettingObserver;
+use App\Modules\School\Observers\SchoolObserver;
+use App\Modules\School\Observers\SchoolOpeningHourObserver;
+use App\Modules\School\Observers\SchoolPhoneObserver;
 use App\Modules\Sms\Gateways\LogGateway;
 use App\Modules\Sms\Gateways\SmsGatewayContract;
 use App\Modules\Sms\Models\SmsBatch;
 use App\Modules\Sms\Models\SmsLog;
 use App\Modules\Sms\Observers\SmsBatchObserver;
 use App\Modules\Sms\Observers\SmsLogObserver;
-use App\Modules\DataImport\Models\ImportBatch;
-use App\Modules\DataImport\Observers\ImportBatchObserver;
-use App\Modules\OnlineAdmission\Models\AdmissionApplication;
-use App\Modules\OnlineAdmission\Observers\AdmissionApplicationObserver;
+use App\Modules\Staff\Models\Staff;
+use App\Modules\Staff\Observers\StaffObserver;
+use App\Modules\Student\Models\Student;
+use App\Modules\Student\Observers\StudentObserver;
+use App\Modules\User\Observers\UserObserver;
 use App\Modules\Website\Models\Menu;
 use App\Modules\Website\Models\MenuItem;
 use App\Modules\Website\Models\Page;
@@ -30,82 +107,8 @@ use App\Modules\Website\Observers\PageTemplateObserver;
 use App\Modules\Website\Observers\SiteLayoutObserver;
 use App\Modules\Website\Observers\SiteSettingObserver;
 use App\Modules\Website\Observers\WebsiteMediaObserver;
-use App\Models\User;
-use App\Modules\Academic\Models\AcademicYear;
-use App\Modules\Academic\Models\ClassRoutine;
-use App\Modules\Academic\Observers\AcademicYearObserver;
-use App\Modules\Academic\Observers\ClassRoutineObserver;
-use App\Modules\School\Models\ModuleSetting;
-use App\Modules\School\Models\School;
-use App\Modules\School\Models\SchoolOpeningHour;
-use App\Modules\School\Models\SchoolPhone;
-use App\Modules\School\Observers\ModuleSettingObserver;
-use App\Modules\School\Observers\SchoolObserver;
-use App\Modules\School\Observers\SchoolOpeningHourObserver;
-use App\Modules\School\Observers\SchoolPhoneObserver;
-use App\Modules\Announcement\Models\Announcement;
-use App\Modules\Announcement\Observers\AnnouncementObserver;
-use App\Modules\Certificate\Models\AdmitCard;
-use App\Modules\Certificate\Models\Testimonial;
-use App\Modules\Certificate\Models\TestimonialTemplate;
-use App\Modules\Certificate\Observers\AdmitCardObserver;
-use App\Modules\Certificate\Observers\TestimonialObserver;
-use App\Modules\Certificate\Observers\TestimonialTemplateObserver;
-use App\Modules\Attendance\Models\StaffAttendance;
-use App\Modules\Attendance\Models\StudentAttendance;
-use App\Modules\Attendance\Observers\StaffAttendanceObserver;
-use App\Modules\Attendance\Observers\StudentAttendanceObserver;
-use App\Modules\Leave\Models\LeaveType;
-use App\Modules\Leave\Models\StaffLeaveRequest;
-use App\Modules\Leave\Models\StudentLeaveRequest;
-use App\Modules\Leave\Observers\LeaveTypeObserver;
-use App\Modules\Leave\Observers\StaffLeaveRequestObserver;
-use App\Modules\Leave\Observers\StudentLeaveRequestObserver;
-use App\Modules\Loan\Models\LoanSchedule;
-use App\Modules\Loan\Models\StaffLoan;
-use App\Modules\Loan\Observers\LoanScheduleObserver;
-use App\Modules\Loan\Observers\StaffLoanObserver;
-use App\Modules\Payroll\Models\PayrollEntry;
-use App\Modules\Payroll\Models\PayrollRun;
-use App\Modules\Payroll\Models\SalaryCertificateRequest;
-use App\Modules\Payroll\Models\SalaryComponent;
-use App\Modules\Payroll\Models\StaffSalaryValue;
-use App\Modules\Payroll\Observers\PayrollEntryObserver;
-use App\Modules\Payroll\Observers\PayrollRunObserver;
-use App\Modules\Payroll\Observers\SalaryCertificateRequestObserver;
-use App\Modules\Payroll\Observers\SalaryComponentObserver;
-use App\Modules\Payroll\Observers\StaffSalaryValueObserver;
-use App\Modules\Mark\Models\Mark;
-use App\Modules\Mark\Observers\MarkObserver;
-use App\Modules\LMS\Gateways\AiCheckerContract;
-use App\Modules\LMS\Gateways\AnthropicAiChecker;
-use App\Modules\LMS\Models\Assignment;
-use App\Modules\LMS\Models\Course;
-use App\Modules\LMS\Models\Lesson;
-use App\Modules\LMS\Models\Submission;
-use App\Modules\LMS\Models\SubmissionAiCheck;
-use App\Modules\LMS\Observers\AssignmentObserver;
-use App\Modules\LMS\Observers\CourseObserver;
-use App\Modules\LMS\Observers\LessonObserver;
-use App\Modules\LMS\Observers\SubmissionAiCheckObserver;
-use App\Modules\LMS\Observers\SubmissionObserver;
-use App\Modules\FeeItem\Models\FeeItem;
-use App\Modules\FeeItem\Observers\FeeItemObserver;
-use App\Modules\IdCard\Models\IdCardBatch;
-use App\Modules\IdCard\Models\IdCardBatchFile;
-use App\Modules\IdCard\Models\IdCardTemplate;
-use App\Modules\IdCard\Observers\IdCardBatchFileObserver;
-use App\Modules\IdCard\Observers\IdCardBatchObserver;
-use App\Modules\IdCard\Observers\IdCardTemplateObserver;
-use App\Modules\Payment\Models\Invoice;
-use App\Modules\Payment\Observers\InvoiceObserver;
-use App\Modules\Staff\Models\Staff;
-use App\Modules\Staff\Observers\StaffObserver;
-use App\Modules\Examination\Models\Exam;
-use App\Modules\Examination\Observers\ExamObserver;
-use App\Modules\Student\Models\Student;
-use App\Modules\Student\Observers\StudentObserver;
-use App\Modules\User\Observers\UserObserver;
+use App\Modules\Website\Services\PublicPortalService;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -218,23 +221,23 @@ class AppServiceProvider extends ServiceProvider
 
         // Public site header — share the notice ticker (latest visible announcements)
         // with the shared header partial, so every controller needn't pass it.
-        \Illuminate\Support\Facades\View::composer('public.partials.header', function ($view): void {
-            $school = \App\Modules\School\Models\School::current();
+        View::composer('public.partials.header', function ($view): void {
+            $school = School::current();
             $view->with('ticker', $school
-                ? app(\App\Modules\Website\Services\PublicPortalService::class)->notices($school->id)->take(8)
+                ? app(PublicPortalService::class)->notices($school->id)->take(8)
                 : collect());
             $view->with('navMenu', $school
-                ? \App\Modules\Website\Models\Menu::forSchool($school->id)
+                ? Menu::forSchool($school->id)
                     ->with(['items.children.page', 'items.page'])->first()
                 : null);
         });
 
         // Staff/family portal shells — share the unread message count for the
         // sidebar "Messages" badge, so every portal controller needn't pass it.
-        \Illuminate\Support\Facades\View::composer(['layouts.staff', 'layouts.portal'], function ($view): void {
+        View::composer(['layouts.staff', 'layouts.portal'], function ($view): void {
             $user = auth()->user();
             $view->with('messagesUnread', $user
-                ? app(\App\Modules\Messaging\Services\MessageService::class)->unreadCountFor($user->school_id, $user->id)
+                ? app(MessageService::class)->unreadCountFor($user->school_id, $user->id)
                 : 0);
         });
     }

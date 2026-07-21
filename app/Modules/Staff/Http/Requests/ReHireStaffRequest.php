@@ -17,11 +17,11 @@ class ReHireStaffRequest extends FormRequest
         $schoolId = app('current_school_id');
 
         return [
-            'joining_date'    => ['nullable', 'date'],
+            'joining_date' => ['nullable', 'date'],
             'employment_type' => ['nullable', 'in:permanent,contractual,part_time'],
-            'basic_salary'    => ['nullable', 'numeric', 'min:0'],
-            'designation_id'  => ['nullable', 'integer', "exists:designations,id,school_id,{$schoolId}"],
-            'department_id'   => ['nullable', 'integer', "exists:departments,id,school_id,{$schoolId}"],
+            'basic_salary' => ['nullable', 'numeric', 'min:0'],
+            'designation_id' => ['nullable', 'integer', "exists:designations,id,school_id,{$schoolId}"],
+            'department_id' => ['nullable', 'integer', "exists:departments,id,school_id,{$schoolId}"],
         ];
     }
 }

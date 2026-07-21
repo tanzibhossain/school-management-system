@@ -2,6 +2,7 @@
 
 namespace App\Modules\Payment\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,9 +20,9 @@ class Payment extends Model
     protected $attributes = ['currency' => 'USD'];
 
     protected $casts = [
-        'amount'      => 'decimal:2',
+        'amount' => 'decimal:2',
         'cheque_date' => 'date',
-        'paid_at'     => 'datetime',
+        'paid_at' => 'datetime',
         'is_reversed' => 'boolean',
     ];
 
@@ -40,13 +41,13 @@ class Payment extends Model
         return $this->hasMany(Refund::class);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForSchool($query, int $schoolId): void
     {
         $query->where('school_id', $schoolId);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopePendingCheques($query): void
     {
         $query->where('method', 'cheque')
@@ -54,7 +55,7 @@ class Payment extends Model
             ->where('is_reversed', false);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeActive($query): void
     {
         $query->where('is_reversed', false);

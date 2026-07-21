@@ -57,7 +57,7 @@ class DemoOptionalSeeder extends Seeder
                 ['school_id' => $sid, 'title' => $b['title']],
                 [
                     'author' => $b['author'], 'category' => $b['category'], 'publisher' => 'NCTB',
-                    'isbn' => '978-984-' . str_pad((string) ($i + 1), 6, '0', STR_PAD_LEFT),
+                    'isbn' => '978-984-'.str_pad((string) ($i + 1), 6, '0', STR_PAD_LEFT),
                     'total_copies' => $b['copies'], 'available_copies' => $b['copies'],
                     'is_active' => true, 'is_trash' => false,
                 ],
@@ -78,7 +78,7 @@ class DemoOptionalSeeder extends Seeder
                 ['school_id' => $sid, 'user_id' => $mm['user']->id],
                 [
                     'member_type' => $mm['type'],
-                    'membership_number' => 'LIB-' . str_pad((string) $memberSeq, 4, '0', STR_PAD_LEFT),
+                    'membership_number' => 'LIB-'.str_pad((string) $memberSeq, 4, '0', STR_PAD_LEFT),
                     'joined_at' => now()->subMonths(2)->toDateString(),
                     'is_active' => true, 'is_trash' => false,
                 ],
@@ -168,7 +168,7 @@ class DemoOptionalSeeder extends Seeder
             ] as $l) {
                 Lesson::firstOrCreate(
                     ['school_id' => $sid, 'course_id' => $course->id, 'title' => $l['title']],
-                    ['content_type' => 'text', 'body_text' => 'Lesson notes for ' . $l['title'] . '.', 'sort_order' => $l['order'], 'is_published' => true],
+                    ['content_type' => 'text', 'body_text' => 'Lesson notes for '.$l['title'].'.', 'sort_order' => $l['order'], 'is_published' => true],
                 );
             }
             Assignment::firstOrCreate(

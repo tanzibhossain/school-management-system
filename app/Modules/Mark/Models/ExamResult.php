@@ -2,7 +2,9 @@
 
 namespace App\Modules\Mark\Models;
 
+use App\Modules\Examination\Models\Exam;
 use App\Modules\Student\Models\Student;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -15,19 +17,19 @@ class ExamResult extends Model
     ];
 
     protected $casts = [
-        'total_marks'       => 'decimal:2',
-        'total_possible'    => 'decimal:2',
-        'percentage'        => 'decimal:2',
-        'gpa'               => 'decimal:2',
-        'is_pass'           => 'boolean',
+        'total_marks' => 'decimal:2',
+        'total_possible' => 'decimal:2',
+        'percentage' => 'decimal:2',
+        'gpa' => 'decimal:2',
+        'is_pass' => 'boolean',
         'subject_breakdown' => 'array',
-        'is_locked'         => 'boolean',
-        'calculated_at'     => 'datetime',
+        'is_locked' => 'boolean',
+        'calculated_at' => 'datetime',
     ];
 
     // Mirror DB-level defaults
     protected $attributes = [
-        'is_pass'   => false,
+        'is_pass' => false,
         'is_locked' => false,
     ];
 
@@ -36,13 +38,13 @@ class ExamResult extends Model
         return $this->belongsTo(Student::class);
     }
 
-    /** @return BelongsTo<\App\Modules\Examination\Models\Exam, ExamResult> */
+    /** @return BelongsTo<Exam, ExamResult> */
     public function exam(): BelongsTo
     {
-        return $this->belongsTo(\App\Modules\Examination\Models\Exam::class);
+        return $this->belongsTo(Exam::class);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForSchool($query, int $schoolId): void
     {
         $query->where('school_id', $schoolId);

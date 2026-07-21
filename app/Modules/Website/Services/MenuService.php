@@ -16,7 +16,7 @@ class MenuService
 {
     /**
      * @param  array<int, array<string, mixed>>  $items  One level of nesting via
-     *         an optional 'children' key on dropdown-type items.
+     *                                                   an optional 'children' key on dropdown-type items.
      */
     public function replaceItems(Menu $menu, array $items): Menu
     {

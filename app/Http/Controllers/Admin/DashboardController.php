@@ -3,15 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Modules\Academic\Models\SchoolClass;
-use App\Modules\Examination\Models\Exam;
 use App\Modules\Attendance\Models\StudentAttendance;
+use App\Modules\Examination\Models\Exam;
+use App\Modules\OnlineAdmission\Models\AdmissionApplication;
 use App\Modules\Payment\Models\Invoice;
 use App\Modules\Payment\Models\Payment;
-use App\Modules\Student\Models\Student;
 use App\Modules\Staff\Models\Staff;
-use App\Modules\OnlineAdmission\Models\AdmissionApplication;
+use App\Modules\Student\Models\Student;
 use Carbon\Carbon;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -34,7 +35,7 @@ class DashboardController extends Controller
         $outstandingDues = Invoice::where('school_id', $schoolId)
             ->whereNotIn('status', ['paid', 'cancelled'])
             ->where('due_date', '<', Carbon::today())
-            ->sum(\Illuminate\Support\Facades\DB::raw('amount_due - amount_paid - credit_applied'));
+            ->sum(DB::raw('amount_due - amount_paid - credit_applied'));
 
         // Attendance rate (today)
         $todayAttendance = StudentAttendance::where('school_id', $schoolId)
@@ -44,7 +45,7 @@ class DashboardController extends Controller
         $attendanceRate = $totalEnrolled > 0 ? round(($todayAttendance / $totalEnrolled) * 100, 1) : 0;
 
         // Pending admissions
-        $pendingAdmissions = \App\Modules\OnlineAdmission\Models\AdmissionApplication::where('school_id', $schoolId)
+        $pendingAdmissions = AdmissionApplication::where('school_id', $schoolId)
             ->where('status', 'submitted')
             ->count();
 
@@ -80,10 +81,10 @@ class DashboardController extends Controller
         // Class strength
         $classStrength = SchoolClass::where('school_id', $schoolId)
             ->where('is_trash', false)
-            ->withCount(['studentAcademics' => fn($q) => $q->where('is_current', true)])
+            ->withCount(['studentAcademics' => fn ($q) => $q->where('is_current', true)])
             ->orderBy('name')
             ->get()
-            ->map(fn($c) => ['class' => $c->name, 'count' => $c->student_academics_count]);
+            ->map(fn ($c) => ['class' => $c->name, 'count' => $c->student_academics_count]);
 
         // Attendance trend (last 7 days)
         $attendanceTrend = [];
@@ -108,7 +109,7 @@ class DashboardController extends Controller
             ->get(['id', 'title as name', 'start_date', 'end_date']);
 
         // Fee defaulters
-        $feeDefaulters = \App\Modules\Payment\Models\Invoice::where('school_id', $schoolId)
+        $feeDefaulters = Invoice::where('school_id', $schoolId)
             ->where('status', '!=', 'paid')
             ->where('status', '!=', 'cancelled')
             ->where('due_date', '<', Carbon::today())
@@ -116,14 +117,14 @@ class DashboardController extends Controller
             ->orderBy('due_date')
             ->take(5)
             ->get()
-            ->map(fn($inv) => [
+            ->map(fn ($inv) => [
                 'id' => $inv->student->id ?? null,
                 'name' => $inv->student->name ?? 'Unknown',
                 'admission_number' => $inv->student->admission_number ?? 'N/A',
                 'overdue_count' => 1,
             ])
             ->groupBy('id')
-            ->map(fn($group) => [
+            ->map(fn ($group) => [
                 'id' => $group[0]['id'],
                 'name' => $group[0]['name'],
                 'admission_number' => $group[0]['admission_number'],

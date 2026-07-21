@@ -17,9 +17,9 @@ class StudentLeaveRequestTest extends LeaveTestCase
     {
         return array_merge([
             'leave_type_id' => $this->studentLeaveType->id,
-            'from_date'     => self::FROM,
-            'to_date'       => self::TO,
-            'reason'        => 'Family emergency',
+            'from_date' => self::FROM,
+            'to_date' => self::TO,
+            'reason' => 'Family emergency',
         ], $overrides);
     }
 
@@ -168,14 +168,14 @@ class StudentLeaveRequestTest extends LeaveTestCase
     private function markAttendance(string $date, string $status): void
     {
         StudentAttendance::create([
-            'school_id'        => $this->school->id,
-            'student_id'       => $this->student->id,
-            'class_id'         => $this->class->id,
-            'section_id'       => $this->section->id,
+            'school_id' => $this->school->id,
+            'student_id' => $this->student->id,
+            'class_id' => $this->class->id,
+            'section_id' => $this->section->id,
             'academic_year_id' => $this->year->id,
-            'date'             => $date,
-            'status'           => $status,
-            'recorded_by'      => $this->admin->id,
+            'date' => $date,
+            'status' => $status,
+            'recorded_by' => $this->admin->id,
         ]);
     }
 }

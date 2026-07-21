@@ -10,23 +10,23 @@ class ExamSubjectResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'                  => $this->id,
-            'exam_id'             => $this->exam_id,
+            'id' => $this->id,
+            'exam_id' => $this->exam_id,
             'subject_relation_id' => $this->subject_relation_id,
             // Eager-loaded: ->with('subjectRelation.subject')
-            'subject_name'        => $this->whenLoaded(
+            'subject_name' => $this->whenLoaded(
                 'subjectRelation',
                 fn () => $this->subjectRelation->subject->name ?? null,
             ),
-            'subject_code'        => $this->whenLoaded(
+            'subject_code' => $this->whenLoaded(
                 'subjectRelation',
                 fn () => $this->subjectRelation->subject->sub_code ?? null,
             ),
-            'exam_date'           => $this->exam_date?->toDateString(),
-            'start_time'          => $this->start_time,
-            'end_time'            => $this->end_time,
-            'full_marks'          => $this->full_marks,
-            'pass_marks'          => $this->pass_marks,
+            'exam_date' => $this->exam_date?->toDateString(),
+            'start_time' => $this->start_time,
+            'end_time' => $this->end_time,
+            'full_marks' => $this->full_marks,
+            'pass_marks' => $this->pass_marks,
         ];
     }
 }

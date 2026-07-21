@@ -42,8 +42,8 @@ class VehicleController extends Controller
     {
         return $request->validate([
             'registration_no' => ['required', 'string', 'max:30'],
-            'capacity'        => ['required', 'integer', 'min:1', 'max:200'],
-            'notes'           => ['nullable', 'string', 'max:255'],
+            'capacity' => ['required', 'integer', 'min:1', 'max:200'],
+            'notes' => ['nullable', 'string', 'max:255'],
         ], [], ['registration_no' => 'registration number']);
     }
 }

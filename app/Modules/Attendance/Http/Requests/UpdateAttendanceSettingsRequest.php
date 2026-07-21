@@ -17,10 +17,10 @@ class UpdateAttendanceSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'auto_close_policy'           => ['sometimes', Rule::in(AttendanceSetting::AUTO_CLOSE_POLICIES)],
-            'max_shift_hours'             => ['sometimes', 'integer', 'min:1', 'max:24'],
-            'edit_window_days'            => ['sometimes', 'integer', 'min:0', 'max:90'],
-            'late_threshold_minutes'      => ['sometimes', 'integer', 'min:0', 'max:240'],
+            'auto_close_policy' => ['sometimes', Rule::in(AttendanceSetting::AUTO_CLOSE_POLICIES)],
+            'max_shift_hours' => ['sometimes', 'integer', 'min:1', 'max:24'],
+            'edit_window_days' => ['sometimes', 'integer', 'min:0', 'max:90'],
+            'late_threshold_minutes' => ['sometimes', 'integer', 'min:0', 'max:240'],
             'leave_counts_in_denominator' => ['sometimes', 'boolean'],
         ];
     }

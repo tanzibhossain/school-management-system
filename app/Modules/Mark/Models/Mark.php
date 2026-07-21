@@ -3,6 +3,7 @@
 namespace App\Modules\Mark\Models;
 
 use App\Modules\Student\Models\Student;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -16,14 +17,14 @@ class Mark extends Model
 
     protected $casts = [
         'marks_obtained' => 'decimal:2',
-        'grace_marks'    => 'decimal:2',
-        'is_absent'      => 'boolean',
-        'locked_at'      => 'datetime',
+        'grace_marks' => 'decimal:2',
+        'is_absent' => 'boolean',
+        'locked_at' => 'datetime',
     ];
 
     // Mirror DB-level defaults
     protected $attributes = [
-        'is_absent'   => false,
+        'is_absent' => false,
         'grace_marks' => 0,
     ];
 
@@ -48,7 +49,7 @@ class Mark extends Model
         return $this->locked_at !== null;
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForSchool($query, int $schoolId): void
     {
         $query->where('school_id', $schoolId);

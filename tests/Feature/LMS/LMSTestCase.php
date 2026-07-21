@@ -13,6 +13,7 @@ use App\Modules\School\Models\School;
 use App\Modules\Staff\Models\Staff;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\StudentAcademic;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -22,13 +23,21 @@ abstract class LMSTestCase extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected School $school;
+
     protected AcademicYear $year;
+
     protected SchoolClass $class;
+
     protected Section $section;
+
     protected Subject $subject;
+
     protected User $teacherUser;
+
     protected Staff $staff;
+
     protected Course $course;
 
     private int $seq = 0;
@@ -37,7 +46,7 @@ abstract class LMSTestCase extends TestCase
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Test School',
@@ -85,7 +94,7 @@ abstract class LMSTestCase extends TestCase
 
     protected function teacherToken(): string
     {
-        return $this->teacherUser->createToken('test', \App\Models\User::abilitiesForRole('teacher'))->plainTextToken;
+        return $this->teacherUser->createToken('test', User::abilitiesForRole('teacher'))->plainTextToken;
     }
 
     /** A second teacher who does NOT own $this->course. */
@@ -101,7 +110,7 @@ abstract class LMSTestCase extends TestCase
             'status' => 'active',
         ]);
 
-        return [$user->createToken('test', \App\Models\User::abilitiesForRole('teacher'))->plainTextToken, $staff];
+        return [$user->createToken('test', User::abilitiesForRole('teacher'))->plainTextToken, $staff];
     }
 
     /** A student enrolled in $this->class (so they see $this->course). */
@@ -129,7 +138,7 @@ abstract class LMSTestCase extends TestCase
             'is_current' => true,
         ]);
 
-        $token = $user->createToken('test', \App\Models\User::abilitiesForRole('student'))->plainTextToken;
+        $token = $user->createToken('test', User::abilitiesForRole('student'))->plainTextToken;
 
         return [$token, $student];
     }

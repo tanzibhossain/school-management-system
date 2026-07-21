@@ -33,7 +33,7 @@ class RouteController extends Controller
             ->get();
 
         return view('admin.modules.transport.routes.index', [
-            'routes'  => $routes,
+            'routes' => $routes,
             'drivers' => TransportDriver::where('school_id', $schoolId)->orderBy('name')->get(['id', 'name']),
         ]);
     }
@@ -64,8 +64,8 @@ class RouteController extends Controller
             ->with('student:id,name,student_id')->get();
 
         return view('admin.modules.transport.routes.show', [
-            'route'    => $route,
-            'riders'   => $riders,
+            'route' => $route,
+            'riders' => $riders,
             'vehicles' => TransportVehicle::where('school_id', $schoolId)->where('status', 'available')->orderBy('registration_no')->get(['id', 'registration_no', 'capacity']),
             'students' => Student::where('school_id', $schoolId)->where('status', 'active')->orderBy('name')->get(['id', 'name', 'student_id']),
         ]);
@@ -95,17 +95,17 @@ class RouteController extends Controller
         TransportRoute::where('school_id', $schoolId)->findOrFail($id);
 
         $data = $request->validate([
-            'student_id'   => ['required', 'integer', "exists:students,id,school_id,{$schoolId}"],
+            'student_id' => ['required', 'integer', "exists:students,id,school_id,{$schoolId}"],
             'pickup_point' => ['nullable', 'string', 'max:150'],
-            'starts_on'    => ['nullable', 'date'],
+            'starts_on' => ['nullable', 'date'],
         ]);
 
         try {
             $this->assignments->assign($schoolId, [
-                'student_id'         => $data['student_id'],
+                'student_id' => $data['student_id'],
                 'transport_route_id' => $id,
-                'pickup_point'       => $data['pickup_point'] ?? null,
-                'starts_on'          => $data['starts_on'] ?? null,
+                'pickup_point' => $data['pickup_point'] ?? null,
+                'starts_on' => $data['starts_on'] ?? null,
             ]);
         } catch (HttpExceptionInterface $e) {
             return back()->with('error', $e->getMessage());
@@ -131,10 +131,10 @@ class RouteController extends Controller
         $schoolId = app('current_school_id');
 
         return $request->validate([
-            'name'        => ['required', 'string', 'max:120'],
+            'name' => ['required', 'string', 'max:120'],
             'description' => ['nullable', 'string', 'max:255'],
-            'fare'        => ['nullable', 'numeric', 'min:0'],
-            'driver_id'   => ['nullable', 'integer', "exists:transport_drivers,id,school_id,{$schoolId}"],
+            'fare' => ['nullable', 'numeric', 'min:0'],
+            'driver_id' => ['nullable', 'integer', "exists:transport_drivers,id,school_id,{$schoolId}"],
         ]);
     }
 }

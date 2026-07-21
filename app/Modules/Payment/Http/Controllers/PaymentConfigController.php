@@ -22,7 +22,7 @@ class PaymentConfigController extends Controller
     public function update(UpdatePaymentConfigRequest $request): PaymentConfigResource
     {
         $config = PaymentConfig::firstOrCreate(['school_id' => app('current_school_id')]);
-        $data   = $request->validated();
+        $data = $request->validated();
 
         foreach (['payment_mode', 'invoice_prefix', 'receipt_prefix', 'bounce_fee_amount'] as $field) {
             if (array_key_exists($field, $data)) {
@@ -48,9 +48,9 @@ class PaymentConfigController extends Controller
                 }
                 $feePct = $gw['fee_pct'] ?? null;
                 $store[$slug] = [
-                    'enabled'     => (bool) ($gw['enabled'] ?? ($store[$slug]['enabled'] ?? false)),
+                    'enabled' => (bool) ($gw['enabled'] ?? ($store[$slug]['enabled'] ?? false)),
                     'credentials' => $creds,
-                    'fee_pct'     => filled($feePct) ? (float) $feePct : ($store[$slug]['fee_pct'] ?? 0.0),
+                    'fee_pct' => filled($feePct) ? (float) $feePct : ($store[$slug]['fee_pct'] ?? 0.0),
                 ];
             }
             $config->gateways = $store;

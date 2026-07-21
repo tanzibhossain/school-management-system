@@ -18,7 +18,7 @@ use Illuminate\Validation\Rule;
 class UserController extends Controller
 {
     public function __construct(
-        private readonly UserService    $service,
+        private readonly UserService $service,
         private readonly UserRepository $repository,
     ) {}
 
@@ -45,7 +45,7 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, int $id): UserResource
     {
-        $user    = User::forSchool(app('current_school_id'))->findOrFail($id);
+        $user = User::forSchool(app('current_school_id'))->findOrFail($id);
         $updated = $this->service->updateUser($user, $request->validated());
 
         return new UserResource($updated);
@@ -54,10 +54,10 @@ class UserController extends Controller
     public function changeRole(Request $request, int $id): UserResource
     {
         $request->validate([
-            'role' => ['required', Rule::in(['admin','teacher','accountant','librarian','receptionist','student','parent'])],
+            'role' => ['required', Rule::in(['admin', 'teacher', 'accountant', 'librarian', 'receptionist', 'student', 'parent'])],
         ]);
 
-        $user    = User::forSchool(app('current_school_id'))->findOrFail($id);
+        $user = User::forSchool(app('current_school_id'))->findOrFail($id);
         $updated = $this->service->changeRole($user, $request->input('role'));
 
         return new UserResource($updated);

@@ -2,12 +2,13 @@
 
 namespace Tests\Feature\Payment;
 
+use App\Models\User;
 use App\Modules\Academic\Models\AcademicYear;
 use App\Modules\Payment\Models\Invoice;
 use App\Modules\Payment\Models\PaymentConfig;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
-use App\Models\User;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -27,7 +28,7 @@ class WebhookTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create(['name' => 'Test School', 'is_active' => true, 'currency' => 'USD', 'country_code' => 'US']);
         $admin = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
@@ -68,7 +69,7 @@ class WebhookTest extends TestCase
     {
         $t = time();
 
-        return 't=' . $t . ',v1=' . hash_hmac('sha256', $t . '.' . $payload, $secret);
+        return 't='.$t.',v1='.hash_hmac('sha256', $t.'.'.$payload, $secret);
     }
 
     public function test_stripe_webhook_records_payment_on_valid_signature(): void

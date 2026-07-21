@@ -2,8 +2,8 @@
 
 namespace App\Modules\Academic\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class RoutinePeriod extends Model
 {
@@ -12,8 +12,8 @@ class RoutinePeriod extends Model
     // Time columns stored as HH:MM:SS — returned as plain strings
     protected $casts = [
         'start_time' => 'string',
-        'end_time'   => 'string',
-        'is_trash'   => 'boolean',
+        'end_time' => 'string',
+        'is_trash' => 'boolean',
     ];
 
     /** @param  Builder<RoutinePeriod>  $query */

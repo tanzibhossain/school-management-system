@@ -16,7 +16,7 @@ class ContactMessageController extends Controller
 
         return view('admin.comms.contact.index', [
             'messages' => ContactMessage::forSchool($schoolId)->orderByDesc('created_at')->get(),
-            'unread'   => ContactMessage::forSchool($schoolId)->where('is_read', false)->count(),
+            'unread' => ContactMessage::forSchool($schoolId)->where('is_read', false)->count(),
         ]);
     }
 

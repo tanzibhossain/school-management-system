@@ -5,11 +5,11 @@ namespace App\Modules\FeeItem\Http\Controllers;
 use App\Modules\FeeItem\Http\Requests\StoreFeeCategoryRequest;
 use App\Modules\FeeItem\Http\Resources\FeeCategoryResource;
 use App\Modules\FeeItem\Models\FeeCategory;
+use App\Support\CacheTags;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
-use App\Support\CacheTags;
 
 class FeeCategoryController extends Controller
 {

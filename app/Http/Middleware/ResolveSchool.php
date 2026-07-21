@@ -26,7 +26,7 @@ class ResolveSchool
         }
 
         // Try to resolve from the authenticated user first
-        $user   = Auth::guard('sanctum')->user();
+        $user = Auth::guard('sanctum')->user();
         $school = null;
 
         if ($user && $user->school_id) {

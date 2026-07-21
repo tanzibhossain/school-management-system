@@ -2,8 +2,9 @@
 
 namespace App\Modules\Academic\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Modules\Staff\Models\Staff;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Section extends Model
@@ -27,7 +28,7 @@ class Section extends Model
     /** Class teacher — the staff member who records this section's daily attendance. */
     public function classTeacher(): BelongsTo
     {
-        return $this->belongsTo(\App\Modules\Staff\Models\Staff::class, 'class_teacher_id');
+        return $this->belongsTo(Staff::class, 'class_teacher_id');
     }
 
     /** @param  Builder<Section>  $query */

@@ -20,10 +20,10 @@ class UserService extends BaseService
 
         $user = User::create([
             'school_id' => $schoolId,
-            'name'      => $data['name'],
-            'email'     => $data['email'],
-            'password'  => Hash::make($data['password']),
-            'phone'     => $data['phone'] ?? null,
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'phone' => $data['phone'] ?? null,
             'is_active' => $data['is_active'] ?? true,
         ]);
 
@@ -36,10 +36,10 @@ class UserService extends BaseService
     public function updateUser(User $user, array $data): User
     {
         $payload = array_filter([
-            'name'      => $data['name'] ?? null,
-            'email'     => $data['email'] ?? null,
-            'phone'     => $data['phone'] ?? null,
-            'avatar'    => $data['avatar'] ?? null,
+            'name' => $data['name'] ?? null,
+            'email' => $data['email'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'avatar' => $data['avatar'] ?? null,
             'is_active' => $data['is_active'] ?? null,
         ], fn ($v) => $v !== null);
 

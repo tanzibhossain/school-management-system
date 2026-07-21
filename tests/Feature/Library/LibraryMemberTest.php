@@ -19,7 +19,7 @@ class LibraryMemberTest extends LibraryTestCase
             'member_type' => 'student',
             'membership_number' => 'LIB-1001',
         ], [
-            'Authorization' => 'Bearer ' . $this->adminToken(),
+            'Authorization' => 'Bearer '.$this->adminToken(),
         ]);
 
         $response->assertStatus(201);
@@ -48,7 +48,7 @@ class LibraryMemberTest extends LibraryTestCase
         ]);
 
         $response = $this->postJson("/api/v2/library/members/{$member->id}/deactivate", [], [
-            'Authorization' => 'Bearer ' . $this->adminToken(),
+            'Authorization' => 'Bearer '.$this->adminToken(),
         ]);
 
         $response->assertStatus(200);

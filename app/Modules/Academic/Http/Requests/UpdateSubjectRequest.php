@@ -17,7 +17,7 @@ class UpdateSubjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'     => 'sometimes|string|max:150',
+            'name' => 'sometimes|string|max:150',
             'sub_code' => 'sometimes|nullable|string|max:30',
         ];
     }

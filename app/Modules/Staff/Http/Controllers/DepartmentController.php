@@ -24,7 +24,7 @@ class DepartmentController extends Controller
     {
         $department = Department::create([
             'school_id' => app('current_school_id'),
-            'name'      => $request->validated()['name'],
+            'name' => $request->validated()['name'],
         ]);
 
         return (new DepartmentResource($department))->response()->setStatusCode(201);

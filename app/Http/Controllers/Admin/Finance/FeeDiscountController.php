@@ -49,9 +49,9 @@ class FeeDiscountController extends Controller
     private function validated(Request $request): array
     {
         $data = $request->validate([
-            'name'       => ['required', 'string', 'max:100'],
-            'type'       => ['required', 'in:percentage,fixed'],
-            'value'      => ['required', 'numeric', 'min:0', $request->input('type') === 'percentage' ? 'max:100' : 'max:99999999'],
+            'name' => ['required', 'string', 'max:100'],
+            'type' => ['required', 'in:percentage,fixed'],
+            'value' => ['required', 'numeric', 'min:0', $request->input('type') === 'percentage' ? 'max:100' : 'max:99999999'],
             'max_amount' => ['nullable', 'numeric', 'min:0'],
         ]);
 

@@ -46,9 +46,9 @@ class ExamMarkController extends Controller
 
         $data = $request->validate([
             'exam_subject_id' => ['required', 'integer'],
-            'name'            => ['required', 'string', 'max:50'],
-            'max_marks'       => ['required', 'numeric', 'min:1'],
-            'pass_mark'       => ['nullable', 'numeric', 'min:0', 'lte:max_marks'],
+            'name' => ['required', 'string', 'max:50'],
+            'max_marks' => ['required', 'numeric', 'min:1'],
+            'pass_mark' => ['nullable', 'numeric', 'min:0', 'lte:max_marks'],
         ]);
 
         $examSubject = ExamSubject::where('school_id', $schoolId)->where('exam_id', $exam->id)->findOrFail($data['exam_subject_id']);
@@ -56,13 +56,13 @@ class ExamMarkController extends Controller
         $order = MarkDivision::forSchool($schoolId)->where('exam_subject_id', $examSubject->id)->max('display_order');
 
         MarkDivision::create([
-            'school_id'       => $schoolId,
-            'exam_id'         => $exam->id,
+            'school_id' => $schoolId,
+            'exam_id' => $exam->id,
             'exam_subject_id' => $examSubject->id,
-            'name'            => $data['name'],
-            'max_marks'       => $data['max_marks'],
-            'pass_mark'       => $data['pass_mark'] ?? null,
-            'display_order'   => (int) $order + 1,
+            'name' => $data['name'],
+            'max_marks' => $data['max_marks'],
+            'pass_mark' => $data['pass_mark'] ?? null,
+            'display_order' => (int) $order + 1,
         ]);
 
         return back()->with('status', 'Division added.');
@@ -104,11 +104,11 @@ class ExamMarkController extends Controller
 
             return (object) [
                 'student_id' => $a->student_id,
-                'name'       => $a->student->name,
-                'code'       => $a->student->student_id,
-                'obtained'   => $m?->marks_obtained,
-                'is_absent'  => (bool) ($m?->is_absent ?? false),
-                'locked'     => $m?->isLocked() ?? false,
+                'name' => $a->student->name,
+                'code' => $a->student->student_id,
+                'obtained' => $m?->marks_obtained,
+                'is_absent' => (bool) ($m?->is_absent ?? false),
+                'locked' => $m?->isLocked() ?? false,
             ];
         })->sortBy('name')->values();
 
@@ -121,9 +121,9 @@ class ExamMarkController extends Controller
         $division = MarkDivision::forSchool($schoolId)->where('exam_id', $examId)->findOrFail($divisionId);
 
         $validated = $request->validate([
-            'marks'            => ['array'],
-            'marks.*'          => ['nullable', 'numeric', 'min:0'],
-            'absent'           => ['array'],
+            'marks' => ['array'],
+            'marks.*' => ['nullable', 'numeric', 'min:0'],
+            'absent' => ['array'],
         ]);
 
         $marks = $request->input('marks', []);
@@ -142,9 +142,9 @@ class ExamMarkController extends Controller
                 continue; // skip unentered students
             }
             $entries[] = [
-                'student_id'     => $studentId,
+                'student_id' => $studentId,
                 'marks_obtained' => $isAbsent ? null : $value,
-                'is_absent'      => $isAbsent,
+                'is_absent' => $isAbsent,
             ];
         }
 
@@ -153,7 +153,7 @@ class ExamMarkController extends Controller
         }
 
         $recorder = $request->user();
-        $recorder->withAccessToken(new TransientToken());
+        $recorder->withAccessToken(new TransientToken);
 
         try {
             $result = $this->entry->bulkEnter($schoolId, $division->id, $entries, $recorder);

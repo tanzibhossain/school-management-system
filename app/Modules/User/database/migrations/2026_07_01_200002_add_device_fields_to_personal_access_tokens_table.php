@@ -10,7 +10,7 @@ return new class extends Migration
     {
         // Guard: Sanctum migration must have run first
         if (! Schema::hasTable('personal_access_tokens')) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 'personal_access_tokens table missing. Run: php artisan vendor:publish --tag="sanctum-migrations" then migrate again.'
             );
         }

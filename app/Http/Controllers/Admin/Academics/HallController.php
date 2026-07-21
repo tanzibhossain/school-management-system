@@ -33,9 +33,9 @@ class HallController extends Controller
     {
         $data = $this->validated($request);
         $hall = ExamHall::create([
-            'school_id'     => app('current_school_id'),
-            'name'          => $data['name'],
-            'description'   => $data['description'] ?? null,
+            'school_id' => app('current_school_id'),
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
             'layout_config' => $this->buildLayout($data),
         ]);
 
@@ -61,8 +61,8 @@ class HallController extends Controller
         $data = $this->validated($request);
 
         $hall->update([
-            'name'          => $data['name'],
-            'description'   => $data['description'] ?? null,
+            'name' => $data['name'],
+            'description' => $data['description'] ?? null,
             'layout_config' => $this->buildLayout($data),
         ]);
 
@@ -105,10 +105,10 @@ class HallController extends Controller
     private function validated(Request $request): array
     {
         return $request->validate([
-            'name'          => ['required', 'string', 'max:100'],
-            'description'   => ['nullable', 'string', 'max:255'],
-            'rows'          => ['required', 'integer', 'min:1', 'max:100'],
-            'left_per_row'  => ['required', 'integer', 'min:1', 'max:20'],
+            'name' => ['required', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:255'],
+            'rows' => ['required', 'integer', 'min:1', 'max:100'],
+            'left_per_row' => ['required', 'integer', 'min:1', 'max:20'],
             'right_per_row' => ['nullable', 'integer', 'min:0', 'max:20'],
         ]);
     }

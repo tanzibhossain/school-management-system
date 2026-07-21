@@ -59,17 +59,17 @@ class AttendanceService
         ): void {
             foreach ($entries as $entry) {
                 $attributes = [
-                    'school_id'  => $schoolId,
+                    'school_id' => $schoolId,
                     'student_id' => $entry['student_id'],
-                    'date'       => $day->toDateString(),
+                    'date' => $day->toDateString(),
                 ];
 
                 $values = [
-                    'class_id'         => $classId,
-                    'section_id'       => $sectionId,
+                    'class_id' => $classId,
+                    'section_id' => $sectionId,
                     'academic_year_id' => $yearId,
-                    'status'           => $entry['status'],
-                    'note'             => $entry['note'] ?? null,
+                    'status' => $entry['status'],
+                    'note' => $entry['note'] ?? null,
                 ];
 
                 if ($existing->has($entry['student_id'])) {
@@ -97,11 +97,11 @@ class AttendanceService
      */
     public function studentSummary(int $schoolId, int $studentId, string $from, string $to): array
     {
-        $student  = Student::where('school_id', $schoolId)->findOrFail($studentId);
+        $student = Student::where('school_id', $schoolId)->findOrFail($studentId);
         $settings = AttendanceSetting::forSchool($schoolId);
 
         $fromDay = CarbonImmutable::parse($from);
-        $toDay   = CarbonImmutable::parse($to);
+        $toDay = CarbonImmutable::parse($to);
 
         // Enrollment clamp — count from admission, not from before the student existed
         $enrolledFrom = CarbonImmutable::parse($student->created_at->toDateString());
@@ -109,33 +109,33 @@ class AttendanceService
             $fromDay = $enrolledFrom;
         }
 
-        $counts      = $this->repository->statusCounts($schoolId, $studentId, $fromDay->toDateString(), $toDay->toDateString());
+        $counts = $this->repository->statusCounts($schoolId, $studentId, $fromDay->toDateString(), $toDay->toDateString());
         $workingDays = $this->workingDays->countWorkingDays($schoolId, $fromDay, $toDay);
 
-        $present  = (int) ($counts['present'] ?? 0);
-        $late     = (int) ($counts['late'] ?? 0);
-        $halfDay  = (int) ($counts['half_day'] ?? 0);
-        $absent   = (int) ($counts['absent'] ?? 0);
-        $leave    = (int) ($counts['leave'] ?? 0);
+        $present = (int) ($counts['present'] ?? 0);
+        $late = (int) ($counts['late'] ?? 0);
+        $halfDay = (int) ($counts['half_day'] ?? 0);
+        $absent = (int) ($counts['absent'] ?? 0);
+        $leave = (int) ($counts['leave'] ?? 0);
 
         $denominator = $settings->leave_counts_in_denominator
             ? $workingDays
             : max(0, $workingDays - $leave);
 
-        $attended   = $present + $late + ($halfDay * 0.5);
+        $attended = $present + $late + ($halfDay * 0.5);
         $percentage = $denominator > 0 ? round(($attended / $denominator) * 100, 2) : 0.0;
 
         return [
-            'student_id'   => $studentId,
-            'from'         => $fromDay->toDateString(),
-            'to'           => $toDay->toDateString(),
+            'student_id' => $studentId,
+            'from' => $fromDay->toDateString(),
+            'to' => $toDay->toDateString(),
             'working_days' => $workingDays,
-            'present'      => $present,
-            'late'         => $late,
-            'half_day'     => $halfDay,
-            'absent'       => $absent,
-            'leave'        => $leave,
-            'percentage'   => $percentage,
+            'present' => $present,
+            'late' => $late,
+            'half_day' => $halfDay,
+            'absent' => $absent,
+            'leave' => $leave,
+            'percentage' => $percentage,
         ];
     }
 
@@ -160,8 +160,8 @@ class AttendanceService
         }
 
         $settings = AttendanceSetting::forSchool($schoolId);
-        $school   = School::findOrFail($schoolId);
-        $today    = $this->workingDays->todayFor($school);
+        $school = School::findOrFail($schoolId);
+        $today = $this->workingDays->todayFor($school);
 
         if ($day->lessThan($today->subDays($settings->edit_window_days))) {
             throw new AuthorizationException(

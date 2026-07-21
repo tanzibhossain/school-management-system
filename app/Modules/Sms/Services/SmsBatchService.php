@@ -87,7 +87,7 @@ class SmsBatchService
      * reach the guardian only), this purpose delivers to BOTH the student and the
      * primary guardian — see sendAndLogDual().
      *
-     * @param array<int> $studentIds
+     * @param  array<int>  $studentIds
      */
     public function requestTransportAlert(int $schoolId, array $studentIds, string $body, ?int $actingUserId): SmsBatch
     {

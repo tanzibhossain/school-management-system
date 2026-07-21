@@ -35,10 +35,10 @@ class UserController extends Controller
         $schoolId = app('current_school_id');
 
         $data = $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'email', 'unique:users,email'],
-            'phone'    => ['nullable', 'string', 'max:30'],
-            'role'     => ['required', 'string', 'in:' . implode(',', self::ASSIGNABLE_ROLES)],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'unique:users,email'],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'role' => ['required', 'string', 'in:'.implode(',', self::ASSIGNABLE_ROLES)],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
@@ -52,8 +52,8 @@ class UserController extends Controller
         $user = User::where('school_id', app('current_school_id'))->findOrFail($id);
 
         $data = $request->validate([
-            'name'  => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users,email,' . $user->id],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'unique:users,email,'.$user->id],
             'phone' => ['nullable', 'string', 'max:30'],
         ]);
 
@@ -67,7 +67,7 @@ class UserController extends Controller
         $user = User::where('school_id', app('current_school_id'))->findOrFail($id);
 
         $data = $request->validate([
-            'role' => ['required', 'string', 'in:' . implode(',', self::ASSIGNABLE_ROLES)],
+            'role' => ['required', 'string', 'in:'.implode(',', self::ASSIGNABLE_ROLES)],
         ]);
 
         $this->users->changeRole($user, $data['role']);

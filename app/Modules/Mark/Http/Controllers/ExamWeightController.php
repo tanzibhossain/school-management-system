@@ -20,19 +20,19 @@ class ExamWeightController extends Controller
     public function upsert(StoreExamWeightsRequest $request): JsonResponse
     {
         $schoolId = app('current_school_id');
-        $classId  = (int) $request->validated('class_id');
-        $yearId   = (int) $request->validated('academic_year_id');
+        $classId = (int) $request->validated('class_id');
+        $yearId = (int) $request->validated('academic_year_id');
 
         DB::transaction(function () use ($request, $schoolId, $classId, $yearId): void {
             ExamWeight::forClassYear($schoolId, $classId, $yearId)->delete();
 
             foreach ($request->validated('weights') as $weight) {
                 ExamWeight::create([
-                    'school_id'        => $schoolId,
-                    'class_id'         => $classId,
+                    'school_id' => $schoolId,
+                    'class_id' => $classId,
                     'academic_year_id' => $yearId,
-                    'exam_id'          => $weight['exam_id'],
-                    'weight_percent'   => $weight['weight_percent'],
+                    'exam_id' => $weight['exam_id'],
+                    'weight_percent' => $weight['weight_percent'],
                 ]);
             }
         });
@@ -44,7 +44,7 @@ class ExamWeightController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $request->validate([
-            'class_id'         => ['required', 'integer'],
+            'class_id' => ['required', 'integer'],
             'academic_year_id' => ['required', 'integer'],
         ]);
 
@@ -60,9 +60,9 @@ class ExamWeightController extends Controller
     /** PUT /v2/marks/student-subjects — replace one student's enrollment for a year. */
     public function enrollStudent(EnrollStudentSubjectsRequest $request): JsonResponse
     {
-        $schoolId  = app('current_school_id');
+        $schoolId = app('current_school_id');
         $studentId = (int) $request->validated('student_id');
-        $yearId    = (int) $request->validated('academic_year_id');
+        $yearId = (int) $request->validated('academic_year_id');
 
         Student::where('school_id', $schoolId)->findOrFail($studentId);
 
@@ -74,11 +74,11 @@ class ExamWeightController extends Controller
 
             foreach ($request->validated('subjects') as $subject) {
                 StudentSubject::create([
-                    'school_id'           => $schoolId,
-                    'student_id'          => $studentId,
-                    'academic_year_id'    => $yearId,
+                    'school_id' => $schoolId,
+                    'student_id' => $studentId,
+                    'academic_year_id' => $yearId,
                     'subject_relation_id' => $subject['subject_relation_id'],
-                    'is_optional'         => (bool) ($subject['is_optional'] ?? false),
+                    'is_optional' => (bool) ($subject['is_optional'] ?? false),
                 ]);
             }
         });

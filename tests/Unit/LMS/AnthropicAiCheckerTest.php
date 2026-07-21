@@ -23,7 +23,7 @@ class AnthropicAiCheckerTest extends TestCase
             ], 200),
         ]);
 
-        $result = (new AnthropicAiChecker())->check('fake-key', 'Some submission content.');
+        $result = (new AnthropicAiChecker)->check('fake-key', 'Some submission content.');
 
         $this->assertTrue($result->success);
         $this->assertSame(88, $result->aiScore);
@@ -37,7 +37,7 @@ class AnthropicAiCheckerTest extends TestCase
 
         $this->expectException(RuntimeException::class);
 
-        (new AnthropicAiChecker())->check('fake-key', 'content');
+        (new AnthropicAiChecker)->check('fake-key', 'content');
     }
 
     public function test_throws_on_an_unparseable_response(): void
@@ -48,6 +48,6 @@ class AnthropicAiCheckerTest extends TestCase
 
         $this->expectException(RuntimeException::class);
 
-        (new AnthropicAiChecker())->check('fake-key', 'content');
+        (new AnthropicAiChecker)->check('fake-key', 'content');
     }
 }

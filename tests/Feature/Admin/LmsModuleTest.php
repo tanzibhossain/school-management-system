@@ -12,6 +12,7 @@ use App\Modules\LMS\Models\Submission;
 use App\Modules\School\Models\ModuleSetting;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -33,7 +34,7 @@ class LmsModuleTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT',

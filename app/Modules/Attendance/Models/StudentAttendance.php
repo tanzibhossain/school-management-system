@@ -5,6 +5,7 @@ namespace App\Modules\Attendance\Models;
 use App\Modules\Academic\Models\SchoolClass;
 use App\Modules\Academic\Models\Section;
 use App\Modules\Student\Models\Student;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -39,13 +40,13 @@ class StudentAttendance extends Model
         return $this->belongsTo(Section::class);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForSchool($query, int $schoolId): void
     {
         $query->where('school_id', $schoolId);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeOnDate($query, string $date): void
     {
         $query->whereDate('date', $date);

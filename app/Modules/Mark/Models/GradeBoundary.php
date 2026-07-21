@@ -2,6 +2,7 @@
 
 namespace App\Modules\Mark\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class GradeBoundary extends Model
@@ -13,10 +14,10 @@ class GradeBoundary extends Model
     protected $casts = [
         'min_percent' => 'decimal:2',
         'max_percent' => 'decimal:2',
-        'gpa_point'   => 'decimal:2',
+        'gpa_point' => 'decimal:2',
     ];
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForClass($query, int $schoolId, int $classId): void
     {
         $query->where('school_id', $schoolId)->where('class_id', $classId);

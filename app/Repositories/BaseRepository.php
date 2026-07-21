@@ -29,7 +29,7 @@ abstract class BaseRepository
 
     protected function cacheKey(string $suffix): string
     {
-        return $this->cacheTag() . ':' . $suffix;
+        return $this->cacheTag().':'.$suffix;
     }
 
     protected function remember(string $key, callable $callback): mixed

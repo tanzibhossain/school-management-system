@@ -5,6 +5,7 @@ namespace Tests\Feature\Portal;
 use App\Models\User;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -22,7 +23,7 @@ class PortalTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT',

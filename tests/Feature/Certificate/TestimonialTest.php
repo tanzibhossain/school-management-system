@@ -3,6 +3,7 @@
 namespace Tests\Feature\Certificate;
 
 use App\Modules\Attendance\Models\StudentAttendance;
+use App\Modules\Certificate\Models\Testimonial;
 use App\Modules\Certificate\Models\TestimonialTemplate;
 use App\Modules\Mark\Models\ExamResult;
 use Illuminate\Support\Facades\Storage;
@@ -18,11 +19,11 @@ class TestimonialTest extends CertificateTestCase
         Storage::fake('minio');
 
         $this->template = TestimonialTemplate::create([
-            'school_id'     => $this->school->id,
-            'name'          => 'Default',
+            'school_id' => $this->school->id,
+            'name' => 'Default',
             'template_body' => '<p>{{student_name}} ({{admission_number}}) — {{conduct_remark}}. '
-                . 'Grade: {{grade}}, GPA: {{gpa}}, Attendance: {{attendance_percentage}}.</p>',
-            'is_default'    => true,
+                .'Grade: {{grade}}, GPA: {{gpa}}, Attendance: {{attendance_percentage}}.</p>',
+            'is_default' => true,
         ]);
     }
 
@@ -56,7 +57,7 @@ class TestimonialTest extends CertificateTestCase
             ->assertOk()
             ->assertJsonFragment(['status' => 'issued']);
 
-        $testimonial = \App\Modules\Certificate\Models\Testimonial::findOrFail($id);
+        $testimonial = Testimonial::findOrFail($id);
         $this->assertNotNull($testimonial->file_path);
         Storage::disk('minio')->assertExists($testimonial->file_path);
         $this->assertStringStartsWith('%PDF', Storage::disk('minio')->get($testimonial->file_path));
@@ -69,33 +70,33 @@ class TestimonialTest extends CertificateTestCase
         $this->student->save();
 
         ExamResult::create([
-            'school_id'      => $this->school->id,
-            'exam_id'        => $this->exam->id,
-            'student_id'     => $this->student->id,
-            'total_marks'    => 85,
+            'school_id' => $this->school->id,
+            'exam_id' => $this->exam->id,
+            'student_id' => $this->student->id,
+            'total_marks' => 85,
             'total_possible' => 100,
-            'percentage'     => 85.00,
-            'grade'          => 'A+',
-            'gpa'            => 5.00,
-            'is_pass'        => true,
+            'percentage' => 85.00,
+            'grade' => 'A+',
+            'gpa' => 5.00,
+            'is_pass' => true,
         ]);
 
         StudentAttendance::create([
-            'school_id'        => $this->school->id,
-            'student_id'       => $this->student->id,
-            'class_id'         => $this->class->id,
-            'section_id'       => $this->section->id,
+            'school_id' => $this->school->id,
+            'student_id' => $this->student->id,
+            'class_id' => $this->class->id,
+            'section_id' => $this->section->id,
             'academic_year_id' => $this->year->id,
-            'date'             => '2026-01-05',
-            'status'           => 'present',
-            'recorded_by'      => $this->admin->id,
+            'date' => '2026-01-05',
+            'status' => 'present',
+            'recorded_by' => $this->admin->id,
         ]);
 
         $response = $this->withToken($this->adminToken())
             ->postJson("/api/v2/certificates/testimonials/{$this->student->id}", $this->payload([
-                'exam_id'         => $this->exam->id,
+                'exam_id' => $this->exam->id,
                 'attendance_from' => '2026-01-05',
-                'attendance_to'   => '2026-01-05',
+                'attendance_to' => '2026-01-05',
             ]))
             ->assertCreated();
 
@@ -153,7 +154,7 @@ class TestimonialTest extends CertificateTestCase
 
         $this->withToken($this->adminToken())
             ->postJson('/api/v2/certificates/testimonial-templates', [
-                'name'          => 'Alt template',
+                'name' => 'Alt template',
                 'template_body' => '<p>{{student_name}}</p>',
             ])
             ->assertCreated();

@@ -11,6 +11,7 @@ use App\Modules\School\Models\School;
 use App\Modules\Staff\Models\Staff;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\StudentAcademic;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -20,9 +21,13 @@ abstract class IdCardTestCase extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected School $school;
+
     protected AcademicYear $year;
+
     protected SchoolClass $class;
+
     protected Section $section;
 
     private int $studentSeq = 0;
@@ -33,7 +38,7 @@ abstract class IdCardTestCase extends TestCase
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create(['name' => 'Test School', 'timezone' => 'UTC', 'is_active' => true]);
 

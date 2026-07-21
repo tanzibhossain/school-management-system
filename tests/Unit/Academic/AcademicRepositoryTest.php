@@ -25,7 +25,7 @@ class AcademicRepositoryTest extends TestCase
         $cache->shouldReceive('tags')->andReturnSelf();
         $cache->shouldReceive('remember')->andReturnUsing(fn ($key, $ttl, $cb) => $cb());
 
-        $repo   = new AcademicRepository($cache);
+        $repo = new AcademicRepository($cache);
         $result = $repo->getActiveClasses($school->id);
 
         $this->assertCount(1, $result);
@@ -40,7 +40,7 @@ class AcademicRepositoryTest extends TestCase
         $cache->shouldReceive('tags')->andReturnSelf();
         $cache->shouldReceive('remember')->andReturnUsing(fn ($key, $ttl, $cb) => $cb());
 
-        $repo   = new AcademicRepository($cache);
+        $repo = new AcademicRepository($cache);
         $result = $repo->getCurrentYear($school->id);
 
         $this->assertNull($result);

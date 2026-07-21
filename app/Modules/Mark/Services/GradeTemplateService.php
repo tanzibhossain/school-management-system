@@ -69,12 +69,12 @@ class GradeTemplateService
 
             foreach ($spec as $order => $division) {
                 MarkDivision::create([
-                    'school_id'       => $schoolId,
-                    'exam_id'         => $examSubject->exam_id,
+                    'school_id' => $schoolId,
+                    'exam_id' => $examSubject->exam_id,
                     'exam_subject_id' => $examSubject->id,
-                    'name'            => $division['name'],
-                    'max_marks'       => round((float) $examSubject->full_marks * $division['weight'] / 100, 2),
-                    'display_order'   => $order,
+                    'name' => $division['name'],
+                    'max_marks' => round((float) $examSubject->full_marks * $division['weight'] / 100, 2),
+                    'display_order' => $order,
                 ]);
             }
 

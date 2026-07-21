@@ -61,7 +61,7 @@ class LessonService
     private function storeFile(Course $course, UploadedFile $file): string
     {
         $path = "{$course->school_id}/lms/lessons/{$course->id}";
-        $filename = uniqid('lesson_') . '.' . $file->getClientOriginalExtension();
+        $filename = uniqid('lesson_').'.'.$file->getClientOriginalExtension();
 
         Storage::disk('minio')->putFileAs($path, $file, $filename);
 

@@ -47,14 +47,14 @@ class ExamSeatingController extends Controller
         }
 
         try {
-            $data       = $request->validated();
-            $strategy   = $data['strategy'] ?? $exam->seating_strategy;
+            $data = $request->validated();
+            $strategy = $data['strategy'] ?? $exam->seating_strategy;
             $blankEvery = isset($data['blank_every']) ? (int) $data['blank_every'] : null;
-            $count      = $this->seatingService->assign($exam, $data['hall_id'], $data['strategy'] ?? null, $blankEvery);
+            $count = $this->seatingService->assign($exam, $data['hall_id'], $data['strategy'] ?? null, $blankEvery);
 
             return response()->json([
-                'message'        => "{$count} students seated using '{$strategy}' strategy.",
-                'students_seated'=> $count,
+                'message' => "{$count} students seated using '{$strategy}' strategy.",
+                'students_seated' => $count,
             ]);
         } catch (RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], 422);

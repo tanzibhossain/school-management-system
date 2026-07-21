@@ -2,10 +2,9 @@
 
 namespace Tests\Feature\Library;
 
-use App\Modules\Library\Models\Book;
-use App\Modules\Library\Models\BorrowRecord;
-use App\Modules\Library\Models\LibraryMember;
 use App\Models\User;
+use App\Modules\Library\Models\Book;
+use App\Modules\Library\Models\LibraryMember;
 
 class BorrowRecordTest extends LibraryTestCase
 {
@@ -39,7 +38,7 @@ class BorrowRecordTest extends LibraryTestCase
             'due_at' => now()->addWeek()->toDateTimeString(),
             'notes' => 'First borrow',
         ], [
-            'Authorization' => 'Bearer ' . $this->adminToken(),
+            'Authorization' => 'Bearer '.$this->adminToken(),
         ]);
 
         $borrowResponse->assertStatus(201);
@@ -55,7 +54,7 @@ class BorrowRecordTest extends LibraryTestCase
         $borrowId = $borrowResponse->json('data.id');
 
         $returnResponse = $this->postJson("/api/v2/library/borrow-records/{$borrowId}/return", [], [
-            'Authorization' => 'Bearer ' . $this->adminToken(),
+            'Authorization' => 'Bearer '.$this->adminToken(),
         ]);
 
         $returnResponse->assertStatus(200);

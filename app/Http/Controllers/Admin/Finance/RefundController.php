@@ -46,8 +46,8 @@ class RefundController extends Controller
         $payment = Payment::where('school_id', $schoolId)->findOrFail($request->integer('payment_id'));
 
         $data = $request->validate([
-            'amount' => ['required', 'numeric', 'min:0.01', 'max:' . (float) $payment->amount],
-            'note'   => ['nullable', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:'.(float) $payment->amount],
+            'note' => ['nullable', 'string', 'max:255'],
         ]);
 
         try {

@@ -19,13 +19,6 @@ use App\Http\Controllers\Admin\Comms\MessageController;
 use App\Http\Controllers\Admin\Comms\ReportController;
 use App\Http\Controllers\Admin\Comms\SmsController;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\Website\PageController as WebsitePageController;
-use App\Http\Controllers\Public\HomeController;
-use App\Http\Controllers\Public\PageController as PublicPageController;
-use App\Http\Controllers\Admin\Hr\LeaveTypeController;
-use App\Http\Controllers\Admin\Hr\StaffLeaveController;
-use App\Http\Controllers\Admin\Hr\StaffLoanController;
-use App\Http\Controllers\Admin\Hr\StudentLeaveController;
 use App\Http\Controllers\Admin\Finance\FeeCategoryController;
 use App\Http\Controllers\Admin\Finance\FeeDiscountController;
 use App\Http\Controllers\Admin\Finance\FeeItemController;
@@ -34,6 +27,10 @@ use App\Http\Controllers\Admin\Finance\PaymentConfigController;
 use App\Http\Controllers\Admin\Finance\PaymentController;
 use App\Http\Controllers\Admin\Finance\RefundController;
 use App\Http\Controllers\Admin\Finance\StudentCreditController;
+use App\Http\Controllers\Admin\Hr\LeaveTypeController;
+use App\Http\Controllers\Admin\Hr\StaffLeaveController;
+use App\Http\Controllers\Admin\Hr\StaffLoanController;
+use App\Http\Controllers\Admin\Hr\StudentLeaveController;
 use App\Http\Controllers\Admin\Modules\Library\BookController;
 use App\Http\Controllers\Admin\Modules\Library\BorrowController;
 use App\Http\Controllers\Admin\Modules\Library\MemberController;
@@ -62,17 +59,26 @@ use App\Http\Controllers\Admin\Setup\RoutineSetupController;
 use App\Http\Controllers\Admin\Setup\SchoolController;
 use App\Http\Controllers\Admin\Setup\SectionController;
 use App\Http\Controllers\Admin\Setup\SubjectController;
+use App\Http\Controllers\Admin\Website\MenuController;
+use App\Http\Controllers\Admin\Website\PageController as WebsitePageController;
+use App\Http\Controllers\Payment\WebhookController;
+use App\Http\Controllers\Public\ContactController;
+use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\PageController as PublicPageController;
+use App\Http\Controllers\Staff\ClockController;
+use App\Http\Controllers\Staff\LeaveController;
+use App\Http\Controllers\Staff\MarkController;
 use Illuminate\Support\Facades\Route;
 
 // Public school homepage.
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Public online-admission submission (form rendered by the admission_form block).
-Route::post('/admission', [\App\Http\Controllers\Public\AdmissionController::class, 'submit'])
+Route::post('/admission', [App\Http\Controllers\Public\AdmissionController::class, 'submit'])
     ->middleware('throttle:10,1')->name('admission.submit');
 
 // Public contact-form submission (form rendered by the contact block).
-Route::post('/contact', [\App\Http\Controllers\Public\ContactController::class, 'submit'])
+Route::post('/contact', [ContactController::class, 'submit'])
     ->middleware('throttle:10,1')->name('contact.submit');
 
 Route::middleware('guest')->group(function (): void {
@@ -92,36 +98,36 @@ Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->
 // ── Staff / teacher portal ───────────────────────────────────────────────────
 Route::middleware(['auth', 'school', 'role:teacher|accountant|librarian|receptionist'])
     ->prefix('staff')->name('staff.')->group(function (): void {
-        Route::get('/', [\App\Http\Controllers\Staff\DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/attendance', [\App\Http\Controllers\Staff\AttendanceController::class, 'index'])->name('attendance');
-        Route::post('/attendance', [\App\Http\Controllers\Staff\AttendanceController::class, 'store'])->name('attendance.store');
-        Route::get('/routine', [\App\Http\Controllers\Staff\DashboardController::class, 'routine'])->name('routine');
-        Route::get('/marks', [\App\Http\Controllers\Staff\MarkController::class, 'index'])->name('marks');
-        Route::get('/marks/{examId}/divisions/{divisionId}', [\App\Http\Controllers\Staff\MarkController::class, 'entry'])->whereNumber('examId')->whereNumber('divisionId')->name('marks.entry');
-        Route::post('/marks/{examId}/divisions/{divisionId}', [\App\Http\Controllers\Staff\MarkController::class, 'saveEntry'])->whereNumber('examId')->whereNumber('divisionId')->name('marks.save');
-        Route::get('/messages', [\App\Http\Controllers\Staff\MessageController::class, 'index'])->name('messages');
-        Route::post('/messages', [\App\Http\Controllers\Staff\MessageController::class, 'store'])->name('messages.store');
-        Route::get('/messages/{id}', [\App\Http\Controllers\Staff\MessageController::class, 'show'])->whereNumber('id')->name('messages.show');
-        Route::post('/messages/{id}/reply', [\App\Http\Controllers\Staff\MessageController::class, 'reply'])->whereNumber('id')->name('messages.reply');
-        Route::get('/my-attendance', [\App\Http\Controllers\Staff\ClockController::class, 'index'])->name('clock');
-        Route::post('/my-attendance/punch', [\App\Http\Controllers\Staff\ClockController::class, 'punch'])->name('clock.punch');
-        Route::get('/leave', [\App\Http\Controllers\Staff\LeaveController::class, 'index'])->name('leave');
-        Route::post('/leave', [\App\Http\Controllers\Staff\LeaveController::class, 'store'])->name('leave.store');
-        Route::patch('/leave/{id}/cancel', [\App\Http\Controllers\Staff\LeaveController::class, 'cancel'])->whereNumber('id')->name('leave.cancel');
-        Route::get('/notices', [\App\Http\Controllers\Staff\DashboardController::class, 'notices'])->name('notices');
-        Route::get('/profile', [\App\Http\Controllers\Staff\DashboardController::class, 'profile'])->name('profile');
+        Route::get('/', [App\Http\Controllers\Staff\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/attendance', [App\Http\Controllers\Staff\AttendanceController::class, 'index'])->name('attendance');
+        Route::post('/attendance', [App\Http\Controllers\Staff\AttendanceController::class, 'store'])->name('attendance.store');
+        Route::get('/routine', [App\Http\Controllers\Staff\DashboardController::class, 'routine'])->name('routine');
+        Route::get('/marks', [MarkController::class, 'index'])->name('marks');
+        Route::get('/marks/{examId}/divisions/{divisionId}', [MarkController::class, 'entry'])->whereNumber('examId')->whereNumber('divisionId')->name('marks.entry');
+        Route::post('/marks/{examId}/divisions/{divisionId}', [MarkController::class, 'saveEntry'])->whereNumber('examId')->whereNumber('divisionId')->name('marks.save');
+        Route::get('/messages', [App\Http\Controllers\Staff\MessageController::class, 'index'])->name('messages');
+        Route::post('/messages', [App\Http\Controllers\Staff\MessageController::class, 'store'])->name('messages.store');
+        Route::get('/messages/{id}', [App\Http\Controllers\Staff\MessageController::class, 'show'])->whereNumber('id')->name('messages.show');
+        Route::post('/messages/{id}/reply', [App\Http\Controllers\Staff\MessageController::class, 'reply'])->whereNumber('id')->name('messages.reply');
+        Route::get('/my-attendance', [ClockController::class, 'index'])->name('clock');
+        Route::post('/my-attendance/punch', [ClockController::class, 'punch'])->name('clock.punch');
+        Route::get('/leave', [LeaveController::class, 'index'])->name('leave');
+        Route::post('/leave', [LeaveController::class, 'store'])->name('leave.store');
+        Route::patch('/leave/{id}/cancel', [LeaveController::class, 'cancel'])->whereNumber('id')->name('leave.cancel');
+        Route::get('/notices', [App\Http\Controllers\Staff\DashboardController::class, 'notices'])->name('notices');
+        Route::get('/profile', [App\Http\Controllers\Staff\DashboardController::class, 'profile'])->name('profile');
     });
 
 // ── Family portal (student + guardian) ─────────────────────────────────────────
 Route::middleware(['auth', 'school', 'role:student|parent'])
     ->prefix('portal')->name('portal.')->group(function (): void {
-        $c = \App\Http\Controllers\Portal\DashboardController::class;
+        $c = App\Http\Controllers\Portal\DashboardController::class;
         Route::get('/', [$c, 'index'])->name('dashboard');
         Route::get('/attendance', [$c, 'attendance'])->name('attendance');
         Route::get('/results', [$c, 'results'])->name('results');
         Route::get('/results/{examId}/marksheet', [$c, 'marksheet'])->whereNumber('examId')->name('results.marksheet');
         Route::get('/fees', [$c, 'fees'])->name('fees');
-        Route::post('/pay/initiate', [\App\Http\Controllers\Portal\PaymentController::class, 'initiate'])->name('pay.initiate');
+        Route::post('/pay/initiate', [App\Http\Controllers\Portal\PaymentController::class, 'initiate'])->name('pay.initiate');
         Route::get('/routine', [$c, 'routine'])->name('routine');
         Route::get('/leave', [$c, 'leave'])->name('leave');
         Route::post('/leave', [$c, 'leaveStore'])->name('leave.store');
@@ -129,7 +135,7 @@ Route::middleware(['auth', 'school', 'role:student|parent'])
         Route::get('/notices', [$c, 'notices'])->name('notices');
         Route::get('/profile', [$c, 'profile'])->name('profile');
 
-        $mc = \App\Http\Controllers\Portal\MessageController::class;
+        $mc = App\Http\Controllers\Portal\MessageController::class;
         Route::get('/messages', [$mc, 'index'])->name('messages');
         Route::post('/messages', [$mc, 'store'])->name('messages.store');
         Route::get('/messages/{id}', [$mc, 'show'])->whereNumber('id')->name('messages.show');
@@ -138,30 +144,30 @@ Route::middleware(['auth', 'school', 'role:student|parent'])
 
 // Gateway browser-return for family portal payments — public (the gateway drives
 // the redirect); the school + invoice are resolved from the cached payment id.
-Route::get('/portal/pay/bkash/callback', [\App\Http\Controllers\Portal\PaymentController::class, 'bkashCallback'])
+Route::get('/portal/pay/bkash/callback', [App\Http\Controllers\Portal\PaymentController::class, 'bkashCallback'])
     ->name('portal.pay.bkash.callback');
 
 // Stripe redirects the browser back here (GET). success_url carries session_id;
 // cancel_url omits it. Public — the invoice is resolved from the cached session.
-Route::get('/portal/pay/stripe/return', [\App\Http\Controllers\Portal\PaymentController::class, 'stripeReturn'])
+Route::get('/portal/pay/stripe/return', [App\Http\Controllers\Portal\PaymentController::class, 'stripeReturn'])
     ->name('portal.pay.stripe.return');
 
 // PayPal redirects the browser back here (GET). Approval carries ?token={ORDER_ID};
 // cancel carries ?cancel=1. Public — the invoice is resolved from the cached order.
-Route::get('/portal/pay/paypal/return', [\App\Http\Controllers\Portal\PaymentController::class, 'paypalReturn'])
+Route::get('/portal/pay/paypal/return', [App\Http\Controllers\Portal\PaymentController::class, 'paypalReturn'])
     ->name('portal.pay.paypal.return');
 
 // SSLCommerz POSTs the browser back here (success/fail/cancel). CSRF-exempt (see
 // bootstrap/app.php) and public — the invoice is resolved from tran_id.
-Route::match(['get', 'post'], '/portal/pay/sslcommerz/{result}', [\App\Http\Controllers\Portal\PaymentController::class, 'sslcommerzReturn'])
+Route::match(['get', 'post'], '/portal/pay/sslcommerz/{result}', [App\Http\Controllers\Portal\PaymentController::class, 'sslcommerzReturn'])
     ->whereIn('result', ['success', 'fail', 'cancel'])
     ->name('portal.pay.sslcommerz.return');
 
 // Server-to-server gateway webhooks — authoritative confirmation, public + CSRF-exempt
 // (bootstrap/app.php); the signature is the trust boundary.
-Route::post('/payments/webhook/stripe', [\App\Http\Controllers\Payment\WebhookController::class, 'stripe'])
+Route::post('/payments/webhook/stripe', [WebhookController::class, 'stripe'])
     ->name('payments.webhook.stripe');
-Route::post('/payments/webhook/paypal', [\App\Http\Controllers\Payment\WebhookController::class, 'paypal'])
+Route::post('/payments/webhook/paypal', [WebhookController::class, 'paypal'])
     ->name('payments.webhook.paypal');
 
 Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(function (): void {
@@ -239,8 +245,8 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::delete('/pages/{id}', [WebsitePageController::class, 'destroy'])->whereNumber('id')->name('pages.destroy');
 
         // Navigation menu editor
-        Route::get('/menus', [\App\Http\Controllers\Admin\Website\MenuController::class, 'edit'])->name('menus.index');
-        Route::put('/menus', [\App\Http\Controllers\Admin\Website\MenuController::class, 'save'])->name('menus.save');
+        Route::get('/menus', [MenuController::class, 'edit'])->name('menus.index');
+        Route::put('/menus', [MenuController::class, 'save'])->name('menus.save');
 
         Route::get('/academic-years', [AcademicYearController::class, 'index'])->name('academic-years.index');
         Route::post('/academic-years', [AcademicYearController::class, 'store'])->name('academic-years.store');

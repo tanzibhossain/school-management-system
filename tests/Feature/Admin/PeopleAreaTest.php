@@ -11,6 +11,7 @@ use App\Modules\Staff\Models\Department;
 use App\Modules\Staff\Models\Designation;
 use App\Modules\Staff\Models\Staff;
 use App\Modules\Student\Models\Student;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -29,14 +30,14 @@ class PeopleAreaTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
-            'name'                  => 'Test School',
-            'is_active'             => true,
-            'currency'              => 'BDT',
-            'timezone'              => 'Asia/Dhaka',
-            'locale'                => 'en',
+            'name' => 'Test School',
+            'is_active' => true,
+            'currency' => 'BDT',
+            'timezone' => 'Asia/Dhaka',
+            'locale' => 'en',
             'academic_year_pattern' => 'jan_dec',
         ]);
 

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Payment\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -13,10 +14,10 @@ class Refund extends Model
     ];
 
     protected $casts = [
-        'amount'         => 'decimal:2',
+        'amount' => 'decimal:2',
         'processing_fee' => 'decimal:2',
-        'net_refund'     => 'decimal:2',
-        'processed_at'   => 'datetime',
+        'net_refund' => 'decimal:2',
+        'processed_at' => 'datetime',
     ];
 
     public function payment(): BelongsTo
@@ -24,7 +25,7 @@ class Refund extends Model
         return $this->belongsTo(Payment::class);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForSchool($query, int $schoolId): void
     {
         $query->where('school_id', $schoolId);

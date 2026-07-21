@@ -6,6 +6,7 @@ use App\Modules\School\Models\School;
 use App\Modules\Website\Models\Menu;
 use App\Modules\Website\Models\Page;
 use App\Modules\Website\Models\PageLayout;
+use App\Modules\Website\Models\SiteSetting;
 use App\Modules\Website\Services\MenuService;
 use Illuminate\Database\Seeder;
 
@@ -36,10 +37,10 @@ class WebsitePagesSeeder extends Seeder
         // ── Homepage (block-built, set as is_homepage so "/" renders it) ────────
         $this->page($sid, 'home', 'Home', 'full', [
             ['type' => 'hero', 'data' => [
-                'title'       => $school->name ?: 'Welcome to our school',
-                'subtitle'    => 'Nurturing curiosity, character, and community.',
+                'title' => $school->name ?: 'Welcome to our school',
+                'subtitle' => 'Nurturing curiosity, character, and community.',
                 'button_text' => 'Apply for admission',
-                'button_url'  => '/online-admission',
+                'button_url' => '/online-admission',
             ]],
             ['type' => 'stats',   'data' => ['heading' => 'At a glance']],
             ['type' => 'notices', 'data' => ['heading' => 'Latest notices', 'limit' => 6]],
@@ -51,11 +52,10 @@ class WebsitePagesSeeder extends Seeder
         $this->page($sid, 'history', 'Short History', 'sidebar',
             [
                 ['type' => 'heading', 'data' => ['text' => 'A proud history']],
-                ['type' => 'richtext', 'data' => ['html' =>
-                    '<p>Green Valley Model School, founded in 1985 in Natipota, Damurhuda, Chuadanga, is a traditional '
-                    . 'institution that has played an important role in spreading education for decades. Known for its '
-                    . 'dedicated teachers, well-planned curriculum, and disciplined learning environment, the school gives '
-                    . 'equal importance to academic excellence and the moral and physical development of its students.</p>']],
+                ['type' => 'richtext', 'data' => ['html' => '<p>Green Valley Model School, founded in 1985 in Natipota, Damurhuda, Chuadanga, is a traditional '
+                    .'institution that has played an important role in spreading education for decades. Known for its '
+                    .'dedicated teachers, well-planned curriculum, and disciplined learning environment, the school gives '
+                    .'equal importance to academic excellence and the moral and physical development of its students.</p>']],
             ],
             [
                 ['type' => 'quick_links', 'data' => ['heading' => 'Quick links', 'links' => $links]],
@@ -65,18 +65,16 @@ class WebsitePagesSeeder extends Seeder
 
         $this->page($sid, 'about', 'At a Glance', 'full', [
             ['type' => 'heading', 'data' => ['text' => 'At a glance']],
-            ['type' => 'richtext', 'data' => ['html' =>
-                '<p>We offer education from class Six to Ten with a focus on academic excellence, discipline, and '
-                . 'character. Our campus provides a safe, supportive environment where every student can thrive.</p>']],
+            ['type' => 'richtext', 'data' => ['html' => '<p>We offer education from class Six to Ten with a focus on academic excellence, discipline, and '
+                .'character. Our campus provides a safe, supportive environment where every student can thrive.</p>']],
             ['type' => 'stats', 'data' => ['heading' => 'Our school in numbers']],
         ]);
 
         $this->page($sid, 'mission', 'Mission & Vision', 'full', [
             ['type' => 'heading', 'data' => ['text' => 'Mission & vision']],
-            ['type' => 'richtext', 'data' => ['html' =>
-                '<h5>Our mission</h5><p>To nurture curious minds and build a community of lifelong learners through '
-                . 'quality education and strong values.</p><h5>Our vision</h5><p>To be a leading institution recognised '
-                . 'for academic excellence, integrity, and service to the community.</p>']],
+            ['type' => 'richtext', 'data' => ['html' => '<h5>Our mission</h5><p>To nurture curious minds and build a community of lifelong learners through '
+                .'quality education and strong values.</p><h5>Our vision</h5><p>To be a leading institution recognised '
+                .'for academic excellence, integrity, and service to the community.</p>']],
         ]);
 
         $this->page($sid, 'administration', 'Administration', 'full', [
@@ -97,9 +95,8 @@ class WebsitePagesSeeder extends Seeder
         // ── Online admission ────────────────────────────────────────────────
         $this->page($sid, 'online-admission', 'Online Admission', 'full', [
             ['type' => 'heading', 'data' => ['text' => 'Online admission']],
-            ['type' => 'richtext', 'data' => ['html' =>
-                '<p>Admission for the new academic year is now open for classes Six to Ten. '
-                . 'Please apply online or visit the school office during working hours.</p>']],
+            ['type' => 'richtext', 'data' => ['html' => '<p>Admission for the new academic year is now open for classes Six to Ten. '
+                .'Please apply online or visit the school office during working hours.</p>']],
             ['type' => 'admission_form', 'data' => ['heading' => 'Apply for admission', 'intro' => 'Start your online application below.']],
         ]);
 
@@ -185,14 +182,14 @@ class WebsitePagesSeeder extends Seeder
         );
 
         if ($isHomepage) {
-            \App\Modules\Website\Models\SiteSetting::where('school_id', $sid)->update(['homepage_page_id' => $page->id]);
+            SiteSetting::where('school_id', $sid)->update(['homepage_page_id' => $page->id]);
         }
 
         PageLayout::where('page_id', $page->id)->delete();
         PageLayout::create([
-            'school_id'    => $sid,
-            'page_id'      => $page->id,
-            'layout_json'  => ['template' => $template, 'blocks' => $blocks, 'sidebar' => $sidebar],
+            'school_id' => $sid,
+            'page_id' => $page->id,
+            'layout_json' => ['template' => $template, 'blocks' => $blocks, 'sidebar' => $sidebar],
             'is_published' => true,
             'published_at' => now(),
         ]);

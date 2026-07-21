@@ -7,6 +7,7 @@ use App\Modules\Payment\Models\StudentCredit;
 use App\Modules\School\Models\School;
 use App\Modules\School\Models\SchoolOpeningHour;
 use App\Modules\Student\Models\Student;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -24,7 +25,7 @@ class SchoolHoursCreditTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT',
@@ -60,7 +61,7 @@ class SchoolHoursCreditTest extends TestCase
         $student = Student::create(['school_id' => $this->school->id, 'name' => 'Payer', 'gender' => 'male', 'admission_number' => 'ADM-1', 'status' => 'active']);
 
         $this->get('/admin/student-credit')->assertOk();
-        $this->get('/admin/student-credit?student_id=' . $student->id)->assertOk();
+        $this->get('/admin/student-credit?student_id='.$student->id)->assertOk();
 
         // credit 500
         $this->post('/admin/student-credit/adjust', ['student_id' => $student->id, 'direction' => 'credit', 'amount' => 500, 'note' => 'Advance'])

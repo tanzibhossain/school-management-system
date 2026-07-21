@@ -3,6 +3,7 @@
 namespace App\Modules\Mark\Models;
 
 use App\Modules\Examination\Models\Exam;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -21,7 +22,7 @@ class ExamWeight extends Model
         return $this->belongsTo(Exam::class);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForClassYear($query, int $schoolId, int $classId, int $yearId): void
     {
         $query->where('school_id', $schoolId)

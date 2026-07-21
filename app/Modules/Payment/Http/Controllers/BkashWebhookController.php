@@ -21,7 +21,7 @@ class BkashWebhookController extends Controller
     public function callback(Request $request): JsonResponse
     {
         $paymentId = $request->query('paymentID');
-        $status    = $request->query('status');
+        $status = $request->query('status');
 
         if ($status !== 'success' || ! $paymentId) {
             Log::warning('bKash callback failed', $request->query());

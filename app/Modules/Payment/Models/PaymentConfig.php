@@ -18,9 +18,9 @@ class PaymentConfig extends Model
 
     protected $casts = [
         // Generic gateway store: { slug: { enabled, fee_pct, credentials: {} } }
-        'gateways'          => 'encrypted:array',
-        'invoice_last_seq'  => 'integer',
-        'receipt_last_seq'  => 'integer',
+        'gateways' => 'encrypted:array',
+        'invoice_last_seq' => 'integer',
+        'receipt_last_seq' => 'integer',
         'bounce_fee_amount' => 'decimal:2',
     ];
 

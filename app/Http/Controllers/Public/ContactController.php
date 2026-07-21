@@ -20,9 +20,9 @@ class ContactController extends Controller
         abort_unless($school, 404);
 
         $data = $request->validate([
-            'name'    => ['required', 'string', 'max:150'],
-            'email'   => ['nullable', 'email', 'max:150'],
-            'phone'   => ['nullable', 'string', 'max:30'],
+            'name' => ['required', 'string', 'max:150'],
+            'email' => ['nullable', 'email', 'max:150'],
+            'phone' => ['nullable', 'string', 'max:30'],
             'subject' => ['nullable', 'string', 'max:200'],
             'message' => ['required', 'string', 'max:5000'],
         ]);

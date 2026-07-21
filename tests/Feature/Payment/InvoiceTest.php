@@ -11,6 +11,7 @@ use App\Modules\Payment\Models\Invoice;
 use App\Modules\Payment\Models\StudentCredit;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,24 +20,28 @@ class InvoiceTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private School $school;
+
     private AcademicYear $year;
+
     private SchoolClass $class;
+
     private Student $student;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
-        $this->school  = School::create(['name' => 'Test School', 'is_active' => true]);
-        $this->admin   = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
+        $this->school = School::create(['name' => 'Test School', 'is_active' => true]);
+        $this->admin = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
         $this->admin->assignRole('admin');
 
         $this->year = AcademicYear::create([
-            'school_id'  => $this->school->id,
-            'year'       => '2026',
+            'school_id' => $this->school->id,
+            'year' => '2026',
             'is_current' => true,
         ]);
 
@@ -45,12 +50,12 @@ class InvoiceTest extends TestCase
         $studentUser = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
 
         $this->student = Student::create([
-            'school_id'        => $this->school->id,
-            'user_id'          => $studentUser->id,
+            'school_id' => $this->school->id,
+            'user_id' => $studentUser->id,
             'admission_number' => 'ADM-2026-001',
-            'name'             => 'Test Student',
-            'gender'           => 'male',
-            'status'           => 'active',
+            'name' => 'Test Student',
+            'gender' => 'male',
+            'status' => 'active',
         ]);
     }
 
@@ -64,15 +69,15 @@ class InvoiceTest extends TestCase
         $category = FeeCategory::create(['school_id' => $this->school->id, 'name' => 'Academic']);
 
         return FeeItem::create([
-            'school_id'        => $this->school->id,
-            'category_id'      => $category->id,
+            'school_id' => $this->school->id,
+            'category_id' => $category->id,
             'academic_year_id' => $this->year->id,
-            'class_id'         => null,  // school-wide; student has no academic record in tests
-            'name'             => 'Tuition Fee',
-            'amount'           => $amount,
-            'frequency'        => 'monthly',
-            'is_mandatory'     => true,
-            'is_active'        => true,
+            'class_id' => null,  // school-wide; student has no academic record in tests
+            'name' => 'Tuition Fee',
+            'amount' => $amount,
+            'frequency' => 'monthly',
+            'is_mandatory' => true,
+            'is_active' => true,
         ]);
     }
 
@@ -84,19 +89,19 @@ class InvoiceTest extends TestCase
 
         $this->withToken($this->token())
             ->postJson('/api/v2/invoices/generate', [
-                'student_id'       => $this->student->id,
+                'student_id' => $this->student->id,
                 'academic_year_id' => $this->year->id,
-                'month'            => 1,
-                'due_date'         => '2026-01-31',
+                'month' => 1,
+                'due_date' => '2026-01-31',
             ])
             ->assertCreated()
             ->assertJsonFragment(['student_id' => $this->student->id]);
 
         $this->assertDatabaseHas('invoices', [
-            'school_id'  => $this->school->id,
+            'school_id' => $this->school->id,
             'student_id' => $this->student->id,
-            'month'      => 1,
-            'status'     => 'unpaid',
+            'month' => 1,
+            'status' => 'unpaid',
         ]);
     }
 
@@ -106,10 +111,10 @@ class InvoiceTest extends TestCase
         $token = $this->token();
 
         $payload = [
-            'student_id'       => $this->student->id,
+            'student_id' => $this->student->id,
             'academic_year_id' => $this->year->id,
-            'month'            => 2,
-            'due_date'         => '2026-02-28',
+            'month' => 2,
+            'due_date' => '2026-02-28',
         ];
 
         $this->withToken($token)->postJson('/api/v2/invoices/generate', $payload)->assertCreated();
@@ -123,15 +128,15 @@ class InvoiceTest extends TestCase
     public function test_admin_can_list_invoices(): void
     {
         Invoice::create([
-            'school_id'        => $this->school->id,
-            'student_id'       => $this->student->id,
+            'school_id' => $this->school->id,
+            'student_id' => $this->student->id,
             'academic_year_id' => $this->year->id,
-            'invoice_number'   => 'INV-2026-00001',
-            'credit_applied'   => 0,
-            'amount_due'       => 5000,
-            'status'           => 'unpaid',
-            'due_date'         => '2026-01-31',
-            'issued_by'        => $this->admin->id,
+            'invoice_number' => 'INV-2026-00001',
+            'credit_applied' => 0,
+            'amount_due' => 5000,
+            'status' => 'unpaid',
+            'due_date' => '2026-01-31',
+            'issued_by' => $this->admin->id,
         ]);
 
         $this->withToken($this->token())
@@ -143,15 +148,15 @@ class InvoiceTest extends TestCase
     public function test_admin_can_show_invoice(): void
     {
         $invoice = Invoice::create([
-            'school_id'        => $this->school->id,
-            'student_id'       => $this->student->id,
+            'school_id' => $this->school->id,
+            'student_id' => $this->student->id,
             'academic_year_id' => $this->year->id,
-            'invoice_number'   => 'INV-2026-00001',
-            'credit_applied'   => 0,
-            'amount_due'       => 5000,
-            'status'           => 'unpaid',
-            'due_date'         => '2026-01-31',
-            'issued_by'        => $this->admin->id,
+            'invoice_number' => 'INV-2026-00001',
+            'credit_applied' => 0,
+            'amount_due' => 5000,
+            'status' => 'unpaid',
+            'due_date' => '2026-01-31',
+            'issued_by' => $this->admin->id,
         ]);
 
         $this->withToken($this->token())
@@ -163,15 +168,15 @@ class InvoiceTest extends TestCase
     public function test_admin_can_cancel_invoice(): void
     {
         $invoice = Invoice::create([
-            'school_id'        => $this->school->id,
-            'student_id'       => $this->student->id,
+            'school_id' => $this->school->id,
+            'student_id' => $this->student->id,
             'academic_year_id' => $this->year->id,
-            'invoice_number'   => 'INV-2026-00001',
-            'credit_applied'   => 0,
-            'amount_due'       => 5000,
-            'status'           => 'unpaid',
-            'due_date'         => '2026-01-31',
-            'issued_by'        => $this->admin->id,
+            'invoice_number' => 'INV-2026-00001',
+            'credit_applied' => 0,
+            'amount_due' => 5000,
+            'status' => 'unpaid',
+            'due_date' => '2026-01-31',
+            'issued_by' => $this->admin->id,
         ]);
 
         $this->withToken($this->token())
@@ -185,15 +190,15 @@ class InvoiceTest extends TestCase
     public function test_admin_can_waive_invoice(): void
     {
         $invoice = Invoice::create([
-            'school_id'        => $this->school->id,
-            'student_id'       => $this->student->id,
+            'school_id' => $this->school->id,
+            'student_id' => $this->student->id,
             'academic_year_id' => $this->year->id,
-            'invoice_number'   => 'INV-2026-00001',
-            'credit_applied'   => 0,
-            'amount_due'       => 5000,
-            'status'           => 'unpaid',
-            'due_date'         => '2026-01-31',
-            'issued_by'        => $this->admin->id,
+            'invoice_number' => 'INV-2026-00001',
+            'credit_applied' => 0,
+            'amount_due' => 5000,
+            'status' => 'unpaid',
+            'due_date' => '2026-01-31',
+            'issued_by' => $this->admin->id,
         ]);
 
         $this->withToken($this->token())
@@ -205,16 +210,16 @@ class InvoiceTest extends TestCase
     public function test_cannot_cancel_paid_invoice(): void
     {
         $invoice = Invoice::create([
-            'school_id'        => $this->school->id,
-            'student_id'       => $this->student->id,
+            'school_id' => $this->school->id,
+            'student_id' => $this->student->id,
             'academic_year_id' => $this->year->id,
-            'invoice_number'   => 'INV-2026-00001',
-            'credit_applied'   => 0,
-            'amount_paid'      => 5000,
-            'amount_due'       => 5000,
-            'status'           => 'paid',
-            'due_date'         => '2026-01-31',
-            'issued_by'        => $this->admin->id,
+            'invoice_number' => 'INV-2026-00001',
+            'credit_applied' => 0,
+            'amount_paid' => 5000,
+            'amount_due' => 5000,
+            'status' => 'paid',
+            'due_date' => '2026-01-31',
+            'issued_by' => $this->admin->id,
         ]);
 
         $this->withToken($this->token())
@@ -228,17 +233,17 @@ class InvoiceTest extends TestCase
 
         // Give student 1000 credit
         StudentCredit::create([
-            'school_id'  => $this->school->id,
+            'school_id' => $this->school->id,
             'student_id' => $this->student->id,
-            'balance'    => 1000,
+            'balance' => 1000,
         ]);
 
         $response = $this->withToken($this->token())
             ->postJson('/api/v2/invoices/generate', [
-                'student_id'       => $this->student->id,
+                'student_id' => $this->student->id,
                 'academic_year_id' => $this->year->id,
-                'month'            => 3,
-                'due_date'         => '2026-03-31',
+                'month' => 3,
+                'due_date' => '2026-03-31',
             ])
             ->assertCreated();
 
@@ -252,15 +257,15 @@ class InvoiceTest extends TestCase
         $studentUser->assignRole('student');
 
         Invoice::create([
-            'school_id'        => $this->school->id,
-            'student_id'       => $this->student->id,
+            'school_id' => $this->school->id,
+            'student_id' => $this->student->id,
             'academic_year_id' => $this->year->id,
-            'invoice_number'   => 'INV-2026-00001',
-            'credit_applied'   => 0,
-            'amount_due'       => 5000,
-            'status'           => 'unpaid',
-            'due_date'         => '2026-01-31',
-            'issued_by'        => $this->admin->id,
+            'invoice_number' => 'INV-2026-00001',
+            'credit_applied' => 0,
+            'amount_due' => 5000,
+            'status' => 'unpaid',
+            'due_date' => '2026-01-31',
+            'issued_by' => $this->admin->id,
         ]);
 
         $token = $studentUser->createToken('test', ['student:*'])->plainTextToken;

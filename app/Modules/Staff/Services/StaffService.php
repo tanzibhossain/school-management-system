@@ -26,7 +26,7 @@ class StaffService extends BaseService
     /**
      * Hire a new staff member: generate employee ID, create record, fire event.
      *
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function hire(int $schoolId, array $data): Staff
     {
@@ -34,9 +34,9 @@ class StaffService extends BaseService
             $employeeId = $this->idGenerator->generate($schoolId);
 
             $staff = Staff::create(array_merge($data, [
-                'school_id'   => $schoolId,
+                'school_id' => $schoolId,
                 'employee_id' => $employeeId,
-                'status'      => 'active',
+                'status' => 'active',
             ]));
 
             event(new StaffHired($staff));
@@ -48,7 +48,7 @@ class StaffService extends BaseService
     /**
      * Assign a staff member to a class/section for a given academic year.
      *
-     * @param array<string, mixed> $data {academic_year_id, class_id, section_id, subject, is_class_teacher}
+     * @param  array<string, mixed>  $data  {academic_year_id, class_id, section_id, subject, is_class_teacher}
      */
     public function assign(Staff $staff, array $data): StaffAcademic
     {
@@ -70,7 +70,7 @@ class StaffService extends BaseService
 
         $academic = StaffAcademic::create(array_merge($data, [
             'school_id' => $staff->school_id,
-            'staff_id'  => $staff->id,
+            'staff_id' => $staff->id,
         ]));
 
         $this->repository->flush();
@@ -106,16 +106,16 @@ class StaffService extends BaseService
      * Re-hire a previously terminated/resigned staff member.
      * Reuses the existing record and employee_id; increments re_hire_count.
      *
-     * @param array<string, mixed> $data  {joining_date, employment_type, designation_id, department_id, basic_salary}
+     * @param  array<string, mixed>  $data  {joining_date, employment_type, designation_id, department_id, basic_salary}
      */
     public function reHire(Staff $staff, array $data): Staff
     {
         return DB::transaction(function () use ($staff, $data): Staff {
             $staff->increment('re_hire_count');
             $staff->update(array_merge($data, [
-                'status'       => 'active',
+                'status' => 'active',
                 'leaving_date' => null,
-                'is_trash'     => false,
+                'is_trash' => false,
             ]));
 
             $this->repository->flush();

@@ -26,8 +26,8 @@ class TestimonialController extends Controller
 
         return view('admin.certificates.testimonials.index', [
             'testimonials' => Testimonial::where('school_id', $schoolId)->with('student:id,name,student_id')->orderByDesc('id')->limit(500)->get(),
-            'students'     => Student::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name', 'student_id']),
-            'templates'    => TestimonialTemplate::where('school_id', $schoolId)->orderBy('name')->get(['id', 'name']),
+            'students' => Student::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name', 'student_id']),
+            'templates' => TestimonialTemplate::where('school_id', $schoolId)->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -36,8 +36,8 @@ class TestimonialController extends Controller
         $schoolId = app('current_school_id');
 
         $data = $request->validate([
-            'student_id'     => ['required', 'integer', "exists:students,id,school_id,{$schoolId}"],
-            'template_id'    => ['nullable', 'integer', "exists:testimonial_templates,id,school_id,{$schoolId}"],
+            'student_id' => ['required', 'integer', "exists:students,id,school_id,{$schoolId}"],
+            'template_id' => ['nullable', 'integer', "exists:testimonial_templates,id,school_id,{$schoolId}"],
             'conduct_remark' => ['required', 'string', 'max:500'],
         ], [], ['template_id' => 'template', 'conduct_remark' => 'conduct remark']);
 
@@ -54,8 +54,8 @@ class TestimonialController extends Controller
         $bytes = $this->pdf->renderToPdf($this->testimonials->render($testimonial));
 
         return response($bytes, 200, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="testimonial-' . $testimonial->id . '.pdf"',
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="testimonial-'.$testimonial->id.'.pdf"',
         ]);
     }
 }

@@ -24,10 +24,10 @@ class IdCardBatchController extends Controller
         $schoolId = app('current_school_id');
 
         return view('admin.certificates.id-cards.index', [
-            'batches'   => IdCardBatch::where('school_id', $schoolId)->with('template:id,name')->withCount('files')->orderByDesc('id')->limit(500)->get(),
+            'batches' => IdCardBatch::where('school_id', $schoolId)->with('template:id,name')->withCount('files')->orderByDesc('id')->limit(500)->get(),
             'templates' => IdCardTemplate::where('school_id', $schoolId)->orderBy('name')->get(['id', 'name', 'type']),
-            'classes'   => SchoolClass::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
-            'sections'  => Section::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name', 'class_id']),
+            'classes' => SchoolClass::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
+            'sections' => Section::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name', 'class_id']),
         ]);
     }
 
@@ -36,11 +36,11 @@ class IdCardBatchController extends Controller
         $schoolId = app('current_school_id');
 
         $data = $request->validate([
-            'type'        => ['required', 'in:student,staff'],
+            'type' => ['required', 'in:student,staff'],
             'template_id' => ['required', 'integer', "exists:id_card_templates,id,school_id,{$schoolId}"],
-            'scope'       => ['required', 'in:class,all'],
-            'class_id'    => ['nullable', 'required_if:scope,class', 'integer', "exists:classes,id,school_id,{$schoolId}"],
-            'section_id'  => ['nullable', 'integer', "exists:sections,id,school_id,{$schoolId}"],
+            'scope' => ['required', 'in:class,all'],
+            'class_id' => ['nullable', 'required_if:scope,class', 'integer', "exists:classes,id,school_id,{$schoolId}"],
+            'section_id' => ['nullable', 'integer', "exists:sections,id,school_id,{$schoolId}"],
         ]);
 
         $batch = $this->batches->request(
@@ -70,8 +70,8 @@ class IdCardBatchController extends Controller
         abort_unless($file->file_path && Storage::disk('minio')->exists($file->file_path), 404);
 
         return response(Storage::disk('minio')->get($file->file_path), 200, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="id-cards-' . $id . '-' . $file->file_index . '.pdf"',
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="id-cards-'.$id.'-'.$file->file_index.'.pdf"',
         ]);
     }
 }

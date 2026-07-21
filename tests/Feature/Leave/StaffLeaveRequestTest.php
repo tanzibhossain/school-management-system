@@ -12,9 +12,9 @@ class StaffLeaveRequestTest extends LeaveTestCase
     {
         return array_merge([
             'leave_type_id' => $this->staffLeaveType->id,
-            'from_date'     => self::FROM,
-            'to_date'       => self::TO,
-            'reason'        => 'Personal matter',
+            'from_date' => self::FROM,
+            'to_date' => self::TO,
+            'reason' => 'Personal matter',
         ], $overrides);
     }
 

@@ -30,17 +30,17 @@ class AnnouncementController extends Controller
         $publishNow = $request->boolean('publish_now');
 
         $announcement = $this->announcements->make(app('current_school_id'), $request->user(), [
-            'title'      => $data['title'],
-            'body'       => $data['body'],
-            'type'       => $data['type'],
-            'audience'   => $data['audience'],
-            'priority'   => $data['priority'],
-            'is_pinned'  => $request->boolean('is_pinned'),
+            'title' => $data['title'],
+            'body' => $data['body'],
+            'type' => $data['type'],
+            'audience' => $data['audience'],
+            'priority' => $data['priority'],
+            'is_pinned' => $request->boolean('is_pinned'),
             'publish_at' => $publishNow ? now() : ($data['publish_at'] ?? null),
-            'expire_at'  => $data['expire_at'] ?? null,
+            'expire_at' => $data['expire_at'] ?? null,
         ]);
 
-        return back()->with('status', 'Announcement ' . ($publishNow ? 'published.' : 'saved as draft.'));
+        return back()->with('status', 'Announcement '.($publishNow ? 'published.' : 'saved as draft.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -49,11 +49,11 @@ class AnnouncementController extends Controller
         $data = $this->validated($request);
 
         $announcement->update([
-            'title'     => $data['title'],
-            'body'      => $data['body'],
-            'type'      => $data['type'],
-            'audience'  => $data['audience'],
-            'priority'  => $data['priority'],
+            'title' => $data['title'],
+            'body' => $data['body'],
+            'type' => $data['type'],
+            'audience' => $data['audience'],
+            'priority' => $data['priority'],
             'is_pinned' => $request->boolean('is_pinned'),
             'expire_at' => $data['expire_at'] ?? null,
         ]); // AnnouncementObserver flushes cache
@@ -93,13 +93,13 @@ class AnnouncementController extends Controller
     private function validated(Request $request): array
     {
         return $request->validate([
-            'title'      => ['required', 'string', 'max:200'],
-            'body'       => ['required', 'string'],
-            'type'       => ['required', 'in:general,event,holiday,exam,fee,other'],
-            'audience'   => ['required', 'in:all,teachers,students,parents'],
-            'priority'   => ['required', 'in:normal,important,urgent'],
+            'title' => ['required', 'string', 'max:200'],
+            'body' => ['required', 'string'],
+            'type' => ['required', 'in:general,event,holiday,exam,fee,other'],
+            'audience' => ['required', 'in:all,teachers,students,parents'],
+            'priority' => ['required', 'in:normal,important,urgent'],
             'publish_at' => ['nullable', 'date'],
-            'expire_at'  => ['nullable', 'date', 'after:publish_at'],
+            'expire_at' => ['nullable', 'date', 'after:publish_at'],
         ]);
     }
 }

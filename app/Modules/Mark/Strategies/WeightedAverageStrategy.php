@@ -20,12 +20,12 @@ class WeightedAverageStrategy implements ResultStrategy
         }
 
         $obtained = $units->sum(fn ($u) => (float) $u['obtained']);
-        $pct      = round(($obtained / $possible) * 100, 2);
+        $pct = round(($obtained / $possible) * 100, 2);
         $resolved = GradeResolver::byPercentage($boundaries, $pct);
 
         return [
-            'gpa'     => $resolved['gpa_point'],
-            'grade'   => $resolved['grade'],
+            'gpa' => $resolved['gpa_point'],
+            'grade' => $resolved['grade'],
             'is_pass' => ! $units->contains(fn ($u) => ! $u['is_pass']),
         ];
     }

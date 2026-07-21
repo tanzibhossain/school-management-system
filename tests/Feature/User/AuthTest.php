@@ -14,7 +14,8 @@ class AuthTest extends TestCase
     use RefreshDatabase;
 
     private School $school;
-    private User   $user;
+
+    private User $user;
 
     protected function setUp(): void
     {
@@ -27,9 +28,9 @@ class AuthTest extends TestCase
 
         $this->user = User::create([
             'school_id' => $this->school->id,
-            'name'      => 'Test Admin',
-            'email'     => 'admin@test.com',
-            'password'  => bcrypt('password123'),
+            'name' => 'Test Admin',
+            'email' => 'admin@test.com',
+            'password' => bcrypt('password123'),
             'is_active' => true,
         ]);
         $this->user->assignRole('admin');
@@ -38,8 +39,8 @@ class AuthTest extends TestCase
     public function test_login_returns_token_with_valid_credentials(): void
     {
         $response = $this->postJson('/api/v2/auth/login', [
-            'email'       => 'admin@test.com',
-            'password'    => 'password123',
+            'email' => 'admin@test.com',
+            'password' => 'password123',
             'device_name' => 'Test Device',
         ]);
 
@@ -50,7 +51,7 @@ class AuthTest extends TestCase
     public function test_login_fails_with_wrong_password(): void
     {
         $response = $this->postJson('/api/v2/auth/login', [
-            'email'    => 'admin@test.com',
+            'email' => 'admin@test.com',
             'password' => 'wrong-password',
         ]);
 
@@ -64,13 +65,13 @@ class AuthTest extends TestCase
 
         for ($i = 0; $i < 3; $i++) {
             $this->postJson('/api/v2/auth/login', [
-                'email'    => 'admin@test.com',
+                'email' => 'admin@test.com',
                 'password' => 'wrong-password',
             ]);
         }
 
         $response = $this->postJson('/api/v2/auth/login', [
-            'email'    => 'admin@test.com',
+            'email' => 'admin@test.com',
             'password' => 'password123', // correct — but locked
         ]);
 
@@ -84,20 +85,20 @@ class AuthTest extends TestCase
         // 2 failed attempts
         for ($i = 0; $i < 2; $i++) {
             $this->postJson('/api/v2/auth/login', [
-                'email'    => 'admin@test.com',
+                'email' => 'admin@test.com',
                 'password' => 'wrong-password',
             ]);
         }
 
         // Successful login should clear the counter
         $this->postJson('/api/v2/auth/login', [
-            'email'    => 'admin@test.com',
+            'email' => 'admin@test.com',
             'password' => 'password123',
         ])->assertOk();
 
         // Should be able to attempt again without lockout
         $response = $this->postJson('/api/v2/auth/login', [
-            'email'    => 'admin@test.com',
+            'email' => 'admin@test.com',
             'password' => 'wrong-password',
         ]);
 
@@ -109,7 +110,7 @@ class AuthTest extends TestCase
         $this->user->update(['is_active' => false]);
 
         $response = $this->postJson('/api/v2/auth/login', [
-            'email'    => 'admin@test.com',
+            'email' => 'admin@test.com',
             'password' => 'password123',
         ]);
 
@@ -120,8 +121,8 @@ class AuthTest extends TestCase
     public function test_remember_me_sets_longer_expiry(): void
     {
         $normal = $this->postJson('/api/v2/auth/login', [
-            'email'       => 'admin@test.com',
-            'password'    => 'password123',
+            'email' => 'admin@test.com',
+            'password' => 'password123',
             'remember_me' => false,
         ]);
 
@@ -129,12 +130,12 @@ class AuthTest extends TestCase
         RateLimiter::clear('login:admin@test.com|127.0.0.1');
 
         $remember = $this->postJson('/api/v2/auth/login', [
-            'email'       => 'admin@test.com',
-            'password'    => 'password123',
+            'email' => 'admin@test.com',
+            'password' => 'password123',
             'remember_me' => true,
         ]);
 
-        $normalExpiry  = $normal->json('expires_at');
+        $normalExpiry = $normal->json('expires_at');
         $rememberExpiry = $remember->json('expires_at');
 
         $this->assertNotNull($normalExpiry);
@@ -216,12 +217,12 @@ class AuthTest extends TestCase
     public function test_login_history_is_recorded_on_success(): void
     {
         $this->postJson('/api/v2/auth/login', [
-            'email'    => 'admin@test.com',
+            'email' => 'admin@test.com',
             'password' => 'password123',
         ]);
 
         $this->assertDatabaseHas('login_histories', [
-            'email'  => 'admin@test.com',
+            'email' => 'admin@test.com',
             'status' => 'success',
         ]);
     }
@@ -229,12 +230,12 @@ class AuthTest extends TestCase
     public function test_login_history_is_recorded_on_failure(): void
     {
         $this->postJson('/api/v2/auth/login', [
-            'email'    => 'admin@test.com',
+            'email' => 'admin@test.com',
             'password' => 'wrong-password',
         ]);
 
         $this->assertDatabaseHas('login_histories', [
-            'email'  => 'admin@test.com',
+            'email' => 'admin@test.com',
             'status' => 'failed',
         ]);
     }

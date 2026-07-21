@@ -28,11 +28,11 @@ class HomeController extends Controller
 
         if (! $school) {
             return view('public.home', [
-                'school'   => null,
+                'school' => null,
                 'settings' => new SiteSetting,
-                'notices'  => new Collection,
-                'staff'    => new Collection,
-                'stats'    => ['active_students' => 0, 'active_staff' => 0],
+                'notices' => new Collection,
+                'staff' => new Collection,
+                'stats' => ['active_students' => 0, 'active_staff' => 0],
             ]);
         }
 
@@ -42,20 +42,20 @@ class HomeController extends Controller
 
         if ($home && $layout) {
             return view('public.page', [
-                'page'     => $home,
-                'view'     => $this->render->buildView($school->id, $layout->layout_json),
+                'page' => $home,
+                'view' => $this->render->buildView($school->id, $layout->layout_json),
                 'settings' => SiteSetting::forSchool($school->id),
-                'school'   => $school,
+                'school' => $school,
             ]);
         }
 
         // Fallback: default landing built from live data.
         return view('public.home', [
-            'school'   => $school,
+            'school' => $school,
             'settings' => SiteSetting::forSchool($school->id),
-            'notices'  => $this->portal->notices($school->id),
-            'staff'    => $this->portal->staffList($school->id),
-            'stats'    => $this->portal->stats($school->id),
+            'notices' => $this->portal->notices($school->id),
+            'staff' => $this->portal->staffList($school->id),
+            'stats' => $this->portal->stats($school->id),
         ]);
     }
 }

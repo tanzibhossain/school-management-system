@@ -14,7 +14,7 @@ class BookTest extends LibraryTestCase
             'isbn' => '9780132350884',
             'total_copies' => 3,
         ], [
-            'Authorization' => 'Bearer ' . $this->adminToken(),
+            'Authorization' => 'Bearer '.$this->adminToken(),
         ]);
 
         $response->assertStatus(201);
@@ -39,7 +39,7 @@ class BookTest extends LibraryTestCase
             'isbn' => '9780201485677',
             'total_copies' => 7,
         ], [
-            'Authorization' => 'Bearer ' . $this->adminToken(),
+            'Authorization' => 'Bearer '.$this->adminToken(),
         ]);
 
         $response->assertStatus(200);

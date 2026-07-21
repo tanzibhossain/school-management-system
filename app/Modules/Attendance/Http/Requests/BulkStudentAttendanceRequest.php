@@ -18,13 +18,13 @@ class BulkStudentAttendanceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'class_id'            => ['required', 'integer', 'exists:classes,id'],
-            'section_id'          => ['nullable', 'integer', 'exists:sections,id'],
-            'date'                => ['required', 'date_format:Y-m-d'],
-            'entries'             => ['required', 'array', 'min:1'],
+            'class_id' => ['required', 'integer', 'exists:classes,id'],
+            'section_id' => ['nullable', 'integer', 'exists:sections,id'],
+            'date' => ['required', 'date_format:Y-m-d'],
+            'entries' => ['required', 'array', 'min:1'],
             'entries.*.student_id' => ['required', 'integer', 'exists:students,id'],
-            'entries.*.status'    => ['required', Rule::in(StudentAttendance::STATUSES)],
-            'entries.*.note'      => ['nullable', 'string', 'max:255'],
+            'entries.*.status' => ['required', Rule::in(StudentAttendance::STATUSES)],
+            'entries.*.note' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

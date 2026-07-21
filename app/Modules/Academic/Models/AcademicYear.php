@@ -2,8 +2,8 @@
 
 namespace App\Modules\Academic\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class AcademicYear extends Model
 {
@@ -11,7 +11,7 @@ class AcademicYear extends Model
 
     protected $casts = [
         'is_current' => 'boolean',
-        'is_trash'   => 'boolean',
+        'is_trash' => 'boolean',
     ];
 
     /** @param  Builder<AcademicYear>  $query */

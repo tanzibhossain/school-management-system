@@ -17,14 +17,14 @@ class AdminSeeder extends Seeder
             ['email' => 'admin@school.edu.bd'],
             [
                 'school_id' => $school?->id,
-                'name'      => 'System Admin',
-                'password'  => Hash::make('Admin@1234'),
+                'name' => 'System Admin',
+                'password' => Hash::make('Admin@1234'),
                 'is_active' => true,
             ]
         );
 
         $admin->syncRoles(['admin']);
 
-        $this->command->info("Admin user ready — email: admin@school.edu.bd / password: Admin@1234");
+        $this->command->info('Admin user ready — email: admin@school.edu.bd / password: Admin@1234');
     }
 }

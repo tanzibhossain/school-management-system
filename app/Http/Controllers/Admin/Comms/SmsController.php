@@ -21,8 +21,8 @@ class SmsController extends Controller
         $schoolId = app('current_school_id');
 
         return view('admin.comms.sms.index', [
-            'batches'  => SmsBatch::where('school_id', $schoolId)->orderByDesc('id')->limit(200)->get(),
-            'classes'  => SchoolClass::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
+            'batches' => SmsBatch::where('school_id', $schoolId)->orderByDesc('id')->limit(200)->get(),
+            'classes' => SchoolClass::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
             'sections' => Section::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name', 'class_id']),
         ]);
     }
@@ -39,15 +39,15 @@ class SmsController extends Controller
         $schoolId = app('current_school_id');
 
         $data = $request->validate([
-            'scope'      => ['required', 'in:all,class'],
-            'class_id'   => ['nullable', 'required_if:scope,class', 'integer', "exists:classes,id,school_id,{$schoolId}"],
+            'scope' => ['required', 'in:all,class'],
+            'class_id' => ['nullable', 'required_if:scope,class', 'integer', "exists:classes,id,school_id,{$schoolId}"],
             'section_id' => ['nullable', 'integer', "exists:sections,id,school_id,{$schoolId}"],
-            'body'       => ['required', 'string', 'max:1000'],
+            'body' => ['required', 'string', 'max:1000'],
         ]);
 
         $filters = [
-            'scope'      => $data['scope'],
-            'class_id'   => $data['class_id'] ?? null,
+            'scope' => $data['scope'],
+            'class_id' => $data['class_id'] ?? null,
             'section_id' => $data['section_id'] ?? null,
         ];
 

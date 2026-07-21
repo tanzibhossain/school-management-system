@@ -30,7 +30,7 @@ class MenuController extends Controller
         );
 
         return view('admin.website.menus.edit', [
-            'menu'  => $menu->load(['items.children.page', 'items.page']),
+            'menu' => $menu->load(['items.children.page', 'items.page']),
             'pages' => Page::forSchool($schoolId)->orderBy('title')->get(['id', 'title', 'slug', 'is_homepage']),
         ]);
     }
@@ -76,13 +76,13 @@ class MenuController extends Controller
             }
 
             $item = [
-                'label'         => mb_substr($label, 0, 150),
-                'type'          => $type,
-                'target'        => in_array($row['target'] ?? '', MenuItem::TARGETS, true) ? $row['target'] : '_self',
-                'page_id'       => $pageId,
-                'url'           => $type === 'external' ? (trim((string) ($row['url'] ?? '')) ?: null) : null,
+                'label' => mb_substr($label, 0, 150),
+                'type' => $type,
+                'target' => in_array($row['target'] ?? '', MenuItem::TARGETS, true) ? $row['target'] : '_self',
+                'page_id' => $pageId,
+                'url' => $type === 'external' ? (trim((string) ($row['url'] ?? '')) ?: null) : null,
                 'dynamic_route' => $type === 'dynamic' ? (trim((string) ($row['dynamic_route'] ?? '')) ?: null) : null,
-                'icon'          => trim((string) ($row['icon'] ?? '')) ?: null,
+                'icon' => trim((string) ($row['icon'] ?? '')) ?: null,
             ];
 
             if ($type === 'dropdown' && $depth === 0 && ! empty($row['children']) && is_array($row['children'])) {

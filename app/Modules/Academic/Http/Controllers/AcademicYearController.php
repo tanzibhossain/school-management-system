@@ -19,7 +19,7 @@ class AcademicYearController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $schoolId = app('current_school_id');
-        $years    = AcademicYear::where('school_id', $schoolId)->active()->orderByDesc('id')->get();
+        $years = AcademicYear::where('school_id', $schoolId)->active()->orderByDesc('id')->get();
 
         return AcademicYearResource::collection($years);
     }

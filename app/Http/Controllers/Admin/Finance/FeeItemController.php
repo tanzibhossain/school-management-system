@@ -27,10 +27,10 @@ class FeeItemController extends Controller
             ->get();
 
         return view('admin.finance.fee-items.index', [
-            'items'      => $items,
+            'items' => $items,
             'categories' => FeeCategory::where('school_id', $schoolId)->where('is_active', true)->orderBy('name')->get(['id', 'name']),
-            'years'      => AcademicYear::where('school_id', $schoolId)->where('is_trash', false)->orderByDesc('year')->get(['id', 'year']),
-            'classes'    => SchoolClass::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
+            'years' => AcademicYear::where('school_id', $schoolId)->where('is_trash', false)->orderByDesc('year')->get(['id', 'year']),
+            'classes' => SchoolClass::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -65,14 +65,14 @@ class FeeItemController extends Controller
     private function validated(Request $request, int $schoolId): array
     {
         $data = $request->validate([
-            'category_id'      => ['required', 'integer', "exists:fee_categories,id,school_id,{$schoolId}"],
+            'category_id' => ['required', 'integer', "exists:fee_categories,id,school_id,{$schoolId}"],
             'academic_year_id' => ['required', 'integer', "exists:academic_years,id,school_id,{$schoolId}"],
-            'class_id'         => ['nullable', 'integer', "exists:classes,id,school_id,{$schoolId}"],
-            'name'             => ['required', 'string', 'max:150'],
-            'amount'           => ['required', 'numeric', 'min:0'],
-            'frequency'        => ['required', 'in:monthly,quarterly,yearly,one_time'],
-            'due_day'          => ['nullable', 'integer', 'min:1', 'max:28'],
-            'is_mandatory'     => ['nullable', 'boolean'],
+            'class_id' => ['nullable', 'integer', "exists:classes,id,school_id,{$schoolId}"],
+            'name' => ['required', 'string', 'max:150'],
+            'amount' => ['required', 'numeric', 'min:0'],
+            'frequency' => ['required', 'in:monthly,quarterly,yearly,one_time'],
+            'due_day' => ['nullable', 'integer', 'min:1', 'max:28'],
+            'is_mandatory' => ['nullable', 'boolean'],
         ], [], ['category_id' => 'category', 'academic_year_id' => 'academic year', 'class_id' => 'class']);
 
         $data['is_mandatory'] = $request->boolean('is_mandatory');

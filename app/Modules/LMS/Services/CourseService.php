@@ -55,7 +55,7 @@ class CourseService
         $academic = $student->currentAcademic;
 
         if (! $academic) {
-            return new Collection();
+            return new Collection;
         }
 
         return $this->repository->forClass($schoolId, $academic->class_id);

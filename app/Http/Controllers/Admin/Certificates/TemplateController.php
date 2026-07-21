@@ -44,10 +44,10 @@ class TemplateController extends Controller
     {
         $schoolId = app('current_school_id');
         $data = $request->validate([
-            'name'                  => ['required', 'string', 'max:100'],
-            'template_body'         => ['required', 'string'],
-            'footer_text'           => ['nullable', 'string', 'max:500'],
-            'signatory_name'        => ['nullable', 'string', 'max:120'],
+            'name' => ['required', 'string', 'max:100'],
+            'template_body' => ['required', 'string'],
+            'footer_text' => ['nullable', 'string', 'max:500'],
+            'signatory_name' => ['nullable', 'string', 'max:120'],
             'signatory_designation' => ['nullable', 'string', 'max:120'],
         ]);
         $data['is_default'] = $request->boolean('is_default');

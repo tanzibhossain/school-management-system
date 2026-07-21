@@ -17,10 +17,10 @@ class UpdateMarkSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'mode'                => ['sometimes', Rule::in(MarkSetting::MODES)],
-            'result_strategy'     => ['sometimes', Rule::in(MarkSetting::STRATEGIES)],
+            'mode' => ['sometimes', Rule::in(MarkSetting::MODES)],
+            'result_strategy' => ['sometimes', Rule::in(MarkSetting::STRATEGIES)],
             'show_merit_position' => ['sometimes', 'boolean'],
-            'grace_marks_cap'     => ['sometimes', 'numeric', 'min:0', 'max:100'],
+            'grace_marks_cap' => ['sometimes', 'numeric', 'min:0', 'max:100'],
         ];
     }
 }

@@ -10,6 +10,7 @@ use App\Modules\School\Models\School;
 use App\Modules\Staff\Models\Designation;
 use App\Modules\Staff\Models\Staff;
 use App\Modules\Staff\Models\StaffIdConfig;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -18,36 +19,41 @@ class StaffTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private School $school;
+
     private AcademicYear $year;
+
     private SchoolClass $class;
+
     private Section $section;
+
     private Designation $designation;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
-        $this->school      = School::create(['name' => 'Test School', 'is_active' => true]);
-        $this->admin       = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
+        $this->school = School::create(['name' => 'Test School', 'is_active' => true]);
+        $this->admin = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
         $this->admin->assignRole('admin');
 
-        $this->year        = AcademicYear::create(['school_id' => $this->school->id, 'year' => '2026', 'is_current' => true, 'is_trash' => false]);
-        $this->class       = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 5', 'weight' => 5, 'is_trash' => false]);
-        $this->section     = Section::create(['school_id' => $this->school->id, 'class_id' => $this->class->id, 'name' => 'A', 'is_trash' => false]);
+        $this->year = AcademicYear::create(['school_id' => $this->school->id, 'year' => '2026', 'is_current' => true, 'is_trash' => false]);
+        $this->class = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 5', 'weight' => 5, 'is_trash' => false]);
+        $this->section = Section::create(['school_id' => $this->school->id, 'class_id' => $this->class->id, 'name' => 'A', 'is_trash' => false]);
         $this->designation = Designation::create(['school_id' => $this->school->id, 'name' => 'Teacher']);
 
         StaffIdConfig::create([
-            'school_id'       => $this->school->id,
-            'prefix'          => 'EMP',
-            'include_year'    => true,
-            'year_format'     => 'YYYY',
-            'separator'       => '/',
+            'school_id' => $this->school->id,
+            'prefix' => 'EMP',
+            'include_year' => true,
+            'year_format' => 'YYYY',
+            'separator' => '/',
             'sequence_length' => 4,
-            'reset_yearly'    => true,
-            'last_sequence'   => 0,
+            'reset_yearly' => true,
+            'last_sequence' => 0,
         ]);
     }
 
@@ -59,8 +65,8 @@ class StaffTest extends TestCase
     private function hirePayload(array $overrides = []): array
     {
         return array_merge([
-            'name'           => 'Rahim Uddin',
-            'gender'         => 'male',
+            'name' => 'Rahim Uddin',
+            'gender' => 'male',
             'employment_type' => 'permanent',
             'designation_id' => $this->designation->id,
         ], $overrides);
@@ -82,7 +88,7 @@ class StaffTest extends TestCase
             ->assertCreated();
 
         $staff = Staff::where('name', 'Rahim Uddin')->first();
-        $year  = now()->format('Y');
+        $year = now()->format('Y');
 
         $this->assertNotNull($staff->employee_id);
         $this->assertStringStartsWith("EMP/{$year}/", $staff->employee_id);
@@ -99,9 +105,9 @@ class StaffTest extends TestCase
         $this->withToken($this->token())
             ->postJson("/api/v2/staff/{$staff->id}/academics", [
                 'academic_year_id' => $this->year->id,
-                'class_id'         => $this->class->id,
-                'section_id'       => $this->section->id,
-                'subject'          => 'Mathematics',
+                'class_id' => $this->class->id,
+                'section_id' => $this->section->id,
+                'subject' => 'Mathematics',
                 'is_class_teacher' => false,
             ])
             ->assertCreated();
@@ -128,8 +134,8 @@ class StaffTest extends TestCase
 
         $assignPayload = [
             'academic_year_id' => $this->year->id,
-            'class_id'         => $this->class->id,
-            'section_id'       => $this->section->id,
+            'class_id' => $this->class->id,
+            'section_id' => $this->section->id,
             'is_class_teacher' => true,
         ];
 
@@ -199,7 +205,7 @@ class StaffTest extends TestCase
         // Rehire
         $this->withToken($this->token())
             ->postJson("/api/v2/staff/{$staff->id}/re-hire", [
-                'joining_date'    => now()->toDateString(),
+                'joining_date' => now()->toDateString(),
                 'employment_type' => 'contractual',
             ])
             ->assertOk()

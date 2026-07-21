@@ -27,8 +27,8 @@ class ReportController extends Controller
 
         $filters = $request->validate([
             'date_from' => ['nullable', 'date'],
-            'date_to'   => ['nullable', 'date', 'after_or_equal:date_from'],
-            'format'    => ['nullable', 'in:pdf'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+            'format' => ['nullable', 'in:pdf'],
         ]);
         $from = $filters['date_from'] ?? now()->startOfMonth()->format('Y-m-d');
         $to = $filters['date_to'] ?? now()->format('Y-m-d');
@@ -53,7 +53,7 @@ class ReportController extends Controller
 
         $filters = $request->validate([
             'class_id' => ['nullable', 'integer', "exists:classes,id,school_id,{$schoolId}"],
-            'format'   => ['nullable', 'in:pdf'],
+            'format' => ['nullable', 'in:pdf'],
         ]);
 
         $data = $this->reports->outstandingDues($schoolId, ['class_id' => $filters['class_id'] ?? null]);
@@ -65,7 +65,7 @@ class ReportController extends Controller
         }
 
         return view('admin.comms.reports.outstanding-dues', [
-            'data'    => $data,
+            'data' => $data,
             'classes' => SchoolClass::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
             'classId' => $filters['class_id'] ?? null,
         ]);
@@ -77,9 +77,9 @@ class ReportController extends Controller
 
         $filters = $request->validate([
             'student_id' => ['nullable', 'integer', "exists:students,id,school_id,{$schoolId}"],
-            'date_from'  => ['nullable', 'date'],
-            'date_to'    => ['nullable', 'date', 'after_or_equal:date_from'],
-            'format'     => ['nullable', 'in:pdf'],
+            'date_from' => ['nullable', 'date'],
+            'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],
+            'format' => ['nullable', 'in:pdf'],
         ]);
 
         $data = null;
@@ -88,7 +88,7 @@ class ReportController extends Controller
             $student = Student::where('school_id', $schoolId)->findOrFail($filters['student_id']);
             $data = $this->reports->studentLedger($schoolId, $student->id, [
                 'date_from' => $filters['date_from'] ?? null,
-                'date_to'   => $filters['date_to'] ?? null,
+                'date_to' => $filters['date_to'] ?? null,
             ]);
 
             if (($filters['format'] ?? null) === 'pdf') {
@@ -99,10 +99,10 @@ class ReportController extends Controller
         }
 
         return view('admin.comms.reports.student-ledger', [
-            'data'     => $data,
-            'student'  => $student,
+            'data' => $data,
+            'student' => $student,
             'students' => Student::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name', 'student_id']),
-            'filters'  => $filters,
+            'filters' => $filters,
         ]);
     }
 
@@ -111,8 +111,8 @@ class ReportController extends Controller
         $bytes = $this->pdf->renderToPdf($html);
 
         return response($bytes, 200, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $filename . '"',
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
         ]);
     }
 }

@@ -16,7 +16,7 @@ class PaymentConfigController extends Controller
         $config = PaymentConfig::firstOrCreate(['school_id' => app('current_school_id')]);
 
         return view('admin.finance.payment-config.edit', [
-            'config'   => $config,
+            'config' => $config,
             'gateways' => $config->availableGatewayDefs(), // gateways for the school's country
         ]);
     }
@@ -27,13 +27,13 @@ class PaymentConfigController extends Controller
         $gateways = $config->availableGatewayDefs();
 
         $data = $request->validate([
-            'payment_mode'      => ['required', 'in:offline,online,both'],
-            'invoice_prefix'    => ['nullable', 'string', 'max:20'],
-            'receipt_prefix'    => ['nullable', 'string', 'max:20'],
+            'payment_mode' => ['required', 'in:offline,online,both'],
+            'invoice_prefix' => ['nullable', 'string', 'max:20'],
+            'receipt_prefix' => ['nullable', 'string', 'max:20'],
             'bounce_fee_amount' => ['nullable', 'numeric', 'min:0'],
-            'gw'                => ['array'],
-            'gw.*'              => ['array'],
-            'gw.*.fee_pct'      => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'gw' => ['array'],
+            'gw.*' => ['array'],
+            'gw.*.fee_pct' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
         // Enabling a gateway requires its credentials — unless already stored.
@@ -78,9 +78,9 @@ class PaymentConfigController extends Controller
             }
             $feePct = $request->input("gw.{$slug}.fee_pct");
             $store[$slug] = [
-                'enabled'     => $request->boolean("gw.{$slug}.enabled"),
+                'enabled' => $request->boolean("gw.{$slug}.enabled"),
                 'credentials' => $creds,
-                'fee_pct'     => filled($feePct) ? (float) $feePct : ($store[$slug]['fee_pct'] ?? 0.0),
+                'fee_pct' => filled($feePct) ? (float) $feePct : ($store[$slug]['fee_pct'] ?? 0.0),
             ];
         }
         $config->gateways = $store;

@@ -3,6 +3,7 @@
 namespace App\Modules\Payment\Models;
 
 use App\Modules\Student\Models\Student;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -19,11 +20,11 @@ class Invoice extends Model
     protected $attributes = ['currency' => 'USD'];
 
     protected $casts = [
-        'amount_due'     => 'decimal:2',
-        'amount_paid'    => 'decimal:2',
+        'amount_due' => 'decimal:2',
+        'amount_paid' => 'decimal:2',
         'credit_applied' => 'decimal:2',
-        'due_date'       => 'date',
-        'month'          => 'integer',
+        'due_date' => 'date',
+        'month' => 'integer',
     ];
 
     /** @return BelongsTo<Student, Invoice> */
@@ -47,25 +48,25 @@ class Invoice extends Model
         return $this->hasManyThrough(Refund::class, Payment::class);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForSchool($query, int $schoolId): void
     {
         $query->where('school_id', $schoolId);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForStudent($query, int $studentId): void
     {
         $query->where('student_id', $studentId);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeUnpaid($query): void
     {
         $query->whereIn('status', ['unpaid', 'partial']);
     }
 
-    /** @param  \Illuminate\Database\Eloquent\Builder  $query */
+    /** @param  Builder  $query */
     public function scopeForYear($query, int $yearId): void
     {
         $query->where('academic_year_id', $yearId);

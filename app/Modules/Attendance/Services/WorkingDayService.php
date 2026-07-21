@@ -71,9 +71,9 @@ class WorkingDayService
             ->pluck('day_of_week')
             ->all();
 
-        $count  = 0;
+        $count = 0;
         $cursor = CarbonImmutable::parse($from->toDateString());
-        $end    = CarbonImmutable::parse($to->toDateString());
+        $end = CarbonImmutable::parse($to->toDateString());
 
         while ($cursor->lessThanOrEqualTo($end)) {
             if (! in_array($cursor->dayOfWeek, $closedWeekdays, true)

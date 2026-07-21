@@ -32,19 +32,19 @@ class PayPalGateway
     public function createOrder(string $invoiceNumber, float $amount, string $currency, string $returnUrl, string $cancelUrl): array
     {
         $payload = [
-            'intent'         => 'CAPTURE',
+            'intent' => 'CAPTURE',
             'purchase_units' => [[
                 'reference_id' => $invoiceNumber,
-                'custom_id'    => $invoiceNumber,
-                'amount'       => [
+                'custom_id' => $invoiceNumber,
+                'amount' => [
                     'currency_code' => strtoupper($currency),
-                    'value'         => $this->formatAmount($amount, $currency),
+                    'value' => $this->formatAmount($amount, $currency),
                 ],
             ]],
             'application_context' => [
-                'return_url'          => $returnUrl,
-                'cancel_url'          => $cancelUrl,
-                'user_action'         => 'PAY_NOW',
+                'return_url' => $returnUrl,
+                'cancel_url' => $cancelUrl,
+                'user_action' => 'PAY_NOW',
                 'shipping_preference' => 'NO_SHIPPING',
             ],
         ];
@@ -55,7 +55,7 @@ class PayPalGateway
         $this->log(null, 'create_order', $payload, $response->json(), $response->status());
 
         if (! $response->successful() || empty($response->json('id'))) {
-            throw new RuntimeException('PayPal create order failed: ' . $response->body());
+            throw new RuntimeException('PayPal create order failed: '.$response->body());
         }
 
         $approveLink = collect($response->json('links', []))->firstWhere('rel', 'approve');
@@ -80,7 +80,7 @@ class PayPalGateway
         $this->log(null, 'capture_order', ['id' => $orderId], $response->json(), $response->status());
 
         if (! $response->successful()) {
-            throw new RuntimeException('PayPal capture failed: ' . $response->body());
+            throw new RuntimeException('PayPal capture failed: '.$response->body());
         }
 
         return $response->json();
@@ -99,7 +99,7 @@ class PayPalGateway
         $this->log(null, 'get_order', ['id' => $orderId], $response->json(), $response->status());
 
         if (! $response->successful()) {
-            throw new RuntimeException('PayPal get order failed: ' . $response->body());
+            throw new RuntimeException('PayPal get order failed: '.$response->body());
         }
 
         return $response->json();
@@ -119,13 +119,13 @@ class PayPalGateway
         }
 
         $payload = [
-            'auth_algo'         => $headers['paypal-auth-algo'] ?? null,
-            'cert_url'          => $headers['paypal-cert-url'] ?? null,
-            'transmission_id'   => $headers['paypal-transmission-id'] ?? null,
-            'transmission_sig'  => $headers['paypal-transmission-sig'] ?? null,
+            'auth_algo' => $headers['paypal-auth-algo'] ?? null,
+            'cert_url' => $headers['paypal-cert-url'] ?? null,
+            'transmission_id' => $headers['paypal-transmission-id'] ?? null,
+            'transmission_sig' => $headers['paypal-transmission-sig'] ?? null,
             'transmission_time' => $headers['paypal-transmission-time'] ?? null,
-            'webhook_id'        => $webhookId,
-            'webhook_event'     => $event,
+            'webhook_id' => $webhookId,
+            'webhook_event' => $event,
         ];
 
         $response = Http::withToken($this->accessToken())->acceptJson()
@@ -145,7 +145,7 @@ class PayPalGateway
     {
         $payload = ['amount' => [
             'currency_code' => strtoupper($currency),
-            'value'         => $this->formatAmount($amount, $currency),
+            'value' => $this->formatAmount($amount, $currency),
         ]];
 
         $response = Http::withToken($this->accessToken())->acceptJson()
@@ -154,7 +154,7 @@ class PayPalGateway
         $this->log(null, 'refund', $payload, $response->json(), $response->status());
 
         if (! $response->successful()) {
-            throw new RuntimeException('PayPal refund failed: ' . $response->body());
+            throw new RuntimeException('PayPal refund failed: '.$response->body());
         }
 
         return $response->json();
@@ -168,7 +168,7 @@ class PayPalGateway
             ->post($this->url('/v1/oauth2/token'), ['grant_type' => 'client_credentials']);
 
         if (! $response->successful() || empty($response->json('access_token'))) {
-            throw new RuntimeException('PayPal token request failed: ' . $response->body());
+            throw new RuntimeException('PayPal token request failed: '.$response->body());
         }
 
         return $response->json('access_token');
@@ -179,7 +179,7 @@ class PayPalGateway
         $mode = strtolower((string) $this->config->credential('paypal', 'mode'));
         $base = $mode === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
 
-        return $base . $path;
+        return $base.$path;
     }
 
     private function formatAmount(float $amount, string $currency): string
@@ -212,13 +212,13 @@ class PayPalGateway
     private function log(?int $paymentId, string $action, array $payload, ?array $response, int $httpStatus): void
     {
         PaymentGatewayLog::create([
-            'school_id'  => $this->config->school_id,
+            'school_id' => $this->config->school_id,
             'payment_id' => $paymentId,
-            'gateway'    => 'paypal',
-            'action'     => $action,
-            'payload'    => $payload,
-            'response'   => $response ?? [],
-            'status'     => (string) $httpStatus,
+            'gateway' => 'paypal',
+            'action' => $action,
+            'payload' => $payload,
+            'response' => $response ?? [],
+            'status' => (string) $httpStatus,
         ]);
     }
 }

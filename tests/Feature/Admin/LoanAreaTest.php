@@ -3,9 +3,11 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\User;
+use App\Modules\Loan\Models\LoanSchedule;
 use App\Modules\Loan\Models\StaffLoan;
 use App\Modules\School\Models\School;
 use App\Modules\Staff\Models\Staff;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -25,7 +27,7 @@ class LoanAreaTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT',
@@ -71,8 +73,8 @@ class LoanAreaTest extends TestCase
         $this->patch("/admin/staff-loans/{$loan->id}/approve")->assertRedirect();
 
         $this->assertDatabaseHas('staff_loans', ['id' => $loan->id, 'status' => 'approved']);
-        $this->assertEquals(12, \App\Modules\Loan\Models\LoanSchedule::where('staff_loan_id', $loan->id)->count());
-        $this->assertEqualsWithDelta(12000.0, (float) \App\Modules\Loan\Models\LoanSchedule::where('staff_loan_id', $loan->id)->sum('amount'), 0.001);
+        $this->assertEquals(12, LoanSchedule::where('staff_loan_id', $loan->id)->count());
+        $this->assertEqualsWithDelta(12000.0, (float) LoanSchedule::where('staff_loan_id', $loan->id)->sum('amount'), 0.001);
     }
 
     public function test_reject_loan(): void

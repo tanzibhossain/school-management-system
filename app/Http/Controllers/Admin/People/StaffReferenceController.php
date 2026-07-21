@@ -22,7 +22,7 @@ class StaffReferenceController extends Controller
     /** @var array<string, array{model: class-string<Model>, table: string, label: string, singular: string}> */
     private const TYPES = [
         'designations' => ['model' => Designation::class, 'table' => 'designations', 'label' => 'Designations', 'singular' => 'Designation'],
-        'departments'  => ['model' => Department::class,  'table' => 'departments',  'label' => 'Departments',  'singular' => 'Department'],
+        'departments' => ['model' => Department::class,  'table' => 'departments',  'label' => 'Departments',  'singular' => 'Department'],
     ];
 
     public function index(Request $request): View
@@ -34,10 +34,10 @@ class StaffReferenceController extends Controller
             ->get();
 
         return view('admin.people.reference.index', [
-            'type'     => $request->route()->parameter('type'),
-            'label'    => $meta['label'],
+            'type' => $request->route()->parameter('type'),
+            'label' => $meta['label'],
             'singular' => $meta['singular'],
-            'items'    => $items,
+            'items' => $items,
         ]);
     }
 

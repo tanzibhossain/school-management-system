@@ -6,13 +6,16 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateWaitlistRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     public function rules(): array
     {
         return [
             'status' => 'sometimes|in:waiting,admitted,cancelled',
-            'notes'  => 'nullable|string|max:500',
+            'notes' => 'nullable|string|max:500',
         ];
     }
 }

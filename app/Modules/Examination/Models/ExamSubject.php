@@ -21,7 +21,7 @@ class ExamSubject extends Model
     ];
 
     protected $casts = [
-        'exam_date'  => 'date',
+        'exam_date' => 'date',
         'full_marks' => 'decimal:2',
         'pass_marks' => 'decimal:2',
     ];

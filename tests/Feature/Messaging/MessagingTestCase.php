@@ -5,6 +5,7 @@ namespace Tests\Feature\Messaging;
 use App\Models\User;
 use App\Modules\School\Models\ModuleSetting;
 use App\Modules\School\Models\School;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -18,7 +19,7 @@ abstract class MessagingTestCase extends TestCase
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Messaging Test School',
@@ -49,6 +50,6 @@ abstract class MessagingTestCase extends TestCase
         // (these tests deliberately switch between teacher/parent/admin/outsider).
         $this->app['auth']->forgetGuards();
 
-        return ['Authorization' => 'Bearer ' . $user->createToken('test', ['*'])->plainTextToken];
+        return ['Authorization' => 'Bearer '.$user->createToken('test', ['*'])->plainTextToken];
     }
 }

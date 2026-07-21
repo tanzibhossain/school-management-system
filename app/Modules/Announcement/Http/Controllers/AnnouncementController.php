@@ -36,7 +36,7 @@ class AnnouncementController extends Controller
     /** Portal users: only published, non-expired, audience-matched announcements. */
     public function feed(Request $request): AnonymousResourceCollection
     {
-        $role      = $request->user()->getRoleNames()->first() ?? 'student';
+        $role = $request->user()->getRoleNames()->first() ?? 'student';
         $audiences = $this->service->audiencesForRole($role);
 
         $announcements = $this->repository->listVisible(app('current_school_id'), $audiences);
@@ -46,7 +46,7 @@ class AnnouncementController extends Controller
 
     public function store(StoreAnnouncementRequest $request): JsonResponse
     {
-        $data    = $request->safe()->except('targets');
+        $data = $request->safe()->except('targets');
         $targets = $request->validated()['targets'] ?? [];
 
         $announcement = $this->service->make(

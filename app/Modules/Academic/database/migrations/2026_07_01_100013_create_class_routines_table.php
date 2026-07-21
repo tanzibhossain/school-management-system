@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('room_id');
             $table->unsignedBigInteger('period_id');
             $table->unsignedBigInteger('shift_id')->nullable();
-            $table->enum('day_of_week', ['monday','tuesday','wednesday','thursday','friday']);
+            $table->enum('day_of_week', ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']);
             $table->timestamps();
 
             $table->foreign('school_id')->references('id')->on('schools')->cascadeOnDelete();

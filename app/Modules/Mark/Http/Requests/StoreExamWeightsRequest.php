@@ -16,11 +16,11 @@ class StoreExamWeightsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'class_id'                  => ['required', 'integer', 'exists:classes,id'],
-            'academic_year_id'          => ['required', 'integer', 'exists:academic_years,id'],
-            'weights'                   => ['required', 'array', 'min:1'],
-            'weights.*.exam_id'         => ['required', 'integer', 'exists:exams,id'],
-            'weights.*.weight_percent'  => ['required', 'numeric', 'min:0.01', 'max:100'],
+            'class_id' => ['required', 'integer', 'exists:classes,id'],
+            'academic_year_id' => ['required', 'integer', 'exists:academic_years,id'],
+            'weights' => ['required', 'array', 'min:1'],
+            'weights.*.exam_id' => ['required', 'integer', 'exists:exams,id'],
+            'weights.*.weight_percent' => ['required', 'numeric', 'min:0.01', 'max:100'],
         ];
     }
 

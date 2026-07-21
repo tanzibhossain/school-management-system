@@ -18,11 +18,11 @@ class SimpleAverageStrategy implements ResultStrategy
         }
 
         $isPass = ! $units->contains(fn ($u) => ! $u['is_pass']);
-        $gpa    = round($units->avg(fn ($u) => (float) $u['gpa_point']), 2);
+        $gpa = round($units->avg(fn ($u) => (float) $u['gpa_point']), 2);
 
         return [
-            'gpa'     => $gpa,
-            'grade'   => GradeResolver::byGpaPoint($boundaries, $gpa),
+            'gpa' => $gpa,
+            'grade' => GradeResolver::byGpaPoint($boundaries, $gpa),
             'is_pass' => $isPass,
         ];
     }

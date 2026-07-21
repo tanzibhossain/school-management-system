@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Mark;
 
+use App\Models\User;
 use App\Modules\Examination\Models\Exam;
 use App\Modules\Mark\Models\ExamResult;
 use App\Modules\Mark\Models\MarkSetting;
@@ -158,7 +159,7 @@ class ResultCalculationTest extends MarkTestCase
         $this->calculate();
 
         // Teacher view: merit hidden (reset guard — calculate() ran as admin)
-        $teacher = \App\Models\User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
+        $teacher = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
         $teacherToken = $teacher->createToken('test', ['teacher:*'])->plainTextToken;
 
         $this->app['auth']->forgetGuards();
@@ -196,7 +197,7 @@ class ResultCalculationTest extends MarkTestCase
         // Mark entry now rejected
         $this->withToken($token)->postJson('/api/v2/marks/enter', [
             'mark_division_id' => $this->divisions['Math']['mid']->id,
-            'entries'          => [['student_id' => $this->student->id, 'marks_obtained' => 5]],
+            'entries' => [['student_id' => $this->student->id, 'marks_obtained' => 5]],
         ])->assertUnprocessable();
 
         // Recalculation writes nothing for locked results
@@ -244,14 +245,14 @@ class ResultCalculationTest extends MarkTestCase
 
         // Exam 2: same subjects, student scores 60%
         $exam2 = Exam::create([
-            'school_id'        => $this->school->id,
-            'exam_type_id'     => $this->exam->exam_type_id,
+            'school_id' => $this->school->id,
+            'exam_type_id' => $this->exam->exam_type_id,
             'academic_year_id' => $this->year->id,
-            'class_id'         => $this->class->id,
-            'title'            => 'Annual 2026',
-            'start_date'       => '2026-11-01',
-            'end_date'         => '2026-11-10',
-            'status'           => 'published',
+            'class_id' => $this->class->id,
+            'title' => 'Annual 2026',
+            'start_date' => '2026-11-01',
+            'end_date' => '2026-11-10',
+            'status' => 'published',
         ]);
 
         $firstExam = $this->exam;
@@ -268,9 +269,9 @@ class ResultCalculationTest extends MarkTestCase
 
         // Weights: first exam 30%, annual 70%
         $this->withToken($token)->putJson('/api/v2/marks/exam-weights', [
-            'class_id'         => $this->class->id,
+            'class_id' => $this->class->id,
             'academic_year_id' => $this->year->id,
-            'weights'          => [
+            'weights' => [
                 ['exam_id' => $firstExam->id, 'weight_percent' => 30],
                 ['exam_id' => $exam2->id, 'weight_percent' => 70],
             ],
@@ -290,9 +291,9 @@ class ResultCalculationTest extends MarkTestCase
     public function test_weights_must_sum_to_100(): void
     {
         $this->withToken($this->adminToken())->putJson('/api/v2/marks/exam-weights', [
-            'class_id'         => $this->class->id,
+            'class_id' => $this->class->id,
             'academic_year_id' => $this->year->id,
-            'weights'          => [
+            'weights' => [
                 ['exam_id' => $this->exam->id, 'weight_percent' => 60],
             ],
         ])->assertUnprocessable()

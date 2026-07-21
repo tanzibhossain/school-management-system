@@ -27,7 +27,7 @@ class PaymentController extends Controller
         $sid = app('current_school_id');
         $data = $request->validate([
             'invoice_id' => ['required', 'integer'],
-            'gateway'    => ['required', 'in:bkash,sslcommerz,stripe,paypal'],
+            'gateway' => ['required', 'in:bkash,sslcommerz,stripe,paypal'],
         ]);
 
         $config = PaymentConfig::firstOrCreate(['school_id' => $sid]);
@@ -61,7 +61,7 @@ class PaymentController extends Controller
             if ($data['gateway'] === 'stripe') {
                 $result = $service->initiateStripe(
                     $invoice,
-                    route('portal.pay.stripe.return') . '?session_id={CHECKOUT_SESSION_ID}',
+                    route('portal.pay.stripe.return').'?session_id={CHECKOUT_SESSION_ID}',
                     route('portal.pay.stripe.return'), // cancel — no session_id
                 );
 
@@ -163,7 +163,7 @@ class PaymentController extends Controller
         }
 
         $tranId = $request->input('tran_id');
-        $valId  = $request->input('val_id');
+        $valId = $request->input('val_id');
         $status = $request->input('status');
 
         if (! $tranId || ! $valId || ! in_array($status, ['VALID', 'VALIDATED'], true)) {

@@ -18,7 +18,7 @@ class StaffExperience extends Model
 
     protected $casts = [
         'from_date' => 'date',
-        'to_date'   => 'date',
+        'to_date' => 'date',
     ];
 
     /** @return BelongsTo<Staff, StaffExperience> */

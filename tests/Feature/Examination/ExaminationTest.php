@@ -11,10 +11,12 @@ use App\Modules\Academic\Models\Subject;
 use App\Modules\Academic\Models\SubjectRelation;
 use App\Modules\Examination\Models\Exam;
 use App\Modules\Examination\Models\ExamHall;
+use App\Modules\Examination\Models\ExamSeating;
 use App\Modules\Examination\Models\ExamType;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\StudentAcademic;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -23,34 +25,39 @@ class ExaminationTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private School $school;
+
     private AcademicYear $year;
+
     private SchoolClass $class;
+
     private Section $section;
+
     private ExamType $examType;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
-        $this->school   = School::create(['name' => 'Test School', 'is_active' => true]);
-        $this->admin    = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
+        $this->school = School::create(['name' => 'Test School', 'is_active' => true]);
+        $this->admin = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
         $this->admin->assignRole('admin');
 
         $this->year = AcademicYear::create([
-            'school_id'  => $this->school->id,
-            'year'       => '2026',
+            'school_id' => $this->school->id,
+            'year' => '2026',
             'is_current' => true,
         ]);
 
-        $this->class   = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 9']);
+        $this->class = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 9']);
         $this->section = Section::create(['school_id' => $this->school->id, 'class_id' => $this->class->id, 'name' => 'A']);
 
         $this->examType = ExamType::create([
             'school_id' => $this->school->id,
-            'name'      => 'Half-Yearly',
+            'name' => 'Half-Yearly',
             'is_active' => true,
         ]);
     }
@@ -64,28 +71,28 @@ class ExaminationTest extends TestCase
     {
         $subject = Subject::create([
             'school_id' => $this->school->id,
-            'name'      => 'Mathematics',
-            'sub_code'  => 'MATH',
+            'name' => 'Mathematics',
+            'sub_code' => 'MATH',
         ]);
 
         return SubjectRelation::create([
-            'school_id'  => $this->school->id,
+            'school_id' => $this->school->id,
             'subject_id' => $subject->id,
-            'class_id'   => $this->class->id,
+            'class_id' => $this->class->id,
         ]);
     }
 
     private function makeExam(array $overrides = []): Exam
     {
         return Exam::create(array_merge([
-            'school_id'        => $this->school->id,
-            'exam_type_id'     => $this->examType->id,
+            'school_id' => $this->school->id,
+            'exam_type_id' => $this->examType->id,
             'academic_year_id' => $this->year->id,
-            'class_id'         => $this->class->id,
-            'title'            => 'Half-Yearly 2026',
-            'start_date'       => '2026-06-01',
-            'end_date'         => '2026-06-10',
-            'status'           => 'draft',
+            'class_id' => $this->class->id,
+            'title' => 'Half-Yearly 2026',
+            'start_date' => '2026-06-01',
+            'end_date' => '2026-06-10',
+            'status' => 'draft',
             'seating_strategy' => 'sequential',
         ], $overrides));
     }
@@ -93,10 +100,10 @@ class ExaminationTest extends TestCase
     private function makeHall(array $config = []): ExamHall
     {
         return ExamHall::create([
-            'school_id'     => $this->school->id,
-            'name'          => 'Main Hall',
+            'school_id' => $this->school->id,
+            'name' => 'Main Hall',
             'layout_config' => $config ?: [
-                'rows'  => 30,
+                'rows' => 30,
                 'sides' => [
                     ['label' => 'L', 'seats_per_row' => 4, 'blocked_rows' => []],
                     ['label' => 'R', 'seats_per_row' => 2, 'blocked_rows' => [23, 24, 25, 26]],
@@ -111,7 +118,7 @@ class ExaminationTest extends TestCase
     {
         $this->withToken($this->token())
             ->postJson('/api/v2/examination/exam-types', [
-                'name'      => 'Annual',
+                'name' => 'Annual',
                 'is_active' => true,
             ])
             ->assertCreated()
@@ -124,12 +131,12 @@ class ExaminationTest extends TestCase
     {
         $this->withToken($this->token())
             ->postJson('/api/v2/examination/exams', [
-                'exam_type_id'     => $this->examType->id,
+                'exam_type_id' => $this->examType->id,
                 'academic_year_id' => $this->year->id,
-                'class_id'         => $this->class->id,
-                'title'            => 'Half-Yearly 2026',
-                'start_date'       => '2026-06-01',
-                'end_date'         => '2026-06-10',
+                'class_id' => $this->class->id,
+                'title' => 'Half-Yearly 2026',
+                'start_date' => '2026-06-01',
+                'end_date' => '2026-06-10',
                 'seating_strategy' => 'interleave_group',
             ])
             ->assertCreated()
@@ -149,17 +156,17 @@ class ExaminationTest extends TestCase
     public function test_can_add_subject_and_publish_exam(): void
     {
         $exam = $this->makeExam();
-        $sr   = $this->makeSubjectRelation();
+        $sr = $this->makeSubjectRelation();
 
         // Add subject
         $this->withToken($this->token())
             ->postJson("/api/v2/examination/exams/{$exam->id}/subjects", [
                 'subject_relation_id' => $sr->id,
-                'exam_date'           => '2026-06-01',
-                'start_time'          => '09:00',
-                'end_time'            => '12:00',
-                'full_marks'          => 100,
-                'pass_marks'          => 33,
+                'exam_date' => '2026-06-01',
+                'start_time' => '09:00',
+                'end_time' => '12:00',
+                'full_marks' => 100,
+                'pass_marks' => 33,
             ])
             ->assertCreated();
 
@@ -186,9 +193,9 @@ class ExaminationTest extends TestCase
     {
         $this->withToken($this->token())
             ->postJson('/api/v2/examination/exam-halls', [
-                'name'          => 'Main Hall',
+                'name' => 'Main Hall',
                 'layout_config' => [
-                    'rows'  => 30,
+                    'rows' => 30,
                     'sides' => [
                         ['label' => 'L', 'seats_per_row' => 4, 'blocked_rows' => []],
                         ['label' => 'R', 'seats_per_row' => 2, 'blocked_rows' => [23, 24, 25, 26]],
@@ -263,20 +270,20 @@ class ExaminationTest extends TestCase
         // Create 3 students in the class
         foreach (range(1, 3) as $i) {
             $student = Student::create([
-                'school_id'        => $this->school->id,
+                'school_id' => $this->school->id,
                 'admission_number' => "ADM-{$i}",
-                'name'             => "Student {$i}",
-                'gender'           => 'male',
-                'status'           => 'active',
+                'name' => "Student {$i}",
+                'gender' => 'male',
+                'status' => 'active',
             ]);
             StudentAcademic::create([
-                'school_id'        => $this->school->id,
-                'student_id'       => $student->id,
+                'school_id' => $this->school->id,
+                'student_id' => $student->id,
                 'academic_year_id' => $this->year->id,
-                'class_id'         => $this->class->id,
-                'section_id'       => $this->section->id,
-                'roll_number'      => (string) $i,
-                'is_current'       => true,
+                'class_id' => $this->class->id,
+                'section_id' => $this->section->id,
+                'roll_number' => (string) $i,
+                'is_current' => true,
             ]);
         }
 
@@ -293,7 +300,7 @@ class ExaminationTest extends TestCase
     public function test_interleave_group_mixes_students_by_group(): void
     {
         $scienceGroup = AcademicGroup::create(['school_id' => $this->school->id, 'name' => 'Science']);
-        $artsGroup    = AcademicGroup::create(['school_id' => $this->school->id, 'name' => 'Arts']);
+        $artsGroup = AcademicGroup::create(['school_id' => $this->school->id, 'name' => 'Arts']);
 
         $exam = $this->makeExam(['seating_strategy' => 'interleave_group']);
         $hall = $this->makeHall();
@@ -309,53 +316,53 @@ class ExaminationTest extends TestCase
             ['group_id' => $artsGroup->id,    'roll' => '4', 'adm' => 'ART-2'],
         ] as $data) {
             $student = Student::create([
-                'school_id'        => $this->school->id,
+                'school_id' => $this->school->id,
                 'admission_number' => $data['adm'],
-                'name'             => "Student {$data['adm']}",
-                'gender'           => 'male',
-                'status'           => 'active',
+                'name' => "Student {$data['adm']}",
+                'gender' => 'male',
+                'status' => 'active',
             ]);
             StudentAcademic::create([
-                'school_id'        => $this->school->id,
-                'student_id'       => $student->id,
+                'school_id' => $this->school->id,
+                'student_id' => $student->id,
                 'academic_year_id' => $this->year->id,
-                'class_id'         => $this->class->id,
-                'section_id'       => $this->section->id,
-                'group_id'         => $data['group_id'],
-                'roll_number'      => $data['roll'],
-                'is_current'       => true,
+                'class_id' => $this->class->id,
+                'section_id' => $this->section->id,
+                'group_id' => $data['group_id'],
+                'roll_number' => $data['roll'],
+                'is_current' => true,
             ]);
         }
 
         $this->withToken($this->token())
             ->postJson("/api/v2/examination/exams/{$exam->id}/seating", [
-                'hall_id'  => $hall->id,
+                'hall_id' => $hall->id,
                 'strategy' => 'interleave_group',
             ])
             ->assertOk()
             ->assertJsonFragment(['students_seated' => 4]);
 
         // Seats 1,3 should be Science; seats 2,4 should be Arts (interleaved)
-        $seating = \App\Modules\Examination\Models\ExamSeating::where('exam_id', $exam->id)
+        $seating = ExamSeating::where('exam_id', $exam->id)
             ->orderBy('exam_roll')
             ->get();
 
         $this->assertEquals($scienceGroup->id, $seating[0]->group_id); // roll 0001
-        $this->assertEquals($artsGroup->id,    $seating[1]->group_id); // roll 0002
+        $this->assertEquals($artsGroup->id, $seating[1]->group_id); // roll 0002
         $this->assertEquals($scienceGroup->id, $seating[2]->group_id); // roll 0003
-        $this->assertEquals($artsGroup->id,    $seating[3]->group_id); // roll 0004
+        $this->assertEquals($artsGroup->id, $seating[3]->group_id); // roll 0004
     }
 
     public function test_anti_adjacency_prevents_same_group_front_back_adjacency(): void
     {
         $scienceGroup = AcademicGroup::create(['school_id' => $this->school->id, 'name' => 'Science']);
-        $artsGroup    = AcademicGroup::create(['school_id' => $this->school->id, 'name' => 'Arts']);
+        $artsGroup = AcademicGroup::create(['school_id' => $this->school->id, 'name' => 'Arts']);
 
         $exam = $this->makeExam(['seating_strategy' => 'anti_adjacency']);
 
         // 2 rows × 4 L-seats = 8 seats total
         $hall = $this->makeHall([
-            'rows'  => 2,
+            'rows' => 2,
             'sides' => [['label' => 'L', 'seats_per_row' => 4, 'blocked_rows' => []]],
         ]);
 
@@ -387,7 +394,7 @@ class ExaminationTest extends TestCase
 
         $this->withToken($this->token())
             ->postJson("/api/v2/examination/exams/{$exam->id}/seating", [
-                'hall_id'  => $hall->id,
+                'hall_id' => $hall->id,
                 'strategy' => 'anti_adjacency',
             ])
             ->assertOk()
@@ -398,7 +405,7 @@ class ExaminationTest extends TestCase
         //
         // Column L1: Sci, Arts  → rolls 0001 vs 0005 differ ✓
         // Column L2: Arts, Sci  → rolls 0002 vs 0006 differ ✓
-        $seating = \App\Modules\Examination\Models\ExamSeating::where('exam_id', $exam->id)
+        $seating = ExamSeating::where('exam_id', $exam->id)
             ->orderBy('exam_roll')
             ->get();
 
@@ -425,7 +432,7 @@ class ExaminationTest extends TestCase
 
         // 6-seat hall (1 row × 6 seats on L side)
         $hall = $this->makeHall([
-            'rows'  => 1,
+            'rows' => 1,
             'sides' => [['label' => 'L', 'seats_per_row' => 6, 'blocked_rows' => []]],
         ]);
 
@@ -435,26 +442,26 @@ class ExaminationTest extends TestCase
         // 4 students, blank_every=2 → seats used = 0,1,3,4 (skip 2 and 5) → 4 students fit
         foreach (range(1, 4) as $i) {
             $student = Student::create([
-                'school_id'        => $this->school->id,
+                'school_id' => $this->school->id,
                 'admission_number' => "ADM-BLK-{$i}",
-                'name'             => "Student {$i}",
-                'gender'           => 'male',
-                'status'           => 'active',
+                'name' => "Student {$i}",
+                'gender' => 'male',
+                'status' => 'active',
             ]);
             StudentAcademic::create([
-                'school_id'        => $this->school->id,
-                'student_id'       => $student->id,
+                'school_id' => $this->school->id,
+                'student_id' => $student->id,
                 'academic_year_id' => $this->year->id,
-                'class_id'         => $this->class->id,
-                'section_id'       => $this->section->id,
-                'roll_number'      => (string) $i,
-                'is_current'       => true,
+                'class_id' => $this->class->id,
+                'section_id' => $this->section->id,
+                'roll_number' => (string) $i,
+                'is_current' => true,
             ]);
         }
 
         $this->withToken($this->token())
             ->postJson("/api/v2/examination/exams/{$exam->id}/seating", [
-                'hall_id'     => $hall->id,
+                'hall_id' => $hall->id,
                 'blank_every' => 2,
             ])
             ->assertOk()
@@ -470,7 +477,7 @@ class ExaminationTest extends TestCase
 
         // Hall with only 2 seats
         $hall = $this->makeHall([
-            'rows'  => 1,
+            'rows' => 1,
             'sides' => [['label' => 'L', 'seats_per_row' => 2, 'blocked_rows' => []]],
         ]);
 
@@ -480,20 +487,20 @@ class ExaminationTest extends TestCase
         // Create 3 students (more than 2 seats)
         foreach (range(1, 3) as $i) {
             $student = Student::create([
-                'school_id'        => $this->school->id,
+                'school_id' => $this->school->id,
                 'admission_number' => "ADM-OVER-{$i}",
-                'name'             => "Student {$i}",
-                'gender'           => 'male',
-                'status'           => 'active',
+                'name' => "Student {$i}",
+                'gender' => 'male',
+                'status' => 'active',
             ]);
             StudentAcademic::create([
-                'school_id'        => $this->school->id,
-                'student_id'       => $student->id,
+                'school_id' => $this->school->id,
+                'student_id' => $student->id,
                 'academic_year_id' => $this->year->id,
-                'class_id'         => $this->class->id,
-                'section_id'       => $this->section->id,
-                'roll_number'      => (string) $i,
-                'is_current'       => true,
+                'class_id' => $this->class->id,
+                'section_id' => $this->section->id,
+                'roll_number' => (string) $i,
+                'is_current' => true,
             ]);
         }
 
@@ -514,20 +521,20 @@ class ExaminationTest extends TestCase
             ->postJson("/api/v2/examination/exam-halls/{$hall->id}/generate-seats");
 
         $student = Student::create([
-            'school_id'        => $this->school->id,
+            'school_id' => $this->school->id,
             'admission_number' => 'ADM-CLR',
-            'name'             => 'Clear Test',
-            'gender'           => 'male',
-            'status'           => 'active',
+            'name' => 'Clear Test',
+            'gender' => 'male',
+            'status' => 'active',
         ]);
         StudentAcademic::create([
-            'school_id'        => $this->school->id,
-            'student_id'       => $student->id,
+            'school_id' => $this->school->id,
+            'student_id' => $student->id,
             'academic_year_id' => $this->year->id,
-            'class_id'         => $this->class->id,
-            'section_id'       => $this->section->id,
-            'roll_number'      => '1',
-            'is_current'       => true,
+            'class_id' => $this->class->id,
+            'section_id' => $this->section->id,
+            'roll_number' => '1',
+            'is_current' => true,
         ]);
 
         $this->withToken($this->token())

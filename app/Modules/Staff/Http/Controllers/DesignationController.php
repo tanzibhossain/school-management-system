@@ -24,7 +24,7 @@ class DesignationController extends Controller
     {
         $designation = Designation::create([
             'school_id' => app('current_school_id'),
-            'name'      => $request->validated()['name'],
+            'name' => $request->validated()['name'],
         ]);
 
         return (new DesignationResource($designation))->response()->setStatusCode(201);

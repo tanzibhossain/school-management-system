@@ -44,7 +44,7 @@ class BorrowRecord extends Model
     /**
      * Still-out loans (not yet returned).
      *
-     * @param Builder<BorrowRecord> $query
+     * @param  Builder<BorrowRecord>  $query
      */
     public function scopeOutstanding(Builder $query): Builder
     {
@@ -55,7 +55,7 @@ class BorrowRecord extends Model
      * Outstanding loans whose due date has passed — the real "overdue" set.
      * Derived from the data, never stored as a terminal status.
      *
-     * @param Builder<BorrowRecord> $query
+     * @param  Builder<BorrowRecord>  $query
      */
     public function scopeOverdue(Builder $query): Builder
     {

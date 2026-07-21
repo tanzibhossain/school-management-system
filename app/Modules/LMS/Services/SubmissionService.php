@@ -33,7 +33,7 @@ class SubmissionService
         }
 
         $path = "{$assignment->school_id}/lms/submissions/{$assignment->id}";
-        $filename = "{$student->id}." . $file->getClientOriginalExtension();
+        $filename = "{$student->id}.".$file->getClientOriginalExtension();
 
         $submission = Submission::create([
             'school_id' => $assignment->school_id,

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Mark\Strategies;
 
+use App\Modules\Mark\Models\GradeBoundary;
 use Illuminate\Support\Collection;
 
 /**
@@ -17,8 +18,8 @@ use Illuminate\Support\Collection;
 interface ResultStrategy
 {
     /**
-     * @param  Collection<int, array<string, mixed>>  $units      applicable subject units (N/A excluded)
-     * @param  Collection<int, \App\Modules\Mark\Models\GradeBoundary>  $boundaries
+     * @param  Collection<int, array<string, mixed>>  $units  applicable subject units (N/A excluded)
+     * @param  Collection<int, GradeBoundary>  $boundaries
      */
     public function calculate(Collection $units, Collection $boundaries): array;
 }

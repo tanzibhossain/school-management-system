@@ -17,7 +17,7 @@ class MarkEntryTest extends MarkTestCase
     {
         return [
             'mark_division_id' => $this->divisions['Math']['mid']->id,
-            'entries'          => [
+            'entries' => [
                 ['student_id' => $this->student->id, 'marks_obtained' => $marks],
             ],
         ];
@@ -53,13 +53,13 @@ class MarkEntryTest extends MarkTestCase
         $this->withToken($this->adminToken())
             ->postJson('/api/v2/marks/enter', [
                 'mark_division_id' => $this->divisions['Math']['mid']->id,
-                'entries'          => [['student_id' => $this->student->id, 'is_absent' => true]],
+                'entries' => [['student_id' => $this->student->id, 'is_absent' => true]],
             ])
             ->assertCreated();
 
         $this->assertDatabaseHas('marks', [
-            'student_id'     => $this->student->id,
-            'is_absent'      => true,
+            'student_id' => $this->student->id,
+            'is_absent' => true,
             'marks_obtained' => null,
         ]);
     }
@@ -67,13 +67,13 @@ class MarkEntryTest extends MarkTestCase
     public function test_locked_mark_rejects_changes(): void
     {
         Mark::create([
-            'school_id'        => $this->school->id,
-            'exam_id'          => $this->exam->id,
-            'student_id'       => $this->student->id,
+            'school_id' => $this->school->id,
+            'exam_id' => $this->exam->id,
+            'student_id' => $this->student->id,
             'mark_division_id' => $this->divisions['Math']['mid']->id,
-            'marks_obtained'   => 20,
-            'entered_by'       => $this->admin->id,
-            'locked_at'        => now(),
+            'marks_obtained' => 20,
+            'entered_by' => $this->admin->id,
+            'locked_at' => now(),
         ]);
 
         $this->withToken($this->adminToken())
@@ -96,17 +96,17 @@ class MarkEntryTest extends MarkTestCase
             ->assertForbidden();
 
         // Assign via class routine, reset the cached guard, retry → allowed
-        $room   = RoutineRoom::create(['school_id' => $this->school->id, 'name' => 'R1']);
+        $room = RoutineRoom::create(['school_id' => $this->school->id, 'name' => 'R1']);
         $period = RoutinePeriod::create(['school_id' => $this->school->id, 'name' => 'P1', 'start_time' => '10:00', 'end_time' => '11:00']);
 
         ClassRoutine::create([
-            'school_id'  => $this->school->id,
-            'class_id'   => $this->class->id,
+            'school_id' => $this->school->id,
+            'class_id' => $this->class->id,
             'section_id' => $this->section->id,
             'subject_id' => $this->examSubjects['Math']->subjectRelation->subject_id,
             'teacher_id' => $staff->id,
-            'room_id'    => $room->id,
-            'period_id'  => $period->id,
+            'room_id' => $room->id,
+            'period_id' => $period->id,
             'day_of_week' => 'monday',
         ]);
 
@@ -129,8 +129,8 @@ class MarkEntryTest extends MarkTestCase
             ->assertJsonFragment(['grace_marks' => '3.00']);
 
         $this->assertDatabaseHas('marks', [
-            'id'             => $mark->id,
-            'grace_marks'    => 3,
+            'id' => $mark->id,
+            'grace_marks' => 3,
             'grace_given_by' => $this->admin->id,
             'marks_obtained' => 10, // raw mark untouched — grace is separate
         ]);

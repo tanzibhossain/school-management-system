@@ -29,7 +29,7 @@ class SubmissionContentExtractor
             'docx' => $this->extractDocx($absolutePath),
             'pdf' => throw new RuntimeException(
                 'PDF text extraction is not supported yet — no PDF-parsing package is installed. '
-                . 'Add one (e.g. smalot/pdfparser) and implement this branch to enable AI checking for PDF submissions.'
+                .'Add one (e.g. smalot/pdfparser) and implement this branch to enable AI checking for PDF submissions.'
             ),
             default => throw new RuntimeException("Unsupported file type for AI text extraction: .{$extension}"),
         };
@@ -37,7 +37,7 @@ class SubmissionContentExtractor
 
     private function extractDocx(string $absolutePath): string
     {
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
 
         if ($zip->open($absolutePath) !== true) {
             throw new RuntimeException('Could not open .docx file for text extraction.');

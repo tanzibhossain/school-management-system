@@ -2,17 +2,16 @@
 
 namespace App\Modules\Academic\Repositories;
 
-use App\Modules\Academic\Models\AcademicYear;
 use App\Modules\Academic\Models\AcademicGroup;
 use App\Modules\Academic\Models\AcademicShift;
 use App\Modules\Academic\Models\AcademicVersion;
+use App\Modules\Academic\Models\AcademicYear;
 use App\Modules\Academic\Models\ClassRoutine;
 use App\Modules\Academic\Models\RoutinePeriod;
 use App\Modules\Academic\Models\RoutineRoom;
 use App\Modules\Academic\Models\SchoolClass;
 use App\Modules\Academic\Models\Section;
 use App\Modules\Academic\Models\StudentType;
-use App\Modules\Academic\Models\Subject;
 use App\Modules\Academic\Models\SubjectRelation;
 use App\Modules\Academic\Models\Transport;
 use App\Repositories\BaseRepository;
@@ -172,13 +171,13 @@ class AcademicRepository extends BaseRepository
         return $this->remember(
             $this->cacheKey("school:{$schoolId}:dropdowns"),
             fn () => [
-                'classes'       => $this->getActiveClasses($schoolId),
-                'shifts'        => $this->getActiveShifts($schoolId),
-                'versions'      => $this->getActiveVersions($schoolId),
-                'groups'        => $this->getActiveGroups($schoolId),
-                'transports'    => $this->getActiveTransports($schoolId),
+                'classes' => $this->getActiveClasses($schoolId),
+                'shifts' => $this->getActiveShifts($schoolId),
+                'versions' => $this->getActiveVersions($schoolId),
+                'groups' => $this->getActiveGroups($schoolId),
+                'transports' => $this->getActiveTransports($schoolId),
                 'student_types' => $this->getActiveStudentTypes($schoolId),
-                'current_year'  => $this->getCurrentYear($schoolId),
+                'current_year' => $this->getCurrentYear($schoolId),
             ],
         );
     }

@@ -25,10 +25,10 @@ class RefundController extends Controller
         return response()->json([
             'data' => RefundResource::collection($refunds->items()),
             'meta' => [
-                'total'        => $refunds->total(),
-                'per_page'     => $refunds->perPage(),
+                'total' => $refunds->total(),
+                'per_page' => $refunds->perPage(),
                 'current_page' => $refunds->currentPage(),
-                'last_page'    => $refunds->lastPage(),
+                'last_page' => $refunds->lastPage(),
             ],
         ]);
     }
@@ -48,7 +48,7 @@ class RefundController extends Controller
             ->where('is_reversed', false)
             ->findOrFail($paymentId);
 
-        $data   = $request->validated();
+        $data = $request->validated();
         $refund = $this->service->request($payment, (float) $data['amount'], $request->user()->id, $data['note'] ?? null);
 
         return (new RefundResource($refund))->response()->setStatusCode(201);

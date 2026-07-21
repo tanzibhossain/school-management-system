@@ -14,18 +14,18 @@ class AttendanceSetting extends Model
     ];
 
     protected $casts = [
-        'max_shift_hours'             => 'integer',
-        'edit_window_days'            => 'integer',
-        'late_threshold_minutes'      => 'integer',
+        'max_shift_hours' => 'integer',
+        'edit_window_days' => 'integer',
+        'late_threshold_minutes' => 'integer',
         'leave_counts_in_denominator' => 'boolean',
     ];
 
     // Mirror DB-level defaults
     protected $attributes = [
-        'auto_close_policy'           => 'closing_time',
-        'max_shift_hours'             => 12,
-        'edit_window_days'            => 7,
-        'late_threshold_minutes'      => 15,
+        'auto_close_policy' => 'closing_time',
+        'max_shift_hours' => 12,
+        'edit_window_days' => 7,
+        'late_threshold_minutes' => 15,
         'leave_counts_in_denominator' => true,
     ];
 

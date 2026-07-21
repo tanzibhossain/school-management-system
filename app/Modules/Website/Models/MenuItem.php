@@ -63,12 +63,12 @@ class MenuItem extends Model
     public function resolvedUrl(): string
     {
         return match ($this->type) {
-            'page'    => $this->page
-                ? ($this->page->is_homepage ? url('/') : url('/' . ltrim($this->page->slug, '/')))
+            'page' => $this->page
+                ? ($this->page->is_homepage ? url('/') : url('/'.ltrim($this->page->slug, '/')))
                 : '#',
             'external' => $this->url ?: '#',
-            'dynamic'  => $this->dynamic_route ?: '#',
-            default    => '#', // dropdown header
+            'dynamic' => $this->dynamic_route ?: '#',
+            default => '#', // dropdown header
         };
     }
 }

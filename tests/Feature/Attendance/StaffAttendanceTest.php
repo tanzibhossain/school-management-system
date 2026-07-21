@@ -8,6 +8,7 @@ use App\Modules\School\Models\School;
 use App\Modules\School\Models\SchoolOpeningHour;
 use App\Modules\Staff\Models\Staff;
 use Carbon\CarbonImmutable;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -16,24 +17,26 @@ class StaffAttendanceTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private School $school;
+
     private Staff $staff;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create(['name' => 'Test School', 'timezone' => 'UTC', 'is_active' => true]);
 
         foreach (range(0, 6) as $day) {
             SchoolOpeningHour::create([
-                'school_id'   => $this->school->id,
+                'school_id' => $this->school->id,
                 'day_of_week' => $day,
-                'is_open'     => true,
-                'open_time'   => '08:00:00',
-                'close_time'  => '16:00:00',
+                'is_open' => true,
+                'open_time' => '08:00:00',
+                'close_time' => '16:00:00',
             ]);
         }
 
@@ -41,9 +44,9 @@ class StaffAttendanceTest extends TestCase
         $this->admin->assignRole('admin');
 
         $this->staff = Staff::create([
-            'school_id'   => $this->school->id,
-            'name'        => 'RFID Teacher',
-            'gender'      => 'male',
+            'school_id' => $this->school->id,
+            'name' => 'RFID Teacher',
+            'gender' => 'male',
             'rfid_number' => 'CARD-123',
         ]);
     }
@@ -94,8 +97,8 @@ class StaffAttendanceTest extends TestCase
 
         $this->withToken($this->token())
             ->postJson('/api/v2/attendance/staff/manual', [
-                'staff_id'  => $this->staff->id,
-                'date'      => $date,
+                'staff_id' => $this->staff->id,
+                'date' => $date,
                 'check_out' => "{$date} 15:30:00",
             ])
             ->assertCreated()
@@ -110,10 +113,10 @@ class StaffAttendanceTest extends TestCase
 
         StaffAttendance::create([
             'school_id' => $this->school->id,
-            'staff_id'  => $this->staff->id,
-            'date'      => $yesterday->toDateString(),
-            'check_in'  => $yesterday->setTime(8, 2),
-            'source'    => 'rfid',
+            'staff_id' => $this->staff->id,
+            'date' => $yesterday->toDateString(),
+            'check_in' => $yesterday->setTime(8, 2),
+            'source' => 'rfid',
         ]);
 
         $this->artisan('attendance:auto-close')->assertSuccessful();
@@ -122,7 +125,7 @@ class StaffAttendanceTest extends TestCase
         $this->assertTrue($record->is_auto_closed);
         // Closing time from school_opening_hours (16:00), never the job run time
         $this->assertSame(
-            $yesterday->toDateString() . ' 16:00',
+            $yesterday->toDateString().' 16:00',
             $record->check_out->format('Y-m-d H:i'),
         );
     }
@@ -137,9 +140,9 @@ class StaffAttendanceTest extends TestCase
 
         StaffAttendance::create([
             'school_id' => $this->school->id,
-            'staff_id'  => $this->staff->id,
-            'date'      => $yesterday->toDateString(),
-            'check_in'  => $yesterday->setTime(8, 0),
+            'staff_id' => $this->staff->id,
+            'date' => $yesterday->toDateString(),
+            'check_in' => $yesterday->setTime(8, 0),
         ]);
 
         $this->artisan('attendance:auto-close')->assertSuccessful();

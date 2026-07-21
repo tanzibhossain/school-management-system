@@ -8,11 +8,13 @@ use App\Modules\Academic\Models\SchoolClass;
 use App\Modules\Academic\Models\Section;
 use App\Modules\Academic\Models\Subject;
 use App\Modules\Academic\Models\SubjectRelation;
+use App\Modules\Attendance\Models\StudentAttendance;
 use App\Modules\Examination\Models\Exam;
 use App\Modules\Examination\Models\ExamType;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\StudentAcademic;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -37,7 +39,7 @@ class AcademicsAreaTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT',
@@ -54,7 +56,7 @@ class AcademicsAreaTest extends TestCase
     private function enrol(string $admission): Student
     {
         $student = Student::create([
-            'school_id' => $this->school->id, 'name' => 'Student ' . $admission,
+            'school_id' => $this->school->id, 'name' => 'Student '.$admission,
             'gender' => 'male', 'admission_number' => $admission, 'status' => 'active',
         ]);
         StudentAcademic::create([
@@ -84,7 +86,7 @@ class AcademicsAreaTest extends TestCase
         $this->actingAs($this->admin);
         $this->enrol('ADM-1');
 
-        $this->get('/admin/attendance?class_id=' . $this->class->id . '&section_id=' . $this->section->id)
+        $this->get('/admin/attendance?class_id='.$this->class->id.'&section_id='.$this->section->id)
             ->assertOk()
             ->assertSee('Student ADM-1');
     }
@@ -118,7 +120,7 @@ class AcademicsAreaTest extends TestCase
         $this->post('/admin/attendance', $payload('present'))->assertRedirect();
         $this->post('/admin/attendance', $payload('late'))->assertRedirect();
 
-        $this->assertEquals(1, \App\Modules\Attendance\Models\StudentAttendance::where('student_id', $s1->id)->count());
+        $this->assertEquals(1, StudentAttendance::where('student_id', $s1->id)->count());
         $this->assertDatabaseHas('student_attendances', ['student_id' => $s1->id, 'status' => 'late']);
     }
 

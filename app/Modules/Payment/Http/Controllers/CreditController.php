@@ -35,17 +35,17 @@ class CreditController extends Controller
 
         return response()->json([
             'data' => $transactions->map(fn ($t) => [
-                'id'          => $t->id,
-                'type'        => $t->type,
-                'amount'      => $t->amount,
-                'note'        => $t->note,
-                'created_at'  => $t->created_at->toIso8601String(),
+                'id' => $t->id,
+                'type' => $t->type,
+                'amount' => $t->amount,
+                'note' => $t->note,
+                'created_at' => $t->created_at->toIso8601String(),
             ]),
             'meta' => [
-                'total'        => $transactions->total(),
-                'per_page'     => $transactions->perPage(),
+                'total' => $transactions->total(),
+                'per_page' => $transactions->perPage(),
                 'current_page' => $transactions->currentPage(),
-                'last_page'    => $transactions->lastPage(),
+                'last_page' => $transactions->lastPage(),
             ],
         ]);
     }

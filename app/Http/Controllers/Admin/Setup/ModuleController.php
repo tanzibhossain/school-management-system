@@ -19,7 +19,7 @@ class ModuleController extends Controller
 
         return view('admin.setup.modules.index', [
             'settings' => $settings,
-            'meta'     => ModuleSetting::META,
+            'meta' => ModuleSetting::META,
         ]);
     }
 

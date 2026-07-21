@@ -19,8 +19,8 @@ class LoginController extends Controller
 {
     /** Portal → allowed roles + dashboard route. Order = priority for redirect. */
     private const PORTALS = [
-        'admin'  => ['roles' => ['super_admin', 'admin'], 'dashboard' => 'admin.dashboard'],
-        'staff'  => ['roles' => ['teacher', 'accountant', 'librarian', 'receptionist'], 'dashboard' => 'staff.dashboard'],
+        'admin' => ['roles' => ['super_admin', 'admin'], 'dashboard' => 'admin.dashboard'],
+        'staff' => ['roles' => ['teacher', 'accountant', 'librarian', 'receptionist'], 'dashboard' => 'staff.dashboard'],
         'family' => ['roles' => ['student', 'parent'], 'dashboard' => 'portal.dashboard'],
     ];
 
@@ -47,7 +47,7 @@ class LoginController extends Controller
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email'    => ['required', 'email'],
+            'email' => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
 

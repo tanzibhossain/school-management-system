@@ -8,10 +8,10 @@ class ResultStrategyFactory
 {
     /** @var array<string, class-string<ResultStrategy>> */
     private const MAP = [
-        'bd_national'      => BdNationalStrategy::class,
-        'simple_average'   => SimpleAverageStrategy::class,
+        'bd_national' => BdNationalStrategy::class,
+        'simple_average' => SimpleAverageStrategy::class,
         'weighted_average' => WeightedAverageStrategy::class,
-        'percentage_only'  => PercentageOnlyStrategy::class,
+        'percentage_only' => PercentageOnlyStrategy::class,
     ];
 
     public static function make(string $name): ResultStrategy
@@ -22,6 +22,6 @@ class ResultStrategyFactory
 
         $class = self::MAP[$name];
 
-        return new $class();
+        return new $class;
     }
 }

@@ -2,15 +2,15 @@
 
 namespace App\Modules\Academic\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class Transport extends Model
 {
     protected $fillable = ['school_id', 'name', 'route', 'fee', 'is_trash'];
 
     protected $casts = [
-        'fee'      => 'decimal:2',
+        'fee' => 'decimal:2',
         'is_trash' => 'boolean',
     ];
 

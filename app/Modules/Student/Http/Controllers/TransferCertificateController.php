@@ -2,15 +2,14 @@
 
 namespace App\Modules\Student\Http\Controllers;
 
-use App\Modules\Student\Http\Resources\TransferCertificateResource;
-use App\Modules\Student\Http\Resources\TransferCertificateTemplateResource;
 use App\Modules\Student\Http\Requests\StoreTcTemplateRequest;
 use App\Modules\Student\Http\Requests\UpdateTcTemplateRequest;
+use App\Modules\Student\Http\Resources\TransferCertificateResource;
+use App\Modules\Student\Http\Resources\TransferCertificateTemplateResource;
 use App\Modules\Student\Models\TransferCertificate;
 use App\Modules\Student\Models\TransferCertificateTemplate;
 use App\Modules\Student\Services\TransferCertificateService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controller;
 
@@ -32,7 +31,7 @@ class TransferCertificateController extends Controller
     public function storeTemplate(StoreTcTemplateRequest $request): TransferCertificateTemplateResource
     {
         $schoolId = app('current_school_id');
-        $data     = array_merge($request->validated(), ['school_id' => $schoolId]);
+        $data = array_merge($request->validated(), ['school_id' => $schoolId]);
 
         if (! empty($data['is_default'])) {
             TransferCertificateTemplate::where('school_id', $schoolId)->update(['is_default' => false]);
@@ -87,8 +86,8 @@ class TransferCertificateController extends Controller
 
     public function preview(int $id): JsonResponse
     {
-        $tc      = TransferCertificate::where('school_id', app('current_school_id'))->findOrFail($id);
-        $html    = $this->service->render($tc->load(['student.currentAcademic.schoolClass', 'template']));
+        $tc = TransferCertificate::where('school_id', app('current_school_id'))->findOrFail($id);
+        $html = $this->service->render($tc->load(['student.currentAcademic.schoolClass', 'template']));
 
         return response()->json(['html' => $html]);
     }

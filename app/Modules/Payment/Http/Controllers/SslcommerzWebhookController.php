@@ -20,9 +20,9 @@ class SslcommerzWebhookController extends Controller
      */
     public function ipn(Request $request): JsonResponse
     {
-        $tranId  = $request->post('tran_id');
-        $valId   = $request->post('val_id');
-        $status  = $request->post('status');
+        $tranId = $request->post('tran_id');
+        $valId = $request->post('val_id');
+        $status = $request->post('status');
 
         // SSLCommerz IPN can post status 'VALID' or 'VALIDATED'
         if (! in_array($status, ['VALID', 'VALIDATED'], true) || ! $tranId || ! $valId) {
@@ -66,7 +66,7 @@ class SslcommerzWebhookController extends Controller
     private function handleBrowserRedirect(Request $request, string $expectedStatus): JsonResponse
     {
         $tranId = $request->post('tran_id') ?? $request->get('tran_id');
-        $valId  = $request->post('val_id') ?? $request->get('val_id');
+        $valId = $request->post('val_id') ?? $request->get('val_id');
         $status = $request->post('status') ?? $request->get('status');
 
         if ($status !== $expectedStatus || ! $tranId || ! $valId) {

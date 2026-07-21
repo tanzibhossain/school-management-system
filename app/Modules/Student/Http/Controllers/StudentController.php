@@ -38,11 +38,11 @@ class StudentController extends Controller
     public function store(StoreStudentRequest $request): JsonResponse
     {
         $schoolId = app('current_school_id');
-        $data     = $request->validated();
+        $data = $request->validated();
 
         $student = $this->service->enrol(
-            schoolId:     $schoolId,
-            studentData:  array_intersect_key($data, array_flip([
+            schoolId: $schoolId,
+            studentData: array_intersect_key($data, array_flip([
                 'admission_number', 'name', 'dob', 'gender', 'blood_group',
                 'religion', 'nationality', 'mother_tongue',
             ])),
@@ -95,16 +95,16 @@ class StudentController extends Controller
     public function transfer(TransferStudentRequest $request, int $id): StudentResource
     {
         $student = $this->repository->findOrFail($id, app('current_school_id'));
-        $data    = $request->validated();
+        $data = $request->validated();
 
         $student = $this->service->transfer($student, $data['reason']);
 
         // Generate TC draft
         $this->tcService->generate(
-            student:    $student,
-            reason:     $data['reason'],
+            student: $student,
+            reason: $data['reason'],
             templateId: $data['template_id'] ?? null,
-            issuedBy:   $request->user(),
+            issuedBy: $request->user(),
         );
 
         return new StudentResource($student->fresh());

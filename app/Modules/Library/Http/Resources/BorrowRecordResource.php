@@ -2,10 +2,11 @@
 
 namespace App\Modules\Library\Http\Resources;
 
+use App\Modules\Library\Models\BorrowRecord;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin \App\Modules\Library\Models\BorrowRecord */
+/** @mixin BorrowRecord */
 class BorrowRecordResource extends JsonResource
 {
     public function toArray(Request $request): array
@@ -19,11 +20,11 @@ class BorrowRecordResource extends JsonResource
             'returned_at' => $this->returned_at?->toIso8601String(),
             'status' => $this->status,
             'notes' => $this->notes,
-            'book' => $this->whenLoaded('book', fn() => [
+            'book' => $this->whenLoaded('book', fn () => [
                 'id' => $this->book->id,
                 'title' => $this->book->title,
             ]),
-            'member' => $this->whenLoaded('member', fn() => [
+            'member' => $this->whenLoaded('member', fn () => [
                 'id' => $this->member->id,
                 'member_type' => $this->member->member_type,
                 'user' => [

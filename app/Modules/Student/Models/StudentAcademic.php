@@ -29,7 +29,7 @@ class StudentAcademic extends Model
     ];
 
     protected $casts = [
-        'is_current'  => 'boolean',
+        'is_current' => 'boolean',
         'promoted_at' => 'datetime',
     ];
 

@@ -16,11 +16,11 @@ class BulkMarkEntryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'mark_division_id'          => ['required', 'integer', 'exists:mark_divisions,id'],
-            'entries'                   => ['required', 'array', 'min:1'],
-            'entries.*.student_id'      => ['required', 'integer', 'exists:students,id'],
-            'entries.*.marks_obtained'  => ['nullable', 'numeric', 'min:0'],
-            'entries.*.is_absent'       => ['sometimes', 'boolean'],
+            'mark_division_id' => ['required', 'integer', 'exists:mark_divisions,id'],
+            'entries' => ['required', 'array', 'min:1'],
+            'entries.*.student_id' => ['required', 'integer', 'exists:students,id'],
+            'entries.*.marks_obtained' => ['nullable', 'numeric', 'min:0'],
+            'entries.*.is_absent' => ['sometimes', 'boolean'],
         ];
     }
 }

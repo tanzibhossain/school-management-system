@@ -32,18 +32,18 @@ class PaymentController extends Controller
         $invoice = Invoice::where('school_id', $schoolId)->findOrFail($invoiceId);
 
         $validated = $request->validate([
-            'amount'        => ['required', 'numeric', 'min:0.01'],
-            'method'        => ['required', 'in:cash,bank_transfer,cheque'],
-            'note'          => ['nullable', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'method' => ['required', 'in:cash,bank_transfer,cheque'],
+            'note' => ['nullable', 'string', 'max:255'],
             'cheque_number' => ['nullable', 'required_if:method,cheque', 'string', 'max:50'],
-            'bank_name'     => ['nullable', 'string', 'max:100'],
-            'cheque_date'   => ['nullable', 'date'],
+            'bank_name' => ['nullable', 'string', 'max:100'],
+            'cheque_date' => ['nullable', 'date'],
         ]);
 
         $data = [
             'amount' => $validated['amount'],
             'method' => $validated['method'],
-            'note'   => $validated['note'] ?? null,
+            'note' => $validated['note'] ?? null,
         ];
 
         if ($validated['method'] === 'cheque') {

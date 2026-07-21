@@ -12,7 +12,7 @@ class SmsSegmentCalculatorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->calculator = new SmsSegmentCalculator();
+        $this->calculator = new SmsSegmentCalculator;
     }
 
     public function test_empty_message_is_zero_segments(): void

@@ -29,10 +29,10 @@ class SeatingService
      * @return int Number of students seated
      */
     public function assign(
-        Exam    $exam,
-        int     $hallId,
+        Exam $exam,
+        int $hallId,
         ?string $strategyOverride = null,
-        ?int    $blankEvery       = null,
+        ?int $blankEvery = null,
     ): int {
         // Clear any prior seating for this exam
         ExamSeating::where('exam_id', $exam->id)->delete();
@@ -49,7 +49,7 @@ class SeatingService
 
         $count = match ($strategy) {
             'anti_adjacency' => $this->assignAntiAdjacency($exam, $seats, $blankEvery),
-            default          => $this->assignLinear($exam, $seats, $strategy, $blankEvery),
+            default => $this->assignLinear($exam, $seats, $strategy, $blankEvery),
         };
 
         event(new SeatingAssigned($exam));
@@ -95,13 +95,13 @@ class SeatingService
             $seat = $usable[$i];
 
             ExamSeating::create([
-                'school_id'    => $exam->school_id,
-                'exam_id'      => $exam->id,
-                'student_id'   => $sa->student_id,
+                'school_id' => $exam->school_id,
+                'exam_id' => $exam->id,
+                'student_id' => $sa->student_id,
                 'hall_seat_id' => $seat->id,
-                'exam_roll'    => str_pad((string) ($i + 1), 4, '0', STR_PAD_LEFT),
-                'group_id'     => $sa->group_id,
-                'section_id'   => $sa->section_id,
+                'exam_roll' => str_pad((string) ($i + 1), 4, '0', STR_PAD_LEFT),
+                'group_id' => $sa->group_id,
+                'section_id' => $sa->section_id,
             ]);
         }
 
@@ -146,8 +146,8 @@ class SeatingService
         }
 
         // Capacity check (account for blank seats)
-        $totalSeats  = $seats->count();
-        $blankCount  = $blankEvery ? (int) floor($totalSeats / ($blankEvery + 1)) : 0;
+        $totalSeats = $seats->count();
+        $blankCount = $blankEvery ? (int) floor($totalSeats / ($blankEvery + 1)) : 0;
         $usableCount = $totalSeats - $blankCount;
 
         if ($numStudents > $usableCount) {
@@ -160,7 +160,7 @@ class SeatingService
         }
 
         // Build per-group queues sorted by roll_number
-        $queues    = $rawStudents->groupBy('group_id')
+        $queues = $rawStudents->groupBy('group_id')
             ->map(fn ($g) => $g->sortBy('roll_number')->values())
             ->values();
         $numGroups = $queues->count();
@@ -171,11 +171,11 @@ class SeatingService
         // Group seats into (row, side) segments — preserving row/side/position order
         $segments = $seats->groupBy(fn ($s) => "{$s->row}-{$s->side}")->values();
 
-        $assigned      = 0;
-        $examRoll      = 1;
+        $assigned = 0;
+        $examRoll = 1;
         $globalSeatIdx = 0; // tracks position across the entire hall (for blank_every)
-        $prevRow       = null;
-        $rowIndex      = -1;
+        $prevRow = null;
+        $rowIndex = -1;
 
         foreach ($segments as $segment) {
             // Advance row index when we move to a new hall row
@@ -186,7 +186,7 @@ class SeatingService
             }
 
             // Rotation offset for this row (shifts the group pattern every row)
-            $rowOffset    = $numGroups > 1 ? ($rowIndex % $numGroups) : 0;
+            $rowOffset = $numGroups > 1 ? ($rowIndex % $numGroups) : 0;
             $posInSegment = 0; // physical column index within this row-side segment
 
             foreach ($segment as $seat) {
@@ -209,13 +209,13 @@ class SeatingService
                             $sa = $queues[$gIdx][$pointers[$gIdx]++];
 
                             ExamSeating::create([
-                                'school_id'    => $exam->school_id,
-                                'exam_id'      => $exam->id,
-                                'student_id'   => $sa->student_id,
+                                'school_id' => $exam->school_id,
+                                'exam_id' => $exam->id,
+                                'student_id' => $sa->student_id,
                                 'hall_seat_id' => $seat->id,
-                                'exam_roll'    => str_pad((string) $examRoll, 4, '0', STR_PAD_LEFT),
-                                'group_id'     => $sa->group_id,
-                                'section_id'   => $sa->section_id,
+                                'exam_roll' => str_pad((string) $examRoll, 4, '0', STR_PAD_LEFT),
+                                'group_id' => $sa->group_id,
+                                'section_id' => $sa->section_id,
                             ]);
 
                             $assigned++;
@@ -245,9 +245,9 @@ class SeatingService
         return StudentAcademic::where('school_id', $exam->school_id)
             ->where('academic_year_id', $exam->academic_year_id)
             ->where('class_id', $exam->class_id)
-            ->when($exam->section_id,  fn ($q) => $q->where('section_id', $exam->section_id))
-            ->when($exam->group_id,    fn ($q) => $q->where('group_id', $exam->group_id))
-            ->when($exam->version_id,  fn ($q) => $q->where('version_id', $exam->version_id))
+            ->when($exam->section_id, fn ($q) => $q->where('section_id', $exam->section_id))
+            ->when($exam->group_id, fn ($q) => $q->where('group_id', $exam->group_id))
+            ->when($exam->version_id, fn ($q) => $q->where('version_id', $exam->version_id))
             ->where('is_current', true)
             ->orderBy('roll_number')
             ->get();
@@ -263,9 +263,9 @@ class SeatingService
         $students = $this->rawStudents($exam);
 
         return match ($strategy) {
-            'interleave_group'   => $this->interleave($students, 'group_id'),
+            'interleave_group' => $this->interleave($students, 'group_id'),
             'interleave_section' => $this->interleave($students, 'section_id'),
-            default              => $students,
+            default => $students,
         };
     }
 
@@ -291,7 +291,7 @@ class SeatingService
             ->map(fn ($g) => $g->values())   // re-index inner groups to 0,1,2,...
             ->values();                       // re-index outer collection too
 
-        $result = new Collection();
+        $result = new Collection;
         $maxLen = $grouped->max(fn ($g) => $g->count());
 
         for ($i = 0; $i < $maxLen; $i++) {

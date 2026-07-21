@@ -13,23 +13,23 @@ class SchoolSeeder extends Seeder
     public function run(): void
     {
         $profile = [
-            'name'                        => 'Green Valley Model School',
-            'established'                 => '1985-01-01',
+            'name' => 'Green Valley Model School',
+            'established' => '1985-01-01',
             // Three configurable code fields (label + value)
-            'institution_code_label'      => 'EIIN',
-            'institution_code'            => '115394',
-            'school_code_label'           => 'Technical Branch Code',
-            'school_code'                 => '0000',
+            'institution_code_label' => 'EIIN',
+            'institution_code' => '115394',
+            'school_code_label' => 'Technical Branch Code',
+            'school_code' => '0000',
             'technical_branch_code_label' => 'School Code',
-            'technical_branch_code'       => '5556',
-            'address'                     => 'Natipota, Damurhuda, Chuadanga',
-            'country_code'                => 'BD',
-            'email'                       => 'info@greenvalley.edu.bd',
-            'currency'                    => 'BDT',
-            'timezone'                    => 'Asia/Dhaka',
-            'locale'                      => 'en',
-            'academic_year_pattern'       => 'jan_dec',
-            'is_active'                   => true,
+            'technical_branch_code' => '5556',
+            'address' => 'Natipota, Damurhuda, Chuadanga',
+            'country_code' => 'BD',
+            'email' => 'info@greenvalley.edu.bd',
+            'currency' => 'BDT',
+            'timezone' => 'Asia/Dhaka',
+            'locale' => 'en',
+            'academic_year_pattern' => 'jan_dec',
+            'is_active' => true,
         ];
 
         // Single-tenant: update the sole school if it exists, else create it.
@@ -40,13 +40,13 @@ class SchoolSeeder extends Seeder
         SiteSetting::updateOrCreate(
             ['school_id' => $school->id],
             [
-                'primary_color'     => '#0a6b2f',
-                'accent_color'      => '#f59e0b',
-                'heading_color'     => '#0f172a',
+                'primary_color' => '#0a6b2f',
+                'accent_color' => '#f59e0b',
+                'heading_color' => '#0f172a',
                 'topbar_text_color' => '#ffffff',
-                'ticker_position'   => 'below_nav',
-                'meta_title'        => 'Green Valley Model School',
-                'meta_description'  => 'A traditional institution nurturing curious minds since 1985.',
+                'ticker_position' => 'below_nav',
+                'meta_title' => 'Green Valley Model School',
+                'meta_description' => 'A traditional institution nurturing curious minds since 1985.',
             ],
         );
 

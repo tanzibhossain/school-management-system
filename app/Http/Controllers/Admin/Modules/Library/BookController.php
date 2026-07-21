@@ -52,12 +52,12 @@ class BookController extends Controller
     private function validated(Request $request, ?Book $book = null): array
     {
         $data = $request->validate([
-            'title'        => ['required', 'string', 'max:200'],
-            'author'       => ['nullable', 'string', 'max:150'],
-            'isbn'         => ['nullable', 'string', 'max:30'],
-            'category'     => ['nullable', 'string', 'max:80'],
-            'publisher'    => ['nullable', 'string', 'max:120'],
-            'edition'      => ['nullable', 'string', 'max:50'],
+            'title' => ['required', 'string', 'max:200'],
+            'author' => ['nullable', 'string', 'max:150'],
+            'isbn' => ['nullable', 'string', 'max:30'],
+            'category' => ['nullable', 'string', 'max:80'],
+            'publisher' => ['nullable', 'string', 'max:120'],
+            'edition' => ['nullable', 'string', 'max:50'],
             'total_copies' => ['required', 'integer', 'min:1', 'max:100000'],
         ]);
 

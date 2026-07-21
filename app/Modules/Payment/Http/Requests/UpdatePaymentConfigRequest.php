@@ -22,14 +22,14 @@ class UpdatePaymentConfigRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'payment_mode'          => ['sometimes', 'in:offline,online,both'],
-            'invoice_prefix'        => ['sometimes', 'nullable', 'string', 'max:20'],
-            'receipt_prefix'        => ['sometimes', 'nullable', 'string', 'max:20'],
-            'bounce_fee_amount'     => ['sometimes', 'nullable', 'numeric', 'min:0'],
-            'gateways'              => ['sometimes', 'array'],
-            'gateways.*'            => ['array'],
-            'gateways.*.enabled'    => ['sometimes', 'boolean'],
-            'gateways.*.fee_pct'    => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:100'],
+            'payment_mode' => ['sometimes', 'in:offline,online,both'],
+            'invoice_prefix' => ['sometimes', 'nullable', 'string', 'max:20'],
+            'receipt_prefix' => ['sometimes', 'nullable', 'string', 'max:20'],
+            'bounce_fee_amount' => ['sometimes', 'nullable', 'numeric', 'min:0'],
+            'gateways' => ['sometimes', 'array'],
+            'gateways.*' => ['array'],
+            'gateways.*.enabled' => ['sometimes', 'boolean'],
+            'gateways.*.fee_pct' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:100'],
             'gateways.*.credentials' => ['sometimes', 'array'],
         ];
     }

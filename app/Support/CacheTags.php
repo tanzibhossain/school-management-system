@@ -53,10 +53,10 @@ class CacheTags
         sort($tags);
         $parts = [];
         foreach ($tags as $tag) {
-            $parts[] = $tag . '@' . self::version($tag);
+            $parts[] = $tag.'@'.self::version($tag);
         }
 
-        return 'tc:' . sha1(implode('|', $parts) . '|' . $key);
+        return 'tc:'.sha1(implode('|', $parts).'|'.$key);
     }
 
     private static function version(string $tag): string
@@ -66,6 +66,6 @@ class CacheTags
 
     private static function versionKey(string $tag): string
     {
-        return 'tagver:' . $tag;
+        return 'tagver:'.$tag;
     }
 }

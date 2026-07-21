@@ -71,8 +71,8 @@ class ExamHallController extends Controller
             $count = $this->layoutService->generateSeats($hall);
 
             return response()->json([
-                'message'         => "{$count} seats generated for {$hall->name}.",
-                'total_seats'     => $count,
+                'message' => "{$count} seats generated for {$hall->name}.",
+                'total_seats' => $count,
                 'available_seats' => $count,
             ]);
         } catch (RuntimeException $e) {
@@ -85,12 +85,12 @@ class ExamHallController extends Controller
      */
     public function seats(int $id): JsonResponse
     {
-        $hall  = ExamHall::where('school_id', app('current_school_id'))->findOrFail($id);
+        $hall = ExamHall::where('school_id', app('current_school_id'))->findOrFail($id);
         $seats = $hall->seats()->get();
 
         return response()->json([
-            'data'            => ExamHallSeatResource::collection($seats),
-            'total_seats'     => $seats->count(),
+            'data' => ExamHallSeatResource::collection($seats),
+            'total_seats' => $seats->count(),
             'available_seats' => $seats->where('is_available', true)->count(),
         ]);
     }

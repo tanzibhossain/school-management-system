@@ -79,7 +79,7 @@ class ExaminationService
 
         return ExamSubject::create([
             'school_id' => $exam->school_id,
-            'exam_id'   => $exam->id,
+            'exam_id' => $exam->id,
             ...$data,
         ]);
     }

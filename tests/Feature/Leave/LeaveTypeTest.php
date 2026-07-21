@@ -8,9 +8,9 @@ class LeaveTypeTest extends LeaveTestCase
     {
         $this->withToken($this->adminToken())
             ->postJson('/api/v2/leave/types', [
-                'name'                => 'Maternity Leave',
-                'applies_to'          => 'staff',
-                'max_days_per_year'   => 90,
+                'name' => 'Maternity Leave',
+                'applies_to' => 'staff',
+                'max_days_per_year' => 90,
                 'requires_attachment' => true,
             ])
             ->assertCreated()

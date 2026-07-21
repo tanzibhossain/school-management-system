@@ -5,12 +5,14 @@ namespace Tests\Feature\Admin;
 use App\Models\User;
 use App\Modules\Academic\Models\AcademicYear;
 use App\Modules\Academic\Models\SchoolClass;
+use App\Modules\Certificate\Models\AdmitCard;
 use App\Modules\Certificate\Models\Testimonial;
 use App\Modules\Certificate\Models\TestimonialTemplate;
 use App\Modules\Examination\Models\Exam;
 use App\Modules\Examination\Models\ExamType;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -30,7 +32,7 @@ class CertificateAreaTest extends TestCase
     {
         parent::setUp();
         Storage::fake('minio');
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Test School', 'is_active' => true, 'currency' => 'BDT',
@@ -108,7 +110,7 @@ class CertificateAreaTest extends TestCase
         $this->post('/admin/admit-cards', ['student_id' => $student->id, 'exam_id' => $exam->id])
             ->assertSessionHasNoErrors()->assertRedirect();
 
-        $card = \App\Modules\Certificate\Models\AdmitCard::where('school_id', $this->school->id)->firstOrFail();
+        $card = AdmitCard::where('school_id', $this->school->id)->firstOrFail();
         Storage::disk('minio')->assertExists($card->file_path);
 
         $this->get("/admin/admit-cards/{$card->id}/download")->assertOk();

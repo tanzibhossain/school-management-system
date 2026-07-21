@@ -16,7 +16,7 @@ class BouncePaymentRequest extends FormRequest
     {
         return [
             'bounce_fee' => ['nullable', 'numeric', 'min:0'],  // overrides config default
-            'note'       => ['nullable', 'string', 'max:500'],
+            'note' => ['nullable', 'string', 'max:500'],
         ];
     }
 }

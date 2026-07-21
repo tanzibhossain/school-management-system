@@ -5,6 +5,7 @@ namespace Tests\Feature\Loan;
 use App\Models\User;
 use App\Modules\School\Models\School;
 use App\Modules\Staff\Models\Staff;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -13,15 +14,18 @@ class StaffLoanTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private School $school;
+
     private Staff $staff;
+
     private User $staffUser;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create(['name' => 'Test School', 'timezone' => 'UTC', 'is_active' => true]);
 
@@ -29,11 +33,11 @@ class StaffLoanTest extends TestCase
         $this->admin->assignRole('admin');
 
         $this->staffUser = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
-        $this->staff     = Staff::create([
+        $this->staff = Staff::create([
             'school_id' => $this->school->id,
-            'user_id'   => $this->staffUser->id,
-            'name'      => 'Staff One',
-            'gender'    => 'female',
+            'user_id' => $this->staffUser->id,
+            'name' => 'Staff One',
+            'gender' => 'female',
         ]);
     }
 
@@ -58,10 +62,10 @@ class StaffLoanTest extends TestCase
     private function payload(array $overrides = []): array
     {
         return array_merge([
-            'requested_amount'  => 6000,
+            'requested_amount' => 6000,
             'installment_count' => 3,
-            'reason'            => 'Medical expense',
-            'start_date'        => '2026-02-01',
+            'reason' => 'Medical expense',
+            'start_date' => '2026-02-01',
         ], $overrides);
     }
 

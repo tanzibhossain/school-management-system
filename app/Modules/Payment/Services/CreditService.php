@@ -35,14 +35,14 @@ class CreditService
                 ->increment('balance', $amount);
 
             CreditTransaction::create([
-                'school_id'      => $schoolId,
-                'student_id'     => $studentId,
-                'type'           => 'credit',
-                'amount'         => $amount,
+                'school_id' => $schoolId,
+                'student_id' => $studentId,
+                'type' => 'credit',
+                'amount' => $amount,
                 'reference_type' => $referenceType,
-                'reference_id'   => $referenceId,
-                'note'           => $note,
-                'created_by'     => $createdBy,
+                'reference_id' => $referenceId,
+                'note' => $note,
+                'created_by' => $createdBy,
             ]);
         });
     }
@@ -74,14 +74,14 @@ class CreditService
             $credit->decrement('balance', $amount);
 
             CreditTransaction::create([
-                'school_id'      => $schoolId,
-                'student_id'     => $studentId,
-                'type'           => 'debit',
-                'amount'         => $amount,
+                'school_id' => $schoolId,
+                'student_id' => $studentId,
+                'type' => 'debit',
+                'amount' => $amount,
                 'reference_type' => $referenceType,
-                'reference_id'   => $referenceId,
-                'note'           => $note,
-                'created_by'     => $createdBy,
+                'reference_id' => $referenceId,
+                'note' => $note,
+                'created_by' => $createdBy,
             ]);
         });
     }

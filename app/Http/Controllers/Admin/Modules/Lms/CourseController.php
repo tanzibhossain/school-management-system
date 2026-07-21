@@ -21,11 +21,11 @@ class CourseController extends Controller
         $schoolId = app('current_school_id');
 
         return view('admin.modules.lms.courses.index', [
-            'courses'  => Course::where('school_id', $schoolId)
+            'courses' => Course::where('school_id', $schoolId)
                 ->with(['schoolClass:id,name', 'subject:id,name', 'teacher:id,name'])
                 ->withCount(['lessons', 'assignments'])
                 ->orderBy('title')->get(),
-            'classes'  => SchoolClass::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
+            'classes' => SchoolClass::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
             'subjects' => Subject::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
             'teachers' => Staff::where('school_id', $schoolId)->where('is_trash', false)->orderBy('name')->get(['id', 'name']),
         ]);
@@ -75,10 +75,10 @@ class CourseController extends Controller
         $schoolId = app('current_school_id');
 
         $data = $request->validate([
-            'title'       => ['required', 'string', 'max:150'],
-            'class_id'    => ['required', 'integer', "exists:classes,id,school_id,{$schoolId}"],
-            'subject_id'  => ['required', 'integer', "exists:subjects,id,school_id,{$schoolId}"],
-            'teacher_id'  => ['nullable', 'integer', "exists:staff,id,school_id,{$schoolId}"],
+            'title' => ['required', 'string', 'max:150'],
+            'class_id' => ['required', 'integer', "exists:classes,id,school_id,{$schoolId}"],
+            'subject_id' => ['required', 'integer', "exists:subjects,id,school_id,{$schoolId}"],
+            'teacher_id' => ['nullable', 'integer', "exists:staff,id,school_id,{$schoolId}"],
             'description' => ['nullable', 'string', 'max:1000'],
         ], [], ['class_id' => 'class', 'subject_id' => 'subject', 'teacher_id' => 'teacher']);
         $data['is_active'] = true;

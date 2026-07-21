@@ -32,11 +32,11 @@ class HolidayController extends Controller
         $holiday = Holiday::updateOrCreate(
             [
                 'school_id' => app('current_school_id'),
-                'date'      => $request->validated('date'),
+                'date' => $request->validated('date'),
             ],
             [
-                'name'       => $request->validated('name'),
-                'type'       => $request->validated('type') ?? 'school',
+                'name' => $request->validated('name'),
+                'type' => $request->validated('type') ?? 'school',
                 'created_by' => $request->user()->id,
             ],
         );

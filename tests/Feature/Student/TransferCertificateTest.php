@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\TransferCertificateTemplate;
+use App\Modules\Student\Services\TransferCertificateService;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -15,14 +17,16 @@ class TransferCertificateTest extends TestCase
     use RefreshDatabase;
 
     private User $admin;
+
     private School $school;
+
     private Student $student;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
         Storage::fake('minio');
 
         $this->school = School::create(['name' => 'Test School', 'timezone' => 'UTC', 'is_active' => true]);
@@ -30,21 +34,21 @@ class TransferCertificateTest extends TestCase
         $this->admin = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
         $this->admin->assignRole('admin');
 
-        $studentUser  = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
+        $studentUser = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
         $this->student = Student::create([
-            'school_id'        => $this->school->id,
-            'user_id'          => $studentUser->id,
+            'school_id' => $this->school->id,
+            'user_id' => $studentUser->id,
             'admission_number' => 'ADM-001',
-            'name'             => 'Student One',
-            'gender'           => 'male',
-            'status'           => 'active',
+            'name' => 'Student One',
+            'gender' => 'male',
+            'status' => 'active',
         ]);
 
         TransferCertificateTemplate::create([
-            'school_id'     => $this->school->id,
-            'name'          => 'Default TC',
+            'school_id' => $this->school->id,
+            'name' => 'Default TC',
             'template_body' => '<p>{{student_name}} — {{tc_number}} — {{reason}}</p>',
-            'is_default'    => true,
+            'is_default' => true,
         ]);
     }
 
@@ -59,7 +63,7 @@ class TransferCertificateTest extends TestCase
 
         // Student::transfer() (StudentController) is what normally creates the draft TC;
         // exercise the service directly here to isolate the issue()/PDF behavior being tested.
-        $tc = app(\App\Modules\Student\Services\TransferCertificateService::class)
+        $tc = app(TransferCertificateService::class)
             ->generate($this->student, 'transfer', null, $this->admin);
 
         $this->withToken($token)

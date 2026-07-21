@@ -45,8 +45,8 @@ class StaffAttendanceService
     public function punchStaff(int $schoolId, Staff $staff, string $source = 'manual'): StaffAttendance
     {
         $school = School::findOrFail($schoolId);
-        $now    = CarbonImmutable::now($school->timezone ?? 'UTC');
-        $today  = $now->toDateString();
+        $now = CarbonImmutable::now($school->timezone ?? 'UTC');
+        $today = $now->toDateString();
 
         return DB::transaction(function () use ($schoolId, $staff, $now, $today, $source): StaffAttendance {
             $record = StaffAttendance::forSchool($schoolId)
@@ -58,18 +58,18 @@ class StaffAttendanceService
             if ($record === null) {
                 return StaffAttendance::create([
                     'school_id' => $schoolId,
-                    'staff_id'  => $staff->id,
-                    'date'      => $today,
-                    'check_in'  => $now,
-                    'source'    => $source,
+                    'staff_id' => $staff->id,
+                    'date' => $today,
+                    'check_in' => $now,
+                    'source' => $source,
                 ]);
             }
 
             // Later punch — becomes (or moves) the clock-out; a real punch replaces an auto-close
             $record->update([
-                'check_out'      => $now,
+                'check_out' => $now,
                 'is_auto_closed' => false,
-                'source'         => $source,
+                'source' => $source,
             ]);
 
             return $record->fresh();
@@ -89,15 +89,15 @@ class StaffAttendanceService
         return StaffAttendance::updateOrCreate(
             [
                 'school_id' => $schoolId,
-                'staff_id'  => $data['staff_id'],
-                'date'      => $data['date'],
+                'staff_id' => $data['staff_id'],
+                'date' => $data['date'],
             ],
             [
-                'check_in'       => $data['check_in'] ?? null,
-                'check_out'      => $data['check_out'] ?? null,
-                'note'           => $data['note'] ?? null,
-                'source'         => 'manual',
-                'is_incomplete'  => $isIncomplete,
+                'check_in' => $data['check_in'] ?? null,
+                'check_out' => $data['check_out'] ?? null,
+                'note' => $data['note'] ?? null,
+                'source' => 'manual',
+                'is_incomplete' => $isIncomplete,
                 'is_auto_closed' => false,
             ],
         );
@@ -118,7 +118,7 @@ class StaffAttendanceService
             return 0;
         }
 
-        $now   = CarbonImmutable::now($school->timezone ?? 'UTC');
+        $now = CarbonImmutable::now($school->timezone ?? 'UTC');
         $today = $now->toDateString();
 
         $open = StaffAttendance::forSchool($school->id)
@@ -136,7 +136,7 @@ class StaffAttendanceService
 
         foreach ($open as $record) {
             $record->update([
-                'check_out'      => $this->autoCloseTime($school, $settings, $record),
+                'check_out' => $this->autoCloseTime($school, $settings, $record),
                 'is_auto_closed' => true,
             ]);
         }
@@ -156,7 +156,7 @@ class StaffAttendanceService
 
     private function autoCloseTime(School $school, AttendanceSetting $settings, StaffAttendance $record): CarbonImmutable
     {
-        $tz  = $school->timezone ?? 'UTC';
+        $tz = $school->timezone ?? 'UTC';
         $day = CarbonImmutable::parse($record->date->toDateString(), $tz);
 
         if ($settings->auto_close_policy === 'max_shift' && $record->check_in !== null) {

@@ -20,10 +20,10 @@ class PaymentGatewayManager
 {
     /** @var array<string, class-string> slug => driver class */
     private const DRIVERS = [
-        'bkash'      => BkashGateway::class,
+        'bkash' => BkashGateway::class,
         'sslcommerz' => SslcommerzGateway::class,
-        'stripe'     => StripeGateway::class,
-        'paypal'     => PayPalGateway::class,
+        'stripe' => StripeGateway::class,
+        'paypal' => PayPalGateway::class,
     ];
 
     public function supports(string $slug): bool

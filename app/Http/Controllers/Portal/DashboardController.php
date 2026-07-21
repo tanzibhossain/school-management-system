@@ -15,10 +15,12 @@ use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\StudentAcademic;
 use App\Modules\Student\Models\StudentGuardian;
+use App\Services\PdfRenderingService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -39,10 +41,10 @@ class DashboardController extends Controller
         $sid = app('current_school_id');
 
         return view('portal.dashboard', $ctx + [
-            'attendance'   => $this->attendanceSummary($student),
-            'dues'         => $this->outstanding($student),
+            'attendance' => $this->attendanceSummary($student),
+            'dues' => $this->outstanding($student),
             'resultsCount' => ExamResult::where('school_id', $sid)->where('student_id', $student->id)->count(),
-            'notices'      => $this->publishedNotices($sid)->take(5)->get(),
+            'notices' => $this->publishedNotices($sid)->take(5)->get(),
         ]);
     }
 
@@ -83,7 +85,7 @@ class DashboardController extends Controller
         $config = PaymentConfig::firstOrCreate(['school_id' => app('current_school_id')]);
 
         return view('portal.fees', $ctx + [
-            'invoices'    => Invoice::where('school_id', app('current_school_id'))
+            'invoices' => Invoice::where('school_id', app('current_school_id'))
                 ->where('student_id', $ctx['student']->id)->orderByDesc('due_date')->paginate(20),
             'outstanding' => $this->outstanding($ctx['student']),
             'payGateways' => $config->enabledGateways(), // [{key,label,icon}] ready for checkout
@@ -129,7 +131,7 @@ class DashboardController extends Controller
         $sid = app('current_school_id');
 
         return view('portal.leave', $ctx + [
-            'requests'   => StudentLeaveRequest::where('school_id', $sid)->where('student_id', $ctx['student']->id)
+            'requests' => StudentLeaveRequest::where('school_id', $sid)->where('student_id', $ctx['student']->id)
                 ->with('leaveType:id,name')->orderByDesc('id')->get(),
             'leaveTypes' => LeaveType::forSchool($sid)->active()->applicableTo('student')->orderBy('name')->get(['id', 'name']),
         ]);
@@ -143,9 +145,9 @@ class DashboardController extends Controller
 
         $data = $request->validate([
             'leave_type_id' => ['required', 'integer', "exists:leave_types,id,school_id,{$sid}"],
-            'from_date'     => ['required', 'date'],
-            'to_date'       => ['required', 'date', 'after_or_equal:from_date'],
-            'reason'        => ['required', 'string', 'max:1000'],
+            'from_date' => ['required', 'date'],
+            'to_date' => ['required', 'date', 'after_or_equal:from_date'],
+            'reason' => ['required', 'string', 'max:1000'],
         ]);
 
         try {
@@ -184,19 +186,19 @@ class DashboardController extends Controller
             ->with(['exam.schoolClass:id,name', 'exam.examType:id,name'])->firstOrFail();
 
         $html = view('portal.marksheet', [
-            'result'     => $result,
-            'student'    => $ctx['student'],
+            'result' => $result,
+            'student' => $ctx['student'],
             'enrollment' => $ctx['enrollment'],
-            'exam'       => $result->exam,
-            'school'     => School::find($sid),
+            'exam' => $result->exam,
+            'school' => School::find($sid),
         ])->render();
 
-        $bytes = app(\App\Services\PdfRenderingService::class)->renderToPdf($html);
-        $file = 'marksheet-' . $ctx['student']->admission_number . '-' . $examId . '.pdf';
+        $bytes = app(PdfRenderingService::class)->renderToPdf($html);
+        $file = 'marksheet-'.$ctx['student']->admission_number.'-'.$examId.'.pdf';
 
         return response($bytes, 200, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $file . '"',
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$file.'"',
         ]);
     }
 
@@ -216,7 +218,7 @@ class DashboardController extends Controller
     // ── Family context ──────────────────────────────────────────────────────
 
     /**
-     * @return array{students: \Illuminate\Support\Collection, student: ?Student, enrollment: ?StudentAcademic, isGuardian: bool}
+     * @return array{students: Collection, student: ?Student, enrollment: ?StudentAcademic, isGuardian: bool}
      */
     private function context(): array
     {

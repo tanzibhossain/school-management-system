@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Setup;
 
 use App\Modules\School\Models\ModuleSetting;
 use App\Modules\School\Models\School;
+use App\Modules\School\Models\SchoolOpeningHour;
 use App\Modules\School\Services\ModuleSettingService;
 use App\Modules\School\Services\SchoolService;
 use App\Modules\Website\Models\SiteSetting;
@@ -27,15 +28,15 @@ class SchoolController extends Controller
         $school = School::with(['phones', 'openingHours'])->findOrFail($schoolId);
 
         return view('admin.setup.school.edit', [
-            'school'         => $school,
-            'settings'       => SiteSetting::forSchool($schoolId),
-            'timezones'      => \DateTimeZone::listIdentifiers(),
-            'countries'      => config('geo.countries'),
-            'currencies'     => config('geo.currencies'),
-            'languages'      => config('geo.languages'),
+            'school' => $school,
+            'settings' => SiteSetting::forSchool($schoolId),
+            'timezones' => \DateTimeZone::listIdentifiers(),
+            'countries' => config('geo.countries'),
+            'currencies' => config('geo.currencies'),
+            'languages' => config('geo.languages'),
             'moduleSettings' => $this->modules->allForSchool($schoolId),
-            'moduleMeta'     => ModuleSetting::META,
-            'patterns'       => [
+            'moduleMeta' => ModuleSetting::META,
+            'patterns' => [
                 'jan_dec' => 'January – December',
                 'apr_mar' => 'April – March',
                 'jul_jun' => 'July – June',
@@ -52,39 +53,39 @@ class SchoolController extends Controller
         // against the geo lists (dropdowns already send uppercase; this covers any
         // manual/lowercase input too).
         $request->merge([
-            'currency'     => strtoupper((string) $request->input('currency')),
+            'currency' => strtoupper((string) $request->input('currency')),
             'country_code' => $request->filled('country_code') ? strtoupper((string) $request->input('country_code')) : null,
         ]);
 
         $validated = $request->validate([
             // Profile
-            'name'                   => ['required', 'string', 'max:255'],
-            'email'                  => ['nullable', 'email'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'email'],
             // School codes — three configurable label/value pairs
-            'institution_code_label'      => ['nullable', 'string', 'max:50'],
-            'institution_code'            => ['nullable', 'string', 'max:50'],
-            'school_code_label'           => ['nullable', 'string', 'max:50'],
-            'school_code'                 => ['nullable', 'string', 'max:50'],
+            'institution_code_label' => ['nullable', 'string', 'max:50'],
+            'institution_code' => ['nullable', 'string', 'max:50'],
+            'school_code_label' => ['nullable', 'string', 'max:50'],
+            'school_code' => ['nullable', 'string', 'max:50'],
             'technical_branch_code_label' => ['nullable', 'string', 'max:50'],
-            'technical_branch_code'       => ['nullable', 'string', 'max:50'],
-            'established'            => ['nullable', 'integer', 'min:1800', 'max:' . date('Y')],
-            'address'               => ['nullable', 'string', 'max:2000'],
-            'country_code'          => ['nullable', 'string', 'size:2', 'in:' . implode(',', array_keys(config('geo.countries')))],
-            'currency'              => ['required', 'string', 'size:3', 'in:' . implode(',', array_keys(config('geo.currencies')))],
-            'timezone'              => ['required', 'string', 'timezone:all'],
-            'locale'                => ['required', 'string', 'in:' . implode(',', array_keys(config('geo.languages')))],
+            'technical_branch_code' => ['nullable', 'string', 'max:50'],
+            'established' => ['nullable', 'integer', 'min:1800', 'max:'.date('Y')],
+            'address' => ['nullable', 'string', 'max:2000'],
+            'country_code' => ['nullable', 'string', 'size:2', 'in:'.implode(',', array_keys(config('geo.countries')))],
+            'currency' => ['required', 'string', 'size:3', 'in:'.implode(',', array_keys(config('geo.currencies')))],
+            'timezone' => ['required', 'string', 'timezone:all'],
+            'locale' => ['required', 'string', 'in:'.implode(',', array_keys(config('geo.languages')))],
             'academic_year_pattern' => ['required', 'string', 'in:jan_dec,apr_mar,jul_jun,sep_aug'],
             // Appearance / branding (merged in from the old Appearance page)
-            'primary_color'     => ['nullable', 'string', 'max:20'],
-            'accent_color'      => ['nullable', 'string', 'max:20'],
-            'heading_color'     => ['nullable', 'string', 'max:20'],
+            'primary_color' => ['nullable', 'string', 'max:20'],
+            'accent_color' => ['nullable', 'string', 'max:20'],
+            'heading_color' => ['nullable', 'string', 'max:20'],
             'topbar_text_color' => ['nullable', 'string', 'max:20'],
-            'ticker_position'   => ['nullable', 'in:above_nav,below_nav,hidden'],
-            'meta_title'        => ['nullable', 'string', 'max:255'],
-            'meta_description'  => ['nullable', 'string', 'max:500'],
+            'ticker_position' => ['nullable', 'in:above_nav,below_nav,hidden'],
+            'meta_title' => ['nullable', 'string', 'max:255'],
+            'meta_description' => ['nullable', 'string', 'max:500'],
             // Images (uploads)
-            'logo'     => ['nullable', 'image', 'max:2048'],
-            'favicon'  => ['nullable', 'image', 'max:1024'],
+            'logo' => ['nullable', 'image', 'max:2048'],
+            'favicon' => ['nullable', 'image', 'max:1024'],
             'og_image' => ['nullable', 'image', 'max:2048'],
         ]);
 
@@ -97,7 +98,7 @@ class SchoolController extends Controller
             'address', 'country_code', 'currency', 'timezone', 'locale', 'academic_year_pattern',
         ])->all();
         // "established" is entered as a plain year; the column stores a date.
-        $schoolData['established'] = filled($validated['established'] ?? null) ? $validated['established'] . '-01-01' : null;
+        $schoolData['established'] = filled($validated['established'] ?? null) ? $validated['established'].'-01-01' : null;
         if ($path = $this->storeImage($request, 'logo')) {
             $schoolData['logo'] = $path;
         }
@@ -120,8 +121,8 @@ class SchoolController extends Controller
         $phones = collect($request->input('phones', []))
             ->filter(fn ($p) => filled($p['phone'] ?? null))
             ->map(fn ($p, $i) => [
-                'phone'          => $p['phone'],
-                'is_primary'     => (int) $request->input('primary_phone', 0) === (int) $i,
+                'phone' => $p['phone'],
+                'is_primary' => (int) $request->input('primary_phone', 0) === (int) $i,
                 'show_in_header' => (bool) ($p['show_in_header'] ?? false),
             ])->values()->all();
 
@@ -148,17 +149,17 @@ class SchoolController extends Controller
         $schoolId = app('current_school_id');
 
         $request->validate([
-            'days'              => ['required', 'array'],
-            'days.*.open_time'  => ['nullable', 'date_format:H:i'],
+            'days' => ['required', 'array'],
+            'days.*.open_time' => ['nullable', 'date_format:H:i'],
             'days.*.close_time' => ['nullable', 'date_format:H:i', 'after:days.*.open_time'],
         ]);
 
         foreach ((array) $request->input('days', []) as $dow => $row) {
-            \App\Modules\School\Models\SchoolOpeningHour::updateOrCreate(
+            SchoolOpeningHour::updateOrCreate(
                 ['school_id' => $schoolId, 'day_of_week' => (int) $dow],
                 [
-                    'is_open'    => (bool) ($row['is_open'] ?? false),
-                    'open_time'  => $row['open_time'] ?? null,
+                    'is_open' => (bool) ($row['is_open'] ?? false),
+                    'open_time' => $row['open_time'] ?? null,
                     'close_time' => $row['close_time'] ?? null,
                 ],
             ); // SchoolOpeningHourObserver flushes the school cache

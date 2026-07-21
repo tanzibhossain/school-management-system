@@ -2,10 +2,11 @@
 
 namespace App\Modules\Library\Http\Resources;
 
+use App\Modules\Library\Models\LibraryMember;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin \App\Modules\Library\Models\LibraryMember */
+/** @mixin LibraryMember */
 class LibraryMemberResource extends JsonResource
 {
     public function toArray(Request $request): array
@@ -17,7 +18,7 @@ class LibraryMemberResource extends JsonResource
             'membership_number' => $this->membership_number,
             'joined_at' => $this->joined_at?->toDateString(),
             'is_active' => $this->is_active,
-            'user' => $this->whenLoaded('user', fn() => [
+            'user' => $this->whenLoaded('user', fn () => [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
                 'email' => $this->user->email,

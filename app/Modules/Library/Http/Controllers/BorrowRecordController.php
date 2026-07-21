@@ -16,8 +16,7 @@ class BorrowRecordController extends Controller
     public function __construct(
         private readonly BorrowRecordService $service,
         private readonly BorrowRecordRepository $repository,
-    ) {
-    }
+    ) {}
 
     public function index(): AnonymousResourceCollection
     {

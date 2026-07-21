@@ -22,9 +22,9 @@ class AdmitCardController extends Controller
         $schoolId = app('current_school_id');
 
         return view('admin.certificates.admit-cards.index', [
-            'cards'    => AdmitCard::where('school_id', $schoolId)->with(['student:id,name,student_id', 'exam:id,title'])->orderByDesc('id')->limit(500)->get(),
+            'cards' => AdmitCard::where('school_id', $schoolId)->with(['student:id,name,student_id', 'exam:id,title'])->orderByDesc('id')->limit(500)->get(),
             'students' => Student::where('school_id', $schoolId)->where('status', 'active')->orderBy('name')->get(['id', 'name', 'student_id']),
-            'exams'    => Exam::where('school_id', $schoolId)->orderByDesc('id')->get(['id', 'title']),
+            'exams' => Exam::where('school_id', $schoolId)->orderByDesc('id')->get(['id', 'title']),
         ]);
     }
 
@@ -34,7 +34,7 @@ class AdmitCardController extends Controller
 
         $data = $request->validate([
             'student_id' => ['required', 'integer', "exists:students,id,school_id,{$schoolId}"],
-            'exam_id'    => ['required', 'integer', "exists:exams,id,school_id,{$schoolId}"],
+            'exam_id' => ['required', 'integer', "exists:exams,id,school_id,{$schoolId}"],
         ]);
 
         $student = Student::where('school_id', $schoolId)->findOrFail($data['student_id']);
@@ -50,8 +50,8 @@ class AdmitCardController extends Controller
         abort_unless($card->file_path && Storage::disk('minio')->exists($card->file_path), 404);
 
         return response(Storage::disk('minio')->get($card->file_path), 200, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="admit-card-' . $card->id . '.pdf"',
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="admit-card-'.$card->id.'.pdf"',
         ]);
     }
 }

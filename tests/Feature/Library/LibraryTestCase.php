@@ -5,6 +5,7 @@ namespace Tests\Feature\Library;
 use App\Models\User;
 use App\Modules\School\Models\ModuleSetting;
 use App\Modules\School\Models\School;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -13,13 +14,14 @@ abstract class LibraryTestCase extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected School $school;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(\Database\Seeders\RoleSeeder::class);
+        $this->seed(RoleSeeder::class);
 
         $this->school = School::create([
             'name' => 'Library Test School',
