@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             SchoolSeeder::class,
             RoleSeeder::class,
             LanguageSeeder::class,
+            TranslationSeeder::class,
             AdminSeeder::class,
             DemoDataSeeder::class,
             DemoOperationsSeeder::class,
