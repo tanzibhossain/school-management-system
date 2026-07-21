@@ -39,6 +39,14 @@
                         style="color: {{ $topText }}; text-decoration:none;">{{ $ph->phone }}</a>@if(!$loop->last), @endif
                     @endforeach
                 @endif
+                @if(($appLanguages ?? collect())->count() > 1)
+                    <span class="ms-3">
+                        @foreach($appLanguages as $lang)
+                            <a href="{{ route('language.switch', $lang->code) }}"
+                               style="color: {{ $topText }}; text-decoration:{{ $lang->code === app()->getLocale() ? 'underline' : 'none' }};">{{ $lang->native_name }}</a>@if(!$loop->last) <span style="opacity:.5">|</span> @endif
+                        @endforeach
+                    </span>
+                @endif
             </div>
         </div>
     </div>
@@ -102,11 +110,11 @@
                     @endforeach
                 @else
                     {{-- Fallback nav when no menu has been built yet --}}
-                    <li class="nav-item"><a class="nav-link" href="{{ route('home') }}">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url('/faculty') }}">Faculty</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url('/online-admission') }}">Online admission</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url('/notices') }}">Notices</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url('/contact') }}">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ route('home') }}">{{ __('Home') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url('/faculty') }}">{{ __('Faculty') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url('/online-admission') }}">{{ __('Online admission') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url('/notices') }}">{{ __('Notices') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url('/contact') }}">{{ __('Contact') }}</a></li>
                 @endif
             </ul>
             <a class="btn btn-light btn-sm px-3" href="{{ route('login') }}"><i class="bi bi-box-arrow-in-right"></i>

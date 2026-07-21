@@ -42,12 +42,13 @@
                 >
                     <i class="bi bi-search" style="font-size: .95rem;" aria-hidden="true"></i>
                     <span style="flex: 1 1 auto; font-size: .9rem;">Search…</span>
-                    <kbd class="js-shortcut-hint" style="font-size: .7rem; background: #e2e8f0; color: #475569; border-radius: 4px; padding: .1rem .4rem; font-family: monospace; white-space: nowrap;">Ctrl K</kbd>
+                    <kbd class="js-shortcut-hint" style="font-size: .7rem; background: #e2e8f0; color: #475569; border-radius: 4px; padding: .1rem .4rem; font-family: monospace; white-space: nowrap;">{{ __('Ctrl K') }}</kbd>
                 </button>
             @endif
 
             <!-- Right Actions -->
             <div class="d-flex align-items-center gap-1 gap-lg-2 ms-auto">
+                @include('partials.language-switcher', ['linkClass' => 'small text-muted', 'class' => 'me-1 d-none d-md-block'])
                 <!-- Notifications -->
                 <div class="dropdown position-relative">
                     <button
@@ -61,19 +62,19 @@
                         @if(count($notifications) > 0)
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                                 {{ count($notifications) > 9 ? '9+' : count($notifications) }}
-                                <span class="visually-hidden">unread notifications</span>
+                                <span class="visually-hidden">{{ __('unread notifications') }}</span>
                             </span>
                         @endif
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="min-width: 360px; max-height: 400px; overflow-y: auto;">
                         <li class="dropdown-header d-flex justify-content-between align-items-center">
-                            <span>Notifications</span>
+                            <span>{{ __('Notifications') }}</span>
                             @if(count($notifications) > 0)
-                                <a href="#" class="text-xs text-primary">Mark all read</a>
+                                <a href="#" class="text-xs text-primary">{{ __('Mark all read') }}</a>
                             @endif
                         </li>
                         @if(empty($notifications))
-                            <li><span class="dropdown-item text-muted text-center py-4">No new notifications</span></li>
+                            <li><span class="dropdown-item text-muted text-center py-4">{{ __('No new notifications') }}</span></li>
                         @else
                             @foreach($notifications as $notification)
                                 <li>
@@ -89,7 +90,7 @@
                                 </li>
                             @endforeach
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-center text-primary" href="#">View all notifications</a></li>
+                            <li><a class="dropdown-item text-center text-primary" href="#">{{ __('View all notifications') }}</a></li>
                         @endif
                     </ul>
                 </div>
@@ -136,7 +137,7 @@
                             @endif
                         </li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{{ route('admin.users.index') }}"><i class="bi bi-person me-2"></i> Profile</a></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.users.index') }}"><i class="bi bi-person me-2"></i> {{ __('Profile') }}</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <form method="POST" action="{{ route('logout') }}">

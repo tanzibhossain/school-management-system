@@ -70,31 +70,31 @@
     <div class="sidebar-header">
       <a href="{{ route('staff.dashboard') }}" class="sidebar-brand">
         <span class="brand-icon"><i class="bi bi-mortarboard-fill"></i></span>
-        <span>Staff Portal</span>
+        <span>{{ __('Staff Portal') }}</span>
       </a>
       <button class="btn btn-sm ms-auto d-lg-none" id="staffSidebarClose"><i class="bi bi-x-lg"></i></button>
     </div>
     <nav class="sidebar-nav">
-      <a href="{{ route('staff.dashboard') }}" class="nav-link {{ request()->routeIs('staff.dashboard') ? 'active' : '' }}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+      <a href="{{ route('staff.dashboard') }}" class="nav-link {{ request()->routeIs('staff.dashboard') ? 'active' : '' }}"><i class="bi bi-speedometer2"></i> {{ __('Dashboard') }}</a>
 
-      <div class="section-label">Teaching</div>
-      <a href="{{ route('staff.attendance') }}" class="nav-link {{ request()->routeIs('staff.attendance') ? 'active' : '' }}"><i class="bi bi-calendar-check"></i> Attendance</a>
+      <div class="section-label">{{ __('Teaching') }}</div>
+      <a href="{{ route('staff.attendance') }}" class="nav-link {{ request()->routeIs('staff.attendance') ? 'active' : '' }}"><i class="bi bi-calendar-check"></i> {{ __('Attendance') }}</a>
       <a href="{{ route('staff.marks') }}" class="nav-link {{ request()->routeIs('staff.marks*') ? 'active' : '' }}"><i class="bi bi-journal-text"></i> Marks &amp; Results</a>
-      <a href="{{ route('staff.routine') }}" class="nav-link {{ request()->routeIs('staff.routine') ? 'active' : '' }}"><i class="bi bi-calendar3-week"></i> Class Routine</a>
+      <a href="{{ route('staff.routine') }}" class="nav-link {{ request()->routeIs('staff.routine') ? 'active' : '' }}"><i class="bi bi-calendar3-week"></i> {{ __('Class Routine') }}</a>
 
-      <div class="section-label">General</div>
-      <a href="{{ route('staff.clock') }}" class="nav-link {{ request()->routeIs('staff.clock*') ? 'active' : '' }}"><i class="bi bi-clock-history"></i> My Attendance</a>
-      <a href="{{ route('staff.leave') }}" class="nav-link {{ request()->routeIs('staff.leave*') ? 'active' : '' }}"><i class="bi bi-calendar-minus"></i> My Leave</a>
-      <a href="{{ route('staff.notices') }}" class="nav-link {{ request()->routeIs('staff.notices') ? 'active' : '' }}"><i class="bi bi-megaphone"></i> Notices</a>
+      <div class="section-label">{{ __('General') }}</div>
+      <a href="{{ route('staff.clock') }}" class="nav-link {{ request()->routeIs('staff.clock*') ? 'active' : '' }}"><i class="bi bi-clock-history"></i> {{ __('My Attendance') }}</a>
+      <a href="{{ route('staff.leave') }}" class="nav-link {{ request()->routeIs('staff.leave*') ? 'active' : '' }}"><i class="bi bi-calendar-minus"></i> {{ __('My Leave') }}</a>
+      <a href="{{ route('staff.notices') }}" class="nav-link {{ request()->routeIs('staff.notices') ? 'active' : '' }}"><i class="bi bi-megaphone"></i> {{ __('Notices') }}</a>
       <a href="{{ route('staff.messages') }}" class="nav-link {{ request()->routeIs('staff.messages*') ? 'active' : '' }}"><i class="bi bi-chat-left-text"></i> Messages
         @if(($messagesUnread ?? 0) > 0)<span class="badge text-bg-primary rounded-pill ms-auto">{{ $messagesUnread }}</span>@endif
       </a>
-      <a href="{{ route('staff.profile') }}" class="nav-link {{ request()->routeIs('staff.profile') ? 'active' : '' }}"><i class="bi bi-person-badge"></i> My Profile</a>
+      <a href="{{ route('staff.profile') }}" class="nav-link {{ request()->routeIs('staff.profile') ? 'active' : '' }}"><i class="bi bi-person-badge"></i> {{ __('My Profile') }}</a>
     </nav>
     <div class="sidebar-footer">
       <form method="POST" action="{{ route('logout') }}">
         @csrf
-        <button class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-box-arrow-right me-1"></i> Sign out</button>
+        <button class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-box-arrow-right me-1"></i> {{ __('Sign out') }}</button>
       </form>
     </div>
   </aside>
@@ -106,6 +106,7 @@
         <button class="btn btn-sm d-lg-none me-2" id="staffSidebarToggle"><i class="bi bi-list fs-5"></i></button>
         <div class="fw-semibold">@yield('heading', 'Dashboard')</div>
         <div class="ms-auto d-flex align-items-center gap-2">
+          @include('partials.language-switcher', ['linkClass' => 'small text-muted', 'class' => 'me-2'])
           <div class="text-end d-none d-sm-block">
             <div class="fw-medium small">{{ $staffUser?->name }}</div>
             <div class="text-muted" style="font-size:.72rem; text-transform:capitalize;">{{ $role }}</div>

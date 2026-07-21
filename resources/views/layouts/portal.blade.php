@@ -61,27 +61,27 @@
     <div class="sidebar-header">
       <a href="{{ route('portal.dashboard') }}" class="sidebar-brand">
         <span class="brand-icon"><i class="bi bi-people-fill"></i></span>
-        <span>Family Portal</span>
+        <span>{{ __('Family Portal') }}</span>
       </a>
       <button class="btn btn-sm ms-auto d-lg-none" id="pSidebarClose"><i class="bi bi-x-lg"></i></button>
     </div>
     <nav class="sidebar-nav">
-      <a href="{{ $link('portal.dashboard') }}" class="nav-link {{ request()->routeIs('portal.dashboard') ? 'active' : '' }}"><i class="bi bi-speedometer2"></i> Dashboard</a>
-      <a href="{{ $link('portal.attendance') }}" class="nav-link {{ request()->routeIs('portal.attendance') ? 'active' : '' }}"><i class="bi bi-calendar-check"></i> Attendance</a>
-      <a href="{{ $link('portal.results') }}" class="nav-link {{ request()->routeIs('portal.results') ? 'active' : '' }}"><i class="bi bi-award"></i> Results</a>
-      <a href="{{ $link('portal.fees') }}" class="nav-link {{ request()->routeIs('portal.fees') ? 'active' : '' }}"><i class="bi bi-receipt"></i> Fees</a>
-      <a href="{{ $link('portal.routine') }}" class="nav-link {{ request()->routeIs('portal.routine') ? 'active' : '' }}"><i class="bi bi-calendar3-week"></i> Class Routine</a>
-      <a href="{{ $link('portal.leave') }}" class="nav-link {{ request()->routeIs('portal.leave*') ? 'active' : '' }}"><i class="bi bi-calendar-minus"></i> Leave</a>
-      <a href="{{ $link('portal.notices') }}" class="nav-link {{ request()->routeIs('portal.notices') ? 'active' : '' }}"><i class="bi bi-megaphone"></i> Notices</a>
+      <a href="{{ $link('portal.dashboard') }}" class="nav-link {{ request()->routeIs('portal.dashboard') ? 'active' : '' }}"><i class="bi bi-speedometer2"></i> {{ __('Dashboard') }}</a>
+      <a href="{{ $link('portal.attendance') }}" class="nav-link {{ request()->routeIs('portal.attendance') ? 'active' : '' }}"><i class="bi bi-calendar-check"></i> {{ __('Attendance') }}</a>
+      <a href="{{ $link('portal.results') }}" class="nav-link {{ request()->routeIs('portal.results') ? 'active' : '' }}"><i class="bi bi-award"></i> {{ __('Results') }}</a>
+      <a href="{{ $link('portal.fees') }}" class="nav-link {{ request()->routeIs('portal.fees') ? 'active' : '' }}"><i class="bi bi-receipt"></i> {{ __('Fees') }}</a>
+      <a href="{{ $link('portal.routine') }}" class="nav-link {{ request()->routeIs('portal.routine') ? 'active' : '' }}"><i class="bi bi-calendar3-week"></i> {{ __('Class Routine') }}</a>
+      <a href="{{ $link('portal.leave') }}" class="nav-link {{ request()->routeIs('portal.leave*') ? 'active' : '' }}"><i class="bi bi-calendar-minus"></i> {{ __('Leave') }}</a>
+      <a href="{{ $link('portal.notices') }}" class="nav-link {{ request()->routeIs('portal.notices') ? 'active' : '' }}"><i class="bi bi-megaphone"></i> {{ __('Notices') }}</a>
       <a href="{{ route('portal.messages') }}" class="nav-link {{ request()->routeIs('portal.messages*') ? 'active' : '' }}"><i class="bi bi-chat-left-text"></i> Messages
         @if(($messagesUnread ?? 0) > 0)<span class="badge text-bg-primary rounded-pill ms-auto">{{ $messagesUnread }}</span>@endif
       </a>
-      <a href="{{ $link('portal.profile') }}" class="nav-link {{ request()->routeIs('portal.profile') ? 'active' : '' }}"><i class="bi bi-person-vcard"></i> Profile</a>
+      <a href="{{ $link('portal.profile') }}" class="nav-link {{ request()->routeIs('portal.profile') ? 'active' : '' }}"><i class="bi bi-person-vcard"></i> {{ __('Profile') }}</a>
     </nav>
     <div class="sidebar-footer">
       <form method="POST" action="{{ route('logout') }}">
         @csrf
-        <button class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-box-arrow-right me-1"></i> Sign out</button>
+        <button class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-box-arrow-right me-1"></i> {{ __('Sign out') }}</button>
       </form>
     </div>
   </aside>
@@ -94,6 +94,7 @@
         <div class="fw-semibold">@yield('heading', 'Dashboard')</div>
 
         <div class="ms-auto d-flex align-items-center gap-3">
+          @include('partials.language-switcher', ['linkClass' => 'small text-muted'])
           {{-- Child switcher for guardians with more than one child --}}
           @if($isGuardian && $students->count() > 1)
             <div class="dropdown">
