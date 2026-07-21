@@ -23,7 +23,7 @@ This module powers the public website experience for a school, including pages, 
 
 ## Services & Business Rules
 - Each save creates a new versioned row for layout-related records.
-- Public endpoints are designed for site consumption and do not require the tenant-specific dashboard session.
+- Public endpoints are designed for site consumption and do not require the school dashboard session.
 - The module is intentionally content-driven and versioned.
 
 ## Integration Points

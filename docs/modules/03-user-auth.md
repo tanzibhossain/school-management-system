@@ -3,7 +3,7 @@
 **Status:** ✅ Done · **Depends on:** — · **Path:** `app/Modules/User`
 
 ## Scope
-This module handles authentication, user accounts, role management, password workflows, and audit trails. It is the shared identity layer for the entire platform and is used by nearly every other module.
+This module handles authentication, user accounts, role management, password workflows, and audit trails. It is the shared identity layer for the entire system and is used by nearly every other module.
 
 ## Tables
 | Table | Purpose / key columns |
@@ -21,9 +21,9 @@ This module handles authentication, user accounts, role management, password wor
 - `AuthService` handles login, token issuance, device tracking, and session revocation.
 - `UserService` manages creation, updates, role changes, deactivation, and password changes.
 - Real roles are limited to `super_admin`, `admin`, `teacher`, `accountant`, `librarian`, `receptionist`, `student`, and `parent`.
-- Because Sanctum abilities can be overly broad, the platform uses Spatie role middleware for privileged checks such as the Super Admin portal.
-
+- Because Sanctum abilities can be overly broad, the system uses Spatie role middleware for privileged checks such as the Super Admin portal.
+- Account onboarding (admin password links) flows through this module.
 ## Integration Points
-- All tenant-scoped routes rely on the auth middleware from this module.
+- All school-scoped routes rely on the auth middleware from this module.
 - Student and Staff modules create linked user accounts for portal access.
-- Platform provisioning uses this module for signed password links and admin onboarding.
+- Admin onboarding (signed password links) flows through this module.

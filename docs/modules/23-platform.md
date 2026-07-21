@@ -1,28 +1,21 @@
-# 23 — Platform
+# 23 — Platform (NOT IMPLEMENTED)
 
-**Status:** ✅ Done · **Depends on:** — · **Path:** `app/Modules/Platform`
+**Status:** ⛔ Not implemented · **Path:** none
 
-## Scope
-The platform module powers the super-admin portal and vendor-side school provisioning flow. It manages plans, pending school signups, subscriptions, and reminder emails for schools created through self-service or manual onboarding.
+This module was planned for a multi-tenant SaaS model — super-admin portal,
+subscription plans, school provisioning, and Stripe-based self-service onboarding.
+That direction was abandoned in favour of a **single-school, self-hosted**
+installation (see the README note). There is no `app/Modules/Platform`
+directory and no `plans`, `pending_school_signups`, or `subscription_reminders`
+tables.
 
-## Tables
-| Table | Purpose / key columns |
+The platform-level concerns that remain are handled elsewhere:
+
+| Planned concern | Where it lives now |
 |---|---|
-| `plans` | platform-level subscription plans |
-| `pending_school_signups` | staging records for new school signups and Stripe round-trips |
-| `subscription_reminders` | reminder milestones for school subscriptions |
+| School identity & settings | `app/Modules/School` (module 01) |
+| Admin onboarding & accounts | `app/Modules/User` (module 03) — admin accounts created directly, no self-service signup flow |
+| Module enable/disable toggles | `school_module_settings` table + `CheckModuleEnabled` middleware (module 01) |
 
-## API Endpoints
-- Super-admin portal endpoints for plans and school provisioning
-- Public signup and checkout endpoints for new school registration
-- Webhook endpoints for Stripe payment events
-
-## Services & Business Rules
-- Plan caps are enforced through the platform provisioning flow and the downstream `PlanLimitService` hook.
-- Stripe integration is implemented with raw HTTP calls and webhook signature validation.
-- Demo schools and trial provisioning follow the documented lifecycle flow.
-
-## Integration Points
-- Provides the school lifecycle foundation for the School module.
-- Integrates with User/Auth for admin onboarding and password delivery.
-- Affects Student and Staff plan-cap enforcement during enrollment and hiring.
+This file is kept so the module numbering stays contiguous (22 → 23 → 24) and
+the historical context is preserved.

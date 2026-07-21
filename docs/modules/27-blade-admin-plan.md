@@ -19,7 +19,7 @@ practice, a forms-over-data admin console. Blade + Bootstrap + DataTables.js giv
 - **One repo, one deploy.** Views ship with the backend; the bind-mounted container renders Blade changes live
   (no rebuild).
 - **Session auth, no tokens.** The Laravel `web` guard + `SetCurrentSchoolFromSession` middleware resolves the
-  tenant from `Auth::user()->school_id` — the same `app('current_school_id')` seam the API `ResolveSchool`
+  school from `Auth::user()->school_id` — the same `app('current_school_id')` seam the API `ResolveSchool`
   uses. Services are reused verbatim.
 - **A mature table/filter stack for free.** DataTables 2 (bootstrap5 skin) gives sortable columns, typed search
   and pagination out of the box — the thing the SPA kept fighting.
@@ -68,7 +68,7 @@ so there is no build step for the admin.
   modals (small forms) or full pages (large forms like enrolment, mark entry).
 - **Auth:** `Admin\Auth\LoginController` (session `Auth::attempt`, `is_active` check, `session()->regenerate()`,
   `redirect()->intended`). No token issuance for the admin.
-- **Tenant scoping:** `SetCurrentSchoolFromSession` sets `app('current_school_id')` from the logged-in user, so
+- **School scoping:** `SetCurrentSchoolFromSession` sets `app('current_school_id')` from the logged-in user, so
   every Repository/Service scopes to the right school with zero change.
 
 **Non-goals:** no server-side DataTables ajax endpoints in v1 (client-side DataTables over a

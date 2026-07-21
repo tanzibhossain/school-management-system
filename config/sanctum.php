@@ -13,12 +13,14 @@ return [
     |--------------------------------------------------------------------------
     |
     | Requests from the following domains / hosts will receive stateful API
-    | authentication cookies. Typically, these should include your local
-    | and production domains which access your API via a frontend SPA.
+    | authentication cookies. The Blade admin is same-origin and uses session
+    | auth directly; API consumers use bearer-token auth. There is no SPA, so
+    | no stateful (cookie) domains are configured. Add domains here only if a
+    | first-party SPA is reintroduced.
     |
     */
 
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'localhost:3000')),
+    'stateful' => [],
 
     /*
     |--------------------------------------------------------------------------

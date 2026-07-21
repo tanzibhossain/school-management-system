@@ -38,4 +38,4 @@ This module covers the full student lifecycle: enrollment, academic history, gua
 ## Integration Points
 - Creates invoices in Payment and contributes enrollment data to Attendance, Mark, Examination, Certificate, ID Card, SMS, Report, and OnlineAdmission.
 - Optional-subject enrollment feeds GPA and mark calculations.
-- Plan caps are enforced from this service through the Platform integration.
+- Section capacity is enforced from this service (rejects enrollment when a section's `capacity` is reached).

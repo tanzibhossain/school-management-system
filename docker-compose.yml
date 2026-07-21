@@ -67,6 +67,24 @@ services:
             - db
             - redis
 
+    scheduler:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: school_scheduler
+        restart: unless-stopped
+        working_dir: /var/www
+        # `schedule:work` runs a single long-lived worker that fires due tasks
+        # at their configured cadence — no host cron needed. Scheduled tasks
+        # (attendance:auto-close, etc.) are declared in routes/console.php.
+        command: php artisan schedule:work
+        volumes:
+            - ./:/var/www
+            - vendor:/var/www/vendor
+        depends_on:
+            - db
+            - redis
+
     minio:
         image: minio/minio
         container_name: school_minio

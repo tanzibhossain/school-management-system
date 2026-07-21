@@ -19,7 +19,10 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000')],
+    // Same-origin only — the Blade admin and API are served from the same host.
+    // No SPA frontend exists, so no cross-origin origins are allowed. Add a
+    // specific origin here only if a separate first-party client is introduced.
+    'allowed_origins' => [],
 
     'allowed_origins_patterns' => [],
 

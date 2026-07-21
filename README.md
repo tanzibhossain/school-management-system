@@ -2,9 +2,9 @@
 
 A **single-school, self-hosted** school management platform built with **Laravel 13**, **PHP 8.3**, **MySQL 8**, and **Redis 7**. Designed for a school to manage academics, students, staff, finances, communications, and more — all from a modern server-rendered **Laravel Blade + Bootstrap 5** admin interface.
 
-> **Status:** 26 modules complete (23 core + 3 optional). 206+ admin feature tests passing.
+> **Status:** 27 modules complete (23 core + 4 optional). 206+ admin feature tests passing.
 
-> **Note:** This is **not a multi-tenant SaaS**. Each installation serves exactly one school. No subdomains, no school switching, no platform console. The `school_id` column exists for data ownership but there is only ever one school per deployment.
+> **Note:** This is a **single-school, self-hosted** installation. Each deployment serves exactly one school. The `school_id` column exists for data ownership; there is only ever one school per deployment.
 
 ---
 
@@ -15,7 +15,7 @@ A **single-school, self-hosted** school management platform built with **Laravel
 | **Core Platform** | School (single-school), Academic (years, classes, sections, subjects, routines), User/Auth (Sanctum + Spatie) |
 | **Student Lifecycle** | Student (enrollment, promotion, transfer, TC), Online Admission, Data Import |
 | **Academics** | Examination (types, exams, seating), Mark (grades, GPA, tabulation), Certificate (admit cards, testimonials, TC), Attendance (student + staff, RFID, auto clock-out) |
-| **Finance** | FeeItem (categories, items, discounts), Payment (invoices, bKash/SSLCommerz, cheques, refunds, credits), Payroll (salary components, runs, loan integration), Report (fee collection, dues, ledger) |
+| **Finance** | FeeItem (categories, items, discounts), Payment (invoices, bKash/SSLCommerz/Stripe/PayPal, cheques, refunds, credits), Payroll (salary components, runs, loan integration), Report (fee collection, dues, ledger) |
 | **Communication** | Announcement, SMS (batches, GSM-7/Unicode segments, billing), Messaging (threads, 1:1 + group, role-restricted, attachments) |
 | **Operations** | Staff (departments, designations, loans), Leave (student + staff, approval workflow), Library (books, borrow/return, overdue), Transport (routes, vehicles, driver swap, SMS alerts), ID Card (batches, PDF generation, Horizon jobs), LMS (courses, lessons, assignments, AI check), Website (CMS, block-based homepage, drag-drop menus) |
 | **Localization** | Language (DB-backed translations, RTL support, scan + editor UI) |
@@ -28,14 +28,14 @@ A **single-school, self-hosted** school management platform built with **Laravel
 |------|-------------|---------------|
 | **Super Admin** | School owner / top admin — full access to everything | Admin panel (all modules) |
 | **Admin** | School-level administrator — full school access | Admin panel (all modules) |
-| **Head Teacher** | Academic leadership — full school admin | Admin panel (all modules) |
-| **Moderator** | Content/operations — pages, admissions, marksheets, announcements, promotions | Admin panel (subset) |
-| **Teacher** | Own classes — marks, attendance | Teacher portal |
+| **Teacher** | Own classes — marks, attendance | Staff portal |
 | **Accountant** | Finance — payments, waivers, payroll, salary certificates | Admin panel (finance modules) |
 | **Librarian** | Library module only | Admin panel (library) |
 | **Receptionist** | Front desk — announcements, admissions, inquiries | Admin panel (limited) |
 | **Student** | Own records — results, attendance, fees, timetable | Student portal |
 | **Parent** | Child's records — results, attendance, fees | Parent portal |
+
+> Roles are limited to: `super_admin`, `admin`, `teacher`, `accountant`, `librarian`, `receptionist`, `student`, `parent`. The `super_admin` role maps to the "Super Admin" row above.
 
 > **Auth:** Laravel Sanctum (API tokens) + Spatie Laravel Permission (roles/permissions).  
 > **Session auth** for Blade admin UI (`web` guard). **Token auth** for mobile/API (`sanctum` guard + `ability` middleware).
@@ -46,7 +46,7 @@ A **single-school, self-hosted** school management platform built with **Laravel
 
 ```
 app/
-├── Modules/                 # 26 domain modules (see table above)
+├── Modules/                 # 27 domain modules (see table above)
 │   └── {Module}/
 │       ├── Http/
 │       │   ├── Controllers/  # Thin controllers (max 40 lines/method)
@@ -116,13 +116,13 @@ docker compose exec app php artisan storage:link
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
-| **Admin Portal** | http://localhost:8080/admin/login | Seeded admin: `admin@school.edu.bd` / `Admin@1234` |
-| **Staff & Teachers Portal** | http://localhost:8080/staff/login | `teacher@school.edu.bd` / `Teacher@1234` |
-| **Student & Guardian Portal** | http://localhost:8080/login | `student@school.edu.bd` / `Student@1234` | Guardian: `admin@school.edu.bd` / `Admin@1234` |
+| **Admin Portal** | http://localhost:8080/admin/login | `admin@school.edu.bd` / `Admin@1234` |
+| **Staff & Teachers Portal** | http://localhost:8080/staff/login | `teacher@school.edu.bd` / `Admin@1234` |
+| **Student & Guardian Portal** | http://localhost:8080/login | `student@school.edu.bd` / `Admin@1234` · Guardian: `parent@school.edu.bd` / `Admin@1234` |
 | **API Health Check** | http://localhost:8080/api/v2/health | — |
 | **MinIO Console** | http://localhost:9001 | `minioadmin` / `minioadmin` |
 | **Horizon** | http://localhost:8080/horizon | Admin only |
-| **MySQL** | localhost:3307 | `school` / `secret` (from `.env`) |
+| **MySQL** | localhost:3306 | `school_user` / `school_pass` (from `.env`) |
 
 > **Port Note:** Uses **8080** (not 8000) — Windows Hyper-V reserves 7980–8079.
 
@@ -171,19 +171,43 @@ RESEND_API_KEY=
 
 ## 🧪 Testing
 
+Tests run on an in-memory SQLite database (`DB_DATABASE=:memory:` in
+`phpunit.xml`) — no MySQL dependency, no leftover files. Each test class uses
+`RefreshDatabase`, so the schema is rebuilt per class via migration + rollback
+isolation.
+
 ```bash
-# Run all tests
+# Run all tests (serial)
 docker compose exec app php artisan test
 
-# Run specific module tests
-docker compose exec app php artisan test tests/Feature/Student/
+# Run a specific module
 docker compose exec app php artisan test tests/Feature/Payment/
-
-# Run with coverage
-docker compose exec app php artisan test --coverage
 ```
 
-> **206+ feature tests** covering all 26 modules.
+### Parallel testing (5× faster)
+
+The suite supports **parallel execution** via [ParaTest](https://github.com/paratestphp/paratest),
+which runs test classes across multiple PHP processes simultaneously. Each worker
+gets its own in-memory SQLite database, so tests are inherently parallel-safe.
+
+```bash
+# Full suite in parallel (8 processes — the sweet spot on most machines)
+docker compose exec app vendor/bin/paratest -p 8
+
+# A specific directory
+docker compose exec app vendor/bin/paratest -p 8 tests/Feature/Payment/
+
+# Adjust process count to match your CPU (e.g. 4 on a laptop, 12 on a CI runner)
+docker compose exec app vendor/bin/paratest -p 4
+```
+
+| Mode | Tests | Duration | Speedup |
+|------|-------|----------|---------|
+| Serial (`php artisan test`) | 578 | ~5 min 20s | 1× |
+| Parallel (`paratest -p 8`) | 578 | ~1 min 7s | **5.3×** |
+
+> **578 tests** covering all 27 modules. Use `-p 8` as the default; more
+> processes rarely help because per-process Laravel boot dominates, not CPU.
 
 
 
@@ -238,8 +262,8 @@ docker compose exec app php artisan ide-helper:generate
 ## 📁 Project Structure Highlights
 
 ```
-├── app/Modules/              # 26 domain modules
-├── docs/modules/             # Per-module specification docs (01-school.md ... 26-messaging.md)
+├── app/Modules/              # 27 domain modules
+├── docs/modules/             # Per-module specification docs (01-school.md ... 27-language.md)
 ├── resources/views/          # Blade admin UI (Bootstrap 5, DataTables 2)
 │   ├── layouts/admin.blade.php
 │   └── admin/                # Module-specific views

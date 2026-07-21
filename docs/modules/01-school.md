@@ -3,7 +3,7 @@
 **Status:** ✅ Done · **Depends on:** — · **Path:** `app/Modules/School`
 
 ## Scope
-The tenant root of the platform. This module owns the school identity, contact details, locale settings, opening hours, payment configuration, and optional module toggles. Every tenant-scoped module depends on the school context through `school_id`.
+The school record. This module owns the school identity, contact details, locale settings, opening hours, payment configuration, and optional module toggles. Every school-scoped module depends on the school context through `school_id`.
 
 ## Tables
 | Table | Purpose / key columns |
@@ -34,4 +34,4 @@ School, SchoolPhone, SchoolOpeningHour, SchoolPaymentSetting, ModuleSetting
 ## Integration Points
 - Provides locale, currency, timezone, and academic-year settings to Payment, Attendance, and Academic.
 - Supplies module enablement flags for optional modules such as Payroll, LMS, Library, Transport, and Messaging.
-- The school record is the central tenant anchor for all school-scoped data.
+- The school record is the central anchor for all school-scoped data.
