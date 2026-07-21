@@ -1,249 +1,370 @@
 # School Management System v2
 
-A multi-tenant SaaS school management platform built with Laravel 13, with a server-rendered Laravel Blade + Bootstrap 5 admin UI. Each school gets its own subdomain or custom domain. Everything runs self-hosted in Docker on a single Ubuntu VPS.
+A **single-school, self-hosted** school management platform built with **Laravel 13**, **PHP 8.3**, **MySQL 8**, and **Redis 7**. Designed for a school to manage academics, students, staff, finances, communications, and more — all from a modern server-rendered **Laravel Blade + Bootstrap 5** admin interface.
+
+> **Status:** 26 modules complete (23 core + 3 optional). 206+ admin feature tests passing.
+
+> **Note:** This is **not a multi-tenant SaaS**. Each installation serves exactly one school. No subdomains, no school switching, no platform console. The `school_id` column exists for data ownership but there is only ever one school per deployment.
 
 ---
 
-## Tech Stack
+## ✨ Key Features
 
-- **Backend:** Laravel 13 · PHP 8.3 · MySQL 8 · Redis 7 · Laravel Horizon
-- **Admin UI:** Laravel Blade · Bootstrap 5.3 · DataTables 2 · session auth (in this repo; see `docs/modules/27-blade-admin-plan.md`)
-- **File Storage:** MinIO (self-hosted, S3-compatible)
-- **Auth:** Laravel Sanctum · Spatie Laravel Permission
-- **Email:** Resend (platform-level)
-- **PDF:** barryvdh/laravel-dompdf
-- **API Docs:** Scribe + Postman export
+| Category | Modules |
+|----------|---------|
+| **Core Platform** | School (single-school), Academic (years, classes, sections, subjects, routines), User/Auth (Sanctum + Spatie) |
+| **Student Lifecycle** | Student (enrollment, promotion, transfer, TC), Online Admission, Data Import |
+| **Academics** | Examination (types, exams, seating), Mark (grades, GPA, tabulation), Certificate (admit cards, testimonials, TC), Attendance (student + staff, RFID, auto clock-out) |
+| **Finance** | FeeItem (categories, items, discounts), Payment (invoices, bKash/SSLCommerz, cheques, refunds, credits), Payroll (salary components, runs, loan integration), Report (fee collection, dues, ledger) |
+| **Communication** | Announcement, SMS (batches, GSM-7/Unicode segments, billing), Messaging (threads, 1:1 + group, role-restricted, attachments) |
+| **Operations** | Staff (departments, designations, loans), Leave (student + staff, approval workflow), Library (books, borrow/return, overdue), Transport (routes, vehicles, driver swap, SMS alerts), ID Card (batches, PDF generation, Horizon jobs), LMS (courses, lessons, assignments, AI check), Website (CMS, block-based homepage, drag-drop menus) |
+| **Localization** | Language (DB-backed translations, RTL support, scan + editor UI) |
 
 ---
 
-## Prerequisites
+## 👥 User Roles
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
+| Role | Description | Portal Access |
+|------|-------------|---------------|
+| **Super Admin** | School owner / top admin — full access to everything | Admin panel (all modules) |
+| **Admin** | School-level administrator — full school access | Admin panel (all modules) |
+| **Head Teacher** | Academic leadership — full school admin | Admin panel (all modules) |
+| **Moderator** | Content/operations — pages, admissions, marksheets, announcements, promotions | Admin panel (subset) |
+| **Teacher** | Own classes — marks, attendance | Teacher portal |
+| **Accountant** | Finance — payments, waivers, payroll, salary certificates | Admin panel (finance modules) |
+| **Librarian** | Library module only | Admin panel (library) |
+| **Receptionist** | Front desk — announcements, admissions, inquiries | Admin panel (limited) |
+| **Student** | Own records — results, attendance, fees, timetable | Student portal |
+| **Parent** | Child's records — results, attendance, fees | Parent portal |
+
+> **Auth:** Laravel Sanctum (API tokens) + Spatie Laravel Permission (roles/permissions).  
+> **Session auth** for Blade admin UI (`web` guard). **Token auth** for mobile/API (`sanctum` guard + `ability` middleware).
+
+---
+
+## 🏗 Architecture
+
+```
+app/
+├── Modules/                 # 26 domain modules (see table above)
+│   └── {Module}/
+│       ├── Http/
+│       │   ├── Controllers/  # Thin controllers (max 40 lines/method)
+│       │   ├── Requests/     # FormRequests for every write endpoint
+│       │   └── Resources/    # JsonResources — never return raw models
+│       ├── Models/           # Eloquent models with scopes, relationships
+│       ├── Repositories/     # Cache-aside pattern (Cache::tags)
+│       ├── Services/         # Business logic, DB transactions
+│       ├── Observers/        # Cache tag flushing on saved/deleted
+│       ├── database/migrations/
+│       └── routes/
+├── Services/                 # Shared services (PDF, PDF rendering, etc.)
+├── Repositories/             # BaseRepository, CacheRepository
+└── Providers/
+```
+
+**Key Patterns:**
+- **10-step module pattern**: Migration → Model → Repository → Service → Observer → Requests → Resources → Controller/Routes → Tests → Pint/DocBlocks
+- **Repository pattern** with Redis tag-based caching (`Cache::tags(['student'])->flush()` in observers)
+- **Financial writes** wrapped in `DB::transaction()` — never cached
+- **All queries scoped to `school_id`** via `app('current_school_id')` (set by `SetCurrentSchoolFromSession` middleware)
+- **Sanctum abilities** for API; **Spatie roles** for admin UI authorization
+
+---
+
+## 🐳 Quick Start (Docker)
+
+### Prerequisites
+- Docker Desktop (or Docker Engine + Compose)
 - Git
-- [Composer](https://getcomposer.org/download/) (for the initial project creation only)
-- A code editor (VS Code recommended)
-- (No Node toolchain needed — the Blade admin loads Bootstrap/DataTables/jQuery from CDN)
+- No local PHP/Node needed — everything runs in containers
 
-After the initial setup, all `composer` and `php artisan` commands run **inside the Docker container** — no local PHP needed day-to-day.
+### 1. Clone & Configure
 
----
-
-## Local Development Setup
-
-### 1. Clone the repository
-
-```powershell
-git clone <repo-url>
+```bash
+git clone https://github.com/your-org/school-management-backend.git
 cd school-management-backend
+
+# Copy environment file
+cp .env.example .env
 ```
 
-### 2. Environment
+### 2. Start Containers
 
-```powershell
-copy .env.example .env
-```
-
-The `.env.example` already has the correct values for local Docker development. Only update `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `RESEND_API_KEY` when you need real file uploads or email sending.
-
-### 3. Start Docker and run setup
-
-```powershell
-# Build and start all containers (3-5 min the first time)
+```bash
+# Build and start (3-5 min first run)
 docker compose up -d --build
 
-# Verify all containers are running (db, redis, minio, app, nginx)
+# Verify all services healthy
 docker compose ps
+```
 
+Expected services: `app`, `nginx`, `db` (MySQL 8), `redis`, `minio`, `horizon`, `scheduler`
+
+### 3. Initialize Application
+
+```bash
 # Generate app key, run migrations, link storage
 docker compose exec app php artisan key:generate
-docker compose exec app php artisan migrate
+docker compose exec app php artisan migrate --seed
 docker compose exec app php artisan storage:link
 ```
 
-### 4. Verify everything is working
+> **Note:** The `--seed` flag runs all module seeders (roles, permissions, grading templates, gateways, menus, languages, etc.)
 
-Visit `http://localhost:8080/api/v2/health` — you should see a JSON response confirming Laravel, DB, and Redis are all connected.
+### 4. Verify
+
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| **Admin Portal** | http://localhost:8080/login | Seeded admin: `admin@school.edu.bd` / `Admin@1234` |
+| **Staff & Teachers Portal** | http://localhost:8080/staff/login | `admin@school.edu.bd` / `Admin@1234` |
+| **Student & Guardian Portal** | http://localhost:8080/login | `student@school.edu.bd` / `Student@1234` | Guardian: `admin@school.edu.bd` / `Admin@1234` |
+| **API Health Check** | http://localhost:8080/api/v2/health | — |
+| **MinIO Console** | http://localhost:9001 | `minioadmin` / `minioadmin` |
+| **Horizon** | http://localhost:8080/horizon | Admin only |
+| **MySQL** | localhost:3307 | `school` / `secret` (from `.env`) |
+
+> **Port Note:** Uses **8080** (not 8000) — Windows Hyper-V reserves 7980–8079.
 
 ---
 
-## Daily Workflow
+## ⚙️ Configuration
 
-```powershell
-docker compose up -d                                     # start work
-docker compose down                                      # stop work
-docker compose ps                                        # check running containers
-docker compose logs -f app                               # watch Laravel logs live
-docker compose exec app php artisan migrate              # run migrations
-docker compose exec app php artisan test                 # run tests
-docker compose exec app composer require vendor/package  # install package
-docker compose exec app bash                             # open shell in container
+Key `.env` variables to customize:
+
+```env
+APP_NAME="School Management System"
+APP_URL=http://localhost:8080
+
+# Database (Docker service name = db)
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=school
+DB_USERNAME=school
+DB_PASSWORD=secret
+
+# Redis
+REDIS_HOST=redis
+REDIS_PORT=6379
+
+# MinIO (S3-compatible)
+AWS_ENDPOINT=http://minio:9000
+AWS_USE_PATH_STYLE_ENDPOINT=true
+AWS_ACCESS_KEY_ID=minioadmin
+AWS_SECRET_ACCESS_KEY=minioadmin
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=school-files
+
+# SMS (optional - for SMS module)
+SMS_API_KEY=
+SMS_SENDER_ID=
+SMS_COST_PER_SEGMENT=0.50
+
+# Email (Resend)
+RESEND_API_KEY=
+
+# Payment Gateways (per-school, configured in admin UI)
+# Bangladesh: bKash + SSLCommerz | Others: Stripe + PayPal
 ```
 
-> **Port note:** This project uses port **8080** (not 8000). Windows Hyper-V reserves 7980–8079 which includes 8000.
-
 ---
 
-## Services
-
-| Service | URL | Notes |
-|---------|-----|-------|
-| Laravel API | http://localhost:8080 | Nginx → PHP-FPM |
-| Health Check | http://localhost:8080/api/v2/health | First thing to verify |
-| Admin UI (Blade) | http://localhost:8080/login | Served by Laravel; log in with a school admin account |
-| MinIO Console | http://localhost:9001 | File storage browser UI |
-| Horizon Dashboard | http://localhost:8080/horizon | Queue monitoring |
-| MySQL | localhost:3307 | Connect via TablePlus or DBeaver |
-
----
-
-## Roles
-
-| Role | Access |
-|------|--------|
-| Super Admin | Platform-wide — manages schools and plans |
-| Head Teacher | Full school admin |
-| Moderator | Page builder, admissions, marksheet, announcements, class promotion |
-| Teacher | Own classes: enter marks and attendance |
-| Finance | Payments, waivers, payroll structures, salary certificates |
-| Librarian | Library module only |
-| Student | Own records: results, attendance, fees, timetable |
-| Parent | Child's records |
-
----
-
-## Git Workflow — Module & Feature Development
-
-Every module follows the same branch → build → commit → merge cycle. Each step of a module is a separate commit. This keeps your GitHub contribution graph active every day and gives you a clean, traceable history.
-
-### Branch strategy
-
-```
-main          — production only, tagged releases (v1.0, v1.1)
-develop       — integration branch, all features merge here first
-feature/*     — one branch per module or feature, deleted after merge
-```
-
-### Starting a new module
+## 🧪 Testing
 
 ```bash
-# Always branch off develop
-git checkout develop
-git pull origin develop
+# Run all tests
+docker compose exec app php artisan test
+
+# Run specific module tests
+docker compose exec app php artisan test tests/Feature/Student/
+docker compose exec app php artisan test tests/Feature/Payment/
+
+# Run with coverage
+docker compose exec app php artisan test --coverage
+```
+
+> **206+ feature tests** covering all 26 modules.
+
+---
+
+## 📦 Module Development Workflow
+
+### Branch Strategy
+```
+main          → production releases (tagged v1.0, v1.1...)
+develop       → integration branch
+feature/*     → one branch per module/feature
+```
+
+### 10-Step Commit Pattern (1 commit per step)
+
+```bash
+# Start from develop
+git checkout develop && git pull origin develop
 git checkout -b feature/student-module
-```
 
-### Committing as you build (one commit per step)
-
-The 10-step pattern per module maps to ~10 commits:
-
-```bash
-# Step 1 — migration
+# Step 1: Migration
 git add -A && git commit -m "feat(student): create students and contacts migrations"
 
-# Step 2 — model
+# Step 2: Model
 git add -A && git commit -m "feat(student): add Student model with relationships and scopes"
 
-# Step 3 — repository
+# Step 3: Repository
 git add -A && git commit -m "feat(student): add StudentRepository with Redis cache-aside"
 
-# Step 4 — service
+# Step 4: Service
 git add -A && git commit -m "feat(student): add StudentService with enrolment logic"
 
-# Step 5 — observer
+# Step 5: Observer
 git add -A && git commit -m "feat(student): add StudentObserver for cache invalidation"
 
-# Step 6 — FormRequests
+# Step 6: FormRequests
 git add -A && git commit -m "feat(student): add StoreStudentRequest and UpdateStudentRequest"
 
-# Step 7 — resource
+# Step 7: Resources
 git add -A && git commit -m "feat(student): add StudentResource and StudentCollection"
 
-# Step 8 — controller + routes
+# Step 8: Controller + Routes
 git add -A && git commit -m "feat(student): add StudentController and api routes"
 
-# Step 9 — tests
+# Step 9: Tests
 git add -A && git commit -m "test(student): add feature and unit tests for student module"
 
-# Step 10 — cleanup and final check
+# Step 10: Cleanup
 git add -A && git commit -m "refactor(student): pint fixes and docblock cleanup"
 
-# Push the branch
+# Push & PR
 git push origin feature/student-module
+# Open PR to develop
 ```
 
-### Merging when the module is complete
-
-```bash
-git checkout develop
-git merge --no-ff feature/student-module -m "merge: student module complete"
-git push origin develop
-
-# Delete the feature branch
-git branch -d feature/student-module
-git push origin --delete feature/student-module
-```
-
-### Tagging a release
-
-```bash
-git checkout main
-git merge --no-ff develop -m "release: v1.0 — core modules complete"
-git tag -a v1.0 -m "v1.0 — School, Academic, Auth, Student, Staff"
-git push origin main --tags
-```
-
-### Commit format
-
+### Commit Convention
 ```
 type(module): short description
 ```
-
-| Type | When to use |
-|------|-------------|
+| Type | Use For |
+|------|---------|
 | `feat` | New functionality |
 | `fix` | Bug fix |
-| `test` | Adding or updating tests |
-| `refactor` | Code cleanup, no behaviour change |
-| `chore` | Config, dependencies, Docker changes |
-| `docs` | README, CLAUDE.md, comments |
-
-**Examples:**
-```bash
-git commit -m "feat(payment): add bKash payment gateway integration"
-git commit -m "fix(attendance): correct ZKTeco duplicate entry handling"
-git commit -m "test(mark): add unit test for grade boundary lookup"
-git commit -m "chore(docker): add MinIO health check to docker-compose"
-```
-
-### Daily commit goal
-
-Aim for **2–3 commits every work session**. 41 modules × ~10 commits = ~410 commits across 41 weeks. That fills your GitHub contribution graph with consistent green squares — visible proof of daily progress.
-
-```bash
-# Rule: never end a work session without committing what you built
-git add -A
-git commit -m "feat(library): add BookRepository with issue and return logic"
-git push origin feature/library-module
-```
+| `test` | Tests |
+| `refactor` | Code cleanup |
+| `chore` | Config, deps, Docker |
+| `docs` | Documentation |
 
 ---
 
-## API Documentation
+## 🔌 API Documentation
 
-```powershell
+Generate interactive docs with [Scribe](https://scribe.knuckles.wtf/):
+
+```bash
 docker compose exec app php artisan scribe:generate
 ```
 
-Docs at `http://localhost:8080/docs` · Postman collection exported automatically.
+Open: http://localhost:8080/docs
+
+Postman collection auto-exported to `public/docs/collection.json`.
 
 ---
 
-## Common Issues
+## 🌍 Multi-Country / Global Ready
 
-| Problem | Fix |
-|---------|-----|
-| Port 8000 fails on Windows | Use port 8080 — Hyper-V reserves 7980–8079 |
-| `DB_HOST` connection refused | Use `db` not `127.0.0.1` in `.env` |
-| `REDIS_HOST` connection refused | Use `redis` not `127.0.0.1` in `.env` |
-| Composer/artisan commands fail | Run inside container: `docker compose exec app composer ...` |
-| MinIO uploads fail | Check `AWS_ENDPOINT=http://minio:9000` and `AWS_USE_PATH_STYLE_ENDPOINT=true` |
+- **Locale per school**: currency, timezone, locale, academic year pattern, weekend days
+- **Payment gateways by country**: BD → bKash + SSLCommerz; others → Stripe + PayPal
+- **Grading templates**: BD National 5.0, US Letter 4.0, UK 9-1, Percentage-only — editable per class
+- **Result strategies**: BD National, Simple Average, Weighted Average, Percentage-only
+- **Addresses**: Free-form (no hardcoded geo tables)
+- **Institution code**: Generic label, configurable per school
+
+---
+
+## 🛠 Common Commands
+
+```bash
+# Daily workflow
+docker compose up -d                    # Start
+docker compose down                     # Stop
+docker compose ps                       # Status
+docker compose logs -f app              # Follow logs
+
+# Laravel commands (run inside container)
+docker compose exec app php artisan migrate
+docker compose exec app php artisan migrate:fresh --seed
+docker compose exec app php artisan queue:work      # Or use Horizon
+docker compose exec app php artisan schedule:run
+docker compose exec app php artisan test
+
+# Code style
+docker compose exec app ./vendor/bin/pint
+docker compose exec app php artisan ide-helper:generate
+```
+
+---
+
+## 📁 Project Structure Highlights
+
+```
+├── app/Modules/              # 26 domain modules
+├── docs/modules/             # Per-module specification docs (01-school.md ... 26-messaging.md)
+├── resources/views/          # Blade admin UI (Bootstrap 5, DataTables 2)
+│   ├── layouts/admin.blade.php
+│   └── admin/                # Module-specific views
+├── routes/
+│   ├── web.php               # Admin UI routes (auth + school middleware)
+│   └── api.php               # API routes (sanctum + ability middleware)
+├── database/
+│   ├── seeders/              # Module seeders (roles, permissions, grading, menus, languages)
+│   └── migrations/           # Shared migrations
+├── tests/Feature/            # 206+ feature tests (mirrors modules)
+└── docker-compose.yml        # Full stack: app, nginx, db, redis, minio, horizon, scheduler
+```
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Follow the **10-step commit pattern** above
+4. Run tests: `docker compose exec app php artisan test`
+5. Run Pint: `docker compose exec app ./vendor/bin/pint`
+6. Submit a PR to `develop`
+
+### Code Standards
+- PHP 8.3, Laravel 13, strict types
+- PSR-12 + Laravel Pint (run before commit)
+- Every write endpoint: FormRequest + JsonResource
+- Controllers ≤ 40 lines/method — logic in Services
+- Repository pattern for reads (cached), Services for writes (transactional)
+
+---
+
+## 📄 License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- [Laravel](https://laravel.com) — The PHP framework for web artisans
+- [Spatie Laravel Permission](https://spatie.be/docs/laravel-permission) — Role/permission management
+- [Laravel Sanctum](https://laravel.com/docs/sanctum) — API token authentication
+- [Bootstrap 5](https://getbootstrap.com) — Admin UI framework
+- [DataTables 2](https://datatables.net) — Admin tables
+- [DomPDF](https://github.com/dompdf/dompdf) — PDF generation
+- [MinIO](https://min.io) — Self-hosted S3-compatible storage
+- [Laravel Horizon](https://laravel.com/docs/horizon) — Queue monitoring
+- [Scribe](https://scribe.knuckles.wtf) — API documentation
+
+---
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/your-org/school-management-backend/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-org/school-management-backend/discussions)
+
+---
+
+> **Built for schools, by developers who understand school operations.**  
+> Self-hosted. Single-school. Globally adaptable. Open source.
