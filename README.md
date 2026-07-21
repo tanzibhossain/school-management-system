@@ -169,6 +169,23 @@ RESEND_API_KEY=
 
 ---
 
+## 🧪 Testing
+
+```bash
+# Run all tests
+docker compose exec app php artisan test
+
+# Run specific module tests
+docker compose exec app php artisan test tests/Feature/Student/
+docker compose exec app php artisan test tests/Feature/Payment/
+
+# Run with coverage
+docker compose exec app php artisan test --coverage
+```
+
+> **206+ feature tests** covering all 26 modules.
+
+
 
 ## 🔌 API Documentation
 
