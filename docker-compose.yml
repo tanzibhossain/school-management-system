@@ -32,6 +32,10 @@ services:
         working_dir: /var/www
         volumes:
             - ./:/var/www # code here
+            # vendor lives in a named volume (inside the Linux VM) instead of the
+            # slow Windows bind mount — seeded from the image on first start.
+            # After changing composer.json: docker compose exec app composer install
+            - vendor:/var/www/vendor
         depends_on:
             - db
             - redis
@@ -58,6 +62,7 @@ services:
         command: php artisan horizon
         volumes:
             - ./:/var/www
+            - vendor:/var/www/vendor # same vendor volume as app
         depends_on:
             - db
             - redis
@@ -80,3 +85,4 @@ volumes:
     db_data:
     redis_data:
     minio_data: # all uploaded files
+    vendor: # composer deps inside the Linux VM (perf: avoids the Windows mount)

@@ -5,7 +5,9 @@ RUN apt-get update && apt-get install -y \
     libzip-dev libicu-dev libjpeg-dev libfreetype6-dev
 
 RUN docker-php-ext-configure gd --with-jpeg --with-freetype && \
-    docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl
+    docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl opcache
+
+COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
 
 RUN pecl install redis && docker-php-ext-enable redis
 
