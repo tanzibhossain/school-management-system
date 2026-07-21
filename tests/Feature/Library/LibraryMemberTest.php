@@ -52,7 +52,8 @@ class LibraryMemberTest extends LibraryTestCase
         ]);
 
         $response->assertStatus(200);
-        $response->assertJsonFragment(['message' => 'Member Deactivated.']);
+        // Module API messages are plain strings (not translated) — sentence case.
+        $response->assertJsonFragment(['message' => 'Member deactivated.']);
         $this->assertDatabaseHas('library_members', [
             'id' => $member->id,
             'is_active' => false,

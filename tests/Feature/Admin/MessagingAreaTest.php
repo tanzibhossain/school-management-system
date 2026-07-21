@@ -121,6 +121,6 @@ class MessagingAreaTest extends TestCase
         $this->get('/admin/messages/all')->assertOk();
         $this->get("/admin/messages/{$thread->id}")->assertOk()
             ->assertSee('Hi student')
-            ->assertSee('oversight');
+            ->assertSee('Oversight');
     }
 }
