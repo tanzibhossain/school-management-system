@@ -116,8 +116,8 @@ docker compose exec app php artisan storage:link
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
-| **Admin Portal** | http://localhost:8080/login | Seeded admin: `admin@school.edu.bd` / `Admin@1234` |
-| **Staff & Teachers Portal** | http://localhost:8080/staff/login | `admin@school.edu.bd` / `Admin@1234` |
+| **Admin Portal** | http://localhost:8080/admin/login | Seeded admin: `admin@school.edu.bd` / `Admin@1234` |
+| **Staff & Teachers Portal** | http://localhost:8080/staff/login | `teacher@school.edu.bd` / `Teacher@1234` |
 | **Student & Guardian Portal** | http://localhost:8080/login | `student@school.edu.bd` / `Student@1234` | Guardian: `admin@school.edu.bd` / `Admin@1234` |
 | **API Health Check** | http://localhost:8080/api/v2/health | — |
 | **MinIO Console** | http://localhost:9001 | `minioadmin` / `minioadmin` |
