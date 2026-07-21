@@ -79,7 +79,9 @@ Build in dependency order.
 | 24 | Transport *(optional)* | Student, Payment, Sms, Academic | ✅ tests green | TransportRoute, TransportVehicle, TransportDriver, StudentTransportAssignment. Vehicle serves a route; swap pulls a pool vehicle (old→`out_of_service`, new→`in_service`) under `lockForUpdate`+seat-capacity, driver stays with the route. Route fee is a `FeeItem` billed only to active riders (guarded `InvoiceService` query). Swap SMS-alerts student + primary guardian via new Sms `transport_alert` purpose. Academic `transports` fare synced one-way (not dropped) |
 | 25 | Messaging *(optional)* | User | ✅ tests green | MessageThread, MessageParticipant, Message, MessageAttachment. Role-restricted `MessagingPolicyService`: non-staff (student/parent) may only share a thread WITH staff, and every thread keeps ≥1 staff. 1:1 + group; 1:1 deduped via unique `direct_key`. REST polling + live unread (`last_read_message_id`); MinIO attachments; soft-deleted messages. Admin oversight via `role:admin` (read + lock, never a participant). `MessageSent` event is the seam for deferred SMS/realtime. Self-contained — no shared-file edits |
 
-Total: **25 modules** (22 core + 3 optional)
+| 26 | Language | — | ✅ | Language, Translation (English-as-key JSON-style, DB-backed via `Translator::addLines`, cached). `SetLocale` web middleware (session → default), `/language/{code}` switcher (public topbar + portal/staff/admin headers), RTL `dir` on public layout. Admin: Settings→Languages (add/enable/default/RTL, per-locale progress) + per-language Translations editor (search, untranslated-only, bulk save) + `translations:scan` (registers all `__()` keys). ~2,200 strings extracted across views + controller flash messages by `scripts/extract-translations.py` (conservative; idempotent). en (default) + bn seeded. |
+
+Total: **26 modules** (23 core + 3 optional)
 
 ## The 10-Step Pattern (one commit per step)
 1. Migration(s) 2. Model 3. Repository (cache-aside) 4. Service 5. Observer (cache flush)
