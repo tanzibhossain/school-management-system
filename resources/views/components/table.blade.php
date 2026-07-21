@@ -57,7 +57,7 @@
                 </th>
             @endforeach
             @if($actions)
-            <th scope="col" class="text-end">Actions</th>
+            <th scope="col" class="text-end">{{ __('Actions') }}</th>
             @endif
         </tr>
     </thead>

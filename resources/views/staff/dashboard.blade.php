@@ -1,5 +1,5 @@
 @extends('layouts.staff')
-@section('title', 'Dashboard')
+@section('title', __('Dashboard'))
 @section('heading', 'Dashboard')
 @section('content')
 
@@ -12,7 +12,7 @@
     <div class="col-sm-6 col-lg-4">
       <div class="card h-100"><div class="card-body d-flex align-items-center justify-content-between">
         <div>
-          <div class="text-muted small mb-1">My subject</div>
+          <div class="text-muted small mb-1">{{ __('My subject') }}</div>
           <div class="h5 mb-0">{{ $staff?->subject?->name ?? '—' }}</div>
         </div>
         <span class="avatar-sm" style="width:44px;height:44px;font-size:1.2rem;"><i class="bi bi-book"></i></span>
@@ -21,7 +21,7 @@
     <div class="col-sm-6 col-lg-4">
       <div class="card h-100"><div class="card-body d-flex align-items-center justify-content-between">
         <div>
-          <div class="text-muted small mb-1">Classes I lead</div>
+          <div class="text-muted small mb-1">{{ __('Classes I lead') }}</div>
           <div class="h5 mb-0">{{ $sections->count() }}</div>
         </div>
         <span class="avatar-sm" style="width:44px;height:44px;font-size:1.2rem;"><i class="bi bi-easel2"></i></span>
@@ -30,7 +30,7 @@
     <div class="col-sm-6 col-lg-4">
       <div class="card h-100"><div class="card-body d-flex align-items-center justify-content-between">
         <div>
-          <div class="text-muted small mb-1">My students</div>
+          <div class="text-muted small mb-1">{{ __('My students') }}</div>
           <div class="h5 mb-0">{{ $studentCount }}</div>
         </div>
         <span class="avatar-sm" style="width:44px;height:44px;font-size:1.2rem;"><i class="bi bi-people"></i></span>
@@ -44,10 +44,10 @@
         <div class="card-header">My classes &amp; sections</div>
         <div class="card-body p-0">
           @if($sections->isEmpty())
-            <div class="text-center text-muted py-5"><i class="bi bi-easel2 fs-3 d-block mb-2 opacity-50"></i>You are not assigned as a class teacher yet.</div>
+            <div class="text-center text-muted py-5"><i class="bi bi-easel2 fs-3 d-block mb-2 opacity-50"></i>{{ __('You are not assigned as a class teacher yet.') }}</div>
           @else
             <table class="table align-middle mb-0">
-              <thead class="table-light"><tr><th>Class</th><th>Section</th><th>Shift</th></tr></thead>
+              <thead class="table-light"><tr><th>{{ __('Class') }}</th><th>{{ __('Section') }}</th><th>{{ __('Shift') }}</th></tr></thead>
               <tbody>
                 @foreach($sections as $sec)
                   <tr>
@@ -65,8 +65,8 @@
     <div class="col-lg-5">
       <div class="card h-100">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <span>Notices</span>
-          <a href="{{ route('staff.notices') }}" class="small text-decoration-none">View all</a>
+          <span>{{ __('Notices') }}</span>
+          <a href="{{ route('staff.notices') }}" class="small text-decoration-none">{{ __('View all') }}</a>
         </div>
         <div class="card-body">
           @forelse($notices as $n)
@@ -75,7 +75,7 @@
               <div class="text-muted" style="font-size:.78rem;">{{ optional($n->publish_at)->format('j M Y') }}</div>
             </div>
           @empty
-            <div class="text-muted small text-center py-3">No notices published.</div>
+            <div class="text-muted small text-center py-3">{{ __('No notices published.') }}</div>
           @endforelse
         </div>
       </div>

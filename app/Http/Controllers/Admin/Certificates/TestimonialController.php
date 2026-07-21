@@ -45,7 +45,7 @@ class TestimonialController extends Controller
         $testimonial = $this->testimonials->generate($schoolId, $student, $data, $request->user());
         $this->testimonials->issue($testimonial); // renders + stores the PDF, marks issued
 
-        return back()->with('status', 'Testimonial issued.');
+        return back()->with('status', __('Testimonial issued.'));
     }
 
     public function download(int $id): Response

@@ -38,7 +38,7 @@ class FeeItemController extends Controller
     {
         $this->feeItems->make(app('current_school_id'), $this->validated($request, app('current_school_id')));
 
-        return back()->with('status', 'Fee item created.');
+        return back()->with('status', __('Fee item created.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -47,7 +47,7 @@ class FeeItemController extends Controller
         $item = FeeItem::where('school_id', $schoolId)->findOrFail($id);
         $this->feeItems->modify($item, $this->validated($request, $schoolId));
 
-        return back()->with('status', 'Fee item updated.');
+        return back()->with('status', __('Fee item updated.'));
     }
 
     public function deactivate(int $id): RedirectResponse
@@ -56,7 +56,7 @@ class FeeItemController extends Controller
         $item = FeeItem::where('school_id', $schoolId)->findOrFail($id);
         $this->feeItems->deactivate($item);
 
-        return back()->with('status', 'Fee item deactivated.');
+        return back()->with('status', __('Fee item deactivated.'));
     }
 
     /**

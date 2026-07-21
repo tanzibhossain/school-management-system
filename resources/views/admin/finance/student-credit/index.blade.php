@@ -1,15 +1,15 @@
 @extends('layouts.admin')
-@section('title', 'Student credit')
+@section('title', __('Student credit'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'Student credit', 'crumbs' => ['Finance', 'Student credit']])
 
   <form method="GET" class="card mb-3"><div class="card-body row g-2 align-items-end">
-    <div class="col-sm-6"><label class="form-label small text-muted mb-1">Student</label>
+    <div class="col-sm-6"><label class="form-label small text-muted mb-1">{{ __('Student') }}</label>
       <select name="student_id" class="form-select form-select-sm js-select" required>
         <option value="">— select —</option>
         @foreach ($students as $s)<option value="{{ $s->id }}" @selected($student && $student->id === $s->id)>{{ $s->name }} ({{ $s->student_id }})</option>@endforeach
       </select></div>
-    <div class="col-sm-3"><button class="btn btn-sm btn-primary">View ledger</button></div>
+    <div class="col-sm-3"><button class="btn btn-sm btn-primary">{{ __('View ledger') }}</button></div>
   </div></form>
 
   @if ($student)
@@ -22,23 +22,23 @@
         <form method="POST" action="{{ route('admin.student-credit.adjust') }}" class="row g-2 align-items-end">
           @csrf
           <input type="hidden" name="student_id" value="{{ $student->id }}">
-          <div class="col-sm-3"><label class="form-label small text-muted mb-1">Direction</label>
+          <div class="col-sm-3"><label class="form-label small text-muted mb-1">{{ __('Direction') }}</label>
             <select name="direction" class="form-select form-select-sm"><option value="credit">Credit (+)</option><option value="debit">Debit (−)</option></select></div>
-          <div class="col-sm-3"><label class="form-label small text-muted mb-1">Amount</label>
+          <div class="col-sm-3"><label class="form-label small text-muted mb-1">{{ __('Amount') }}</label>
             <input type="number" step="0.01" min="0.01" name="amount" class="form-control form-control-sm" required></div>
-          <div class="col-sm-4"><label class="form-label small text-muted mb-1">Note</label>
+          <div class="col-sm-4"><label class="form-label small text-muted mb-1">{{ __('Note') }}</label>
             <input name="note" class="form-control form-control-sm"></div>
-          <div class="col-sm-2"><button class="btn btn-sm btn-outline-primary w-100">Apply</button></div>
+          <div class="col-sm-2"><button class="btn btn-sm btn-outline-primary w-100">{{ __('Apply') }}</button></div>
         </form>
       </div></div></div>
     </div>
 
     <div class="card"><div class="card-body">
       @if ($transactions->isEmpty())
-        <p class="text-muted mb-0">No credit transactions.</p>
+        <p class="text-muted mb-0">{{ __('No credit transactions.') }}</p>
       @else
         <table class="table table-hover align-middle w-100 js-dt">
-          <thead><tr><th>Date</th><th>Type</th><th class="text-end">Amount</th><th>Reference</th><th>Note</th></tr></thead>
+          <thead><tr><th>{{ __('Date') }}</th><th>{{ __('Type') }}</th><th class="text-end">{{ __('Amount') }}</th><th>{{ __('Reference') }}</th><th>{{ __('Note') }}</th></tr></thead>
           <tbody>
             @foreach ($transactions as $t)
               <tr>
@@ -57,6 +57,6 @@
       @endif
     </div></div>
   @else
-    <div class="alert alert-info">Select a student to view their credit ledger.</div>
+    <div class="alert alert-info">{{ __('Select a student to view their credit ledger.') }}</div>
   @endif
 @endsection

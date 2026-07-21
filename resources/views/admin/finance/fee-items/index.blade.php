@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Fee items')
+@section('title', __('Fee items'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Fee items',
@@ -9,7 +9,7 @@
 
   <div class="card"><div class="card-body">
     <table class="table table-hover align-middle w-100 js-dt">
-      <thead><tr><th>Name</th><th>Category</th><th>Amount</th><th>Frequency</th><th>Mandatory</th><th>Status</th><th class="text-end" data-orderable="false">Actions</th></tr></thead>
+      <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Category') }}</th><th>{{ __('Amount') }}</th><th>{{ __('Frequency') }}</th><th>{{ __('Mandatory') }}</th><th>{{ __('Status') }}</th><th class="text-end" data-orderable="false">{{ __('Actions') }}</th></tr></thead>
       <tbody>
         @foreach ($items as $it)
           <tr>
@@ -20,11 +20,11 @@
             <td>{!! $it->is_mandatory ? '<i class="bi bi-check-lg text-success"></i>' : '—' !!}</td>
             <td><span class="badge {{ $it->is_active ? 'text-bg-success' : 'text-bg-secondary' }}">{{ $it->is_active ? 'Active' : 'Inactive' }}</span></td>
             <td class="text-end">
-              <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ $it->id }}">Edit</button>
+              <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ $it->id }}">{{ __('Edit') }}</button>
               @if ($it->is_active)
                 <form method="POST" action="{{ route('admin.fee-items.deactivate', $it->id) }}" class="d-inline" onsubmit="return confirm('Deactivate {{ $it->name }}?')">
                   @csrf @method('PATCH')
-                  <button class="btn btn-sm btn-outline-danger">Deactivate</button>
+                  <button class="btn btn-sm btn-outline-danger">{{ __('Deactivate') }}</button>
                 </form>
               @endif
             </td>

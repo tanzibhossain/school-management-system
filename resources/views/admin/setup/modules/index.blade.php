@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Modules')
+@section('title', __('Modules'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'Optional modules', 'crumbs' => ['Setup', 'Modules']])
 
@@ -24,6 +24,6 @@
         @endforeach
       </div>
     </div></div>
-    <div class="mt-4"><button class="btn btn-primary"><i class="bi bi-save"></i> Save modules</button></div>
+    <div class="mt-4"><button class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save modules') }}</button></div>
   </form>
 @endsection

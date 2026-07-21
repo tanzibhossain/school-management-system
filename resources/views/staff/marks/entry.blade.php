@@ -1,12 +1,12 @@
 @extends('layouts.staff')
-@section('title', 'Enter Marks')
+@section('title', __('Enter Marks'))
 @section('heading', 'Enter Marks')
 @section('content')
 
   <div class="mb-3">
-    <a href="{{ route('staff.marks') }}" class="text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Back to marks</a>
+    <a href="{{ route('staff.marks') }}" class="text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>{{ __('Back to marks') }}</a>
     <h1 class="h5 mt-2 mb-1">{{ $exam->title }} — {{ $division->examSubject->subjectRelation->subject->name ?? '' }} · {{ $division->name }}</h1>
-    <p class="text-muted small mb-0">Max marks {{ rtrim(rtrim(number_format($division->max_marks, 2), '0'), '.') }}. Tick <strong>Ab</strong> for absent students.</p>
+    <p class="text-muted small mb-0">Max marks {{ rtrim(rtrim(number_format($division->max_marks, 2), '0'), '.') }}. Tick <strong>Ab</strong> {{ __('for absent students.') }}</p>
   </div>
 
   <form method="POST" action="{{ route('staff.marks.save', [$exam->id, $division->id]) }}">
@@ -14,10 +14,10 @@
     <div class="card">
       <div class="card-body p-0">
         @if($roster->isEmpty())
-          <div class="text-center text-muted py-4">No active students in this class.</div>
+          <div class="text-center text-muted py-4">{{ __('No active students in this class.') }}</div>
         @else
           <table class="table align-middle mb-0">
-            <thead class="table-light"><tr><th>Student</th><th style="width:160px">Marks</th><th style="width:80px" class="text-center">Absent</th></tr></thead>
+            <thead class="table-light"><tr><th>{{ __('Student') }}</th><th style="width:160px">{{ __('Marks') }}</th><th style="width:80px" class="text-center">{{ __('Absent') }}</th></tr></thead>
             <tbody>
               @foreach($roster as $r)
                 <tr @if($r->locked) class="table-light" @endif>
@@ -39,7 +39,7 @@
         @endif
       </div>
       @unless($roster->isEmpty())
-        <div class="card-footer text-end"><button class="btn btn-primary"><i class="bi bi-save me-1"></i> Save marks</button></div>
+        <div class="card-footer text-end"><button class="btn btn-primary"><i class="bi bi-save me-1"></i> {{ __('Save marks') }}</button></div>
       @endunless
     </div>
   </form>

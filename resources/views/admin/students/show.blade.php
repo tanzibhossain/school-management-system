@@ -8,7 +8,7 @@
         <div>
             <nav aria-label="breadcrumb" class="mb-2">
                 <ol class="breadcrumb small mb-0">
-                    <li class="breadcrumb-item"><a href="{{ route('admin.students.index') }}">Students</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('admin.students.index') }}">{{ __('Students') }}</a></li>
                     <li class="breadcrumb-item active" aria-current="page">{{ $student->name }}</li>
                 </ol>
             </nav>
@@ -35,10 +35,10 @@
                     <i class="bi bi-plus me-1"></i> Actions
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="{{ route('admin.students.create') }}"><i class="bi bi-person-plus me-2"></i> New Student</a></li>
-                    <li><a class="dropdown-item" href="{{ route('admin.admissions.index') }}"><i class="bi bi-clipboard-check me-2"></i> Admissions</a></li>
-                    <li><a class="dropdown-item" href="{{ route('admin.students.transfer', $student) }}"><i class="bi bi-arrow-left-right me-2"></i> Transfer</a></li>
-                    <li><a class="dropdown-item" href="{{ route('admin.students.deactivate', $student) }}" onclick="return confirm('Deactivate this student?')"><i class="bi bi-person-x me-2 text-danger"></i> Deactivate</a></li>
+                    <li><a class="dropdown-item" href="{{ route('admin.students.create') }}"><i class="bi bi-person-plus me-2"></i> {{ __('New Student') }}</a></li>
+                    <li><a class="dropdown-item" href="{{ route('admin.admissions.index') }}"><i class="bi bi-clipboard-check me-2"></i> {{ __('Admissions') }}</a></li>
+                    <li><a class="dropdown-item" href="{{ route('admin.students.transfer', $student) }}"><i class="bi bi-arrow-left-right me-2"></i> {{ __('Transfer') }}</a></li>
+                    <li><a class="dropdown-item" href="{{ route('admin.students.deactivate', $student) }}" onclick="return confirm('Deactivate this student?')"><i class="bi bi-person-x me-2 text-danger"></i> {{ __('Deactivate') }}</a></li>
                 </ul>
             </div>
         </div>

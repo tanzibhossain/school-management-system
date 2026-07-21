@@ -22,7 +22,7 @@ class TemplateController extends Controller
     {
         $this->save(null, $request);
 
-        return back()->with('status', 'Template added.');
+        return back()->with('status', __('Template added.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -30,14 +30,14 @@ class TemplateController extends Controller
         $template = TestimonialTemplate::where('school_id', app('current_school_id'))->findOrFail($id);
         $this->save($template, $request);
 
-        return back()->with('status', 'Template updated.');
+        return back()->with('status', __('Template updated.'));
     }
 
     public function destroy(int $id): RedirectResponse
     {
         TestimonialTemplate::where('school_id', app('current_school_id'))->findOrFail($id)->delete();
 
-        return back()->with('status', 'Template deleted.');
+        return back()->with('status', __('Template deleted.'));
     }
 
     private function save(?TestimonialTemplate $template, Request $request): void

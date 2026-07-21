@@ -29,7 +29,7 @@ class LessonController extends Controller
 
         $this->lessons->create($course, $data);
 
-        return back()->with('status', 'Lesson added.');
+        return back()->with('status', __('Lesson added.'));
     }
 
     public function publish(int $courseId, int $lessonId): RedirectResponse
@@ -37,14 +37,14 @@ class LessonController extends Controller
         $lesson = $this->find($courseId, $lessonId);
         $this->lessons->publishLesson($lesson);
 
-        return back()->with('status', 'Lesson published.');
+        return back()->with('status', __('Lesson published.'));
     }
 
     public function destroy(int $courseId, int $lessonId): RedirectResponse
     {
         $this->lessons->delete($this->find($courseId, $lessonId));
 
-        return back()->with('status', 'Lesson removed.');
+        return back()->with('status', __('Lesson removed.'));
     }
 
     private function find(int $courseId, int $lessonId): Lesson

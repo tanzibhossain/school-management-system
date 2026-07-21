@@ -1,5 +1,5 @@
 @extends('layouts.staff')
-@section('title', 'My Leave')
+@section('title', __('My Leave'))
 @section('heading', 'My Leave')
 @section('content')
 
@@ -7,17 +7,17 @@
   @if($errors->any())<div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>@endif
 
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <p class="text-muted small mb-0">Apply for leave and track your requests. Approvals are handled by the office.</p>
-    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#leaveModal" @disabled(! $staff || $leaveTypes->isEmpty())><i class="bi bi-plus-lg me-1"></i> Apply for leave</button>
+    <p class="text-muted small mb-0">{{ __('Apply for leave and track your requests. Approvals are handled by the office.') }}</p>
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#leaveModal" @disabled(! $staff || $leaveTypes->isEmpty())><i class="bi bi-plus-lg me-1"></i> {{ __('Apply for leave') }}</button>
   </div>
 
   @if(! $staff)
-    <div class="alert alert-info">No staff record is linked to your account yet. Please contact the administrator.</div>
+    <div class="alert alert-info">{{ __('No staff record is linked to your account yet. Please contact the administrator.') }}</div>
   @else
     <div class="card">
       <div class="card-body p-0">
         <table class="table align-middle mb-0">
-          <thead class="table-light"><tr><th>Type</th><th>From</th><th>To</th><th class="text-center">Days</th><th class="text-center">Status</th><th class="text-end">Action</th></tr></thead>
+          <thead class="table-light"><tr><th>{{ __('Type') }}</th><th>{{ __('From') }}</th><th>To</th><th class="text-center">{{ __('Days') }}</th><th class="text-center">{{ __('Status') }}</th><th class="text-end">{{ __('Action') }}</th></tr></thead>
           <tbody>
             @forelse($requests as $r)
               @php
@@ -38,13 +38,13 @@
                   @if($r->status === 'pending')
                     <form method="POST" action="{{ route('staff.leave.cancel', $r->id) }}" onsubmit="return confirm('Withdraw this leave request?')">
                       @csrf @method('PATCH')
-                      <button class="btn btn-sm btn-outline-danger">Withdraw</button>
+                      <button class="btn btn-sm btn-outline-danger">{{ __('Withdraw') }}</button>
                     </form>
                   @else — @endif
                 </td>
               </tr>
             @empty
-              <tr><td colspan="6" class="text-center text-muted py-4">No leave requests yet.</td></tr>
+              <tr><td colspan="6" class="text-center text-muted py-4">{{ __('No leave requests yet.') }}</td></tr>
             @endforelse
           </tbody>
         </table>
@@ -56,23 +56,23 @@
   <div class="modal fade" id="leaveModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('staff.leave.store') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">Apply for leave</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('Apply for leave') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
-        <div class="mb-3"><label class="form-label">Leave type</label>
+        <div class="mb-3"><label class="form-label">{{ __('Leave type') }}</label>
           <select name="leave_type_id" class="form-select" required>
             <option value="">— Select —</option>
             @foreach($leaveTypes as $lt)<option value="{{ $lt->id }}">{{ $lt->name }}</option>@endforeach
           </select>
         </div>
         <div class="row g-2 mb-3">
-          <div class="col"><label class="form-label">From</label><input type="date" name="from_date" class="form-control" required></div>
+          <div class="col"><label class="form-label">{{ __('From') }}</label><input type="date" name="from_date" class="form-control" required></div>
           <div class="col"><label class="form-label">To</label><input type="date" name="to_date" class="form-control" required></div>
         </div>
-        <div class="mb-0"><label class="form-label">Reason</label><textarea name="reason" rows="3" class="form-control" required></textarea></div>
+        <div class="mb-0"><label class="form-label">{{ __('Reason') }}</label><textarea name="reason" rows="3" class="form-control" required></textarea></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-primary">Submit request</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+        <button class="btn btn-primary">{{ __('Submit request') }}</button>
       </div>
     </form>
   </div></div></div>

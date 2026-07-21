@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Edit page')
+@section('title', __('Edit page'))
 @section('content')
   @php
     $admissionFieldDefaults = [
@@ -34,10 +34,10 @@
 
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div>
-      <nav><ol class="breadcrumb small mb-1"><li class="breadcrumb-item">Website</li><li class="breadcrumb-item"><a href="{{ route('admin.pages.index') }}" class="text-decoration-none">Pages</a></li><li class="breadcrumb-item active">{{ $page->title }}</li></ol></nav>
-      <h1 class="h4 mb-0">Edit page</h1>
+      <nav><ol class="breadcrumb small mb-1"><li class="breadcrumb-item">{{ __('Website') }}</li><li class="breadcrumb-item"><a href="{{ route('admin.pages.index') }}" class="text-decoration-none">{{ __('Pages') }}</a></li><li class="breadcrumb-item active">{{ $page->title }}</li></ol></nav>
+      <h1 class="h4 mb-0">{{ __('Edit page') }}</h1>
     </div>
-    @if ($page->status === 'published')<a class="btn btn-outline-secondary" href="{{ url('/' . $page->slug) }}" target="_blank"><i class="bi bi-box-arrow-up-right"></i> View live</a>@endif
+    @if ($page->status === 'published')<a class="btn btn-outline-secondary" href="{{ url('/' . $page->slug) }}" target="_blank"><i class="bi bi-box-arrow-up-right"></i> {{ __('View live') }}</a>@endif
   </div>
 
   <form method="POST" action="{{ route('admin.pages.save', $page->id) }}">
@@ -45,20 +45,20 @@
 
     <div class="card mb-3"><div class="card-body">
       <div class="row g-3">
-        <div class="col-md-5"><label class="form-label">Title <span class="text-danger">*</span></label>
+        <div class="col-md-5"><label class="form-label">{{ __('Title') }} <span class="text-danger">*</span></label>
           <input name="title" class="form-control" value="{{ old('title', $page->title) }}" required></div>
-        <div class="col-md-4"><label class="form-label">Slug</label>
+        <div class="col-md-4"><label class="form-label">{{ __('Slug') }}</label>
           <div class="input-group"><span class="input-group-text">/</span>
             <input name="slug" class="form-control" value="{{ old('slug', $page->slug) }}"></div></div>
-        <div class="col-md-3"><label class="form-label">Status</label>
+        <div class="col-md-3"><label class="form-label">{{ __('Status') }}</label>
           <select name="status" class="form-select">
-            <option value="published" @selected($page->status === 'published')>Published</option>
-            <option value="draft" @selected($page->status === 'draft')>Draft</option>
+            <option value="published" @selected($page->status === 'published')>{{ __('Published') }}</option>
+            <option value="draft" @selected($page->status === 'draft')>{{ __('Draft') }}</option>
           </select></div>
-        <div class="col-md-3"><label class="form-label">Template</label>
+        <div class="col-md-3"><label class="form-label">{{ __('Template') }}</label>
           <select name="template" id="tpl-select" class="form-select">
-            <option value="full" @selected($view['template'] === 'full')>Full width</option>
-            <option value="sidebar" @selected($view['template'] === 'sidebar')>With sidebar</option>
+            <option value="full" @selected($view['template'] === 'full')>{{ __('Full width') }}</option>
+            <option value="sidebar" @selected($view['template'] === 'sidebar')>{{ __('With sidebar') }}</option>
           </select></div>
       </div>
     </div></div>
@@ -67,12 +67,12 @@
       {{-- Main column --}}
       <div id="main-col" class="{{ $view['template'] === 'sidebar' ? 'col-lg-8' : 'col-12' }}">
         <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
-          <span>Content blocks</span>
+          <span>{{ __('Content blocks') }}</span>
           <div class="input-group input-group-sm" style="width:auto;">
             <select class="form-select" id="add-blocks-select">
               @foreach ($blocks as $t => $l)<option value="{{ $t }}">{{ $l }}</option>@endforeach
             </select>
-            <button type="button" class="btn btn-outline-primary" onclick="addBlock('blocks', document.getElementById('add-blocks-select').value)"><i class="bi bi-plus-lg"></i> Add</button>
+            <button type="button" class="btn btn-outline-primary" onclick="addBlock('blocks', document.getElementById('add-blocks-select').value)"><i class="bi bi-plus-lg"></i> {{ __('Add') }}</button>
           </div>
         </div><div class="card-body">
           <div id="blocks-list">
@@ -80,19 +80,19 @@
               @include('admin.website.pages._card', ['prefix' => "blocks[$i]", 'type' => $b['type'], 'label' => $blocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec])
             @endforeach
           </div>
-          <p class="text-muted small mb-0" id="blocks-empty" @if(count($view['blocks'])) style="display:none" @endif>No blocks yet — add one above.</p>
+          <p class="text-muted small mb-0" id="blocks-empty" @if(count($view['blocks'])) style="display:none" @endif>{{ __('No blocks yet — add one above.') }}</p>
         </div></div>
       </div>
 
       {{-- Sidebar column --}}
       <div id="side-col" class="col-lg-4" @if($view['template'] !== 'sidebar') style="display:none" @endif>
         <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
-          <span>Sidebar blocks</span>
+          <span>{{ __('Sidebar blocks') }}</span>
           <div class="input-group input-group-sm" style="width:auto;">
             <select class="form-select" id="add-sidebar-select">
               @foreach ($sidebarBlocks as $t => $l)<option value="{{ $t }}">{{ $l }}</option>@endforeach
             </select>
-            <button type="button" class="btn btn-outline-primary" onclick="addBlock('sidebar', document.getElementById('add-sidebar-select').value)"><i class="bi bi-plus-lg"></i> Add</button>
+            <button type="button" class="btn btn-outline-primary" onclick="addBlock('sidebar', document.getElementById('add-sidebar-select').value)"><i class="bi bi-plus-lg"></i> {{ __('Add') }}</button>
           </div>
         </div><div class="card-body">
           <div id="sidebar-list">
@@ -104,8 +104,8 @@
       </div>
     </div>
 
-    <div class="mt-3"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Save page</button>
-      <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary">Back</a></div>
+    <div class="mt-3"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save page') }}</button>
+      <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary">{{ __('Back') }}</a></div>
   </form>
 
   {{-- Hidden block templates for the "Add" buttons (prefix placeholder __I__) --}}

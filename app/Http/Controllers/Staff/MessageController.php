@@ -78,7 +78,7 @@ class MessageController extends Controller
             return back()->withInput()->with('error', $e->getMessage());
         }
 
-        return redirect()->route('staff.messages.show', $thread->id)->with('status', 'Message sent.');
+        return redirect()->route('staff.messages.show', $thread->id)->with('status', __('Message sent.'));
     }
 
     public function reply(Request $request, int $id): RedirectResponse
@@ -93,7 +93,7 @@ class MessageController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('status', 'Reply sent.');
+        return back()->with('status', __('Reply sent.'));
     }
 
     private function userMap($threads): Collection

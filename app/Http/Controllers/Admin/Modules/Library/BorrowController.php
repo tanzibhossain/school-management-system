@@ -55,7 +55,7 @@ class BorrowController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('status', 'Book issued.');
+        return back()->with('status', __('Book issued.'));
     }
 
     public function markReturned(int $id): RedirectResponse
@@ -63,6 +63,6 @@ class BorrowController extends Controller
         $schoolId = app('current_school_id');
         $this->borrows->markReturned($schoolId, $id);
 
-        return back()->with('status', 'Book returned.');
+        return back()->with('status', __('Book returned.'));
     }
 }

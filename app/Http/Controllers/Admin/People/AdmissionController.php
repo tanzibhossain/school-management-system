@@ -69,7 +69,7 @@ class AdmissionController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return redirect()->route('admin.admissions.index')->with('status', 'Application approved — student enrolled.');
+        return redirect()->route('admin.admissions.index')->with('status', __('Application approved — student enrolled.'));
     }
 
     public function reject(Request $request, int $id): RedirectResponse
@@ -83,6 +83,6 @@ class AdmissionController extends Controller
             return back()->withErrors($e->errors());
         }
 
-        return back()->with('status', 'Application rejected.');
+        return back()->with('status', __('Application rejected.'));
     }
 }

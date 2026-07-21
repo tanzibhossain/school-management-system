@@ -42,7 +42,7 @@ class RouteController extends Controller
     {
         $this->routes->make(app('current_school_id'), $this->validated($request));
 
-        return back()->with('status', 'Route created.');
+        return back()->with('status', __('Route created.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -51,7 +51,7 @@ class RouteController extends Controller
         $route = TransportRoute::where('school_id', $schoolId)->findOrFail($id);
         $this->routes->modify($route, $this->validated($request));
 
-        return back()->with('status', 'Route updated.');
+        return back()->with('status', __('Route updated.'));
     }
 
     public function show(int $id): View
@@ -86,7 +86,7 @@ class RouteController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('status', 'Route vehicle updated.');
+        return back()->with('status', __('Route vehicle updated.'));
     }
 
     public function assign(Request $request, int $id): RedirectResponse
@@ -111,7 +111,7 @@ class RouteController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('status', 'Rider assigned.');
+        return back()->with('status', __('Rider assigned.'));
     }
 
     public function endAssignment(int $id, int $assignmentId): RedirectResponse
@@ -120,7 +120,7 @@ class RouteController extends Controller
         TransportRoute::where('school_id', $schoolId)->findOrFail($id);
         $this->assignments->end($schoolId, $assignmentId);
 
-        return back()->with('status', 'Rider removed.');
+        return back()->with('status', __('Rider removed.'));
     }
 
     /**

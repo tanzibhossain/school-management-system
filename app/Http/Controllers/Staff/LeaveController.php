@@ -52,7 +52,7 @@ class LeaveController extends Controller
             return back()->withErrors($e->errors())->withInput();
         }
 
-        return back()->with('status', 'Leave request submitted.');
+        return back()->with('status', __('Leave request submitted.'));
     }
 
     public function cancel(int $id): RedirectResponse
@@ -63,10 +63,10 @@ class LeaveController extends Controller
         try {
             $this->leave->cancel($req, request()->user());
         } catch (\Throwable $e) {
-            return back()->with('error', 'This request can no longer be cancelled.');
+            return back()->with('error', __('This request can no longer be cancelled.'));
         }
 
-        return back()->with('status', 'Leave request cancelled.');
+        return back()->with('status', __('Leave request cancelled.'));
     }
 
     /** @return array{0:int,1:?Staff} */

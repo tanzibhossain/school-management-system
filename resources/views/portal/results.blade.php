@@ -1,14 +1,14 @@
 @extends('layouts.portal')
-@section('title', 'Results')
+@section('title', __('Results'))
 @section('heading', 'Results')
 @section('content')
 
   <div class="card">
-    <div class="card-header">Published exam results</div>
+    <div class="card-header">{{ __('Published exam results') }}</div>
     <div class="card-body p-0">
       <table class="table align-middle mb-0">
         <thead class="table-light">
-          <tr><th>Exam</th><th class="text-end">Marks</th><th class="text-end">%</th><th class="text-center">Grade</th><th class="text-center">GPA</th><th class="text-center">Result</th><th class="text-end">Marksheet</th></tr>
+          <tr><th>{{ __('Exam') }}</th><th class="text-end">{{ __('Marks') }}</th><th class="text-end">%</th><th class="text-center">{{ __('Grade') }}</th><th class="text-center">{{ __('GPA') }}</th><th class="text-center">{{ __('Result') }}</th><th class="text-end">{{ __('Marksheet') }}</th></tr>
         </thead>
         <tbody>
           @forelse($results as $r)
@@ -19,14 +19,14 @@
               <td class="text-center"><span class="badge text-bg-light">{{ $r->grade ?? '—' }}</span></td>
               <td class="text-center">{{ $r->gpa !== null ? number_format($r->gpa, 2) : '—' }}</td>
               <td class="text-center">
-                @if($r->is_pass)<span class="badge text-bg-success">Pass</span>@else<span class="badge text-bg-danger">Fail</span>@endif
+                @if($r->is_pass)<span class="badge text-bg-success">{{ __('Pass') }}</span>@else<span class="badge text-bg-danger">{{ __('Fail') }}</span>@endif
               </td>
               <td class="text-end">
-                <a class="btn btn-sm btn-outline-primary" target="_blank" href="{{ route('portal.results.marksheet', ['examId' => $r->exam_id, 'student' => $student->id]) }}"><i class="bi bi-download"></i> PDF</a>
+                <a class="btn btn-sm btn-outline-primary" target="_blank" href="{{ route('portal.results.marksheet', ['examId' => $r->exam_id, 'student' => $student->id]) }}"><i class="bi bi-download"></i> {{ __('PDF') }}</a>
               </td>
             </tr>
           @empty
-            <tr><td colspan="7" class="text-center text-muted py-4">No results published yet.</td></tr>
+            <tr><td colspan="7" class="text-center text-muted py-4">{{ __('No results published yet.') }}</td></tr>
           @endforelse
         </tbody>
       </table>

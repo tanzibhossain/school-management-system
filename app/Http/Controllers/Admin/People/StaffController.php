@@ -40,7 +40,7 @@ class StaffController extends Controller
 
         $this->staff->hire(app('current_school_id'), $data);
 
-        return back()->with('status', 'Staff member hired.');
+        return back()->with('status', __('Staff member hired.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -49,7 +49,7 @@ class StaffController extends Controller
         $staff = Staff::where('school_id', $schoolId)->findOrFail($id);
         $staff->update($this->validated($request, $schoolId));
 
-        return back()->with('status', 'Staff member updated.');
+        return back()->with('status', __('Staff member updated.'));
     }
 
     public function deactivate(int $id): RedirectResponse
@@ -58,7 +58,7 @@ class StaffController extends Controller
         $staff = Staff::where('school_id', $schoolId)->findOrFail($id);
         $this->staff->terminate($staff);
 
-        return back()->with('status', 'Staff member deactivated.');
+        return back()->with('status', __('Staff member deactivated.'));
     }
 
     /**

@@ -24,7 +24,7 @@ class IdCardTemplateController extends Controller
     {
         $this->save(null, $request);
 
-        return back()->with('status', 'Template added.');
+        return back()->with('status', __('Template added.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -32,14 +32,14 @@ class IdCardTemplateController extends Controller
         $template = IdCardTemplate::where('school_id', app('current_school_id'))->findOrFail($id);
         $this->save($template, $request);
 
-        return back()->with('status', 'Template updated.');
+        return back()->with('status', __('Template updated.'));
     }
 
     public function destroy(int $id): RedirectResponse
     {
         IdCardTemplate::where('school_id', app('current_school_id'))->findOrFail($id)->delete();
 
-        return back()->with('status', 'Template deleted.');
+        return back()->with('status', __('Template deleted.'));
     }
 
     private function save(?IdCardTemplate $template, Request $request): void

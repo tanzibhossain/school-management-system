@@ -1,20 +1,20 @@
 @extends('layouts.admin')
-@section('title', 'Routine setup')
+@section('title', __('Routine setup'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'Routine setup', 'crumbs' => ['Setup', 'Routine setup']])
 
   <ul class="nav nav-pills mb-3">
-    <li class="nav-item"><a class="nav-link" href="{{ route('admin.routine.index') }}">Class routine</a></li>
+    <li class="nav-item"><a class="nav-link" href="{{ route('admin.routine.index') }}">{{ __('Class routine') }}</a></li>
     <li class="nav-item"><a class="nav-link active" href="{{ route('admin.routine-setup.index') }}">Periods &amp; rooms</a></li>
   </ul>
 
   <div class="row g-4">
     <div class="col-lg-6">
-      <div class="card"><div class="card-header">Periods</div><div class="card-body">
+      <div class="card"><div class="card-header">{{ __('Periods') }}</div><div class="card-body">
         <form method="POST" action="{{ route('admin.routine-setup.periods.store') }}" class="row g-2 align-items-end mb-3">
           @csrf
-          <div class="col-5"><label class="form-label small text-muted mb-1">Name</label><input name="name" class="form-control form-control-sm" placeholder="Period 1" required></div>
-          <div class="col-3"><label class="form-label small text-muted mb-1">From</label><input type="time" name="start_time" class="form-control form-control-sm" required></div>
+          <div class="col-5"><label class="form-label small text-muted mb-1">{{ __('Name') }}</label><input name="name" class="form-control form-control-sm" placeholder="{{ __('Period 1') }}" required></div>
+          <div class="col-3"><label class="form-label small text-muted mb-1">{{ __('From') }}</label><input type="time" name="start_time" class="form-control form-control-sm" required></div>
           <div class="col-3"><label class="form-label small text-muted mb-1">To</label><input type="time" name="end_time" class="form-control form-control-sm" required></div>
           <div class="col-1"><button class="btn btn-sm btn-primary">+</button></div>
         </form>
@@ -27,18 +27,18 @@
                 <td class="text-end"><form method="POST" action="{{ route('admin.routine-setup.periods.destroy', $p->id) }}" onsubmit="return confirm('Remove?')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger">✕</button></form></td>
               </tr>
             @empty
-              <tr><td class="text-muted">No periods yet.</td></tr>
+              <tr><td class="text-muted">{{ __('No periods yet.') }}</td></tr>
             @endforelse
           </tbody>
         </table>
       </div></div>
     </div>
     <div class="col-lg-6">
-      <div class="card"><div class="card-header">Rooms</div><div class="card-body">
+      <div class="card"><div class="card-header">{{ __('Rooms') }}</div><div class="card-body">
         <form method="POST" action="{{ route('admin.routine-setup.rooms.store') }}" class="row g-2 align-items-end mb-3">
           @csrf
-          <div class="col-7"><label class="form-label small text-muted mb-1">Name</label><input name="name" class="form-control form-control-sm" placeholder="Room 101" required></div>
-          <div class="col-4"><label class="form-label small text-muted mb-1">Capacity</label><input type="number" min="1" name="capacity" class="form-control form-control-sm"></div>
+          <div class="col-7"><label class="form-label small text-muted mb-1">{{ __('Name') }}</label><input name="name" class="form-control form-control-sm" placeholder="{{ __('Room 101') }}" required></div>
+          <div class="col-4"><label class="form-label small text-muted mb-1">{{ __('Capacity') }}</label><input type="number" min="1" name="capacity" class="form-control form-control-sm"></div>
           <div class="col-1"><button class="btn btn-sm btn-primary">+</button></div>
         </form>
         <table class="table table-sm align-middle mb-0">
@@ -50,7 +50,7 @@
                 <td class="text-end"><form method="POST" action="{{ route('admin.routine-setup.rooms.destroy', $r->id) }}" onsubmit="return confirm('Remove?')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger">✕</button></form></td>
               </tr>
             @empty
-              <tr><td class="text-muted">No rooms yet.</td></tr>
+              <tr><td class="text-muted">{{ __('No rooms yet.') }}</td></tr>
             @endforelse
           </tbody>
         </table>

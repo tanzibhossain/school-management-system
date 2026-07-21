@@ -38,24 +38,24 @@
 
     <table class="meta">
       <tr>
-        <td class="lbl">Student</td><td><strong>{{ $student->name }}</strong></td>
-        <td class="lbl">Class</td><td>{{ optional($exam->schoolClass)->name ?? (optional($enrollment)->schoolClass->name ?? '—') }}@if($enrollment) · Sec {{ $enrollment->section->name ?? '' }}@endif</td>
+        <td class="lbl">{{ __('Student') }}</td><td><strong>{{ $student->name }}</strong></td>
+        <td class="lbl">{{ __('Class') }}</td><td>{{ optional($exam->schoolClass)->name ?? (optional($enrollment)->schoolClass->name ?? '—') }}@if($enrollment) · Sec {{ $enrollment->section->name ?? '' }}@endif</td>
       </tr>
       <tr>
-        <td class="lbl">Admission No.</td><td>{{ $student->admission_number }}</td>
-        <td class="lbl">Roll</td><td>{{ optional($enrollment)->roll_number ?? '—' }}</td>
+        <td class="lbl">{{ __('Admission No.') }}</td><td>{{ $student->admission_number }}</td>
+        <td class="lbl">{{ __('Roll') }}</td><td>{{ optional($enrollment)->roll_number ?? '—' }}</td>
       </tr>
     </table>
 
     <table class="marks">
       <thead>
         <tr>
-          <th>Subject</th>
-          <th class="num">Marks</th>
-          <th class="num">Full</th>
+          <th>{{ __('Subject') }}</th>
+          <th class="num">{{ __('Marks') }}</th>
+          <th class="num">{{ __('Full') }}</th>
           <th class="num">%</th>
-          <th class="num">Grade</th>
-          <th class="num">GPA</th>
+          <th class="num">{{ __('Grade') }}</th>
+          <th class="num">{{ __('GPA') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -74,18 +74,18 @@
 
     <table class="summary">
       <tr>
-        <td><span class="k">Total marks</span><span class="v">{{ rtrim(rtrim(number_format($result->total_marks, 2), '0'), '.') }} / {{ rtrim(rtrim(number_format($result->total_possible, 2), '0'), '.') }}</span></td>
-        <td><span class="k">Percentage</span><span class="v">{{ number_format($result->percentage, 2) }}%</span></td>
-        <td><span class="k">GPA</span><span class="v">{{ $result->gpa !== null ? number_format($result->gpa, 2) : '—' }}</span></td>
-        <td><span class="k">Grade</span><span class="v">{{ $result->grade ?? '—' }}</span></td>
-        <td><span class="k">Merit</span><span class="v">{{ $result->merit_position ?? '—' }}</span></td>
-        <td><span class="k">Result</span><span class="v {{ $result->is_pass ? 'pass' : 'fail' }}">{{ $result->is_pass ? 'PASS' : 'FAIL' }}</span></td>
+        <td><span class="k">{{ __('Total marks') }}</span><span class="v">{{ rtrim(rtrim(number_format($result->total_marks, 2), '0'), '.') }} / {{ rtrim(rtrim(number_format($result->total_possible, 2), '0'), '.') }}</span></td>
+        <td><span class="k">{{ __('Percentage') }}</span><span class="v">{{ number_format($result->percentage, 2) }}%</span></td>
+        <td><span class="k">{{ __('GPA') }}</span><span class="v">{{ $result->gpa !== null ? number_format($result->gpa, 2) : '—' }}</span></td>
+        <td><span class="k">{{ __('Grade') }}</span><span class="v">{{ $result->grade ?? '—' }}</span></td>
+        <td><span class="k">{{ __('Merit') }}</span><span class="v">{{ $result->merit_position ?? '—' }}</span></td>
+        <td><span class="k">{{ __('Result') }}</span><span class="v {{ $result->is_pass ? 'pass' : 'fail' }}">{{ $result->is_pass ? 'PASS' : 'FAIL' }}</span></td>
       </tr>
     </table>
 
     <div class="foot">
-      <span class="sign"><span class="line">Class Teacher</span></span>
-      <span class="sign" style="float:right"><span class="line">Head Teacher</span></span>
+      <span class="sign"><span class="line">{{ __('Class Teacher') }}</span></span>
+      <span class="sign" style="float:right"><span class="line">{{ __('Head Teacher') }}</span></span>
     </div>
   </div>
 </body>

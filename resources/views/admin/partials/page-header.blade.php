@@ -11,7 +11,7 @@
   <div>
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb small mb-1">
-        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none">{{ __('Home') }}</a></li>
         @foreach ($crumbs ?? [] as $c)
           <li class="breadcrumb-item {{ $loop->last ? 'active' : '' }}">{{ $c }}</li>
         @endforeach

@@ -12,7 +12,7 @@
                     <div class="d-flex flex-wrap gap-2">
                         <a href="#results" class="btn btn-light btn-lg px-4"><i class="bi bi-mortarboard"></i> Check
                             results</a>
-                        <a href="{{ route('login') }}" class="btn btn-outline-light btn-lg px-4">Portal login</a>
+                        <a href="{{ route('login') }}" class="btn btn-outline-light btn-lg px-4">{{ __('Portal login') }}</a>
                     </div>
                 </div>
                 <div class="col-lg-5">
@@ -20,7 +20,7 @@
                         <div class="col-6">
                             <div class="bg-white text-center rounded-3 p-3 h-100">
                                 <div class="stat-num">{{ number_format($stats['active_students']) }}</div>
-                                <div class="text-muted small mt-1">Students</div>
+                                <div class="text-muted small mt-1">{{ __('Students') }}</div>
                             </div>
                         </div>
                         <div class="col-6">
@@ -38,11 +38,11 @@
     <section id="notices" class="py-5">
         <div class="container">
             <div class="d-flex justify-content-between align-items-end mb-4">
-                <h2 class="section-title h3 mb-0">Latest notices</h2>
+                <h2 class="section-title h3 mb-0">{{ __('Latest notices') }}</h2>
                 <span class="text-muted small">{{ $notices->count() }} active</span>
             </div>
             @if ($notices->isEmpty())
-                <p class="text-muted">No notices published right now. Check back soon.</p>
+                <p class="text-muted">{{ __('No notices published right now. Check back soon.') }}</p>
             @else
                 <div class="row g-3">
                     @foreach ($notices->take(6) as $n)
@@ -68,9 +68,9 @@
 
     <section id="staff" class="py-5 bg-light">
         <div class="container">
-            <h2 class="section-title h3 mb-4">Our team</h2>
+            <h2 class="section-title h3 mb-4">{{ __('Our team') }}</h2>
             @if ($staff->isEmpty())
-                <p class="text-muted">Staff profiles are coming soon.</p>
+                <p class="text-muted">{{ __('Staff profiles are coming soon.') }}</p>
             @else
                 <div class="row g-3">
                     @foreach ($staff->take(8) as $member)
@@ -99,11 +99,11 @@
         <div class="container">
             <div class="card">
                 <div class="card-body p-4 p-lg-5 text-center">
-                    <h2 class="section-title h3 mb-2">Check your exam results</h2>
+                    <h2 class="section-title h3 mb-2">{{ __('Check your exam results') }}</h2>
                     <p class="text-muted mb-4">Results are published here once released. Sign in to the student portal to
                         view full report cards.</p>
                     <a href="{{ route('login') }}" class="btn btn-brand btn-lg px-4"><i
-                            class="bi bi-box-arrow-in-right"></i> Student portal login</a>
+                            class="bi bi-box-arrow-in-right"></i> {{ __('Student portal login') }}</a>
                 </div>
             </div>
         </div>

@@ -1,5 +1,5 @@
 @extends('layouts.portal')
-@section('title', 'Dashboard')
+@section('title', __('Dashboard'))
 @section('heading', 'Dashboard')
 @section('content')
 
@@ -19,31 +19,31 @@
   <div class="row g-3 mb-4">
     <div class="col-sm-4">
       <div class="card h-100"><div class="card-body">
-        <div class="text-muted small mb-1">Attendance</div>
+        <div class="text-muted small mb-1">{{ __('Attendance') }}</div>
         <div class="h4 mb-0">{{ $attendance['percent'] !== null ? $attendance['percent'] . '%' : '—' }}</div>
         <div class="text-muted" style="font-size:.78rem;">{{ $attendance['present'] }} / {{ $attendance['total'] }} days present</div>
       </div></div>
     </div>
     <div class="col-sm-4">
       <div class="card h-100"><div class="card-body">
-        <div class="text-muted small mb-1">Outstanding dues</div>
+        <div class="text-muted small mb-1">{{ __('Outstanding dues') }}</div>
         <div class="h4 mb-0">{{ number_format($dues) }}</div>
-        <div class="text-muted" style="font-size:.78rem;"><a href="{{ route('portal.fees', ['student' => $student->id]) }}" class="text-decoration-none">View fees</a></div>
+        <div class="text-muted" style="font-size:.78rem;"><a href="{{ route('portal.fees', ['student' => $student->id]) }}" class="text-decoration-none">{{ __('View fees') }}</a></div>
       </div></div>
     </div>
     <div class="col-sm-4">
       <div class="card h-100"><div class="card-body">
-        <div class="text-muted small mb-1">Published results</div>
+        <div class="text-muted small mb-1">{{ __('Published results') }}</div>
         <div class="h4 mb-0">{{ $resultsCount }}</div>
-        <div class="text-muted" style="font-size:.78rem;"><a href="{{ route('portal.results', ['student' => $student->id]) }}" class="text-decoration-none">View results</a></div>
+        <div class="text-muted" style="font-size:.78rem;"><a href="{{ route('portal.results', ['student' => $student->id]) }}" class="text-decoration-none">{{ __('View results') }}</a></div>
       </div></div>
     </div>
   </div>
 
   <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <span>Recent notices</span>
-      <a href="{{ route('portal.notices', ['student' => $student->id]) }}" class="small text-decoration-none">View all</a>
+      <span>{{ __('Recent notices') }}</span>
+      <a href="{{ route('portal.notices', ['student' => $student->id]) }}" class="small text-decoration-none">{{ __('View all') }}</a>
     </div>
     <div class="card-body">
       @forelse($notices as $n)
@@ -52,7 +52,7 @@
           <div class="text-muted" style="font-size:.78rem;">{{ optional($n->publish_at)->format('j M Y') }}</div>
         </div>
       @empty
-        <div class="text-muted small text-center py-3">No notices published.</div>
+        <div class="text-muted small text-center py-3">{{ __('No notices published.') }}</div>
       @endforelse
     </div>
   </div>

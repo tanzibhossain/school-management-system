@@ -28,7 +28,7 @@ class SalaryComponentController extends Controller
     {
         $this->components->create(app('current_school_id'), $this->validated($request));
 
-        return back()->with('status', 'Component added.');
+        return back()->with('status', __('Component added.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -36,7 +36,7 @@ class SalaryComponentController extends Controller
         $component = SalaryComponent::where('school_id', app('current_school_id'))->findOrFail($id);
         $this->components->update($component, $this->validated($request));
 
-        return back()->with('status', 'Component updated.');
+        return back()->with('status', __('Component updated.'));
     }
 
     public function destroy(int $id): RedirectResponse
@@ -44,7 +44,7 @@ class SalaryComponentController extends Controller
         $component = SalaryComponent::where('school_id', app('current_school_id'))->findOrFail($id);
         $this->components->trash($component);
 
-        return back()->with('status', 'Component removed.');
+        return back()->with('status', __('Component removed.'));
     }
 
     /**

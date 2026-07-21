@@ -128,7 +128,7 @@ class SchoolController extends Controller
 
         $this->schools->syncPhones($school->id, $phones);
 
-        return back()->with('status', 'School settings saved.');
+        return back()->with('status', __('School settings saved.'));
     }
 
     /** Store an uploaded image on the public disk; returns the path or null if none uploaded. */
@@ -165,6 +165,6 @@ class SchoolController extends Controller
             ); // SchoolOpeningHourObserver flushes the school cache
         }
 
-        return back()->with('status', 'Opening hours saved.');
+        return back()->with('status', __('Opening hours saved.'));
     }
 }

@@ -33,7 +33,7 @@ class PaymentController extends Controller
         $config = PaymentConfig::firstOrCreate(['school_id' => $sid]);
         $gateways = collect($config->enabledGateways());
         if (! $config->onlineEnabled() || ! $gateways->contains(fn ($g) => $g['key'] === $data['gateway'])) {
-            return back()->with('error', 'Online payment is not available right now.');
+            return back()->with('error', __('Online payment is not available right now.'));
         }
 
         // The invoice must belong to a student in this family.
@@ -41,10 +41,10 @@ class PaymentController extends Controller
             ->whereIn('student_id', $this->allowedStudentIds($sid))->first();
 
         if (! $invoice) {
-            return back()->with('error', 'Invoice not found.');
+            return back()->with('error', __('Invoice not found.'));
         }
         if ($invoice->remainingAmount() <= 0) {
-            return back()->with('error', 'This invoice is already settled.');
+            return back()->with('error', __('This invoice is already settled.'));
         }
 
         try {
@@ -86,7 +86,7 @@ class PaymentController extends Controller
         } catch (\Throwable $e) {
             report($e);
 
-            return back()->with('error', 'Could not start the online payment. Please try again, or pay at the office.');
+            return back()->with('error', __('Could not start the online payment. Please try again, or pay at the office.'));
         }
     }
 
@@ -97,17 +97,17 @@ class PaymentController extends Controller
     public function paypalReturn(Request $request, PaymentService $service): RedirectResponse
     {
         if ($request->boolean('cancel')) {
-            return redirect()->route('portal.fees')->with('error', 'Payment was cancelled.');
+            return redirect()->route('portal.fees')->with('error', __('Payment was cancelled.'));
         }
 
         $orderId = $request->query('token');
         if (! $orderId) {
-            return redirect()->route('portal.fees')->with('error', 'Payment could not be verified.');
+            return redirect()->route('portal.fees')->with('error', __('Payment could not be verified.'));
         }
 
         $cached = Cache::get("paypal_order:{$orderId}");
         if (! $cached) {
-            return redirect()->route('portal.fees')->with('error', 'Payment session expired — please try again.');
+            return redirect()->route('portal.fees')->with('error', __('Payment session expired — please try again.'));
         }
 
         try {
@@ -118,7 +118,7 @@ class PaymentController extends Controller
             report($e);
 
             return redirect()->route('portal.fees')
-                ->with('error', 'We could not confirm your payment. If your account was charged, please contact the office.');
+                ->with('error', __('We could not confirm your payment. If your account was charged, please contact the office.'));
         }
     }
 
@@ -130,12 +130,12 @@ class PaymentController extends Controller
     {
         $sessionId = $request->query('session_id');
         if (! $sessionId) {
-            return redirect()->route('portal.fees')->with('error', 'Payment was cancelled.');
+            return redirect()->route('portal.fees')->with('error', __('Payment was cancelled.'));
         }
 
         $cached = Cache::get("stripe_session:{$sessionId}");
         if (! $cached) {
-            return redirect()->route('portal.fees')->with('error', 'Payment session expired — please try again.');
+            return redirect()->route('portal.fees')->with('error', __('Payment session expired — please try again.'));
         }
 
         try {
@@ -146,7 +146,7 @@ class PaymentController extends Controller
             report($e);
 
             return redirect()->route('portal.fees')
-                ->with('error', 'We could not confirm your payment. If your card was charged, please contact the office.');
+                ->with('error', __('We could not confirm your payment. If your card was charged, please contact the office.'));
         }
     }
 
@@ -167,12 +167,12 @@ class PaymentController extends Controller
         $status = $request->input('status');
 
         if (! $tranId || ! $valId || ! in_array($status, ['VALID', 'VALIDATED'], true)) {
-            return redirect()->route('portal.fees')->with('error', 'Payment could not be verified.');
+            return redirect()->route('portal.fees')->with('error', __('Payment could not be verified.'));
         }
 
         $invoice = Invoice::where('invoice_number', $tranId)->first();
         if (! $invoice) {
-            return redirect()->route('portal.fees')->with('error', 'Invoice not found for this payment.');
+            return redirect()->route('portal.fees')->with('error', __('Invoice not found for this payment.'));
         }
 
         try {
@@ -183,7 +183,7 @@ class PaymentController extends Controller
             report($e);
 
             return redirect()->route('portal.fees')
-                ->with('error', 'We could not confirm your payment. If your account was debited, please contact the office.');
+                ->with('error', __('We could not confirm your payment. If your account was debited, please contact the office.'));
         }
     }
 
@@ -194,12 +194,12 @@ class PaymentController extends Controller
         $status = $request->query('status');
 
         if ($status !== 'success' || ! $paymentId) {
-            return redirect()->route('portal.fees')->with('error', 'Payment was not completed.');
+            return redirect()->route('portal.fees')->with('error', __('Payment was not completed.'));
         }
 
         $cached = Cache::get("bkash_payment:{$paymentId}");
         if (! $cached) {
-            return redirect()->route('portal.fees')->with('error', 'Payment session expired — please try again.');
+            return redirect()->route('portal.fees')->with('error', __('Payment session expired — please try again.'));
         }
 
         try {
@@ -210,7 +210,7 @@ class PaymentController extends Controller
             report($e);
 
             return redirect()->route('portal.fees')
-                ->with('error', 'We could not confirm your payment. If your account was debited, please contact the office.');
+                ->with('error', __('We could not confirm your payment. If your account was debited, please contact the office.'));
         }
     }
 

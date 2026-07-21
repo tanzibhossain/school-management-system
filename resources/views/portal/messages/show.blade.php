@@ -1,5 +1,5 @@
 @extends('layouts.portal')
-@section('title', 'Conversation')
+@section('title', __('Conversation'))
 @section('heading', 'Conversation')
 @section('content')
 
@@ -10,7 +10,7 @@
   @endphp
 
   <div class="mb-3">
-    <a href="{{ route('portal.messages') }}" class="text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>Back to messages</a>
+    <a href="{{ route('portal.messages') }}" class="text-decoration-none small"><i class="bi bi-arrow-left me-1"></i>{{ __('Back to messages') }}</a>
     <h1 class="h5 mt-2 mb-0">{{ $title }}</h1>
     <div class="text-muted small">{{ $names }}</div>
   </div>
@@ -35,13 +35,13 @@
           </div>
         </div>
       @empty
-        <div class="text-muted text-center py-4">No messages yet.</div>
+        <div class="text-muted text-center py-4">{{ __('No messages yet.') }}</div>
       @endforelse
     </div>
   </div>
 
   @if($thread->is_locked)
-    <div class="alert alert-secondary"><i class="bi bi-lock me-1"></i> This conversation has been locked by an administrator.</div>
+    <div class="alert alert-secondary"><i class="bi bi-lock me-1"></i> {{ __('This conversation has been locked by an administrator.') }}</div>
   @else
     <form method="POST" action="{{ route('portal.messages.reply', $thread->id) }}">
       @csrf

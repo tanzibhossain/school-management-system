@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Transport — drivers')
+@section('title', __('Transport — drivers'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Drivers',
@@ -11,7 +11,7 @@
   @php $statuses = ['active' => 'success', 'on_leave' => 'warning', 'inactive' => 'secondary']; @endphp
   <div class="card"><div class="card-body">
     <table class="table table-hover align-middle w-100 js-dt">
-      <thead><tr><th>Name</th><th>Phone</th><th>License</th><th>Status</th><th class="text-end" data-orderable="false">Actions</th></tr></thead>
+      <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Phone') }}</th><th>{{ __('License') }}</th><th>{{ __('Status') }}</th><th class="text-end" data-orderable="false">{{ __('Actions') }}</th></tr></thead>
       <tbody>
         @foreach ($drivers as $d)
           <tr>
@@ -19,7 +19,7 @@
             <td>{{ $d->phone ?? '—' }}</td>
             <td>{{ $d->license_no ?? '—' }}</td>
             <td><span class="badge text-bg-{{ $statuses[$d->status] ?? 'secondary' }}">{{ ucfirst(str_replace('_', ' ', $d->status)) }}</span></td>
-            <td class="text-end"><button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ $d->id }}">Edit</button></td>
+            <td class="text-end"><button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ $d->id }}">{{ __('Edit') }}</button></td>
           </tr>
         @endforeach
       </tbody>

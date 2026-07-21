@@ -46,7 +46,7 @@
 >
     @if($loading)
         <span class="spinner spinner-sm me-2" aria-hidden="true"></span>
-        <span class="visually-hidden">Loading...</span>
+        <span class="visually-hidden">{{ __('Loading...') }}</span>
     @elseif($icon && $iconPosition === 'left')
         <i class="{{ $icon }} me-2" aria-hidden="true"></i>
     @endif

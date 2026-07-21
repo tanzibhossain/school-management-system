@@ -51,6 +51,6 @@ class StaffSalaryController extends Controller
 
         $this->salaries->setValues($schoolId, $staffId, $values);
 
-        return redirect()->route('admin.payroll.staff-salaries.index')->with('status', 'Salary structure saved.');
+        return redirect()->route('admin.payroll.staff-salaries.index')->with('status', __('Salary structure saved.'));
     }
 }

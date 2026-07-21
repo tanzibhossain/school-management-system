@@ -1,5 +1,5 @@
 @extends('layouts.portal')
-@section('title', 'Profile')
+@section('title', __('Profile'))
 @section('heading', 'Profile')
 @section('content')
 
@@ -15,7 +15,7 @@
       </div></div>
     </div>
     <div class="col-lg-8">
-      <div class="card mb-3"><div class="card-header">Student details</div><div class="card-body">
+      <div class="card mb-3"><div class="card-header">{{ __('Student details') }}</div><div class="card-body">
         <div class="row g-3">
           @foreach([
             'Admission no.' => $student->admission_number,
@@ -32,18 +32,18 @@
         </div>
       </div></div>
 
-      <div class="card"><div class="card-header">Guardians</div><div class="card-body p-0">
+      <div class="card"><div class="card-header">{{ __('Guardians') }}</div><div class="card-body p-0">
         <table class="table align-middle mb-0">
-          <thead class="table-light"><tr><th>Name</th><th>Relation</th><th>Phone</th></tr></thead>
+          <thead class="table-light"><tr><th>{{ __('Name') }}</th><th>{{ __('Relation') }}</th><th>{{ __('Phone') }}</th></tr></thead>
           <tbody>
             @forelse($guardians as $g)
               <tr>
-                <td class="fw-medium">{{ $g->name }} @if($g->is_primary)<span class="badge text-bg-light ms-1">Primary</span>@endif</td>
+                <td class="fw-medium">{{ $g->name }} @if($g->is_primary)<span class="badge text-bg-light ms-1">{{ __('Primary') }}</span>@endif</td>
                 <td>{{ ucfirst(str_replace('_', ' ', $g->relation)) }}</td>
                 <td>{{ $g->phone ?? '—' }}</td>
               </tr>
             @empty
-              <tr><td colspan="3" class="text-center text-muted py-3">No guardians on record.</td></tr>
+              <tr><td colspan="3" class="text-center text-muted py-3">{{ __('No guardians on record.') }}</td></tr>
             @endforelse
           </tbody>
         </table>

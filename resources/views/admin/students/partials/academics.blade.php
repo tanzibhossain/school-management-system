@@ -2,31 +2,31 @@
 <div class="row g-4">
     {{-- Current Enrollment --}}
     <div class="col-xl-4">
-        <x-card title="Current Enrollment" subtitle="Active academic year">
+        <x-card title="{{ __('Current Enrollment') }}" subtitle="Active academic year">
             @if($academic = $student->currentAcademic)
                 <dl class="row mb-0">
-                    <dt class="col-sm-5 text-muted small">Academic Year</dt>
+                    <dt class="col-sm-5 text-muted small">{{ __('Academic Year') }}</dt>
                     <dd class="col-sm-7 fw-medium">{{ $academic->year->year }}</dd>
 
-                    <dt class="col-sm-5 text-muted small">Class</dt>
+                    <dt class="col-sm-5 text-muted small">{{ __('Class') }}</dt>
                     <dd class="col-sm-7 fw-medium">{{ $academic->class->name }}</dd>
 
-                    <dt class="col-sm-5 text-muted small">Section</dt>
+                    <dt class="col-sm-5 text-muted small">{{ __('Section') }}</dt>
                     <dd class="col-sm-7">{{ $academic->section->name }}</dd>
 
-                    <dt class="col-sm-5 text-muted small">Roll Number</dt>
+                    <dt class="col-sm-5 text-muted small">{{ __('Roll Number') }}</dt>
                     <dd class="col-sm-7">{{ $academic->roll_number }}</dd>
 
-                    <dt class="col-sm-5 text-muted small">Group</dt>
+                    <dt class="col-sm-5 text-muted small">{{ __('Group') }}</dt>
                     <dd class="col-sm-7">{{ $academic->group->name ?? '—' }}</dd>
 
-                    <dt class="col-sm-5 text-muted small">Shift</dt>
+                    <dt class="col-sm-5 text-muted small">{{ __('Shift') }}</dt>
                     <dd class="col-sm-7">{{ $academic->shift->name ?? '—' }}</dd>
                 </dl>
             @else
                 <div class="text-center py-4 text-muted">
                     <i class="bi bi-mortarboard fs-1 text-slate-300"></i>
-                    <p class="mt-2 mb-0">Not currently enrolled</p>
+                    <p class="mt-2 mb-0">{{ __('Not currently enrolled') }}</p>
                 </div>
             @endif
         </x-card>
@@ -34,7 +34,7 @@
 
     {{-- Subject Enrollment --}}
     <div class="col-xl-4">
-        <x-card title="Subject Enrollment" subtitle="Current subjects">
+        <x-card title="{{ __('Subject Enrollment') }}" subtitle="Current subjects">
             @if(!empty($subjects))
                 <div class="list-group list-group-flush">
                     @foreach($subjects as $subject)
@@ -54,7 +54,7 @@
             @else
                 <div class="text-center py-4 text-muted">
                     <i class="bi bi-book fs-1 text-slate-300"></i>
-                    <p class="mt-2 mb-0">No subjects enrolled</p>
+                    <p class="mt-2 mb-0">{{ __('No subjects enrolled') }}</p>
                 </div>
             @endif
         </x-card>
@@ -62,7 +62,7 @@
 
     {{-- Academic History --}}
     <div class="col-xl-4">
-        <x-card title="Academic History" subtitle="Previous enrollments">
+        <x-card title="{{ __('Academic History') }}" subtitle="Previous enrollments">
             @if(!empty($academicHistory))
                 <ul class="list-group list-group-flush">
                     @foreach($academicHistory as $history)
@@ -76,11 +76,11 @@
                                     </small>
                                 </div>
                                 @if($history->is_promoted)
-                                    <span class="badge bg-success">Promoted</span>
+                                    <span class="badge bg-success">{{ __('Promoted') }}</span>
                                 @elseif($history->is_repeated)
-                                    <span class="badge bg-warning">Repeated</span>
+                                    <span class="badge bg-warning">{{ __('Repeated') }}</span>
                                 @elseif($history->is_transferred)
-                                    <span class="badge bg-info">Transferred</span>
+                                    <span class="badge bg-info">{{ __('Transferred') }}</span>
                                 @endif
                             </div>
                         </li>
@@ -88,7 +88,7 @@
                 </ul>
             @else
                 <div class="text-center py-4 text-muted">
-                    <p class="mb-0">No previous academic records</p>
+                    <p class="mb-0">{{ __('No previous academic records') }}</p>
                 </div>
             @endif
         </x-card>
@@ -98,17 +98,17 @@
 <div class="row g-4 mt-4">
     {{-- Exam Results --}}
     <div class="col-xl-8">
-        <x-card title="Exam Results" subtitle="Recent examinations">
+        <x-card title="{{ __('Exam Results') }}" subtitle="Recent examinations">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Exam</th>
-                            <th>Date</th>
-                            <th>Subject</th>
-                            <th class="text-end">Marks</th>
-                            <th>Grade</th>
-                            <th class="text-end">Rank</th>
+                            <th>{{ __('Exam') }}</th>
+                            <th>{{ __('Date') }}</th>
+                            <th>{{ __('Subject') }}</th>
+                            <th class="text-end">{{ __('Marks') }}</th>
+                            <th>{{ __('Grade') }}</th>
+                            <th class="text-end">{{ __('Rank') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -140,7 +140,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">No exam results found</td>
+                                <td colspan="6" class="text-center py-4 text-muted">{{ __('No exam results found') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -151,7 +151,7 @@
 
     {{-- Report Cards --}}
     <div class="col-xl-4">
-        <x-card title="Report Cards" subtitle="Published reports">
+        <x-card title="{{ __('Report Cards') }}" subtitle="Published reports">
             @if(!empty($reportCards))
                 <div class="list-group list-group-flush">
                     @foreach($reportCards as $card)
@@ -162,9 +162,9 @@
                                     <small class="text-muted">{{ $card->exam->examType->name }} • {{ $card->created_at->format('M j, Y') }}</small>
                                 </div>
                                 @if($card->is_published)
-                                    <span class="badge bg-success">Published</span>
+                                    <span class="badge bg-success">{{ __('Published') }}</span>
                                 @else
-                                    <span class="badge bg-warning">Draft</span>
+                                    <span class="badge bg-warning">{{ __('Draft') }}</span>
                                 @endif
                             </div>
                         </a>
@@ -173,7 +173,7 @@
             @else
                 <div class="text-center py-4 text-muted">
                     <i class="bi bi-file-earmark-text fs-1 text-slate-300"></i>
-                    <p class="mt-2 mb-0">No report cards published</p>
+                    <p class="mt-2 mb-0">{{ __('No report cards published') }}</p>
                 </div>
             @endif
         </x-card>

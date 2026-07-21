@@ -154,7 +154,7 @@
                     <div class="empty-state">
                         <i class="bi bi-{{ $key === 'overview' ? 'info-circle' : ($key === 'timeline' ? 'clock-history' : ($key === 'documents' ? 'file-earmark' : 'gear')) }} empty-state-icon"></i>
                         <h3 class="empty-state-title">{{ $label }}</h3>
-                        <p class="empty-state-message">No content available for this section.</p>
+                        <p class="empty-state-message">{{ __('No content available for this section.') }}</p>
                     </div>
                 @endisset
             </div>

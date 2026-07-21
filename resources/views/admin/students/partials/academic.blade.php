@@ -2,18 +2,18 @@
 <div class="row g-4">
     {{-- Academic History --}}
     <div class="col-xl-8">
-        <x-card title="Academic History" subtitle="Enrollment records">
+        <x-card title="{{ __('Academic History') }}" subtitle="Enrollment records">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Academic Year</th>
-                            <th>Class</th>
-                            <th>Section</th>
-                            <th>Group</th>
-                            <th>Roll No.</th>
-                            <th>Status</th>
-                            <th class="text-end">Promoted</th>
+                            <th>{{ __('Academic Year') }}</th>
+                            <th>{{ __('Class') }}</th>
+                            <th>{{ __('Section') }}</th>
+                            <th>{{ __('Group') }}</th>
+                            <th>{{ __('Roll No.') }}</th>
+                            <th>{{ __('Status') }}</th>
+                            <th class="text-end">{{ __('Promoted') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -39,7 +39,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">No academic records found</td>
+                                <td colspan="7" class="text-center py-4 text-muted">{{ __('No academic records found') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -50,7 +50,7 @@
 
     {{-- Current Subjects --}}
     <div class="col-xl-4">
-        <x-card title="Current Subjects" subtitle="This academic year">
+        <x-card title="{{ __('Current Subjects') }}" subtitle="This academic year">
             @if($student->currentAcademic && $student->currentAcademic->subjects->count())
                 <div class="row g-2">
                     @foreach($student->currentAcademic->subjects as $subject)
@@ -58,7 +58,7 @@
                             <span class="badge bg-{{ $subject->pivot->is_optional ? 'warning' : 'primary-light' }} text-{{ $subject->pivot->is_optional ? 'dark' : 'white' }} px-3 py-2 d-block text-center w-100">
                                 {{ $subject->name }}
                                 @if($subject->pivot->is_optional)
-                                    <span class="ms-1 badge bg-dark text-white">Optional</span>
+                                    <span class="ms-1 badge bg-dark text-white">{{ __('Optional') }}</span>
                                 @endif
                             </span>
                         </div>
@@ -67,7 +67,7 @@
             @else
                 <div class="text-center py-4 text-muted">
                     <i class="bi bi-book fs-1 text-slate-300"></i>
-                    <p class="mt-2 mb-0">No subjects assigned</p>
+                    <p class="mt-2 mb-0">{{ __('No subjects assigned') }}</p>
                 </div>
             @endif
         </x-card>

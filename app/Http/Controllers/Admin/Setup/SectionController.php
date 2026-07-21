@@ -41,7 +41,7 @@ class SectionController extends Controller
         Section::create($data + ['school_id' => $schoolId, 'class_id' => $classId]);
         $this->academic->flush();
 
-        return back()->with('status', 'Section created.');
+        return back()->with('status', __('Section created.'));
     }
 
     public function update(Request $request, int $classId, int $id): RedirectResponse
@@ -51,7 +51,7 @@ class SectionController extends Controller
         $section->update($this->validated($request, $schoolId, $classId, $id));
         $this->academic->flush();
 
-        return back()->with('status', 'Section updated.');
+        return back()->with('status', __('Section updated.'));
     }
 
     public function destroy(int $classId, int $id): RedirectResponse
@@ -61,7 +61,7 @@ class SectionController extends Controller
         $section->update(['is_trash' => true]);
         $this->academic->flush();
 
-        return back()->with('status', 'Section deleted.');
+        return back()->with('status', __('Section deleted.'));
     }
 
     /**

@@ -1,33 +1,33 @@
 @extends('layouts.admin')
-@section('title', 'Class routine')
+@section('title', __('Class routine'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'Class routine', 'crumbs' => ['Setup', 'Class routine']])
 
   <ul class="nav nav-pills mb-3">
-    <li class="nav-item"><a class="nav-link active" href="{{ route('admin.routine.index') }}">Class routine</a></li>
+    <li class="nav-item"><a class="nav-link active" href="{{ route('admin.routine.index') }}">{{ __('Class routine') }}</a></li>
     <li class="nav-item"><a class="nav-link" href="{{ route('admin.routine-setup.index') }}">Periods &amp; rooms</a></li>
   </ul>
 
   <form method="GET" class="card mb-3"><div class="card-body row g-2 align-items-end">
-    <div class="col-sm-4"><label class="form-label small text-muted mb-1">Class</label>
+    <div class="col-sm-4"><label class="form-label small text-muted mb-1">{{ __('Class') }}</label>
       <select name="class_id" id="rClass" class="form-select form-select-sm" required>
         <option value="">— select —</option>
         @foreach ($classes as $c)<option value="{{ $c->id }}" @selected($classId == $c->id)>{{ $c->name }}</option>@endforeach
       </select></div>
-    <div class="col-sm-4"><label class="form-label small text-muted mb-1">Section</label>
+    <div class="col-sm-4"><label class="form-label small text-muted mb-1">{{ __('Section') }}</label>
       <select name="section_id" id="rSection" class="form-select form-select-sm" data-sel="{{ $sectionId }}" required><option value="">— select —</option></select></div>
-    <div class="col-sm-4"><button class="btn btn-sm btn-primary">Load</button>
-      @if ($classId && $sectionId && $periods->isNotEmpty())<button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addModal">Add class</button>@endif
+    <div class="col-sm-4"><button class="btn btn-sm btn-primary">{{ __('Load') }}</button>
+      @if ($classId && $sectionId && $periods->isNotEmpty())<button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addModal">{{ __('Add class') }}</button>@endif
     </div>
   </div></form>
 
   @if ($classId && $sectionId)
     @if ($periods->isEmpty())
-      <div class="alert alert-warning">No periods defined — add them under <a href="{{ route('admin.routine-setup.index') }}">Periods &amp; rooms</a> first.</div>
+      <div class="alert alert-warning">{{ __('No periods defined — add them under') }} <a href="{{ route('admin.routine-setup.index') }}">Periods &amp; rooms</a> {{ __('first.') }}</div>
     @else
       <div class="card"><div class="card-body table-responsive">
         <table class="table table-bordered align-middle text-center mb-0">
-          <thead><tr><th style="width:14%">Period</th>@foreach ($days as $d)<th class="text-capitalize">{{ $d }}</th>@endforeach</tr></thead>
+          <thead><tr><th style="width:14%">{{ __('Period') }}</th>@foreach ($days as $d)<th class="text-capitalize">{{ $d }}</th>@endforeach</tr></thead>
           <tbody>
             @foreach ($periods as $p)
               <tr>
@@ -58,30 +58,30 @@
           @csrf
           <input type="hidden" name="class_id" value="{{ $classId }}">
           <input type="hidden" name="section_id" value="{{ $sectionId }}">
-          <div class="modal-header"><h5 class="modal-title">Add to routine</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-header"><h5 class="modal-title">{{ __('Add to routine') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
           <div class="modal-body row g-3">
-            <div class="col-md-6"><label class="form-label">Day <span class="text-danger">*</span></label>
+            <div class="col-md-6"><label class="form-label">{{ __('Day') }} <span class="text-danger">*</span></label>
               <select name="day_of_week" class="form-select" required>@foreach ($days as $d)<option value="{{ $d }}" class="text-capitalize">{{ ucfirst($d) }}</option>@endforeach</select></div>
-            <div class="col-md-6"><label class="form-label">Period <span class="text-danger">*</span></label>
+            <div class="col-md-6"><label class="form-label">{{ __('Period') }} <span class="text-danger">*</span></label>
               <select name="period_id" class="form-select" required>@foreach ($periods as $p)<option value="{{ $p->id }}">{{ $p->name }}</option>@endforeach</select></div>
-            <div class="col-12"><label class="form-label">Subject <span class="text-danger">*</span></label>
+            <div class="col-12"><label class="form-label">{{ __('Subject') }} <span class="text-danger">*</span></label>
               <select name="subject_id" class="form-select js-select" required>
                 <option value="">— select —</option>
                 @foreach ($subjects as $sr)<option value="{{ $sr->subject_id }}">{{ $sr->subject?->name ?? ('Subject #' . $sr->subject_id) }}</option>@endforeach
               </select>
-              @if ($subjects->isEmpty())<div class="form-text text-danger">No subjects mapped to this class.</div>@endif
+              @if ($subjects->isEmpty())<div class="form-text text-danger">{{ __('No subjects mapped to this class.') }}</div>@endif
             </div>
-            <div class="col-md-6"><label class="form-label">Teacher</label>
+            <div class="col-md-6"><label class="form-label">{{ __('Teacher') }}</label>
               <select name="teacher_id" class="form-select js-select"><option value="">— none —</option>@foreach ($teachers as $t)<option value="{{ $t->id }}">{{ $t->name }}</option>@endforeach</select></div>
-            <div class="col-md-6"><label class="form-label">Room <span class="text-danger">*</span></label>
+            <div class="col-md-6"><label class="form-label">{{ __('Room') }} <span class="text-danger">*</span></label>
               <select name="room_id" class="form-select" required><option value="">— select —</option>@foreach ($rooms as $r)<option value="{{ $r->id }}">{{ $r->name }}</option>@endforeach</select></div>
           </div>
-          <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary">Add</button></div>
+          <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Add') }}</button></div>
         </form>
       </div></div></div>
     @endif
   @else
-    <div class="alert alert-info">Select a class and section to view/edit its routine.</div>
+    <div class="alert alert-info">{{ __('Select a class and section to view/edit its routine.') }}</div>
   @endif
 
   @push('scripts')

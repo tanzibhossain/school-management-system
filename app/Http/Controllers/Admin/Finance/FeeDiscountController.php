@@ -24,7 +24,7 @@ class FeeDiscountController extends Controller
     {
         FeeDiscount::create($this->validated($request) + ['school_id' => app('current_school_id')]);
 
-        return back()->with('status', 'Discount created.');
+        return back()->with('status', __('Discount created.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -32,7 +32,7 @@ class FeeDiscountController extends Controller
         $discount = FeeDiscount::where('school_id', app('current_school_id'))->findOrFail($id);
         $discount->update($this->validated($request));
 
-        return back()->with('status', 'Discount updated.');
+        return back()->with('status', __('Discount updated.'));
     }
 
     public function deactivate(int $id): RedirectResponse
@@ -40,7 +40,7 @@ class FeeDiscountController extends Controller
         $discount = FeeDiscount::where('school_id', app('current_school_id'))->findOrFail($id);
         $discount->update(['is_active' => false]);
 
-        return back()->with('status', 'Discount deactivated.');
+        return back()->with('status', __('Discount deactivated.'));
     }
 
     /**

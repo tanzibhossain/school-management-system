@@ -1,11 +1,11 @@
 @extends('layouts.admin')
-@section('title', 'Payments')
+@section('title', __('Payments'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'Payments', 'crumbs' => ['Finance', 'Payments']])
 
   <div class="card"><div class="card-body">
     <table class="table table-hover align-middle w-100 js-dt">
-      <thead><tr><th>Receipt</th><th>Invoice</th><th>Student</th><th>Method</th><th class="text-end">Amount</th><th>Date</th></tr></thead>
+      <thead><tr><th>{{ __('Receipt') }}</th><th>{{ __('Invoice') }}</th><th>{{ __('Student') }}</th><th>{{ __('Method') }}</th><th class="text-end">{{ __('Amount') }}</th><th>{{ __('Date') }}</th></tr></thead>
       <tbody>
         @foreach ($payments as $p)
           <tr>

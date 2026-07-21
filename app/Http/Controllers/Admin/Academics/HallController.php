@@ -41,7 +41,7 @@ class HallController extends Controller
 
         $this->layout->generateSeats($hall);
 
-        return redirect()->route('admin.exam-halls.show', $hall->id)->with('status', 'Hall created with seats.');
+        return redirect()->route('admin.exam-halls.show', $hall->id)->with('status', __('Hall created with seats.'));
     }
 
     public function show(int $id): View
@@ -72,7 +72,7 @@ class HallController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('status', 'Hall layout regenerated.');
+        return back()->with('status', __('Hall layout regenerated.'));
     }
 
     public function toggleSeat(int $id, int $seatId): RedirectResponse
@@ -91,12 +91,12 @@ class HallController extends Controller
         $hall = ExamHall::where('school_id', $schoolId)->with('seats:id,hall_id')->findOrFail($id);
 
         if (ExamSeating::whereIn('hall_seat_id', $hall->seats->pluck('id'))->exists()) {
-            return back()->with('error', 'Cannot delete a hall with active seating assignments.');
+            return back()->with('error', __('Cannot delete a hall with active seating assignments.'));
         }
 
         $hall->delete(); // seats cascade
 
-        return back()->with('status', 'Hall deleted.');
+        return back()->with('status', __('Hall deleted.'));
     }
 
     /**

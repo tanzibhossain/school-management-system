@@ -1,5 +1,5 @@
 @extends('layouts.staff')
-@section('title', 'Marks')
+@section('title', __('Marks'))
 @section('heading', 'Marks & Results')
 @section('content')
 
@@ -8,7 +8,7 @@
   </div>
 
   @if(! $staff?->subject_id)
-    <div class="alert alert-info"><i class="bi bi-info-circle me-1"></i> You do not have a teaching subject assigned. Ask the administrator to set your subject.</div>
+    <div class="alert alert-info"><i class="bi bi-info-circle me-1"></i> {{ __('You do not have a teaching subject assigned. Ask the administrator to set your subject.') }}</div>
   @elseif($grouped->isEmpty())
     <div class="card"><div class="card-body text-center text-muted py-5">
       <i class="bi bi-journal-text fs-3 d-block mb-2 opacity-50"></i>No mark divisions have been set up for your subject yet.
@@ -23,14 +23,14 @@
         </div>
         <div class="card-body p-0">
           <table class="table align-middle mb-0">
-            <thead class="table-light"><tr><th>Division</th><th class="text-end">Max</th><th class="text-end">Pass</th><th class="text-end">Action</th></tr></thead>
+            <thead class="table-light"><tr><th>{{ __('Division') }}</th><th class="text-end">{{ __('Max') }}</th><th class="text-end">{{ __('Pass') }}</th><th class="text-end">{{ __('Action') }}</th></tr></thead>
             <tbody>
               @foreach($divisions as $d)
                 <tr>
                   <td class="fw-medium">{{ $d->examSubject->subjectRelation->subject->name ?? '' }} — {{ $d->name }}</td>
                   <td class="text-end">{{ rtrim(rtrim(number_format($d->max_marks, 2), '0'), '.') }}</td>
                   <td class="text-end">{{ $d->pass_mark !== null ? rtrim(rtrim(number_format($d->pass_mark, 2), '0'), '.') : '—' }}</td>
-                  <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('staff.marks.entry', [$examId, $d->id]) }}">Enter marks</a></td>
+                  <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('staff.marks.entry', [$examId, $d->id]) }}">{{ __('Enter marks') }}</a></td>
                 </tr>
               @endforeach
             </tbody>

@@ -1,23 +1,23 @@
 @extends('layouts.portal')
-@section('title', 'Fees')
+@section('title', __('Fees'))
 @section('heading', 'Fees')
 @section('content')
 
   <div class="row g-3 mb-3">
     <div class="col-sm-6 col-lg-4">
       <div class="card"><div class="card-body">
-        <div class="text-muted small mb-1">Outstanding balance</div>
+        <div class="text-muted small mb-1">{{ __('Outstanding balance') }}</div>
         <div class="h4 mb-0 {{ $outstanding > 0 ? 'text-danger' : 'text-success' }}">{{ number_format($outstanding) }}</div>
       </div></div>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-header">Invoices</div>
+    <div class="card-header">{{ __('Invoices') }}</div>
     <div class="card-body p-0">
       <table class="table align-middle mb-0">
         <thead class="table-light">
-          <tr><th>Invoice</th><th>Due date</th><th class="text-end">Amount</th><th class="text-end">Paid</th><th class="text-center">Status</th><th class="text-end">Pay</th></tr>
+          <tr><th>{{ __('Invoice') }}</th><th>{{ __('Due date') }}</th><th class="text-end">{{ __('Amount') }}</th><th class="text-end">{{ __('Paid') }}</th><th class="text-center">{{ __('Status') }}</th><th class="text-end">{{ __('Pay') }}</th></tr>
         </thead>
         <tbody>
           @forelse($invoices as $inv)
@@ -48,12 +48,12 @@
                     @endforeach
                   </div>
                 @elseif($payable)
-                  <span class="text-muted small">At office</span>
+                  <span class="text-muted small">{{ __('At office') }}</span>
                 @else — @endif
               </td>
             </tr>
           @empty
-            <tr><td colspan="6" class="text-center text-muted py-4">No invoices yet.</td></tr>
+            <tr><td colspan="6" class="text-center text-muted py-4">{{ __('No invoices yet.') }}</td></tr>
           @endforelse
         </tbody>
       </table>

@@ -37,7 +37,7 @@
         @if(!$value && $placeholder)
             <span class="text-muted small ms-1">({{ $placeholder }})</span>
         @endif
-        <span class="inline-edit-trigger ms-1" title="Click to edit" aria-label="Edit {{ $field }}">
+        <span class="inline-edit-trigger ms-1" title="{{ __('Click to edit') }}" aria-label="Edit {{ $field }}">
             <i class="bi bi-pencil text-muted"></i>
         </span>
     </div>
@@ -87,10 +87,10 @@
         @endif
 
         <div class="inline-edit-actions d-flex gap-1 mt-2">
-            <button type="button" class="btn btn-sm btn-primary inline-save" title="Save (Enter)">
+            <button type="button" class="btn btn-sm btn-primary inline-save" title="{{ __('Save (Enter)') }}">
                 <i class="bi bi-check-lg"></i>
             </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary inline-cancel" title="Cancel (Escape)">
+            <button type="button" class="btn btn-sm btn-outline-secondary inline-cancel" title="{{ __('Cancel (Escape)') }}">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>

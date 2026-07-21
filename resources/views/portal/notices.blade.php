@@ -1,10 +1,10 @@
 @extends('layouts.portal')
-@section('title', 'Notices')
+@section('title', __('Notices'))
 @section('heading', 'Notices')
 @section('content')
 
   <div class="card">
-    <div class="card-header">School notices</div>
+    <div class="card-header">{{ __('School notices') }}</div>
     <div class="card-body">
       @forelse($notices as $n)
         <div class="{{ !$loop->last ? 'border-bottom pb-3 mb-3' : '' }}">
@@ -16,7 +16,7 @@
           <p class="text-muted small mb-0 mt-1">{{ \Illuminate\Support\Str::limit(strip_tags($n->body), 240) }}</p>
         </div>
       @empty
-        <div class="text-muted text-center py-4">No notices published.</div>
+        <div class="text-muted text-center py-4">{{ __('No notices published.') }}</div>
       @endforelse
     </div>
   </div>

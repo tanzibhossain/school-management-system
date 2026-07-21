@@ -112,7 +112,7 @@ class MarkController extends Controller
         }
 
         if ($entries === []) {
-            return back()->with('error', 'Nothing to save — enter marks or mark students absent.');
+            return back()->with('error', __('Nothing to save — enter marks or mark students absent.'));
         }
 
         try {

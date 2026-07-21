@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Payroll — components')
+@section('title', __('Payroll — components'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Salary components',
@@ -10,7 +10,7 @@
 
   <div class="card"><div class="card-body">
     <table class="table table-hover align-middle w-100 js-dt">
-      <thead><tr><th>Name</th><th>Type</th><th>Default</th><th>Order</th><th class="text-end" data-orderable="false">Actions</th></tr></thead>
+      <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Type') }}</th><th>{{ __('Default') }}</th><th>{{ __('Order') }}</th><th class="text-end" data-orderable="false">{{ __('Actions') }}</th></tr></thead>
       <tbody>
         @foreach ($components as $c)
           <tr>
@@ -19,10 +19,10 @@
             <td>{!! $c->is_default ? '<i class="bi bi-check-lg text-success"></i>' : '—' !!}</td>
             <td>{{ $c->sort_order }}</td>
             <td class="text-end">
-              <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ $c->id }}">Edit</button>
+              <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ $c->id }}">{{ __('Edit') }}</button>
               <form method="POST" action="{{ route('admin.payroll.components.destroy', $c->id) }}" class="d-inline" onsubmit="return confirm('Remove {{ $c->name }}?')">
                 @csrf @method('DELETE')
-                <button class="btn btn-sm btn-outline-danger">Remove</button>
+                <button class="btn btn-sm btn-outline-danger">{{ __('Remove') }}</button>
               </form>
             </td>
           </tr>

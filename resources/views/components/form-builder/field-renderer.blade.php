@@ -22,10 +22,10 @@
 
     {{-- Toolbar --}}
     <div class="field-toolbar position-absolute top-0 end-0 m-2 d-none gap-1">
-        <button type="button" class="btn btn-ghost btn-sm edit-field" data-index="{{ $index }}" title="Edit">
+        <button type="button" class="btn btn-ghost btn-sm edit-field" data-index="{{ $index }}" title="{{ __('Edit') }}">
             <i class="bi bi-pencil"></i>
         </button>
-        <button type="button" class="btn btn-ghost btn-sm text-danger delete-field" data-index="{{ $index }}" title="Delete">
+        <button type="button" class="btn btn-ghost btn-sm text-danger delete-field" data-index="{{ $index }}" title="{{ __('Delete') }}">
             <i class="bi bi-trash"></i>
         </button>
     </div>
@@ -37,14 +37,14 @@
                 <span class="badge bg-slate-100 text-slate-600 field-type-badge">{{ $type }}</span>
                 <strong>{{ $label }}</strong>
                 @if($required)
-                    <span class="badge bg-danger">Required</span>
+                    <span class="badge bg-danger">{{ __('Required') }}</span>
                 @endif
             </div>
             <div class="field-actions">
-                <button type="button" class="btn btn-ghost btn-sm edit-field" data-index="{{ $index }}" title="Edit">
+                <button type="button" class="btn btn-ghost btn-sm edit-field" data-index="{{ $index }}" title="{{ __('Edit') }}">
                     <i class="bi bi-pencil"></i>
                 </button>
-                <button type="button" class="btn btn-ghost btn-sm text-danger delete-field" data-index="{{ $index }}" title="Delete">
+                <button type="button" class="btn btn-ghost btn-sm text-danger delete-field" data-index="{{ $index }}" title="{{ __('Delete') }}">
                     <i class="bi bi-trash"></i>
                 </button>
             </div>

@@ -54,7 +54,7 @@ class ExamSeatingController extends Controller
         }
 
         if ($count === 0) {
-            return back()->with('error', 'No students were seated — check the hall has enough available seats and the class has enrolled students.');
+            return back()->with('error', __('No students were seated — check the hall has enough available seats and the class has enrolled students.'));
         }
 
         return back()->with('status', "Seated {$count} students.");
@@ -66,6 +66,6 @@ class ExamSeatingController extends Controller
         $exam = Exam::where('school_id', $schoolId)->findOrFail($examId);
         $this->seating->clear($exam);
 
-        return back()->with('status', 'Seating cleared.');
+        return back()->with('status', __('Seating cleared.'));
     }
 }

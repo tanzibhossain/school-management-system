@@ -21,7 +21,7 @@ class LeaveTypeController extends Controller
     {
         LeaveType::create($this->validated($request) + ['school_id' => app('current_school_id')]);
 
-        return back()->with('status', 'Leave type added.');
+        return back()->with('status', __('Leave type added.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -29,7 +29,7 @@ class LeaveTypeController extends Controller
         $type = LeaveType::where('school_id', app('current_school_id'))->findOrFail($id);
         $type->update($this->validated($request));
 
-        return back()->with('status', 'Leave type updated.');
+        return back()->with('status', __('Leave type updated.'));
     }
 
     public function destroy(int $id): RedirectResponse
@@ -37,7 +37,7 @@ class LeaveTypeController extends Controller
         $type = LeaveType::where('school_id', app('current_school_id'))->findOrFail($id);
         $type->update(['is_active' => false]);
 
-        return back()->with('status', 'Leave type deactivated.');
+        return back()->with('status', __('Leave type deactivated.'));
     }
 
     /**

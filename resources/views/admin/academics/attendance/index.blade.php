@@ -1,26 +1,26 @@
 @extends('layouts.admin')
-@section('title', 'Attendance')
+@section('title', __('Attendance'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'Attendance register', 'crumbs' => ['Academics', 'Attendance']])
 
   <form method="GET" class="card mb-3"><div class="card-body row g-2 align-items-end">
-    <div class="col-sm-4"><label class="form-label small text-muted mb-1">Class</label>
+    <div class="col-sm-4"><label class="form-label small text-muted mb-1">{{ __('Class') }}</label>
       <select name="class_id" id="fClass" class="form-select form-select-sm" required>
         <option value="">— select —</option>
         @foreach ($classes as $c)<option value="{{ $c->id }}" @selected($classId == $c->id)>{{ $c->name }}</option>@endforeach
       </select></div>
-    <div class="col-sm-3"><label class="form-label small text-muted mb-1">Section</label>
+    <div class="col-sm-3"><label class="form-label small text-muted mb-1">{{ __('Section') }}</label>
       <select name="section_id" id="fSection" class="form-select form-select-sm" data-sel="{{ $sectionId }}">
-        <option value="">All sections</option>
+        <option value="">{{ __('All sections') }}</option>
       </select></div>
-    <div class="col-sm-3"><label class="form-label small text-muted mb-1">Date</label>
+    <div class="col-sm-3"><label class="form-label small text-muted mb-1">{{ __('Date') }}</label>
       <input type="date" name="date" class="form-control form-control-sm" value="{{ $date }}"></div>
-    <div class="col-sm-2"><button class="btn btn-sm btn-primary w-100">Load</button></div>
+    <div class="col-sm-2"><button class="btn btn-sm btn-primary w-100">{{ __('Load') }}</button></div>
   </div></form>
 
   @if ($classId)
     @if ($roster->isEmpty())
-      <div class="alert alert-warning">No active students found for this class/section.</div>
+      <div class="alert alert-warning">{{ __('No active students found for this class/section.') }}</div>
     @else
       <form method="POST" action="{{ route('admin.attendance.store') }}">
         @csrf
@@ -31,12 +31,12 @@
           <div class="d-flex justify-content-between mb-2">
             <div class="text-muted small">{{ $roster->count() }} students · {{ \Carbon\Carbon::parse($date)->format('D, d M Y') }}</div>
             <div class="btn-group btn-group-sm" role="group">
-              <button type="button" class="btn btn-outline-success" onclick="setAll('present')">All present</button>
-              <button type="button" class="btn btn-outline-danger" onclick="setAll('absent')">All absent</button>
+              <button type="button" class="btn btn-outline-success" onclick="setAll('present')">{{ __('All present') }}</button>
+              <button type="button" class="btn btn-outline-danger" onclick="setAll('absent')">{{ __('All absent') }}</button>
             </div>
           </div>
           <table class="table table-hover align-middle">
-            <thead><tr><th>#</th><th>Student</th><th style="width:52%">Status</th></tr></thead>
+            <thead><tr><th>#</th><th>{{ __('Student') }}</th><th style="width:52%">{{ __('Status') }}</th></tr></thead>
             <tbody>
               @foreach ($roster as $i => $r)
                 <tr>
@@ -54,12 +54,12 @@
               @endforeach
             </tbody>
           </table>
-          <div class="text-end"><button class="btn btn-primary"><i class="bi bi-save"></i> Save attendance</button></div>
+          <div class="text-end"><button class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save attendance') }}</button></div>
         </div></div>
       </form>
     @endif
   @else
-    <div class="alert alert-info">Select a class and date to load the register.</div>
+    <div class="alert alert-info">{{ __('Select a class and date to load the register.') }}</div>
   @endif
 
   @push('scripts')

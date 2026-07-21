@@ -2,24 +2,24 @@
 <div class="row g-4">
     {{-- Attendance Summary --}}
     <div class="col-xl-4">
-        <x-card title="Attendance Summary" subtitle="This academic year">
+        <x-card title="{{ __('Attendance Summary') }}" subtitle="This academic year">
             <div class="row g-3 text-center mb-3">
                 <div class="col-4">
                     <div class="p-3 bg-success-light text-success rounded">
                         <div class="h3 fw-bold mb-0">{{ $attendanceStats->present ?? 0 }}</div>
-                        <div class="text-xs text-muted">Present</div>
+                        <div class="text-xs text-muted">{{ __('Present') }}</div>
                     </div>
                 </div>
                 <div class="col-4">
                     <div class="p-3 bg-danger-light text-danger rounded">
                         <div class="h3 fw-bold mb-0">{{ $attendanceStats->absent ?? 0 }}</div>
-                        <div class="text-xs text-muted">Absent</div>
+                        <div class="text-xs text-muted">{{ __('Absent') }}</div>
                     </div>
                 </div>
                 <div class="col-4">
                     <div class="p-3 bg-warning-light text-warning rounded">
                         <div class="h3 fw-bold mb-0">{{ $attendanceStats->late ?? 0 }}</div>
-                        <div class="text-xs text-muted">Late</div>
+                        <div class="text-xs text-muted">{{ __('Late') }}</div>
                     </div>
                 </div>
             </div>
@@ -28,7 +28,7 @@
 
             <div class="text-center">
                 <div class="h2 fw-bold text-primary mb-1">{{ $attendanceRate ?? 0 }}%</div>
-                <div class="text-muted small">Overall Attendance Rate</div>
+                <div class="text-muted small">{{ __('Overall Attendance Rate') }}</div>
             </div>
 
             <hr>
@@ -46,7 +46,7 @@
 
     {{-- Monthly Attendance Chart --}}
     <div class="col-xl-8">
-        <x-card title="Monthly Attendance" subtitle="Attendance percentage by month">
+        <x-card title="{{ __('Monthly Attendance') }}" subtitle="Attendance percentage by month">
             <div class="chart-container" style="height: 300px;">
                 <canvas id="monthlyAttendanceChart"></canvas>
             </div>
@@ -57,15 +57,15 @@
 <div class="row g-4 mt-4">
     {{-- Recent Attendance --}}
     <div class="col-12">
-        <x-card title="Recent Attendance" subtitle="Last 30 days">
+        <x-card title="{{ __('Recent Attendance') }}" subtitle="Last 30 days">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Remarks</th>
-                            <th class="text-end">Recorded By</th>
+                            <th>{{ __('Date') }}</th>
+                            <th>{{ __('Status') }}</th>
+                            <th>{{ __('Remarks') }}</th>
+                            <th class="text-end">{{ __('Recorded By') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -82,7 +82,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center py-4 text-muted">No attendance records found</td>
+                                <td colspan="4" class="text-center py-4 text-muted">{{ __('No attendance records found') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

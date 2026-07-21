@@ -152,7 +152,7 @@
         <div class="empty-illustration mb-4" aria-hidden="true">
             @if($type === 'loading')
                 <div class="spinner-border {{ $iconSizeClass.replace('w-', '').replace('h-', '') }} text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
+                    <span class="visually-hidden">{{ __('Loading...') }}</span>
                 </div>
             @else
                 <div class="empty-icon {{ $iconSizeClass }} mx-auto text-slate-300 dark:text-slate-600" aria-hidden="true">

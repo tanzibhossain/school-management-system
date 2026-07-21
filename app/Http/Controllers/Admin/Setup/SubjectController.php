@@ -29,7 +29,7 @@ class SubjectController extends Controller
         Subject::create($this->validated($request, $schoolId, null) + ['school_id' => $schoolId]);
         $this->academic->flush();
 
-        return back()->with('status', 'Subject created.');
+        return back()->with('status', __('Subject created.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -39,7 +39,7 @@ class SubjectController extends Controller
         $subject->update($this->validated($request, $schoolId, $id));
         $this->academic->flush();
 
-        return back()->with('status', 'Subject updated.');
+        return back()->with('status', __('Subject updated.'));
     }
 
     public function destroy(int $id): RedirectResponse
@@ -49,7 +49,7 @@ class SubjectController extends Controller
         $subject->update(['is_trash' => true]);
         $this->academic->flush();
 
-        return back()->with('status', 'Subject deleted.');
+        return back()->with('status', __('Subject deleted.'));
     }
 
     /**

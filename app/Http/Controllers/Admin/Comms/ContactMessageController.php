@@ -32,6 +32,6 @@ class ContactMessageController extends Controller
     {
         ContactMessage::forSchool(app('current_school_id'))->findOrFail($id)->delete();
 
-        return back()->with('status', 'Message deleted.');
+        return back()->with('status', __('Message deleted.'));
     }
 }

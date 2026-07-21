@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Mark entry')
+@section('title', __('Mark entry'))
 @section('content')
   @php $subjectName = $division->examSubject?->subjectRelation?->subject?->name ?? 'Subject'; @endphp
   @include('admin.partials.page-header', [
@@ -7,7 +7,7 @@
     'crumbs' => ['Academics', 'Exams', $exam->title, 'Marks', $division->name],
   ])
 
-  <div class="mb-3"><a href="{{ route('admin.exam-marks.index', $exam->id) }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Back to marks</a></div>
+  <div class="mb-3"><a href="{{ route('admin.exam-marks.index', $exam->id) }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back to marks') }}</a></div>
 
   @if ($roster->isEmpty())
     <div class="alert alert-warning">No active students found for this exam's class.</div>
@@ -17,7 +17,7 @@
       <div class="card"><div class="card-body">
         <div class="text-muted small mb-2">Max marks: <strong>{{ $division->max_marks }}</strong>. Tick “Absent” for students who did not sit; their mark is recorded as “Ab”.</div>
         <table class="table table-hover align-middle">
-          <thead><tr><th>#</th><th>Student</th><th style="width:180px">Marks</th><th style="width:110px" class="text-center">Absent</th></tr></thead>
+          <thead><tr><th>#</th><th>{{ __('Student') }}</th><th style="width:180px">{{ __('Marks') }}</th><th style="width:110px" class="text-center">{{ __('Absent') }}</th></tr></thead>
           <tbody>
             @foreach ($roster as $i => $r)
               <tr class="{{ $r->locked ? 'table-light' : '' }}">
@@ -36,7 +36,7 @@
             @endforeach
           </tbody>
         </table>
-        <div class="text-end"><button class="btn btn-primary"><i class="bi bi-save"></i> Save marks</button></div>
+        <div class="text-end"><button class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save marks') }}</button></div>
       </div></div>
     </form>
   @endif

@@ -1,5 +1,5 @@
 @extends('layouts.portal')
-@section('title', 'Class Routine')
+@section('title', __('Class Routine'))
 @section('heading', 'Class Routine')
 @section('content')
 
@@ -18,7 +18,7 @@
             <div class="card-body p-0">
               @php $entries = $routine[$key] ?? collect(); @endphp
               @if($entries->isEmpty())
-                <div class="text-muted small text-center py-3">No classes</div>
+                <div class="text-muted small text-center py-3">{{ __('No classes') }}</div>
               @else
                 <ul class="list-group list-group-flush">
                   @foreach($entries as $e)

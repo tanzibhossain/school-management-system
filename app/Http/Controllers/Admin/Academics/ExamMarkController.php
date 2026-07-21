@@ -65,7 +65,7 @@ class ExamMarkController extends Controller
             'display_order' => (int) $order + 1,
         ]);
 
-        return back()->with('status', 'Division added.');
+        return back()->with('status', __('Division added.'));
     }
 
     public function destroyDivision(int $examId, int $divisionId): RedirectResponse
@@ -74,12 +74,12 @@ class ExamMarkController extends Controller
         $division = MarkDivision::forSchool($schoolId)->where('exam_id', $examId)->findOrFail($divisionId);
 
         if (Mark::forSchool($schoolId)->where('mark_division_id', $division->id)->exists()) {
-            return back()->with('error', 'Cannot delete a division that already has marks entered.');
+            return back()->with('error', __('Cannot delete a division that already has marks entered.'));
         }
 
         $division->delete();
 
-        return back()->with('status', 'Division removed.');
+        return back()->with('status', __('Division removed.'));
     }
 
     public function entry(int $examId, int $divisionId): View
@@ -149,7 +149,7 @@ class ExamMarkController extends Controller
         }
 
         if ($entries === []) {
-            return back()->with('error', 'Nothing to save — enter marks or mark students absent.');
+            return back()->with('error', __('Nothing to save — enter marks or mark students absent.'));
         }
 
         $recorder = $request->user();

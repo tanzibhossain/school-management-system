@@ -2,24 +2,24 @@
 <div class="row g-4">
     {{-- Fee Summary --}}
     <div class="col-xl-4">
-        <x-card title="Fee Overview" subtitle="Current academic year">
+        <x-card title="{{ __('Fee Overview') }}" subtitle="Current academic year">
             <div class="row g-3 text-center mb-3">
                 <div class="col-4">
                     <div class="p-3 bg-danger-light text-danger rounded">
                         <div class="h3 fw-bold mb-0">{{ number_format($feeSummary->total_due ?? 0, 0) }}</div>
-                        <div class="text-xs text-muted">Total Due</div>
+                        <div class="text-xs text-muted">{{ __('Total Due') }}</div>
                     </div>
                 </div>
                 <div class="col-4">
                     <div class="p-3 bg-success-light text-success rounded">
                         <div class="h3 fw-bold mb-0">{{ number_format($feeSummary->total_paid ?? 0, 0) }}</div>
-                        <div class="text-xs text-muted">Total Paid</div>
+                        <div class="text-xs text-muted">{{ __('Total Paid') }}</div>
                     </div>
                 </div>
                 <div class="col-4">
                     <div class="p-3 bg-warning-light text-warning rounded">
                         <div class="h3 fw-bold mb-0">{{ number_format($feeSummary->balance ?? 0, 0) }}</div>
-                        <div class="text-xs text-muted">Balance</div>
+                        <div class="text-xs text-muted">{{ __('Balance') }}</div>
                     </div>
                 </div>
             </div>
@@ -42,19 +42,19 @@
 
     {{-- Invoices List --}}
     <div class="col-xl-8">
-        <x-card title="Invoices" subtitle="All invoices for this student">
+        <x-card title="{{ __('Invoices') }}" subtitle="All invoices for this student">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
                             <th>Invoice #</th>
-                            <th>Period</th>
-                            <th class="text-end">Amount Due</th>
-                            <th class="text-end">Paid</th>
-                            <th class="text-end">Balance</th>
-                            <th>Due Date</th>
-                            <th>Status</th>
-                            <th class="text-end">Actions</th>
+                            <th>{{ __('Period') }}</th>
+                            <th class="text-end">{{ __('Amount Due') }}</th>
+                            <th class="text-end">{{ __('Paid') }}</th>
+                            <th class="text-end">{{ __('Balance') }}</th>
+                            <th>{{ __('Due Date') }}</th>
+                            <th>{{ __('Status') }}</th>
+                            <th class="text-end">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -92,7 +92,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center py-4 text-muted">No invoices found</td>
+                                <td colspan="8" class="text-center py-4 text-muted">{{ __('No invoices found') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -105,18 +105,18 @@
 <div class="row g-4 mt-4">
     {{-- Payment History --}}
     <div class="col-12">
-        <x-card title="Payment History" subtitle="All payments made">
+        <x-card title="{{ __('Payment History') }}" subtitle="All payments made">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Date</th>
+                            <th>{{ __('Date') }}</th>
                             <th>Receipt #</th>
-                            <th>Invoice</th>
-                            <th class="text-end">Amount</th>
-                            <th>Method</th>
-                            <th>Collected By</th>
-                            <th class="text-end">Actions</th>
+                            <th>{{ __('Invoice') }}</th>
+                            <th class="text-end">{{ __('Amount') }}</th>
+                            <th>{{ __('Method') }}</th>
+                            <th>{{ __('Collected By') }}</th>
+                            <th class="text-end">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -140,7 +140,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">No payments found</td>
+                                <td colspan="7" class="text-center py-4 text-muted">{{ __('No payments found') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

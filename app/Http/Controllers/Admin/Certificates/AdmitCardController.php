@@ -41,7 +41,7 @@ class AdmitCardController extends Controller
         $exam = Exam::where('school_id', $schoolId)->findOrFail($data['exam_id']);
         $this->admitCards->generate($schoolId, $student, $exam, $request->user());
 
-        return back()->with('status', 'Admit card generated.');
+        return back()->with('status', __('Admit card generated.'));
     }
 
     public function download(int $id): Response

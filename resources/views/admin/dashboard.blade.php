@@ -1,15 +1,15 @@
 @extends('layouts.admin')
-@section('title', 'Dashboard')
+@section('title', __('Dashboard'))
 @section('content')
 
 {{-- Page Header --}}
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h1 class="h3 mb-1 page-title">Dashboard</h1>
+        <h1 class="h3 mb-1 page-title">{{ __('Dashboard') }}</h1>
         <p class="text-muted small mb-0">Welcome back, {{ auth()->user()->name }}. Here's what's happening today.</p>
     </div>
     <div class="d-flex gap-2">
-        <x-button variant="ghost" size="sm" icon="bi-download" icon-position="right" @click="exportDashboard">Export Report</x-button>
+        <x-button variant="ghost" size="sm" icon="bi-download" icon-position="right" @click="exportDashboard">{{ __('Export Report') }}</x-button>
     </div>
 </div>
 
@@ -19,7 +19,7 @@
         <x-card class="h-100" variant="default" padding="md">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <p class="text-muted small mb-1">Active Students</p>
+                    <p class="text-muted small mb-1">{{ __('Active Students') }}</p>
                     <h3 class="mb-0">{{ number_format($totalStudents) }}</h3>
                     <span class="text-success small"><i class="bi bi-arrow-up-right"></i> {{ $pendingAdmissions }} pending admissions</span>
                 </div>
@@ -34,7 +34,7 @@
         <x-card class="h-100" variant="default" padding="md">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <p class="text-muted small mb-1">Active Staff</p>
+                    <p class="text-muted small mb-1">{{ __('Active Staff') }}</p>
                     <h3 class="mb-0">{{ number_format($totalStaff) }}</h3>
                     <span class="text-muted small">Teachers & admin</span>
                 </div>
@@ -49,7 +49,7 @@
         <x-card class="h-100" variant="default" padding="md">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <p class="text-muted small mb-1">Revenue This Month</p>
+                    <p class="text-muted small mb-1">{{ __('Revenue This Month') }}</p>
                     <h3 class="mb-0">{{ $revenueThisMonth ? number_format($revenueThisMonth, 0) : '0' }}</h3>
                     <span class="text-muted small">Outstanding: {{ number_format($outstandingDues, 0) }}</span>
                 </div>
@@ -64,7 +64,7 @@
         <x-card class="h-100" variant="default" padding="md">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <p class="text-muted small mb-1">Attendance Today</p>
+                    <p class="text-muted small mb-1">{{ __('Attendance Today') }}</p>
                     <h3 class="mb-0">{{ $attendanceRate }}%</h3>
                     <span class="text-muted small">{{ $totalEnrolled }} enrolled</span>
                 </div>
@@ -80,7 +80,7 @@
 <div class="row g-3 mb-4">
     <!-- Revenue Chart -->
     <div class="col-xl-8">
-        <x-card title="Revenue Trend (Last 6 Months)" subtitle="Monthly revenue collection" class="h-100">
+        <x-card title="{{ __('Revenue Trend (Last 6 Months)') }}" subtitle="Monthly revenue collection" class="h-100">
             <div class="chart-container" style="height: 300px;">
                 <canvas id="revenueChart"></canvas>
             </div>
@@ -89,7 +89,7 @@
 
     <!-- Class Strength -->
     <div class="col-xl-4">
-        <x-card title="Class Strength" subtitle="Active students per class" class="h-100">
+        <x-card title="{{ __('Class Strength') }}" subtitle="Active students per class" class="h-100">
             <div class="chart-container" style="height: 300px;">
                 <canvas id="classStrengthChart"></canvas>
             </div>
@@ -101,7 +101,7 @@
 <div class="row g-3 mb-4">
     <!-- Attendance Trend -->
     <div class="col-xl-6">
-        <x-card title="Attendance Trend (Last 7 Days)" subtitle="Daily present count" class="h-100">
+        <x-card title="{{ __('Attendance Trend (Last 7 Days)') }}" subtitle="Daily present count" class="h-100">
             <div class="chart-container" style="height: 280px;">
                 <canvas id="attendanceChart"></canvas>
             </div>
@@ -110,13 +110,13 @@
 
     <!-- Class Strength Bar Chart -->
     <div class="col-xl-6">
-        <x-card title="Fee Defaulters" subtitle="Top 5 students with overdue fees" class="h-100">
+        <x-card title="{{ __('Fee Defaulters') }}" subtitle="Top 5 students with overdue fees" class="h-100">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Student</th>
-                            <th class="text-end">Overdue</th>
+                            <th>{{ __('Student') }}</th>
+                            <th class="text-end">{{ __('Overdue') }}</th>
                         </th>
                     </tr>
                 </thead>
@@ -133,7 +133,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="2" class="text-center py-4 text-muted">No fee defaulters</td>
+                            <td colspan="2" class="text-center py-4 text-muted">{{ __('No fee defaulters') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -146,14 +146,14 @@
 <div class="row g-3">
     <!-- Recent Students -->
     <div class="col-xl-6">
-        <x-card title="Recent Students" subtitle="Latest enrollments">
+        <x-card title="{{ __('Recent Students') }}" subtitle="Latest enrollments">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Student</th>
-                            <th>Admission No.</th>
-                            <th class="text-end">Date</th>
+                            <th>{{ __('Student') }}</th>
+                            <th>{{ __('Admission No.') }}</th>
+                            <th class="text-end">{{ __('Date') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -164,7 +164,7 @@
                                 <td class="text-end text-muted small">{{ $student->created_at->format('M j, Y') }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="3" class="text-center py-4 text-muted">No recent students</td></tr>
+                            <tr><td colspan="3" class="text-center py-4 text-muted">{{ __('No recent students') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -174,13 +174,13 @@
 
     <!-- Upcoming Exams -->
     <div class="col-xl-6">
-        <x-card title="Upcoming Exams" subtitle="Published exams starting soon">
+        <x-card title="{{ __('Upcoming Exams') }}" subtitle="Published exams starting soon">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Exam</th>
-                            <th class="text-end">Period</th>
+                            <th>{{ __('Exam') }}</th>
+                            <th class="text-end">{{ __('Period') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -192,7 +192,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="2" class="text-center py-4 text-muted">No upcoming exams</td></tr>
+                            <tr><td colspan="2" class="text-center py-4 text-muted">{{ __('No upcoming exams') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -205,9 +205,9 @@
 @if($pendingAdmissions > 0)
 <div class="row g-3 mt-3">
     <div class="col-12">
-        <x-alert variant="warning" :dismissible="false" icon="true" title="Pending Admissions">
+        <x-alert variant="warning" :dismissible="false" icon="true" title="{{ __('Pending Admissions') }}">
             There are <strong>{{ $pendingAdmissions }}</strong> admission applications awaiting review.
-            <a href="{{ route('admin.admissions.index') }}" class="btn btn-sm btn-outline-warning ms-2">Review Now</a>
+            <a href="{{ route('admin.admissions.index') }}" class="btn btn-sm btn-outline-warning ms-2">{{ __('Review Now') }}</a>
         </x-alert>
     </div>
 </div>

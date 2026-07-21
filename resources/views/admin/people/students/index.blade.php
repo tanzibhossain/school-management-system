@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Students')
+@section('title', __('Students'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Students',
@@ -8,26 +8,26 @@
   ])
 
   <form method="GET" class="card mb-3"><div class="card-body row g-2 align-items-end">
-    <div class="col-sm-4"><label class="form-label small text-muted mb-1">Class</label>
+    <div class="col-sm-4"><label class="form-label small text-muted mb-1">{{ __('Class') }}</label>
       <select name="class_id" class="form-select form-select-sm">
-        <option value="">All classes</option>
+        <option value="">{{ __('All classes') }}</option>
         @foreach ($classes as $c)
           <option value="{{ $c->id }}" @selected(($filters['class_id'] ?? null) == $c->id)>{{ $c->name }}</option>
         @endforeach
       </select></div>
-    <div class="col-sm-4"><label class="form-label small text-muted mb-1">Status</label>
+    <div class="col-sm-4"><label class="form-label small text-muted mb-1">{{ __('Status') }}</label>
       <select name="status" class="form-select form-select-sm">
         @foreach (['' => 'All', 'active' => 'Active', 'inactive' => 'Inactive'] as $v => $l)
           <option value="{{ $v }}" @selected(($filters['status'] ?? '') === $v)>{{ $l }}</option>
         @endforeach
       </select></div>
-    <div class="col-sm-4"><button class="btn btn-sm btn-outline-primary">Filter</button>
-      <a href="{{ route('admin.students.index') }}" class="btn btn-sm btn-outline-secondary">Reset</a></div>
+    <div class="col-sm-4"><button class="btn btn-sm btn-outline-primary">{{ __('Filter') }}</button>
+      <a href="{{ route('admin.students.index') }}" class="btn btn-sm btn-outline-secondary">{{ __('Reset') }}</a></div>
   </div></form>
 
   <div class="card"><div class="card-body">
     <table class="table table-hover align-middle w-100 js-dt">
-      <thead><tr><th>Student ID</th><th>Name</th><th>Class</th><th>Section</th><th>Guardian</th><th>Status</th><th class="text-end" data-orderable="false">Actions</th></tr></thead>
+      <thead><tr><th>{{ __('Student ID') }}</th><th>{{ __('Name') }}</th><th>{{ __('Class') }}</th><th>{{ __('Section') }}</th><th>{{ __('Guardian') }}</th><th>{{ __('Status') }}</th><th class="text-end" data-orderable="false">{{ __('Actions') }}</th></tr></thead>
       <tbody>
         @foreach ($students as $st)
           <tr>
@@ -40,12 +40,12 @@
               <span class="badge {{ $st->status === 'active' ? 'text-bg-success' : 'text-bg-secondary' }}">{{ ucfirst($st->status) }}</span>
             </td>
             <td class="text-end">
-              <a class="btn btn-sm btn-outline-primary" href="{{ route('admin.students.show', $st->id) }}">View</a>
-              <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ $st->id }}">Edit</button>
+              <a class="btn btn-sm btn-outline-primary" href="{{ route('admin.students.show', $st->id) }}">{{ __('View') }}</a>
+              <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ $st->id }}">{{ __('Edit') }}</button>
               @if ($st->status === 'active')
                 <form method="POST" action="{{ route('admin.students.deactivate', $st->id) }}" class="d-inline" onsubmit="return confirm('Deactivate {{ $st->name }}?')">
                   @csrf @method('PATCH')
-                  <button class="btn btn-sm btn-outline-danger">Deactivate</button>
+                  <button class="btn btn-sm btn-outline-danger">{{ __('Deactivate') }}</button>
                 </form>
               @endif
             </td>
@@ -66,25 +66,25 @@
     <div class="modal fade" id="editModal{{ $st->id }}" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
       <form method="POST" action="{{ route('admin.students.update', $st->id) }}">
         @csrf @method('PUT')
-        <div class="modal-header"><h5 class="modal-title">Edit student</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-header"><h5 class="modal-title">{{ __('Edit student') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body row g-3">
-          <div class="col-md-8"><label class="form-label">Name <span class="text-danger">*</span></label>
+          <div class="col-md-8"><label class="form-label">{{ __('Name') }} <span class="text-danger">*</span></label>
             <input name="name" class="form-control" value="{{ $st->name }}" required></div>
-          <div class="col-md-4"><label class="form-label">Gender <span class="text-danger">*</span></label>
+          <div class="col-md-4"><label class="form-label">{{ __('Gender') }} <span class="text-danger">*</span></label>
             <select name="gender" class="form-select" required>{!! $genderOptions($st->gender) !!}</select></div>
-          <div class="col-md-4"><label class="form-label">Date of birth</label>
+          <div class="col-md-4"><label class="form-label">{{ __('Date of birth') }}</label>
             <input type="date" name="dob" class="form-control" value="{{ optional($st->dob)->format('Y-m-d') }}"></div>
-          <div class="col-md-4"><label class="form-label">Blood group</label>
+          <div class="col-md-4"><label class="form-label">{{ __('Blood group') }}</label>
             <select name="blood_group" class="form-select">
               <option value="">—</option>
               @foreach (['A+','A-','B+','B-','AB+','AB-','O+','O-'] as $bg)
                 <option value="{{ $bg }}" @selected($st->blood_group===$bg)>{{ $bg }}</option>
               @endforeach
             </select></div>
-          <div class="col-md-4"><label class="form-label">Religion</label>
+          <div class="col-md-4"><label class="form-label">{{ __('Religion') }}</label>
             <input name="religion" class="form-control" value="{{ $st->religion }}"></div>
         </div>
-        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary">Save</button></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Save') }}</button></div>
       </form>
     </div></div></div>
   @endforeach

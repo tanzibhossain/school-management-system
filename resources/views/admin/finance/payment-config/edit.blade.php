@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Payment settings')
+@section('title', __('Payment settings'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'Payment settings', 'crumbs' => ['Settings', 'Payment']])
 
@@ -32,7 +32,7 @@
 
     {{-- Online gateways available for this school's country --}}
     <div class="d-flex align-items-center justify-content-between mb-2">
-      <h2 class="h6 mb-0 text-muted">Online gateways <span class="text-muted small">— available for your country</span></h2>
+      <h2 class="h6 mb-0 text-muted">{{ __('Online gateways') }} <span class="text-muted small">— available for your country</span></h2>
     </div>
     <div class="row g-4" id="onlineGateways" style="transition:opacity .15s;">
       @forelse($gateways as $key => $def)
@@ -45,7 +45,7 @@
             <div class="card-header d-flex justify-content-between align-items-center">
               <span><i class="bi {{ $def['icon'] ?? 'bi-credit-card' }} me-1"></i>{{ $def['label'] }}
                 <span class="text-muted small">({{ implode(', ', $def['currencies']) }})</span></span>
-              @if($configured)<span class="badge text-bg-success">Credentials set</span>@endif
+              @if($configured)<span class="badge text-bg-success">{{ __('Credentials set') }}</span>@endif
             </div>
             <div class="card-body">
               <div class="form-check form-switch mb-3">
@@ -72,41 +72,41 @@
               </div>
               <div class="row g-2 mt-1">
                 <div class="col-md-4">
-                  <label class="form-label small">Refund fee %</label>
+                  <label class="form-label small">{{ __('Refund fee %') }}</label>
                   <input type="number" step="0.01" min="0" max="100" name="gw[{{ $key }}][fee_pct]"
                          class="form-control" value="{{ old("gw.$key.fee_pct", $config->feePct($key) ?: '') }}"
                          placeholder="0">
                 </div>
               </div>
-              <div class="form-text mt-2">Leave a credential blank to keep the stored value. Refund fee % is deducted from refunds for this gateway.</div>
+              <div class="form-text mt-2">{{ __('Leave a credential blank to keep the stored value. Refund fee % is deducted from refunds for this gateway.') }}</div>
             </div>
           </div>
         </div>
       @empty
-        <div class="col-12"><div class="alert alert-info mb-0">No online gateways are available for your country yet. Set your country in School settings, or an implemented gateway is required.</div></div>
+        <div class="col-12"><div class="alert alert-info mb-0">{{ __('No online gateways are available for your country yet. Set your country in School settings, or an implemented gateway is required.') }}</div></div>
       @endforelse
     </div>
 
     {{-- Numbering + charges --}}
     <div class="row g-4 mt-0">
       <div class="col-lg-6">
-        <div class="card"><div class="card-header">Numbering</div><div class="card-body row g-3">
-          <div class="col-md-6"><label class="form-label">Invoice prefix</label>
+        <div class="card"><div class="card-header">{{ __('Numbering') }}</div><div class="card-body row g-3">
+          <div class="col-md-6"><label class="form-label">{{ __('Invoice prefix') }}</label>
             <input name="invoice_prefix" class="form-control" value="{{ old('invoice_prefix', $config->invoice_prefix) }}" placeholder="e.g. INV-"></div>
-          <div class="col-md-6"><label class="form-label">Receipt prefix</label>
+          <div class="col-md-6"><label class="form-label">{{ __('Receipt prefix') }}</label>
             <input name="receipt_prefix" class="form-control" value="{{ old('receipt_prefix', $config->receipt_prefix) }}" placeholder="e.g. RCP-"></div>
           <div class="col-12"><div class="alert alert-light border py-2 mb-0 small text-muted">Current sequences — invoices: {{ $config->invoice_last_seq }}, receipts: {{ $config->receipt_last_seq }}.</div></div>
         </div></div>
       </div>
       <div class="col-lg-6">
-        <div class="card"><div class="card-header">Charges</div><div class="card-body row g-3">
-          <div class="col-md-6"><label class="form-label">Cheque bounce fee</label>
+        <div class="card"><div class="card-header">{{ __('Charges') }}</div><div class="card-body row g-3">
+          <div class="col-md-6"><label class="form-label">{{ __('Cheque bounce fee') }}</label>
             <input type="number" step="0.01" min="0" name="bounce_fee_amount" class="form-control" value="{{ old('bounce_fee_amount', $config->bounce_fee_amount) }}"></div>
         </div></div>
       </div>
     </div>
 
-    <div class="mt-4"><button class="btn btn-primary"><i class="bi bi-save"></i> Save payment settings</button></div>
+    <div class="mt-4"><button class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save payment settings') }}</button></div>
   </form>
 
   @push('scripts')

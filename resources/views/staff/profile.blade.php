@@ -1,10 +1,10 @@
 @extends('layouts.staff')
-@section('title', 'My Profile')
+@section('title', __('My Profile'))
 @section('heading', 'My Profile')
 @section('content')
 
   @if(! $staff)
-    <div class="alert alert-info">No staff record is linked to your account yet. Please contact the administrator.</div>
+    <div class="alert alert-info">{{ __('No staff record is linked to your account yet. Please contact the administrator.') }}</div>
   @else
     <div class="row g-3">
       <div class="col-lg-4">

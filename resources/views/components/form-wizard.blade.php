@@ -120,7 +120,7 @@
                         <div class="step-locked text-center py-5">
                             <i class="bi bi-lock fs-1 text-muted"></i>
                             <h5 class="mt-3">{{ $steps[$index]['label'] }}</h5>
-                            <p class="text-muted">Complete previous steps to unlock</p>
+                            <p class="text-muted">{{ __('Complete previous steps to unlock') }}</p>
                         </div>
                     @else
                         <div class="step-header mb-4">

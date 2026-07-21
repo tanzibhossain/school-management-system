@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Conversation')
+@section('title', __('Conversation'))
 @section('content')
   @php
     $names = $thread->participants->pluck('user_id')->map(fn ($id) => $userMap[$id] ?? 'User #'.$id)->filter();
@@ -7,10 +7,10 @@
   @endphp
   <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
     <div>
-      <nav><ol class="breadcrumb small mb-1"><li class="breadcrumb-item">Comms</li><li class="breadcrumb-item"><a href="{{ route('admin.messages.index') }}" class="text-decoration-none">Messages</a></li><li class="breadcrumb-item active">{{ $title }}</li></ol></nav>
+      <nav><ol class="breadcrumb small mb-1"><li class="breadcrumb-item">{{ __('Comms') }}</li><li class="breadcrumb-item"><a href="{{ route('admin.messages.index') }}" class="text-decoration-none">{{ __('Messages') }}</a></li><li class="breadcrumb-item active">{{ $title }}</li></ol></nav>
       <h1 class="h5 mb-0">{{ $title }}
         <span class="badge text-bg-light border text-muted align-middle">{{ ucfirst($thread->type) }}</span>
-        @if ($thread->is_locked)<span class="badge text-bg-danger align-middle">Locked</span>@endif
+        @if ($thread->is_locked)<span class="badge text-bg-danger align-middle">{{ __('Locked') }}</span>@endif
       </h1>
     </div>
     <form method="POST" action="{{ route('admin.messages.lock', $thread->id) }}">
@@ -37,13 +37,13 @@
             </div>
           </div>
         @empty
-          <p class="text-muted text-center py-4 mb-0">No messages yet.</p>
+          <p class="text-muted text-center py-4 mb-0">{{ __('No messages yet.') }}</p>
         @endforelse
       </div></div>
 
       @if ($isParticipant)
         @if ($thread->is_locked)
-          <div class="alert alert-secondary mt-3 mb-0"><i class="bi bi-lock"></i> This conversation is locked — no new replies can be posted.</div>
+          <div class="alert alert-secondary mt-3 mb-0"><i class="bi bi-lock"></i> {{ __('This conversation is locked — no new replies can be posted.') }}</div>
         @else
           <form method="POST" action="{{ route('admin.messages.reply', $thread->id) }}" class="card mt-3"><div class="card-body">
             @csrf
@@ -54,16 +54,16 @@
           </div></form>
         @endif
       @else
-        <div class="alert alert-info mt-3 mb-0"><i class="bi bi-eye"></i> You are viewing this as an admin (oversight). You are not a participant, so you cannot reply.</div>
+        <div class="alert alert-info mt-3 mb-0"><i class="bi bi-eye"></i> {{ __('You are viewing this as an admin (oversight). You are not a participant, so you cannot reply.') }}</div>
       @endif
     </div>
 
     <div class="col-lg-4">
-      <div class="card"><div class="card-header">Participants</div><div class="list-group list-group-flush">
+      <div class="card"><div class="card-header">{{ __('Participants') }}</div><div class="list-group list-group-flush">
         @foreach ($thread->participants as $p)
           <div class="list-group-item d-flex justify-content-between align-items-center {{ $p->left_at ? 'text-muted' : '' }}">
             <span>{{ $userMap[$p->user_id] ?? 'User #'.$p->user_id }}</span>
-            @if ($p->left_at)<span class="badge text-bg-light border text-muted">Left</span>@endif
+            @if ($p->left_at)<span class="badge text-bg-light border text-muted">{{ __('Left') }}</span>@endif
           </div>
         @endforeach
       </div></div>

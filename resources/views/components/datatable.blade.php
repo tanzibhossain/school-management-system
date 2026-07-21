@@ -39,12 +39,12 @@
         @if(!empty($bulkActions))
             <div class="bulk-actions d-flex align-items-center gap-2" style="display: none;">
                 <select class="form-select form-select-sm bulk-action-select" style="width: auto;" disabled>
-                    <option value="">Bulk actions...</option>
+                    <option value="">{{ __('Bulk actions...') }}</option>
                     @foreach($bulkActions as $action)
                         <option value="{{ $action['id'] }}">{{ $action['label'] }}</option>
                     @endforeach
                 </select>
-                <button type="button" class="btn btn-sm btn-primary bulk-action-apply" disabled>Apply</button>
+                <button type="button" class="btn btn-sm btn-primary bulk-action-apply" disabled>{{ __('Apply') }}</button>
                 <span class="bulk-count text-muted small d-none"></span>
             </div>
         @endif
@@ -127,7 +127,7 @@
                         </th>
                     @endforeach
                     @if(!empty($actions))
-                    <th scope="col" class="text-end" style="width: 120px;">Actions</th>
+                    <th scope="col" class="text-end" style="width: 120px;">{{ __('Actions') }}</th>
                     @endif
                 </tr>
             </thead>
@@ -141,7 +141,7 @@
                         <th>{{ $column['label'] }}</th>
                     @endforeach
                     @if(!empty($actions))
-                    <th>Actions</th>
+                    <th>{{ __('Actions') }}</th>
                     @endif
                 </tr>
             </tfoot>
@@ -157,7 +157,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Column Visibility</h5>
+                    <h5 class="modal-title">{{ __('Column Visibility') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -181,8 +181,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="{{ $tableId }}-colvis-apply">Apply</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+                    <button type="button" class="btn btn-primary" id="{{ $tableId }}-colvis-apply">{{ __('Apply') }}</button>
                 </div>
             </div>
         </div>

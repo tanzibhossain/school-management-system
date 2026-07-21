@@ -82,7 +82,7 @@
           @if($logoUrl)<img src="{{ $logoUrl }}" alt="">@else<i class="bi bi-mortarboard-fill"></i>@endif
         </span>
         <h1>{{ $schoolName }}</h1>
-        <p>Sign in to your portal. Each role has its own workspace tailored to what you do every day.</p>
+        <p>{{ __('Sign in to your portal. Each role has its own workspace tailored to what you do every day.') }}</p>
       </div>
       <div class="auth-portals">
         <div class="auth-portal-chip is-current">
@@ -102,7 +102,7 @@
     <main class="auth-form-panel">
       <div class="auth-card">
         <span class="auth-eyebrow"><i class="bi {{ $current['icon'] }}"></i> {{ $current['label'] }}</span>
-        <h2>Welcome back</h2>
+        <h2>{{ __('Welcome back') }}</h2>
         <p class="sub">{{ $current['desc'] }} — sign in to continue.</p>
 
         @if ($errors->any())
@@ -112,20 +112,20 @@
         <form method="POST" action="{{ $current['action'] }}">
           @csrf
           <div class="mb-3">
-            <label class="form-label">Email</label>
+            <label class="form-label">{{ __('Email') }}</label>
             <input type="email" name="email" class="form-control" value="{{ old('email') }}" required autofocus placeholder="you@example.com">
           </div>
           <div class="mb-3">
-            <label class="form-label">Password</label>
+            <label class="form-label">{{ __('Password') }}</label>
             <input type="password" name="password" class="form-control" required placeholder="••••••••">
           </div>
           <div class="d-flex align-items-center justify-content-between mb-3">
             <div class="form-check mb-0">
               <input type="checkbox" name="remember" class="form-check-input" id="remember">
-              <label class="form-check-label small" for="remember">Remember me</label>
+              <label class="form-check-label small" for="remember">{{ __('Remember me') }}</label>
             </div>
           </div>
-          <button class="btn btn-brand w-100">Sign in <i class="bi bi-arrow-right ms-1"></i></button>
+          <button class="btn btn-brand w-100">{{ __('Sign in') }} <i class="bi bi-arrow-right ms-1"></i></button>
         </form>
 
         <div class="text-center mt-4 auth-switch d-md-none">

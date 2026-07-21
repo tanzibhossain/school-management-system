@@ -1,10 +1,10 @@
 @extends('layouts.admin')
-@section('title', 'Contact enquiries')
+@section('title', __('Contact enquiries'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'Contact enquiries', 'crumbs' => ['Comms', 'Enquiries']])
 
   @if ($messages->isEmpty())
-    <div class="card"><div class="card-body text-muted text-center py-5">No enquiries yet. Messages sent from the public contact form appear here.</div></div>
+    <div class="card"><div class="card-body text-muted text-center py-5">{{ __('No enquiries yet. Messages sent from the public contact form appear here.') }}</div></div>
   @else
     <div class="mb-2 text-muted small">{{ $unread }} unread of {{ $messages->count() }}</div>
     <div class="vstack gap-2">
@@ -13,7 +13,7 @@
           <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
             <div>
               <span class="fw-semibold">{{ $m->name }}</span>
-              @unless ($m->is_read)<span class="badge text-bg-primary">New</span>@endunless
+              @unless ($m->is_read)<span class="badge text-bg-primary">{{ __('New') }}</span>@endunless
               <div class="small text-muted">
                 @if ($m->email)<a href="mailto:{{ $m->email }}" class="text-decoration-none">{{ $m->email }}</a>@endif
                 @if ($m->phone) · <a href="tel:{{ $m->phone }}" class="text-decoration-none">{{ $m->phone }}</a>@endif

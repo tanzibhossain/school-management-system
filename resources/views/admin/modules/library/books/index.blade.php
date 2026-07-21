@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Library — books')
+@section('title', __('Library — books'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Books',
@@ -11,7 +11,7 @@
 
   <div class="card"><div class="card-body">
     <table class="table table-hover align-middle w-100 js-dt">
-      <thead><tr><th>Title</th><th>Author</th><th>Category</th><th>Copies</th><th>Available</th><th class="text-end" data-orderable="false">Actions</th></tr></thead>
+      <thead><tr><th>{{ __('Title') }}</th><th>{{ __('Author') }}</th><th>{{ __('Category') }}</th><th>{{ __('Copies') }}</th><th>{{ __('Available') }}</th><th class="text-end" data-orderable="false">{{ __('Actions') }}</th></tr></thead>
       <tbody>
         @foreach ($books as $b)
           <tr>
@@ -21,10 +21,10 @@
             <td>{{ $b->total_copies }}</td>
             <td><span class="badge {{ $b->available_copies > 0 ? 'text-bg-success' : 'text-bg-secondary' }}">{{ $b->available_copies }}</span></td>
             <td class="text-end">
-              <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ $b->id }}">Edit</button>
+              <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ $b->id }}">{{ __('Edit') }}</button>
               <form method="POST" action="{{ route('admin.library.books.deactivate', $b->id) }}" class="d-inline" onsubmit="return confirm('Deactivate {{ $b->title }}?')">
                 @csrf @method('PATCH')
-                <button class="btn btn-sm btn-outline-danger">Deactivate</button>
+                <button class="btn btn-sm btn-outline-danger">{{ __('Deactivate') }}</button>
               </form>
             </td>
           </tr>

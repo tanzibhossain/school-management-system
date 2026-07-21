@@ -39,7 +39,7 @@ class PayrollRunController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return redirect()->route('admin.payroll.runs.show', $run->id)->with('status', 'Payroll run created.');
+        return redirect()->route('admin.payroll.runs.show', $run->id)->with('status', __('Payroll run created.'));
     }
 
     public function show(int $id): View

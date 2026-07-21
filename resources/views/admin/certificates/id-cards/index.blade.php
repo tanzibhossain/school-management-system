@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'ID cards')
+@section('title', __('ID cards'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'ID card batches',
@@ -11,7 +11,7 @@
   @php $m = ['queued'=>'secondary','processing'=>'info','completed'=>'success','failed'=>'danger']; @endphp
   <div class="card"><div class="card-body">
     <table class="table table-hover align-middle w-100 js-dt">
-      <thead><tr><th>#</th><th>Type</th><th>Template</th><th>Scope</th><th>Cards</th><th>Files</th><th>Status</th><th class="text-end" data-orderable="false"></th></tr></thead>
+      <thead><tr><th>#</th><th>{{ __('Type') }}</th><th>{{ __('Template') }}</th><th>{{ __('Scope') }}</th><th>{{ __('Cards') }}</th><th>{{ __('Files') }}</th><th>{{ __('Status') }}</th><th class="text-end" data-orderable="false"></th></tr></thead>
       <tbody>
         @foreach ($batches as $b)
           <tr>
@@ -22,7 +22,7 @@
             <td>{{ $b->total_count }}</td>
             <td>{{ $b->files_count }}</td>
             <td><span class="badge text-bg-{{ $m[$b->status] ?? 'secondary' }}">{{ ucfirst($b->status) }}</span></td>
-            <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('admin.id-cards.show', $b->id) }}">Open</a></td>
+            <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('admin.id-cards.show', $b->id) }}">{{ __('Open') }}</a></td>
           </tr>
         @endforeach
       </tbody>
@@ -32,32 +32,32 @@
   <div class="modal fade" id="genModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.id-cards.store') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">Generate ID card batch</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('Generate ID card batch') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
-        <div class="col-md-6"><label class="form-label">Type <span class="text-danger">*</span></label>
+        <div class="col-md-6"><label class="form-label">{{ __('Type') }} <span class="text-danger">*</span></label>
           <select name="type" class="form-select" required>
-            <option value="student">Student</option><option value="staff">Staff</option>
+            <option value="student">{{ __('Student') }}</option><option value="staff">{{ __('Staff') }}</option>
           </select></div>
-        <div class="col-md-6"><label class="form-label">Template <span class="text-danger">*</span></label>
+        <div class="col-md-6"><label class="form-label">{{ __('Template') }} <span class="text-danger">*</span></label>
           <select name="template_id" class="form-select" required>
             <option value="">— select —</option>
             @foreach ($templates as $t)<option value="{{ $t->id }}">{{ $t->name }} ({{ $t->type }})</option>@endforeach
           </select>
-          @if ($templates->isEmpty())<div class="form-text text-danger">No ID templates — add one under ID templates first.</div>@endif
+          @if ($templates->isEmpty())<div class="form-text text-danger">{{ __('No ID templates — add one under ID templates first.') }}</div>@endif
         </div>
-        <div class="col-md-4"><label class="form-label">Scope <span class="text-danger">*</span></label>
+        <div class="col-md-4"><label class="form-label">{{ __('Scope') }} <span class="text-danger">*</span></label>
           <select name="scope" id="idScope" class="form-select" required>
-            <option value="class">A class</option><option value="all">All</option>
+            <option value="class">{{ __('A class') }}</option><option value="all">{{ __('All') }}</option>
           </select></div>
-        <div class="col-md-4 id-cls"><label class="form-label">Class</label>
+        <div class="col-md-4 id-cls"><label class="form-label">{{ __('Class') }}</label>
           <select name="class_id" id="idClass" class="form-select">
             <option value="">— select —</option>
             @foreach ($classes as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
           </select></div>
-        <div class="col-md-4 id-cls"><label class="form-label">Section</label>
-          <select name="section_id" id="idSection" class="form-select"><option value="">All sections</option></select></div>
+        <div class="col-md-4 id-cls"><label class="form-label">{{ __('Section') }}</label>
+          <select name="section_id" id="idSection" class="form-select"><option value="">{{ __('All sections') }}</option></select></div>
       </div>
-      <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary">Generate</button></div>
+      <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Generate') }}</button></div>
     </form>
   </div></div></div>
 

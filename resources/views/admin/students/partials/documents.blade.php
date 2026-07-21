@@ -2,13 +2,13 @@
 <div class="row g-4">
     {{-- Upload Section --}}
     <div class="col-12">
-        <x-card title="Upload Documents" subtitle="Supported: PDF, JPG, PNG, DOC, DOCX (Max 10MB each)">
+        <x-card title="{{ __('Upload Documents') }}" subtitle="Supported: PDF, JPG, PNG, DOC, DOCX (Max 10MB each)">
             <form action="{{ route('admin.students.documents.store', $student) }}" method="POST" enctype="multipart/form-data" class="dropzone" id="document-dropzone">
                 @csrf
                 <div class="dropzone-content text-center py-5">
                     <i class="bi bi-cloud-upload fs-1 text-muted mb-3"></i>
-                    <p class="text-muted mb-3">Drag and drop files here, or click to browse</p>
-                    <p class="text-xs text-muted mb-3">Supported: PDF, JPG, PNG, DOC, DOCX (Max 10MB each)</p>
+                    <p class="text-muted mb-3">{{ __('Drag and drop files here, or click to browse') }}</p>
+                    <p class="text-xs text-muted mb-3">{{ __('Supported: PDF, JPG, PNG, DOC, DOCX (Max 10MB each)') }}</p>
                     <button type="button" class="btn btn-primary" id="browse-files">
                         <i class="bi bi-folder-plus me-1"></i> Browse Files
                     </button>
@@ -33,7 +33,7 @@
 <div class="row g-4 mt-4">
     {{-- Documents List --}}
     <div class="col-12">
-        <x-card title="Documents" subtitle="All uploaded documents">
+        <x-card title="{{ __('Documents') }}" subtitle="All uploaded documents">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
@@ -41,12 +41,12 @@
                             <th style="width: 50px;">
                                 <input type="checkbox" class="form-check-input select-all" aria-label="Select all">
                             </th>
-                            <th>Document</th>
-                            <th>Type</th>
-                            <th>Size</th>
-                            <th>Uploaded</th>
-                            <th>Uploaded By</th>
-                            <th class="text-end" style="width: 100px;">Actions</th>
+                            <th>{{ __('Document') }}</th>
+                            <th>{{ __('Type') }}</th>
+                            <th>{{ __('Size') }}</th>
+                            <th>{{ __('Uploaded') }}</th>
+                            <th>{{ __('Uploaded By') }}</th>
+                            <th class="text-end" style="width: 100px;">{{ __('Actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -82,11 +82,11 @@
                                 <td>{{ $doc->uploadedBy->name ?? '—' }}</td>
                                 <td class="text-end">
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('admin.students.documents.download', [$student, $doc]) }}" class="btn btn-outline-primary" title="Download">
+                                        <a href="{{ route('admin.students.documents.download', [$student, $doc]) }}" class="btn btn-outline-primary" title="{{ __('Download') }}">
                                             <i class="bi bi-download"></i>
                                         </a>
                                         @can('students.documents.delete')
-                                            <button type="button" class="btn btn-outline-danger" onclick="confirmDelete('{{ route('admin.students.documents.destroy', [$student, $doc]) }}', 'Delete this document?')" title="Delete">
+                                            <button type="button" class="btn btn-outline-danger" onclick="confirmDelete('{{ route('admin.students.documents.destroy', [$student, $doc]) }}', 'Delete this document?')" title="{{ __('Delete') }}">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         @endcan
@@ -95,7 +95,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">No documents uploaded yet</td>
+                                <td colspan="7" class="text-center py-4 text-muted">{{ __('No documents uploaded yet') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -110,11 +110,11 @@
     <div class="col-12">
         <div class="bulk-actions d-flex align-items-center gap-2" style="display: none;">
             <select class="form-select form-select-sm bulk-action-select" style="width: auto;">
-                <option value="">Bulk actions...</option>
-                <option value="delete">Delete selected</option>
-                <option value="download">Download selected</option>
+                <option value="">{{ __('Bulk actions...') }}</option>
+                <option value="delete">{{ __('Delete selected') }}</option>
+                <option value="download">{{ __('Download selected') }}</option>
             </select>
-            <button type="button" class="btn btn-sm btn-primary bulk-action-apply" disabled>Apply</button>
+            <button type="button" class="btn btn-sm btn-primary bulk-action-apply" disabled>{{ __('Apply') }}</button>
             <span class="bulk-count text-muted small d-none"></span>
         </div>
     </div>

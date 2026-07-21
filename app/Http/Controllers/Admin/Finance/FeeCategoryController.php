@@ -34,7 +34,7 @@ class FeeCategoryController extends Controller
             'is_active' => $request->boolean('is_active', true),
         ]);
 
-        return back()->with('status', 'Fee category created.');
+        return back()->with('status', __('Fee category created.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -51,7 +51,7 @@ class FeeCategoryController extends Controller
             'is_active' => $request->boolean('is_active'),
         ]);
 
-        return back()->with('status', 'Fee category updated.');
+        return back()->with('status', __('Fee category updated.'));
     }
 
     public function destroy(int $id): RedirectResponse
@@ -60,11 +60,11 @@ class FeeCategoryController extends Controller
         $category = FeeCategory::where('school_id', $schoolId)->withCount('items')->findOrFail($id);
 
         if ($category->items_count > 0) {
-            return back()->with('error', 'Cannot delete a category that still has fee items.');
+            return back()->with('error', __('Cannot delete a category that still has fee items.'));
         }
 
         $category->delete();
 
-        return back()->with('status', 'Fee category deleted.');
+        return back()->with('status', __('Fee category deleted.'));
     }
 }

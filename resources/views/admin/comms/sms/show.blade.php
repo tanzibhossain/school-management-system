@@ -4,24 +4,24 @@
   @php $m = ['queued'=>'secondary','processing'=>'info','completed'=>'success','failed'=>'danger']; @endphp
   @include('admin.partials.page-header', ['title' => 'SMS batch #' . $batch->id, 'crumbs' => ['Comms', 'SMS', 'Batch #' . $batch->id]])
 
-  <div class="mb-3"><a href="{{ route('admin.sms.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> Back to SMS</a></div>
+  <div class="mb-3"><a href="{{ route('admin.sms.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back to SMS') }}</a></div>
 
   <div class="card mb-4"><div class="card-body">
     <dl class="row mb-0">
-      <dt class="col-sm-3 text-muted">Status</dt><dd class="col-sm-9"><span class="badge text-bg-{{ $m[$batch->status] ?? 'secondary' }}">{{ ucfirst($batch->status) }}</span></dd>
-      <dt class="col-sm-3 text-muted">Scope</dt><dd class="col-sm-9 text-capitalize">{{ $batch->scope }}</dd>
-      <dt class="col-sm-3 text-muted">Recipients</dt><dd class="col-sm-9">{{ $batch->total_count }}</dd>
-      <dt class="col-sm-3 text-muted">Message</dt><dd class="col-sm-9">{{ $batch->message_body }}</dd>
-      @if ($batch->error_message)<dt class="col-sm-3 text-muted">Error</dt><dd class="col-sm-9 text-danger">{{ $batch->error_message }}</dd>@endif
+      <dt class="col-sm-3 text-muted">{{ __('Status') }}</dt><dd class="col-sm-9"><span class="badge text-bg-{{ $m[$batch->status] ?? 'secondary' }}">{{ ucfirst($batch->status) }}</span></dd>
+      <dt class="col-sm-3 text-muted">{{ __('Scope') }}</dt><dd class="col-sm-9 text-capitalize">{{ $batch->scope }}</dd>
+      <dt class="col-sm-3 text-muted">{{ __('Recipients') }}</dt><dd class="col-sm-9">{{ $batch->total_count }}</dd>
+      <dt class="col-sm-3 text-muted">{{ __('Message') }}</dt><dd class="col-sm-9">{{ $batch->message_body }}</dd>
+      @if ($batch->error_message)<dt class="col-sm-3 text-muted">{{ __('Error') }}</dt><dd class="col-sm-9 text-danger">{{ $batch->error_message }}</dd>@endif
     </dl>
   </div></div>
 
   <div class="card"><div class="card-header">Delivery log ({{ $batch->logs->count() }})</div><div class="card-body">
     @if ($batch->logs->isEmpty())
-      <p class="text-muted mb-0">No per-recipient logs.</p>
+      <p class="text-muted mb-0">{{ __('No per-recipient logs.') }}</p>
     @else
       <table class="table align-middle w-100 js-dt">
-        <thead><tr><th>Phone</th><th>Segments</th><th>Status</th><th>Error</th></tr></thead>
+        <thead><tr><th>{{ __('Phone') }}</th><th>{{ __('Segments') }}</th><th>{{ __('Status') }}</th><th>{{ __('Error') }}</th></tr></thead>
         <tbody>
           @foreach ($batch->logs as $log)
             <tr>

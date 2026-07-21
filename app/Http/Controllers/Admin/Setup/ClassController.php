@@ -36,7 +36,7 @@ class ClassController extends Controller
         SchoolClass::create($data + ['school_id' => $schoolId]);
         $this->academic->flush();
 
-        return back()->with('status', 'Class created.');
+        return back()->with('status', __('Class created.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -52,7 +52,7 @@ class ClassController extends Controller
         $class->update($data);
         $this->academic->flush();
 
-        return back()->with('status', 'Class updated.');
+        return back()->with('status', __('Class updated.'));
     }
 
     public function destroy(int $id): RedirectResponse
@@ -69,6 +69,6 @@ class ClassController extends Controller
         $class->update(['is_trash' => true]);
         $this->academic->flush();
 
-        return back()->with('status', 'Class deleted.');
+        return back()->with('status', __('Class deleted.'));
     }
 }
