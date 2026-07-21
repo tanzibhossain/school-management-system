@@ -26,6 +26,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->appendToGroup('api', ResolveSchool::class);
 
+        // Locale resolution + DB-stored translations on every web request.
+        $middleware->appendToGroup('web', \App\Http\Middleware\SetLocale::class);
+
         // Gateways POST cross-site with no session CSRF token: SSLCommerz's
         // browser return and the Stripe/PayPal server-to-server webhooks.
         $middleware->validateCsrfTokens(except: [
