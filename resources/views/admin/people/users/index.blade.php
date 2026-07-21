@@ -37,7 +37,7 @@
   <div class="modal fade" id="createModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.users.store') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('New user') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('New User') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
         <div class="col-md-7"><label class="form-label">{{ __('Name') }} <span class="text-danger">*</span></label>
           <input name="name" class="form-control" value="{{ old('name') }}" required></div>
@@ -51,7 +51,7 @@
           <input name="phone" class="form-control" value="{{ old('phone') }}"></div>
         <div class="col-md-6"><label class="form-label">{{ __('Password') }} <span class="text-danger">*</span></label>
           <input type="password" name="password" class="form-control" required></div>
-        <div class="col-md-6"><label class="form-label">{{ __('Confirm password') }} <span class="text-danger">*</span></label>
+        <div class="col-md-6"><label class="form-label">{{ __('Confirm Password') }} <span class="text-danger">*</span></label>
           <input type="password" name="password_confirmation" class="form-control" required></div>
       </div>
       <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Create') }}</button></div>
@@ -63,7 +63,7 @@
     <div class="modal fade" id="editModal{{ $u->id }}" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
       <form method="POST" action="{{ route('admin.users.update', $u->id) }}">
         @csrf @method('PUT')
-        <div class="modal-header"><h5 class="modal-title">{{ __('Edit user') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-header"><h5 class="modal-title">{{ __('Edit User') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body row g-3">
           <div class="col-12"><label class="form-label">{{ __('Name') }} <span class="text-danger">*</span></label>
             <input name="name" class="form-control" value="{{ $u->name }}" required></div>
@@ -87,7 +87,7 @@
           </select>
           <div class="form-text">Changing a role revokes the user's API tokens; they must sign in again.</div>
         </div>
-        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Update role') }}</button></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Update Role') }}</button></div>
       </form>
     </div></div></div>
   @endforeach

@@ -22,16 +22,16 @@
         <select name="audience" class="form-select">@foreach ($audiences as $au)<option value="{{ $au }}" @selected(($isEdit ? $a->audience : old('audience','all'))===$au)>{{ ucfirst($au) }}</option>@endforeach</select></div>
       <div class="col-md-4"><label class="form-label">{{ __('Priority') }}</label>
         <select name="priority" class="form-select">@foreach ($priorities as $p)<option value="{{ $p }}" @selected(($isEdit ? $a->priority : old('priority','normal'))===$p)>{{ ucfirst($p) }}</option>@endforeach</select></div>
-      <div class="col-md-6"><label class="form-label">{{ __('Expire at') }} <span class="text-muted small">(optional)</span></label>
+      <div class="col-md-6"><label class="form-label">{{ __('Expire At') }} <span class="text-muted small">(optional)</span></label>
         <input type="datetime-local" name="expire_at" class="form-control" value="{{ $isEdit && $a->expire_at ? $a->expire_at->format('Y-m-d\TH:i') : '' }}"></div>
       @unless ($isEdit)
-        <div class="col-md-6"><label class="form-label">{{ __('Schedule for') }} <span class="text-muted small">(optional)</span></label>
+        <div class="col-md-6"><label class="form-label">{{ __('Schedule For') }} <span class="text-muted small">(optional)</span></label>
           <input type="datetime-local" name="publish_at" class="form-control"></div>
       @endunless
       <div class="col-12 d-flex gap-4">
-        <div class="form-check"><input type="hidden" name="is_pinned" value="0"><input class="form-check-input" type="checkbox" name="is_pinned" value="1" id="pin{{ $modalId }}" @checked($isEdit ? $a->is_pinned : false)><label class="form-check-label" for="pin{{ $modalId }}">{{ __('Pin to top') }}</label></div>
+        <div class="form-check"><input type="hidden" name="is_pinned" value="0"><input class="form-check-input" type="checkbox" name="is_pinned" value="1" id="pin{{ $modalId }}" @checked($isEdit ? $a->is_pinned : false)><label class="form-check-label" for="pin{{ $modalId }}">{{ __('Pin To Top') }}</label></div>
         @unless ($isEdit)
-          <div class="form-check"><input class="form-check-input" type="checkbox" name="publish_now" value="1" id="pubnow" checked><label class="form-check-label" for="pubnow">{{ __('Publish immediately') }}</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" name="publish_now" value="1" id="pubnow" checked><label class="form-check-label" for="pubnow">{{ __('Publish Immediately') }}</label></div>
         @endunless
       </div>
     </div>

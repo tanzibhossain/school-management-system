@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Mark entry'))
+@section('title', __('Mark Entry'))
 @section('content')
   @php $subjectName = $division->examSubject?->subjectRelation?->subject?->name ?? 'Subject'; @endphp
   @include('admin.partials.page-header', [
@@ -7,7 +7,7 @@
     'crumbs' => ['Academics', 'Exams', $exam->title, 'Marks', $division->name],
   ])
 
-  <div class="mb-3"><a href="{{ route('admin.exam-marks.index', $exam->id) }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back to marks') }}</a></div>
+  <div class="mb-3"><a href="{{ route('admin.exam-marks.index', $exam->id) }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back To Marks') }}</a></div>
 
   @if ($roster->isEmpty())
     <div class="alert alert-warning">No active students found for this exam's class.</div>
@@ -36,7 +36,7 @@
             @endforeach
           </tbody>
         </table>
-        <div class="text-end"><button class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save marks') }}</button></div>
+        <div class="text-end"><button class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save Marks') }}</button></div>
       </div></div>
     </form>
   @endif

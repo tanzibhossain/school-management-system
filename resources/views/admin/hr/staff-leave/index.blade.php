@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Staff leave'))
+@section('title', __('Staff Leave'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'Staff leave requests', 'crumbs' => ['HR', 'Staff leave']])
 
@@ -46,7 +46,7 @@
       <div class="modal fade" id="rejectModal{{ $r->id }}" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
         <form method="POST" action="{{ route('admin.staff-leave.reject', $r->id) }}">
           @csrf @method('PATCH')
-          <div class="modal-header"><h5 class="modal-title">{{ __('Reject leave') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-header"><h5 class="modal-title">{{ __('Reject Leave') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
           <div class="modal-body"><label class="form-label">{{ __('Reason') }}</label><textarea name="reason" rows="2" class="form-control"></textarea></div>
           <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-danger">{{ __('Reject') }}</button></div>
         </form>

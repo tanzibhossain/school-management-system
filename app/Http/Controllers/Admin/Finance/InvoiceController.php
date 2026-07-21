@@ -70,7 +70,7 @@ class InvoiceController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return redirect()->route('admin.invoices.show', $invoice->id)->with('status', __('Invoice generated.'));
+        return redirect()->route('admin.invoices.show', $invoice->id)->with('status', __('Invoice Generated.'));
     }
 
     public function generateBulk(Request $request): RedirectResponse
@@ -138,7 +138,7 @@ class InvoiceController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('status', __('Invoice cancelled.'));
+        return back()->with('status', __('Invoice Cancelled.'));
     }
 
     public function waive(Request $request, int $id): RedirectResponse
@@ -152,7 +152,7 @@ class InvoiceController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('status', __('Invoice waived.'));
+        return back()->with('status', __('Invoice Waived.'));
     }
 
     private function currentClassId(int $schoolId, int $studentId, int $yearId): ?int

@@ -12,7 +12,7 @@
                 <dt class="col-sm-4 text-muted small">{{ __('Admission Number') }}</dt>
                 <dd class="col-sm-8 fw-medium">{{ $student->admission_number }}</dd>
 
-                <dt class="col-sm-4 text-muted small">{{ __('Date of Birth') }}</dt>
+                <dt class="col-sm-4 text-muted small">{{ __('Date Of Birth') }}</dt>
                 <dd class="col-sm-8">{{ $student->dob?->format('M j, Y') }}</dd>
 
                 <dt class="col-sm-4 text-muted small">{{ __('Gender') }}</dt>
@@ -84,7 +84,7 @@
             @else
                 <div class="text-center py-4 text-muted">
                     <i class="bi bi-person-x fs-1 text-slate-300"></i>
-                    <p class="mt-2 mb-0">{{ __('No guardian information') }}</p>
+                    <p class="mt-2 mb-0">{{ __('No Guardian Information') }}</p>
                 </div>
             @endif
         </x-card>
@@ -138,7 +138,7 @@
             @else
                 <div class="text-center py-4 text-muted">
                     <i class="bi bi-mortarboard fs-1 text-slate-300"></i>
-                    <p class="mt-2 mb-0">{{ __('Not currently enrolled') }}</p>
+                    <p class="mt-2 mb-0">{{ __('Not Currently Enrolled') }}</p>
                 </div>
             @endif
         </x-card>

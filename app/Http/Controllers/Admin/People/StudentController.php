@@ -118,7 +118,7 @@ class StudentController extends Controller
             return back()->withInput()->with('error', $e->getMessage());
         }
 
-        return redirect()->route('admin.students.index')->with('status', __('Student enrolled.'));
+        return redirect()->route('admin.students.index')->with('status', __('Student Enrolled.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -136,7 +136,7 @@ class StudentController extends Controller
 
         $student->update($data); // StudentObserver flushes the student cache on saved
 
-        return back()->with('status', __('Student updated.'));
+        return back()->with('status', __('Student Updated.'));
     }
 
     public function deactivate(int $id): RedirectResponse
@@ -145,7 +145,7 @@ class StudentController extends Controller
         $student = Student::where('school_id', $schoolId)->findOrFail($id);
         $this->students->deactivate($student);
 
-        return back()->with('status', __('Student deactivated.'));
+        return back()->with('status', __('Student Deactivated.'));
     }
 
     public function show(int $id): View
@@ -179,6 +179,6 @@ class StudentController extends Controller
 
         $this->students->transfer($student, $reason);
 
-        return back()->with('status', __('Student marked transferred.'));
+        return back()->with('status', __('Student Marked Transferred.'));
     }
 }

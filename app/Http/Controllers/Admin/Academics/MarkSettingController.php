@@ -61,7 +61,7 @@ class MarkSettingController extends Controller
             'show_merit_position' => $request->boolean('show_merit_position'),
         ]);
 
-        return back()->with('status', __('Mark settings saved.'));
+        return back()->with('status', __('Mark Settings Saved.'));
     }
 
     public function applyTemplate(Request $request, int $classId): RedirectResponse

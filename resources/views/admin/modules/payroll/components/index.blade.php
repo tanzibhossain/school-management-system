@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Payroll — components'))
+@section('title', __('Payroll — Components'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Salary components',

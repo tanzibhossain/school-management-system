@@ -47,7 +47,7 @@ class StaffLoanController extends Controller
         $staff = Staff::where('school_id', $schoolId)->findOrFail($data['staff_id']);
         $this->loans->submit($schoolId, $staff, $data, $request->user());
 
-        return back()->with('status', __('Loan request created.'));
+        return back()->with('status', __('Loan Request Created.'));
     }
 
     public function show(int $id): View

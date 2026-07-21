@@ -31,7 +31,7 @@
   <div class="modal fade" id="requestModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.refunds.store') }}" id="refundForm">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('Request refund') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('Request Refund') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
         <div class="col-12"><label class="form-label">{{ __('Payment') }} <span class="text-danger">*</span></label>
           <select name="payment_id" class="form-select js-select" id="refundPayment" required>

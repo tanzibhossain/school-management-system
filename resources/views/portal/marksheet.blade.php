@@ -74,7 +74,7 @@
 
     <table class="summary">
       <tr>
-        <td><span class="k">{{ __('Total marks') }}</span><span class="v">{{ rtrim(rtrim(number_format($result->total_marks, 2), '0'), '.') }} / {{ rtrim(rtrim(number_format($result->total_possible, 2), '0'), '.') }}</span></td>
+        <td><span class="k">{{ __('Total Marks') }}</span><span class="v">{{ rtrim(rtrim(number_format($result->total_marks, 2), '0'), '.') }} / {{ rtrim(rtrim(number_format($result->total_possible, 2), '0'), '.') }}</span></td>
         <td><span class="k">{{ __('Percentage') }}</span><span class="v">{{ number_format($result->percentage, 2) }}%</span></td>
         <td><span class="k">{{ __('GPA') }}</span><span class="v">{{ $result->gpa !== null ? number_format($result->gpa, 2) : '—' }}</span></td>
         <td><span class="k">{{ __('Grade') }}</span><span class="v">{{ $result->grade ?? '—' }}</span></td>

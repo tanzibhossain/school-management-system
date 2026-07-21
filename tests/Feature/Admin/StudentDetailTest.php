@@ -57,7 +57,7 @@ class StudentDetailTest extends TestCase
         $this->get("/admin/students/{$this->student->id}")
             ->assertOk()
             ->assertSee('Rahim Uddin')
-            ->assertSee('Enrolment history')
+            ->assertSee('Enrolment History')
             ->assertSee('Guardians')
             ->assertSee('Karim Uddin')
             ->assertSee('Class 6');

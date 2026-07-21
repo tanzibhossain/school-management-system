@@ -112,7 +112,7 @@
                     {{-- Fallback nav when no menu has been built yet --}}
                     <li class="nav-item"><a class="nav-link" href="{{ route('home') }}">{{ __('Home') }}</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url('/faculty') }}">{{ __('Faculty') }}</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url('/online-admission') }}">{{ __('Online admission') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url('/online-admission') }}">{{ __('Online Admission') }}</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url('/notices') }}">{{ __('Notices') }}</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url('/contact') }}">{{ __('Contact') }}</a></li>
                 @endif

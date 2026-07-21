@@ -45,7 +45,7 @@ class MenuController extends Controller
 
         $this->menus->replaceItems($menu, $items);
 
-        return back()->with('status', __('Menu saved.'));
+        return back()->with('status', __('Menu Saved.'));
     }
 
     /**

@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('New page'))
+@section('title', __('New Page'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'New page', 'crumbs' => ['Website', 'Pages', 'New']])
 
@@ -11,12 +11,12 @@
           <input name="title" class="form-control" value="{{ old('title') }}" required></div>
         <div class="mb-3"><label class="form-label">{{ __('Slug') }}</label>
           <div class="input-group"><span class="input-group-text">/</span>
-            <input name="slug" class="form-control" value="{{ old('slug') }}" placeholder="{{ __('auto from title') }}"></div>
-          <div class="form-text">{{ __('The page URL. Leave blank to generate from the title.') }}</div></div>
+            <input name="slug" class="form-control" value="{{ old('slug') }}" placeholder="{{ __('Auto From Title') }}"></div>
+          <div class="form-text">{{ __('The Page URL. Leave Blank To Generate From The Title.') }}</div></div>
         <div class="mb-3"><label class="form-label">{{ __('Template') }} <span class="text-danger">*</span></label>
           <select name="template" class="form-select" required>
-            <option value="full">{{ __('Full width (no sidebar)') }}</option>
-            <option value="sidebar">{{ __('With sidebar') }}</option>
+            <option value="full">{{ __('Full Width (No Sidebar)') }}</option>
+            <option value="sidebar">{{ __('With Sidebar') }}</option>
           </select></div>
         <button class="btn btn-primary">Create &amp; edit</button>
         <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary">{{ __('Cancel') }}</a>

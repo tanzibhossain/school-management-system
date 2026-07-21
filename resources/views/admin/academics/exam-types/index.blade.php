@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Exam types'))
+@section('title', __('Exam Types'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Exam types',
@@ -32,10 +32,10 @@
   <div class="modal fade" id="createModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.exam-types.store') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('New exam type') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('New Exam Type') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <div class="mb-2"><label class="form-label">{{ __('Name') }} <span class="text-danger">*</span></label>
-          <input name="name" class="form-control" value="{{ old('name') }}" placeholder="{{ __('e.g. Midterm') }}" required></div>
+          <input name="name" class="form-control" value="{{ old('name') }}" placeholder="{{ __('E.g. Midterm') }}" required></div>
         <div><label class="form-label">{{ __('Description') }}</label>
           <input name="description" class="form-control" value="{{ old('description') }}"></div>
       </div>
@@ -47,7 +47,7 @@
     <div class="modal fade" id="editModal{{ $t->id }}" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
       <form method="POST" action="{{ route('admin.exam-types.update', $t->id) }}">
         @csrf @method('PUT')
-        <div class="modal-header"><h5 class="modal-title">{{ __('Edit exam type') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-header"><h5 class="modal-title">{{ __('Edit Exam Type') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body">
           <div class="mb-2"><label class="form-label">{{ __('Name') }} <span class="text-danger">*</span></label>
             <input name="name" class="form-control" value="{{ $t->name }}" required></div>

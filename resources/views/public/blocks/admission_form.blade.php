@@ -16,7 +16,7 @@ $enabledCustom = array_filter($custom, fn($cfg) => !empty($cfg['enabled']));
     <p class="text-muted mb-3"><?= e($d['intro']) ?></p>
   <?php endif; ?>
   <?php if (session('admission_reference')): ?>
-    <div class="alert alert-success"><i class="bi bi-check-circle"></i> {{ __('Application submitted. Your reference number is') }} <strong><?= e(session('admission_reference')) ?></strong> — please keep it safe.</div>
+    <div class="alert alert-success"><i class="bi bi-check-circle"></i> {{ __('Application Submitted. Your Reference Number Is') }} <strong><?= e(session('admission_reference')) ?></strong> — please keep it safe.</div>
   <?php endif; ?>
   <?php if ($errors->any()): ?>
     <div class="alert alert-danger"><ul class="mb-0"><?php foreach($errors->all() as $e): ?><li><?= e($e) ?></li><?php endforeach; ?></ul></div>
@@ -24,9 +24,9 @@ $enabledCustom = array_filter($custom, fn($cfg) => !empty($cfg['enabled']));
   <form method="POST" action="<?= route('admission.submit') ?>" enctype="multipart/form-data" class="card"><div class="card-body">
     <?= csrf_field() ?>
     {{-- Student --}}
-    <h3 class="text-uppercase text-muted small fw-semibold">{{ __('Student information') }}</h3>
+    <h3 class="text-uppercase text-muted small fw-semibold">{{ __('Student Information') }}</h3>
     <div class="row g-3 mb-3">
-      <div class="col-md-4"><label class="form-label">{{ __('First name') }} <span class="text-danger">*</span></label>
+      <div class="col-md-4"><label class="form-label">{{ __('First Name') }} <span class="text-danger">*</span></label>
         <input name="first_name" class="form-control" value="<?= e(old('first_name')) ?>" required></div>
       <?php if ($show('last_name')): ?>
         <div class="col-md-4">
@@ -34,10 +34,10 @@ $enabledCustom = array_filter($custom, fn($cfg) => !empty($cfg['enabled']));
           <input name="last_name" class="form-control" value="<?= e(old('last_name')) ?>" <?php if ($isRequired('last_name')) echo 'required'; ?>>
         </div>
       <?php endif; ?>
-      <div class="col-md-4"><label class="form-label">{{ __('Date of birth') }} <span class="text-danger">*</span></label>
+      <div class="col-md-4"><label class="form-label">{{ __('Date Of Birth') }} <span class="text-danger">*</span></label>
         <input type="date" name="dob" class="form-control" value="<?= e(old('dob')) ?>" required>
-        <div class="form-text">{{ __('Must fall within the age range set for the selected class.') }}</div></div>
-      <div class="col-md-4"><label class="form-label">{{ __('Birth certificate no.') }} <span class="text-danger">*</span></label>
+        <div class="form-text">{{ __('Must Fall Within The Age Range Set For The Selected Class.') }}</div></div>
+      <div class="col-md-4"><label class="form-label">{{ __('Birth Certificate No.') }} <span class="text-danger">*</span></label>
         <input name="birth_certificate_no" class="form-control" value="<?= e(old('birth_certificate_no')) ?>" required></div>
       <div class="col-md-4"><label class="form-label">{{ __('Gender') }} <span class="text-danger">*</span></label>
         <select name="gender" class="form-select" required><option value="">—</option>
@@ -61,13 +61,13 @@ $enabledCustom = array_filter($custom, fn($cfg) => !empty($cfg['enabled']));
           </select>
         </div>
       <?php endif; ?>
-      <div class="col-md-4"><label class="form-label">{{ __('Class applying for') }} <span class="text-danger">*</span></label>
+      <div class="col-md-4"><label class="form-label">{{ __('Class Applying For') }} <span class="text-danger">*</span></label>
         <select name="desired_class_id" class="form-select" required><option value="">— Select class —</option>
           <?php foreach(($d['classes'] ?? []) as $c): ?>
             <option value="<?= e($c->id) ?>" <?php if ((string)old('desired_class_id') === (string)$c->id) echo 'selected'; ?>><?= e($c->name) ?></option>
           <?php endforeach; ?>
         </select></div>
-      <div class="col-md-4"><label class="form-label">{{ __('Academic year') }} <span class="text-danger">*</span></label>
+      <div class="col-md-4"><label class="form-label">{{ __('Academic Year') }} <span class="text-danger">*</span></label>
         <select name="desired_academic_year_id" class="form-select" required><option value="">— Select year —</option>
           <?php foreach(($d['years'] ?? []) as $y): ?>
             <option value="<?= e($y->id) ?>" <?php if ((string)old('desired_academic_year_id') === (string)$y->id) echo 'selected'; ?>><?= e($y->year) ?></option>
@@ -75,7 +75,7 @@ $enabledCustom = array_filter($custom, fn($cfg) => !empty($cfg['enabled']));
         </select></div>
       <div class="col-md-4"><label class="form-label">{{ __('GPA') }} <span class="text-danger">*</span></label>
         <input name="gpa" class="form-control" value="<?= e(old('gpa')) ?>" required></div>
-      <div class="col-md-8"><label class="form-label">{{ __('Previous school') }} <span class="text-danger">*</span></label>
+      <div class="col-md-8"><label class="form-label">{{ __('Previous School') }} <span class="text-danger">*</span></label>
         <input name="previous_school" class="form-control" value="<?= e(old('previous_school')) ?>" required></div>
       <?php if ($show('student_phone')): ?>
         <div class="col-md-4">
@@ -93,7 +93,7 @@ $enabledCustom = array_filter($custom, fn($cfg) => !empty($cfg['enabled']));
     </div>
 
     {{-- Parents --}}
-    <h3 class="text-uppercase text-muted small fw-semibold">{{ __('Parent information') }}</h3>
+    <h3 class="text-uppercase text-muted small fw-semibold">{{ __('Parent Information') }}</h3>
     <div class="row g-3 mb-3">
       <div class="col-md-4"><label class="form-label">Father's name <span class="text-danger">*</span></label>
         <input name="father_name" class="form-control" value="<?= e(old('father_name')) ?>" required></div>
@@ -109,17 +109,17 @@ $enabledCustom = array_filter($custom, fn($cfg) => !empty($cfg['enabled']));
 
     {{-- Guardian --}}
     <?php if ($show('guardian')): ?>
-    <h3 class="text-uppercase text-muted small fw-semibold">{{ __('Guardian information') }}</h3>
+    <h3 class="text-uppercase text-muted small fw-semibold">{{ __('Guardian Information') }}</h3>
     <div class="row g-3 mb-3">
-      <div class="col-md-3"><label class="form-label">{{ __('Guardian type') }} <span class="text-danger">*</span></label>
+      <div class="col-md-3"><label class="form-label">{{ __('Guardian Type') }} <span class="text-danger">*</span></label>
         <select name="guardian_type" class="form-select" required>
           <?php foreach(['father'=>'Father','mother'=>'Mother','other'=>'Other'] as $v=>$l): ?>
             <option value="<?= e($v) ?>" <?php if (old('guardian_type', 'father') === $v) echo 'selected'; ?>><?= e($l) ?></option>
           <?php endforeach; ?>
         </select></div>
-      <div class="col-md-3"><label class="form-label">{{ __('Guardian name') }}</label>
-        <input name="guardian_name" class="form-control" value="<?= e(old('guardian_name')) ?>" placeholder="{{ __('If other than parent') }}"></div>
-      <div class="col-md-3"><label class="form-label">{{ __('Guardian phone') }}</label>
+      <div class="col-md-3"><label class="form-label">{{ __('Guardian Name') }}</label>
+        <input name="guardian_name" class="form-control" value="<?= e(old('guardian_name')) ?>" placeholder="{{ __('If Other Than Parent') }}"></div>
+      <div class="col-md-3"><label class="form-label">{{ __('Guardian Phone') }}</label>
         <input name="guardian_phone" class="form-control" value="<?= e(old('guardian_phone')) ?>"></div>
       <div class="col-md-3"><label class="form-label">{{ __('Relationship') }}</label>
         <input name="guardian_relationship" class="form-control" value="<?= e(old('guardian_relationship')) ?>"></div>
@@ -131,12 +131,12 @@ $enabledCustom = array_filter($custom, fn($cfg) => !empty($cfg['enabled']));
     {{-- Address --}}
     <h3 class="text-uppercase text-muted small fw-semibold">{{ __('Address') }}</h3>
     <div class="row g-3 mb-3">
-      <div class="col-12"><label class="form-label">{{ __('Present address') }} <span class="text-danger">*</span></label>
+      <div class="col-12"><label class="form-label">{{ __('Present Address') }} <span class="text-danger">*</span></label>
         <textarea name="present_address" rows="2" class="form-control" required><?= e(old('present_address')) ?></textarea></div>
       <?php if ($show('permanent_address')): ?>
       <div class="col-12">
         <div class="form-check mb-1"><input type="hidden" name="is_permanent_same" value="0"><input class="form-check-input" type="checkbox" name="is_permanent_same" value="1" id="permsame" <?php if (old('is_permanent_same')) echo 'checked'; ?>>
-          <label class="form-check-label" for="permsame">{{ __('Permanent address same as present') }}</label></div>
+          <label class="form-check-label" for="permsame">{{ __('Permanent Address Same As Present') }}</label></div>
         <label class="form-label"><?= $getLabel('permanent_address', 'Permanent address') ?> <?php if ($isRequired('permanent_address')): ?><span class="text-danger">*</span><?php endif; ?></label>
         <textarea name="permanent_address" rows="2" class="form-control" <?php if ($isRequired('permanent_address')) echo 'required'; ?>><?= e(old('permanent_address')) ?></textarea></div>
       <?php endif; ?>
@@ -148,7 +148,7 @@ $enabledCustom = array_filter($custom, fn($cfg) => !empty($cfg['enabled']));
 
     {{-- Custom fields --}}
     <?php if (!empty($enabledCustom)): ?>
-    <h3 class="text-uppercase text-muted small fw-semibold">{{ __('Additional information') }}</h3>
+    <h3 class="text-uppercase text-muted small fw-semibold">{{ __('Additional Information') }}</h3>
     <div class="row g-3 mb-3">
         <?php foreach($enabledCustom as $key => $cfg): ?>
             <?php
@@ -185,6 +185,6 @@ $enabledCustom = array_filter($custom, fn($cfg) => !empty($cfg['enabled']));
     </div>
     <?php endif; ?>
 
-    <button class="btn btn-brand"><i class="bi bi-send"></i> {{ __('Submit application') }}</button>
+    <button class="btn btn-brand"><i class="bi bi-send"></i> {{ __('Submit Application') }}</button>
   </div></form>
 <?= $close ?>

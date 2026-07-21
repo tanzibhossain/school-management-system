@@ -124,6 +124,6 @@ class CommsReportsAreaTest extends TestCase
     public function test_outstanding_dues_report_loads_with_summary(): void
     {
         $this->actingAs($this->admin);
-        $this->get('/admin/reports/outstanding-dues')->assertOk()->assertSee('Students with dues');
+        $this->get('/admin/reports/outstanding-dues')->assertOk()->assertSee('Students With Dues');
     }
 }

@@ -9,12 +9,12 @@
       </h1>
       <div class="text-muted small mt-1">{{ $exam->schoolClass?->name }} · {{ $exam->examType?->name }}</div>
     </div>
-    <a class="btn btn-outline-secondary" href="{{ route('admin.exam-marks.index', $exam->id) }}"><i class="bi bi-arrow-left"></i> {{ __('Back to marks') }}</a>
+    <a class="btn btn-outline-secondary" href="{{ route('admin.exam-marks.index', $exam->id) }}"><i class="bi bi-arrow-left"></i> {{ __('Back To Marks') }}</a>
   </div>
 
   <div class="card"><div class="card-body">
     @if ($rows->isEmpty())
-      <p class="text-muted mb-0">{{ __('No results yet — calculate results first.') }}</p>
+      <p class="text-muted mb-0">{{ __('No Results Yet — Calculate Results First.') }}</p>
     @else
       <table class="table table-hover align-middle w-100 js-dt">
         <thead><tr><th>{{ __('Merit') }}</th><th>{{ __('Student') }}</th><th class="text-end">{{ __('Total') }}</th><th class="text-end">%</th><th>{{ __('Grade') }}</th><th class="text-end">{{ __('GPA') }}</th><th>{{ __('Result') }}</th></tr></thead>

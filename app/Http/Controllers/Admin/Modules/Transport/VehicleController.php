@@ -24,7 +24,7 @@ class VehicleController extends Controller
     {
         $this->vehicles->make(app('current_school_id'), $this->validated($request));
 
-        return back()->with('status', __('Vehicle added.'));
+        return back()->with('status', __('Vehicle Added.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -32,7 +32,7 @@ class VehicleController extends Controller
         $vehicle = TransportVehicle::where('school_id', app('current_school_id'))->findOrFail($id);
         $this->vehicles->modify($vehicle, $this->validated($request));
 
-        return back()->with('status', __('Vehicle updated.'));
+        return back()->with('status', __('Vehicle Updated.'));
     }
 
     /**

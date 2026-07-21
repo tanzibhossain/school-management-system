@@ -87,6 +87,6 @@ class PaymentConfigController extends Controller
 
         $config->save();
 
-        return back()->with('status', __('Payment configuration saved.'));
+        return back()->with('status', __('Payment Configuration Saved.'));
     }
 }

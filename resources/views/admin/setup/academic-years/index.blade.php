@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Academic years'))
+@section('title', __('Academic Years'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Academic years',
@@ -25,7 +25,7 @@
               @unless ($y->is_current)
                 <form method="POST" action="{{ route('admin.academic-years.set-current', $y->id) }}" class="d-inline">
                   @csrf
-                  <button class="btn btn-sm btn-outline-success">{{ __('Set current') }}</button>
+                  <button class="btn btn-sm btn-outline-success">{{ __('Set Current') }}</button>
                 </form>
               @endunless
               <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ $y->id }}">{{ __('Edit') }}</button>
@@ -46,10 +46,10 @@
   <div class="modal fade" id="createModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.academic-years.store') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('New academic year') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('New Academic Year') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <label class="form-label">{{ __('Year') }} <span class="text-danger">*</span></label>
-        <input name="year" class="form-control" value="{{ old('year') }}" placeholder="{{ __('e.g. 2026 or 2026-2027') }}" required>
+        <input name="year" class="form-control" value="{{ old('year') }}" placeholder="{{ __('E.g. 2026 Or 2026-2027') }}" required>
         <div class="form-text">Format follows your school's academic-year pattern.</div>
       </div>
       <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Save') }}</button></div>
@@ -61,7 +61,7 @@
     <div class="modal fade" id="editModal{{ $y->id }}" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
       <form method="POST" action="{{ route('admin.academic-years.update', $y->id) }}">
         @csrf @method('PUT')
-        <div class="modal-header"><h5 class="modal-title">{{ __('Edit academic year') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-header"><h5 class="modal-title">{{ __('Edit Academic Year') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body">
           <label class="form-label">{{ __('Year') }} <span class="text-danger">*</span></label>
           <input name="year" class="form-control" value="{{ $y->year }}" required>

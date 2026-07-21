@@ -3,8 +3,8 @@
   <div class="card-header py-1 px-2 d-flex justify-content-between align-items-center">
     <span class="small fw-semibold">{{ $label }}</span>
     <span class="btn-group btn-group-sm">
-      <button type="button" class="btn btn-outline-secondary js-up" title="{{ __('Move up') }}"><i class="bi bi-arrow-up"></i></button>
-      <button type="button" class="btn btn-outline-secondary js-down" title="{{ __('Move down') }}"><i class="bi bi-arrow-down"></i></button>
+      <button type="button" class="btn btn-outline-secondary js-up" title="{{ __('Move Up') }}"><i class="bi bi-arrow-up"></i></button>
+      <button type="button" class="btn btn-outline-secondary js-down" title="{{ __('Move Down') }}"><i class="bi bi-arrow-down"></i></button>
       <button type="button" class="btn btn-outline-danger js-remove" title="{{ __('Remove') }}"><i class="bi bi-trash"></i></button>
     </span>
   </div>

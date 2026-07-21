@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Leave types'))
+@section('title', __('Leave Types'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Leave types',
@@ -9,7 +9,7 @@
 
   <div class="card"><div class="card-body">
     <table class="table table-hover align-middle w-100 js-dt">
-      <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Applies to') }}</th><th>{{ __('Max days/yr') }}</th><th>{{ __('Attachment') }}</th><th>{{ __('Paid') }}</th><th>{{ __('Status') }}</th><th class="text-end" data-orderable="false">{{ __('Actions') }}</th></tr></thead>
+      <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Applies To') }}</th><th>{{ __('Max Days/yr') }}</th><th>{{ __('Attachment') }}</th><th>{{ __('Paid') }}</th><th>{{ __('Status') }}</th><th class="text-end" data-orderable="false">{{ __('Actions') }}</th></tr></thead>
       <tbody>
         @foreach ($types as $t)
           <tr>

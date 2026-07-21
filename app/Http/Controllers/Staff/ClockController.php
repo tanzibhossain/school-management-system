@@ -42,7 +42,7 @@ class ClockController extends Controller
 
         $this->attendance->punchStaff($sid, $staff, 'manual');
 
-        return back()->with('status', __('Attendance recorded.'));
+        return back()->with('status', __('Attendance Recorded.'));
     }
 
     private function today(int $sid): string

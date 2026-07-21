@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Student credit'))
+@section('title', __('Student Credit'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'Student credit', 'crumbs' => ['Finance', 'Student credit']])
 
@@ -9,7 +9,7 @@
         <option value="">— select —</option>
         @foreach ($students as $s)<option value="{{ $s->id }}" @selected($student && $student->id === $s->id)>{{ $s->name }} ({{ $s->student_id }})</option>@endforeach
       </select></div>
-    <div class="col-sm-3"><button class="btn btn-sm btn-primary">{{ __('View ledger') }}</button></div>
+    <div class="col-sm-3"><button class="btn btn-sm btn-primary">{{ __('View Ledger') }}</button></div>
   </div></form>
 
   @if ($student)
@@ -35,7 +35,7 @@
 
     <div class="card"><div class="card-body">
       @if ($transactions->isEmpty())
-        <p class="text-muted mb-0">{{ __('No credit transactions.') }}</p>
+        <p class="text-muted mb-0">{{ __('No Credit Transactions.') }}</p>
       @else
         <table class="table table-hover align-middle w-100 js-dt">
           <thead><tr><th>{{ __('Date') }}</th><th>{{ __('Type') }}</th><th class="text-end">{{ __('Amount') }}</th><th>{{ __('Reference') }}</th><th>{{ __('Note') }}</th></tr></thead>
@@ -57,6 +57,6 @@
       @endif
     </div></div>
   @else
-    <div class="alert alert-info">{{ __('Select a student to view their credit ledger.') }}</div>
+    <div class="alert alert-info">{{ __('Select A Student To View Their Credit Ledger.') }}</div>
   @endif
 @endsection

@@ -92,7 +92,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center py-4 text-muted">{{ __('No invoices found') }}</td>
+                                <td colspan="8" class="text-center py-4 text-muted">{{ __('No Invoices Found') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -140,7 +140,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">{{ __('No payments found') }}</td>
+                                <td colspan="7" class="text-center py-4 text-muted">{{ __('No Payments Found') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

@@ -37,13 +37,13 @@
             </div>
           </div>
         @empty
-          <p class="text-muted text-center py-4 mb-0">{{ __('No messages yet.') }}</p>
+          <p class="text-muted text-center py-4 mb-0">{{ __('No Messages Yet.') }}</p>
         @endforelse
       </div></div>
 
       @if ($isParticipant)
         @if ($thread->is_locked)
-          <div class="alert alert-secondary mt-3 mb-0"><i class="bi bi-lock"></i> {{ __('This conversation is locked — no new replies can be posted.') }}</div>
+          <div class="alert alert-secondary mt-3 mb-0"><i class="bi bi-lock"></i> {{ __('This Conversation Is Locked — No New Replies Can Be Posted.') }}</div>
         @else
           <form method="POST" action="{{ route('admin.messages.reply', $thread->id) }}" class="card mt-3"><div class="card-body">
             @csrf
@@ -54,7 +54,7 @@
           </div></form>
         @endif
       @else
-        <div class="alert alert-info mt-3 mb-0"><i class="bi bi-eye"></i> {{ __('You are viewing this as an admin (oversight). You are not a participant, so you cannot reply.') }}</div>
+        <div class="alert alert-info mt-3 mb-0"><i class="bi bi-eye"></i> {{ __('You Are Viewing This As An Admin (Oversight). You Are Not A Participant, So You Cannot Reply.') }}</div>
       @endif
     </div>
 

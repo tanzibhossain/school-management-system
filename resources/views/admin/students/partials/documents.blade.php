@@ -7,8 +7,8 @@
                 @csrf
                 <div class="dropzone-content text-center py-5">
                     <i class="bi bi-cloud-upload fs-1 text-muted mb-3"></i>
-                    <p class="text-muted mb-3">{{ __('Drag and drop files here, or click to browse') }}</p>
-                    <p class="text-xs text-muted mb-3">{{ __('Supported: PDF, JPG, PNG, DOC, DOCX (Max 10MB each)') }}</p>
+                    <p class="text-muted mb-3">{{ __('Drag And Drop Files Here, Or Click To Browse') }}</p>
+                    <p class="text-xs text-muted mb-3">{{ __('Supported: PDF, JPG, PNG, DOC, DOCX (Max 10MB Each)') }}</p>
                     <button type="button" class="btn btn-primary" id="browse-files">
                         <i class="bi bi-folder-plus me-1"></i> Browse Files
                     </button>
@@ -95,7 +95,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">{{ __('No documents uploaded yet') }}</td>
+                                <td colspan="7" class="text-center py-4 text-muted">{{ __('No Documents Uploaded Yet') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -110,9 +110,9 @@
     <div class="col-12">
         <div class="bulk-actions d-flex align-items-center gap-2" style="display: none;">
             <select class="form-select form-select-sm bulk-action-select" style="width: auto;">
-                <option value="">{{ __('Bulk actions...') }}</option>
-                <option value="delete">{{ __('Delete selected') }}</option>
-                <option value="download">{{ __('Download selected') }}</option>
+                <option value="">{{ __('Bulk Actions...') }}</option>
+                <option value="delete">{{ __('Delete Selected') }}</option>
+                <option value="download">{{ __('Download Selected') }}</option>
             </select>
             <button type="button" class="btn btn-sm btn-primary bulk-action-apply" disabled>{{ __('Apply') }}</button>
             <span class="bulk-count text-muted small d-none"></span>

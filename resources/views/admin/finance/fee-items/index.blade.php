@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Fee items'))
+@section('title', __('Fee Items'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Fee items',

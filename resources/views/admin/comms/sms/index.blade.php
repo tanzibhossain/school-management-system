@@ -32,10 +32,10 @@
       @csrf
       <div class="modal-header"><h5 class="modal-title">{{ __('Compose SMS') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
-        <div class="col-md-4"><label class="form-label">{{ __('Send to') }} <span class="text-danger">*</span></label>
+        <div class="col-md-4"><label class="form-label">{{ __('Send To') }} <span class="text-danger">*</span></label>
           <select name="scope" id="smsScope" class="form-select" required>
-            <option value="all">{{ __('All active students') }}</option>
-            <option value="class">{{ __('A class') }}</option>
+            <option value="all">{{ __('All Active Students') }}</option>
+            <option value="class">{{ __('A Class') }}</option>
           </select></div>
         <div class="col-md-4 sms-class d-none"><label class="form-label">{{ __('Class') }}</label>
           <select name="class_id" id="smsClass" class="form-select">
@@ -43,10 +43,10 @@
             @foreach ($classes as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
           </select></div>
         <div class="col-md-4 sms-class d-none"><label class="form-label">{{ __('Section') }} <span class="text-muted small">(optional)</span></label>
-          <select name="section_id" id="smsSection" class="form-select" data-sel=""><option value="">{{ __('All sections') }}</option></select></div>
+          <select name="section_id" id="smsSection" class="form-select" data-sel=""><option value="">{{ __('All Sections') }}</option></select></div>
         <div class="col-12"><label class="form-label">{{ __('Message') }} <span class="text-danger">*</span></label>
           <textarea name="body" id="smsBody" rows="4" class="form-control" maxlength="1000" required></textarea>
-          <div class="form-text"><span id="smsChars">0</span> {{ __('characters') }}</div></div>
+          <div class="form-text"><span id="smsChars">0</span> {{ __('Characters') }}</div></div>
       </div>
       <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Send') }}</button></div>
     </form>

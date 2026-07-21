@@ -37,7 +37,7 @@
         @if(!$value && $placeholder)
             <span class="text-muted small ms-1">({{ $placeholder }})</span>
         @endif
-        <span class="inline-edit-trigger ms-1" title="{{ __('Click to edit') }}" aria-label="Edit {{ $field }}">
+        <span class="inline-edit-trigger ms-1" title="{{ __('Click To Edit') }}" aria-label="Edit {{ $field }}">
             <i class="bi bi-pencil text-muted"></i>
         </span>
     </div>

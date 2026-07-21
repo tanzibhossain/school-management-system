@@ -1,9 +1,9 @@
 @extends('layouts.admin')
-@section('title', __('Enrol student'))
+@section('title', __('Enrol Student'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'Enrol student', 'crumbs' => ['People', 'Students', 'Enrol']])
 
-  <div class="mb-3"><a href="{{ route('admin.students.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back to students') }}</a></div>
+  <div class="mb-3"><a href="{{ route('admin.students.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back To Students') }}</a></div>
 
   <form method="POST" action="{{ route('admin.students.store') }}">
     @csrf
@@ -19,9 +19,9 @@
                 <option value="{{ $v }}" @selected(old('gender')===$v)>{{ $l }}</option>
               @endforeach
             </select></div>
-          <div class="col-md-4"><label class="form-label">{{ __('Date of birth') }}</label>
+          <div class="col-md-4"><label class="form-label">{{ __('Date Of Birth') }}</label>
             <input type="date" name="dob" class="form-control" value="{{ old('dob') }}"></div>
-          <div class="col-md-4"><label class="form-label">{{ __('Blood group') }}</label>
+          <div class="col-md-4"><label class="form-label">{{ __('Blood Group') }}</label>
             <select name="blood_group" class="form-select">
               <option value="">—</option>
               @foreach (['A+','A-','B+','B-','AB+','AB-','O+','O-'] as $bg)
@@ -30,11 +30,11 @@
             </select></div>
           <div class="col-md-4"><label class="form-label">{{ __('Religion') }}</label>
             <input name="religion" class="form-control" value="{{ old('religion') }}"></div>
-          <div class="col-md-6"><label class="form-label">{{ __('Admission number') }} <span class="text-danger">*</span></label>
+          <div class="col-md-6"><label class="form-label">{{ __('Admission Number') }} <span class="text-danger">*</span></label>
             <input name="admission_number" class="form-control" value="{{ old('admission_number') }}" required></div>
         </div></div>
 
-        <div class="card mt-4"><div class="card-header">{{ __('Primary guardian') }} <span class="text-muted small">(optional)</span></div><div class="card-body row g-3">
+        <div class="card mt-4"><div class="card-header">{{ __('Primary Guardian') }} <span class="text-muted small">(optional)</span></div><div class="card-body row g-3">
           <div class="col-md-7"><label class="form-label">{{ __('Name') }}</label>
             <input name="guardian_name" class="form-control" value="{{ old('guardian_name') }}"></div>
           <div class="col-md-5"><label class="form-label">{{ __('Relation') }}</label>
@@ -51,8 +51,8 @@
       </div>
 
       <div class="col-lg-6">
-        <div class="card"><div class="card-header">{{ __('Academic placement') }}</div><div class="card-body row g-3">
-          <div class="col-md-6"><label class="form-label">{{ __('Academic year') }} <span class="text-danger">*</span></label>
+        <div class="card"><div class="card-header">{{ __('Academic Placement') }}</div><div class="card-body row g-3">
+          <div class="col-md-6"><label class="form-label">{{ __('Academic Year') }} <span class="text-danger">*</span></label>
             <select name="academic_year_id" class="form-select" required>
               <option value="">— select —</option>
               @foreach ($years as $y)
@@ -70,7 +70,7 @@
             <select name="section_id" id="section_id" class="form-select" required data-old="{{ old('section_id') }}">
               <option value="">— select class first —</option>
             </select></div>
-          <div class="col-md-6"><label class="form-label">{{ __('Roll number') }}</label>
+          <div class="col-md-6"><label class="form-label">{{ __('Roll Number') }}</label>
             <input name="roll_number" class="form-control" value="{{ old('roll_number') }}"></div>
           <div class="col-md-4"><label class="form-label">{{ __('Version') }}</label>
             <select name="version_id" class="form-select"><option value="">—</option>
@@ -88,7 +88,7 @@
       </div>
     </div>
 
-    <div class="mt-4"><button class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ __('Enrol student') }}</button></div>
+    <div class="mt-4"><button class="btn btn-primary"><i class="bi bi-check-lg"></i> {{ __('Enrol Student') }}</button></div>
   </form>
 
   @push('scripts')

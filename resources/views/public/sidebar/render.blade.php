@@ -44,7 +44,7 @@
           <div class="text-muted">{{ optional($n->publish_at ?? $n->created_at)->format('d M Y') }}</div>
         </div>
       @empty
-        <p class="text-muted small mb-0">{{ __('No notices.') }}</p>
+        <p class="text-muted small mb-0">{{ __('No Notices.') }}</p>
       @endforelse
     </div></div>
     @break

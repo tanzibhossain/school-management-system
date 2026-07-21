@@ -35,7 +35,7 @@ class CourseController extends Controller
     {
         $this->courses->create(app('current_school_id'), $this->validated($request));
 
-        return back()->with('status', __('Course created.'));
+        return back()->with('status', __('Course Created.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -43,7 +43,7 @@ class CourseController extends Controller
         $course = Course::where('school_id', app('current_school_id'))->findOrFail($id);
         $this->courses->update($course, $this->validated($request));
 
-        return back()->with('status', __('Course updated.'));
+        return back()->with('status', __('Course Updated.'));
     }
 
     public function destroy(int $id): RedirectResponse
@@ -51,7 +51,7 @@ class CourseController extends Controller
         $course = Course::where('school_id', app('current_school_id'))->findOrFail($id);
         $this->courses->delete($course);
 
-        return redirect()->route('admin.lms.courses.index')->with('status', __('Course deleted.'));
+        return redirect()->route('admin.lms.courses.index')->with('status', __('Course Deleted.'));
     }
 
     public function show(int $id): View

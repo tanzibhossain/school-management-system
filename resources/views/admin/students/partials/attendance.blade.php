@@ -82,7 +82,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="text-center py-4 text-muted">{{ __('No attendance records found') }}</td>
+                                <td colspan="4" class="text-center py-4 text-muted">{{ __('No Attendance Records Found') }}</td>
                             </tr>
                         @endforelse
                     </tbody>

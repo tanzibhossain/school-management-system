@@ -1,10 +1,10 @@
 @extends('layouts.admin')
-@section('title', __('Routine setup'))
+@section('title', __('Routine Setup'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'Routine setup', 'crumbs' => ['Setup', 'Routine setup']])
 
   <ul class="nav nav-pills mb-3">
-    <li class="nav-item"><a class="nav-link" href="{{ route('admin.routine.index') }}">{{ __('Class routine') }}</a></li>
+    <li class="nav-item"><a class="nav-link" href="{{ route('admin.routine.index') }}">{{ __('Class Routine') }}</a></li>
     <li class="nav-item"><a class="nav-link active" href="{{ route('admin.routine-setup.index') }}">Periods &amp; rooms</a></li>
   </ul>
 
@@ -27,7 +27,7 @@
                 <td class="text-end"><form method="POST" action="{{ route('admin.routine-setup.periods.destroy', $p->id) }}" onsubmit="return confirm('Remove?')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger">✕</button></form></td>
               </tr>
             @empty
-              <tr><td class="text-muted">{{ __('No periods yet.') }}</td></tr>
+              <tr><td class="text-muted">{{ __('No Periods Yet.') }}</td></tr>
             @endforelse
           </tbody>
         </table>
@@ -50,7 +50,7 @@
                 <td class="text-end"><form method="POST" action="{{ route('admin.routine-setup.rooms.destroy', $r->id) }}" onsubmit="return confirm('Remove?')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger">✕</button></form></td>
               </tr>
             @empty
-              <tr><td class="text-muted">{{ __('No rooms yet.') }}</td></tr>
+              <tr><td class="text-muted">{{ __('No Rooms Yet.') }}</td></tr>
             @endforelse
           </tbody>
         </table>

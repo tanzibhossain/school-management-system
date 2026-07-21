@@ -28,11 +28,11 @@
       <div class="card"><div class="card-body">
         <div class="row g-3 mb-3">
           <div class="col-md-3"><span class="text-muted small">{{ __('Gender') }}</span><br><span class="text-capitalize">{{ $student->gender }}</span></div>
-          <div class="col-md-3"><span class="text-muted small">{{ __('Date of birth') }}</span><br>{{ optional($student->dob)->format('d M Y') ?? '—' }}</div>
-          <div class="col-md-3"><span class="text-muted small">{{ __('Blood group') }}</span><br>{{ $student->blood_group ?? '—' }}</div>
+          <div class="col-md-3"><span class="text-muted small">{{ __('Date Of Birth') }}</span><br>{{ optional($student->dob)->format('d M Y') ?? '—' }}</div>
+          <div class="col-md-3"><span class="text-muted small">{{ __('Blood Group') }}</span><br>{{ $student->blood_group ?? '—' }}</div>
           <div class="col-md-3"><span class="text-muted small">{{ __('Religion') }}</span><br>{{ $student->religion ?? '—' }}</div>
         </div>
-        <h2 class="h6">{{ __('Enrolment history') }}</h2>
+        <h2 class="h6">{{ __('Enrolment History') }}</h2>
         <table class="table align-middle mb-0">
           <thead><tr><th>{{ __('Year') }}</th><th>{{ __('Class') }}</th><th>{{ __('Section') }}</th><th>{{ __('Roll') }}</th><th>{{ __('Current') }}</th></tr></thead>
           <tbody>
@@ -45,7 +45,7 @@
                 <td>@if ($a->is_current)<span class="badge text-bg-success">{{ __('Current') }}</span>@endif</td>
               </tr>
             @empty
-              <tr><td colspan="5" class="text-muted">{{ __('No enrolment records.') }}</td></tr>
+              <tr><td colspan="5" class="text-muted">{{ __('No Enrolment Records.') }}</td></tr>
             @endforelse
           </tbody>
         </table>
@@ -55,7 +55,7 @@
     <div class="tab-pane fade" id="tab-guardians">
       <div class="card"><div class="card-body">
         @if ($student->guardians->isEmpty())
-          <p class="text-muted mb-0">{{ __('No guardians recorded.') }}</p>
+          <p class="text-muted mb-0">{{ __('No Guardians Recorded.') }}</p>
         @else
           <table class="table align-middle mb-0">
             <thead><tr><th>{{ __('Name') }}</th><th>{{ __('Relation') }}</th><th>{{ __('Phone') }}</th><th>{{ __('Email') }}</th><th>{{ __('Primary') }}</th></tr></thead>
@@ -78,7 +78,7 @@
     <div class="tab-pane fade" id="tab-subjects">
       <div class="card"><div class="card-body">
         @if ($subjects->isEmpty())
-          <p class="text-muted mb-0">{{ __('No optional/4th-subject enrolments.') }}</p>
+          <p class="text-muted mb-0">{{ __('No Optional/4th-subject Enrolments.') }}</p>
         @else
           <table class="table align-middle mb-0">
             <thead><tr><th>{{ __('Subject') }}</th><th>{{ __('Optional') }}</th></tr></thead>
@@ -104,7 +104,7 @@
     <div class="tab-pane fade" id="tab-invoices">
       <div class="card"><div class="card-body">
         @if ($invoices->isEmpty())
-          <p class="text-muted mb-0">{{ __('No invoices.') }}</p>
+          <p class="text-muted mb-0">{{ __('No Invoices.') }}</p>
         @else
           @php $m = ['paid'=>'success','partial'=>'warning','unpaid'=>'secondary','cancelled'=>'dark','waived'=>'info']; @endphp
           <table class="table table-hover align-middle mb-0">
@@ -130,8 +130,8 @@
     <div class="modal fade" id="transferModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
       <form method="POST" action="{{ route('admin.students.transfer', $student->id) }}">
         @csrf @method('PATCH')
-        <div class="modal-header"><h5 class="modal-title">{{ __('Transfer student') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-        <div class="modal-body"><label class="form-label">{{ __('Reason') }}</label><input name="reason" class="form-control" placeholder="{{ __('e.g. Moved city') }}"><div class="form-text">{{ __('Marks the student as transferred and revokes portal access.') }}</div></div>
+        <div class="modal-header"><h5 class="modal-title">{{ __('Transfer Student') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><label class="form-label">{{ __('Reason') }}</label><input name="reason" class="form-control" placeholder="{{ __('E.g. Moved City') }}"><div class="form-text">{{ __('Marks The Student As Transferred And Revokes Portal Access.') }}</div></div>
         <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-warning">{{ __('Transfer') }}</button></div>
       </form>
     </div></div></div>

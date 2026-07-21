@@ -55,7 +55,7 @@ class PageBuilderTest extends TestCase
         $this->assertDatabaseHas('page_layouts', ['page_id' => $page->id]);
 
         // The block editor screen renders (add-block controls + templates).
-        $this->get("/admin/pages/{$page->id}/edit")->assertOk()->assertSee('Content blocks');
+        $this->get("/admin/pages/{$page->id}/edit")->assertOk()->assertSee('Content Blocks');
     }
 
     public function test_save_blocks_publishes_and_renders(): void

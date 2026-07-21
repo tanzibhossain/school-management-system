@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Admit cards'))
+@section('title', __('Admit Cards'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Admit cards',
@@ -27,7 +27,7 @@
   <div class="modal fade" id="genModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.admit-cards.store') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('Generate admit card') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('Generate Admit Card') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
         <div class="col-12"><label class="form-label">{{ __('Student') }} <span class="text-danger">*</span></label>
           <select name="student_id" class="form-select js-select" required>

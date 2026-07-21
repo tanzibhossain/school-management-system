@@ -4,11 +4,11 @@
   @php $m = ['queued'=>'secondary','processing'=>'info','completed'=>'success','failed'=>'danger']; @endphp
   @include('admin.partials.page-header', ['title' => 'Import #' . $batch->id, 'crumbs' => ['People', 'Data import', 'Batch #' . $batch->id]])
 
-  <div class="mb-3"><a href="{{ route('admin.data-import.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back to imports') }}</a></div>
+  <div class="mb-3"><a href="{{ route('admin.data-import.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back To Imports') }}</a></div>
 
   <div class="row g-3 mb-3">
     <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted small">{{ __('Status') }}</div><div class="h5 mb-0"><span class="badge text-bg-{{ $m[$batch->status] ?? 'secondary' }}">{{ ucfirst($batch->status) }}</span></div></div></div></div>
-    <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted small">{{ __('Total rows') }}</div><div class="h5 mb-0">{{ $batch->total_rows }}</div></div></div></div>
+    <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted small">{{ __('Total Rows') }}</div><div class="h5 mb-0">{{ $batch->total_rows }}</div></div></div></div>
     <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted small">{{ __('Imported') }}</div><div class="h5 mb-0 text-success">{{ $batch->success_count }}</div></div></div></div>
     <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted small">{{ __('Skipped') }}</div><div class="h5 mb-0 text-warning">{{ $batch->skipped_count }}</div></div></div></div>
   </div>

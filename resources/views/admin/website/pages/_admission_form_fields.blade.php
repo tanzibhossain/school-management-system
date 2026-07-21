@@ -23,28 +23,28 @@
 
 {{-- Heading & Intro --}}
 <div class="mb-2">
-    <label class="form-label small text-muted mb-1">{{ __('Form heading') }}</label>
+    <label class="form-label small text-muted mb-1">{{ __('Form Heading') }}</label>
     <input type="text" name="{{ $prefix }}[data][heading]" class="form-control form-control-sm"
            value="{{ $data['heading'] ?? '' }}" placeholder="{{ __('Online Admission') }}">
 </div>
 <div class="mb-3">
-    <label class="form-label small text-muted mb-1">{{ __('Intro text') }}</label>
+    <label class="form-label small text-muted mb-1">{{ __('Intro Text') }}</label>
     <textarea name="{{ $prefix }}[data][intro]" rows="2" class="form-control form-control-sm"
-              placeholder="{{ __('Optional introduction text...') }}">{{ $data['intro'] ?? '' }}</textarea>
+              placeholder="{{ __('Optional Introduction Text...') }}">{{ $data['intro'] ?? '' }}</textarea>
 </div>
 
 <hr class="my-2">
 
 {{-- Standard optional fields --}}
 <div class="mb-3">
-    <h6 class="fw-semibold small text-uppercase text-muted mb-2">{{ __('Optional fields') }}</h6>
+    <h6 class="fw-semibold small text-uppercase text-muted mb-2">{{ __('Optional Fields') }}</h6>
     <div class="table-responsive">
         <table class="table table-sm table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
                     <th class="w-auto">{{ __('Field') }}</th>
                     <th class="w-auto">{{ __('Enabled') }}</th>
-                    <th>{{ __('Label override') }}</th>
+                    <th>{{ __('Label Override') }}</th>
                     <th class="w-auto">{{ __('Required') }}</th>
                 </tr>
             </thead>
@@ -86,7 +86,7 @@
 {{-- Custom fields --}}
 <div class="mb-3">
     <div class="d-flex justify-content-between align-items-center mb-2">
-        <h6 class="fw-semibold small text-uppercase text-muted mb-0">{{ __('Custom fields') }}</h6>
+        <h6 class="fw-semibold small text-uppercase text-muted mb-0">{{ __('Custom Fields') }}</h6>
         <button type="button" class="btn btn-sm btn-outline-primary" onclick="addCustomField('{{ $prefix }}')">
             <i class="bi bi-plus-lg"></i> Add field
         </button>
@@ -107,7 +107,7 @@
         <div class="col-md-4">
             <label class="form-label small text-muted mb-1">{{ __('Label') }} <span class="text-danger">*</span></label>
             <input type="text" name="{{ $tplPrefix }}[label]" class="form-control form-control-sm"
-                   placeholder="{{ __('Emergency contact') }}" required>
+                   placeholder="{{ __('Emergency Contact') }}" required>
         </div>
         <div class="col-md-2">
             <label class="form-label small text-muted mb-1">{{ __('Type') }}</label>
@@ -117,12 +117,12 @@
                 <option value="select">{{ __('Select') }}</option>
                 <option value="number">{{ __('Number') }}</option>
                 <option value="date">{{ __('Date') }}</option>
-                <option value="file">{{ __('File upload') }}</option>
+                <option value="file">{{ __('File Upload') }}</option>
                 <option value="checkbox">{{ __('Checkbox') }}</option>
             </select>
         </div>
         <div class="col-md-2 field-options-container" style="display:none;">
-            <label class="form-label small text-muted mb-1">{{ __('Options (for select/checkbox)') }}</label>
+            <label class="form-label small text-muted mb-1">{{ __('Options (For Select/checkbox)') }}</label>
             <input type="text" name="{{ $tplPrefix }}[options]" class="form-control form-control-sm"
                    placeholder="{{ __('Option 1,Option 2') }}">
         </div>

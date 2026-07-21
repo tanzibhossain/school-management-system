@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Staff loans'))
+@section('title', __('Staff Loans'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Staff loans',
@@ -40,7 +40,7 @@
   <div class="modal fade" id="createModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.staff-loans.store') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('New loan request') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('New Loan Request') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
         <div class="col-12"><label class="form-label">{{ __('Staff') }} <span class="text-danger">*</span></label>
           <select name="staff_id" class="form-select js-select" required>
@@ -51,11 +51,11 @@
           <input type="number" step="0.01" min="1" name="requested_amount" class="form-control" required></div>
         <div class="col-md-6"><label class="form-label">{{ __('Installments') }} <span class="text-danger">*</span></label>
           <input type="number" min="1" max="120" name="installment_count" class="form-control" value="12" required></div>
-        <div class="col-md-6"><label class="form-label">{{ __('First due date') }} <span class="text-danger">*</span></label>
+        <div class="col-md-6"><label class="form-label">{{ __('First Due Date') }} <span class="text-danger">*</span></label>
           <input type="date" name="start_date" class="form-control" required></div>
         <div class="col-12"><label class="form-label">{{ __('Reason') }} <span class="text-danger">*</span></label>
           <input name="reason" class="form-control" required></div>
-        <div class="col-12"><div class="alert alert-info py-2 mb-0 small">{{ __('Interest-free. The repayment schedule is generated on approval and repaid via payroll.') }}</div></div>
+        <div class="col-12"><div class="alert alert-info py-2 mb-0 small">{{ __('Interest-free. The Repayment Schedule Is Generated On Approval And Repaid Via Payroll.') }}</div></div>
       </div>
       <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Create') }}</button></div>
     </form>

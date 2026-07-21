@@ -4,7 +4,7 @@
 @section('content')
 
   @if(! $staff)
-    <div class="alert alert-info">{{ __('No staff record is linked to your account yet. Please contact the administrator.') }}</div>
+    <div class="alert alert-info">{{ __('No Staff Record Is Linked To Your Account Yet. Please Contact The Administrator.') }}</div>
   @else
     <div class="row g-3">
       <div class="col-lg-4">

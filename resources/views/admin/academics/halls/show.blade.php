@@ -6,7 +6,7 @@
     'crumbs' => ['Academics', 'Exam halls', $hall->name],
   ])
 
-  <div class="mb-3"><a href="{{ route('admin.exam-halls.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back to halls') }}</a></div>
+  <div class="mb-3"><a href="{{ route('admin.exam-halls.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back To Halls') }}</a></div>
 
   @if ($assigned)
     <div class="alert alert-warning"><i class="bi bi-info-circle"></i> This hall has active seating assignments — seats can't be toggled or regenerated until those are cleared.</div>
@@ -16,7 +16,7 @@
     <div class="d-flex gap-3 mb-3 small text-muted">
       <span><span class="badge text-bg-success">&nbsp;</span> {{ __('Available') }}</span>
       <span><span class="badge text-bg-secondary">&nbsp;</span> {{ __('Blocked') }}</span>
-      <span class="ms-auto">{{ __('Click a seat to toggle its availability.') }}</span>
+      <span class="ms-auto">{{ __('Click A Seat To Toggle Its Availability.') }}</span>
     </div>
     @foreach ($rows as $rowNo => $seats)
       <div class="d-flex align-items-center gap-1 mb-1 flex-wrap">

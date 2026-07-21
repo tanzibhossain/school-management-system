@@ -39,7 +39,7 @@ class LanguageController extends Controller
         Language::create($data + ['is_active' => true, 'sort_order' => Language::max('sort_order') + 1]);
         Language::flushCache();
 
-        return back()->with('status', __('Language added.'));
+        return back()->with('status', __('Language Added.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -60,7 +60,7 @@ class LanguageController extends Controller
         $language->update($data);
         Language::flushCache();
 
-        return back()->with('status', __('Language updated.'));
+        return back()->with('status', __('Language Updated.'));
     }
 
     public function setDefault(int $id): RedirectResponse
@@ -70,21 +70,21 @@ class LanguageController extends Controller
         $language->update(['is_default' => true, 'is_active' => true]);
         Language::flushCache();
 
-        return back()->with('status', __('Default language changed.'));
+        return back()->with('status', __('Default Language Changed.'));
     }
 
     public function destroy(int $id): RedirectResponse
     {
         $language = Language::findOrFail($id);
         if ($language->is_default || $language->code === 'en') {
-            return back()->with('error', __('The default and English languages cannot be removed.'));
+            return back()->with('error', __('The Default And English Languages Cannot Be Removed.'));
         }
         Translation::where('locale', $language->code)->delete();
         Translation::flushCache($language->code);
         $language->delete();
         Language::flushCache();
 
-        return back()->with('status', __('Language removed.'));
+        return back()->with('status', __('Language Removed.'));
     }
 
     // ── Translations editor ──────────────────────────────────────────────────
@@ -122,7 +122,7 @@ class LanguageController extends Controller
         }
         Translation::flushCache($code);
 
-        return back()->with('status', __('Translations saved.'));
+        return back()->with('status', __('Translations Saved.'));
     }
 
     /** Re-scan the codebase for __() strings and register missing keys. */
@@ -130,6 +130,6 @@ class LanguageController extends Controller
     {
         $added = $scanner->sync();
 
-        return back()->with('status', __('Scan complete — :count new strings registered.', ['count' => $added]));
+        return back()->with('status', __('Scan Complete — :count New Strings Registered.', ['count' => $added]));
     }
 }

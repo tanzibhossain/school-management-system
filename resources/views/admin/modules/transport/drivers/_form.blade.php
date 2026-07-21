@@ -14,7 +14,7 @@
         <input name="name" class="form-control" value="{{ $isEdit ? $d->name : old('name') }}" required></div>
       <div class="col-md-6"><label class="form-label">{{ __('Phone') }}</label>
         <input name="phone" class="form-control" value="{{ $isEdit ? $d->phone : old('phone') }}"></div>
-      <div class="col-md-6"><label class="form-label">{{ __('License number') }}</label>
+      <div class="col-md-6"><label class="form-label">{{ __('License Number') }}</label>
         <input name="license_no" class="form-control" value="{{ $isEdit ? $d->license_no : old('license_no') }}"></div>
       <div class="col-md-6"><label class="form-label">{{ __('Status') }}</label>
         <select name="status" class="form-select">

@@ -1,12 +1,12 @@
 @extends('layouts.admin')
-@section('title', __('Student ledger report'))
+@section('title', __('Student Ledger Report'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'Student ledger', 'crumbs' => ['Reports', 'Student ledger']])
 
   <ul class="nav nav-pills mb-3">
-    <li class="nav-item"><a class="nav-link" href="{{ route('admin.reports.fee-collection') }}">{{ __('Fee collection') }}</a></li>
-    <li class="nav-item"><a class="nav-link" href="{{ route('admin.reports.outstanding-dues') }}">{{ __('Outstanding dues') }}</a></li>
-    <li class="nav-item"><a class="nav-link active" href="{{ route('admin.reports.student-ledger') }}">{{ __('Student ledger') }}</a></li>
+    <li class="nav-item"><a class="nav-link" href="{{ route('admin.reports.fee-collection') }}">{{ __('Fee Collection') }}</a></li>
+    <li class="nav-item"><a class="nav-link" href="{{ route('admin.reports.outstanding-dues') }}">{{ __('Outstanding Dues') }}</a></li>
+    <li class="nav-item"><a class="nav-link active" href="{{ route('admin.reports.student-ledger') }}">{{ __('Student Ledger') }}</a></li>
   </ul>
 
   <form method="GET" class="card mb-3"><div class="card-body row g-2 align-items-end">
@@ -45,6 +45,6 @@
       </table>
     </div></div>
   @else
-    <div class="alert alert-info">{{ __('Select a student to view their ledger.') }}</div>
+    <div class="alert alert-info">{{ __('Select A Student To View Their Ledger.') }}</div>
   @endif
 @endsection

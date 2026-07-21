@@ -18,7 +18,7 @@
         </select>
     </div>
     <div class="col-md-2 field-options-container" style="{{ $showOptions ? '' : 'display:none' }}">
-        <label class="form-label small text-muted mb-1">{{ __('Options (for select/checkbox)') }}</label>
+        <label class="form-label small text-muted mb-1">{{ __('Options (For Select/checkbox)') }}</label>
         <input type="text" name="{{ $tplPrefix }}[options]" class="form-control form-control-sm"
                value="{{ is_array($cfg['options'] ?? null) ? implode(',', $cfg['options']) : ($cfg['options'] ?? '') }}"
                placeholder="{{ __('Option 1,Option 2') }}">

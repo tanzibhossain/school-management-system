@@ -5,7 +5,7 @@
     'title'  => $route->name,
     'crumbs' => ['Transport', 'Routes', $route->name],
   ])
-  <div class="mb-3"><a href="{{ route('admin.transport.routes.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back to routes') }}</a></div>
+  <div class="mb-3"><a href="{{ route('admin.transport.routes.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back To Routes') }}</a></div>
 
   <div class="row g-4">
     <div class="col-lg-5">
@@ -36,13 +36,13 @@
     <div class="col-lg-7">
       <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
         <span>Riders ({{ $riders->count() }})</span>
-        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#assignModal" {{ $route->current_vehicle_id ? '' : 'disabled' }}><i class="bi bi-plus-lg"></i> {{ __('Add rider') }}</button>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#assignModal" {{ $route->current_vehicle_id ? '' : 'disabled' }}><i class="bi bi-plus-lg"></i> {{ __('Add Rider') }}</button>
       </div><div class="card-body">
         @unless ($route->current_vehicle_id)
-          <div class="alert alert-warning py-2 small">{{ __('Assign an operational vehicle before adding riders.') }}</div>
+          <div class="alert alert-warning py-2 small">{{ __('Assign An Operational Vehicle Before Adding Riders.') }}</div>
         @endunless
         @if ($riders->isEmpty())
-          <p class="text-muted mb-0">{{ __('No active riders.') }}</p>
+          <p class="text-muted mb-0">{{ __('No Active Riders.') }}</p>
         @else
           <table class="table align-middle mb-0">
             <thead><tr><th>{{ __('Student') }}</th><th>{{ __('Pickup') }}</th><th>{{ __('Since') }}</th><th class="text-end" data-orderable="false"></th></tr></thead>
@@ -70,16 +70,16 @@
   <div class="modal fade" id="assignModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.transport.routes.riders.assign', $route->id) }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('Add rider') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('Add Rider') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
         <div class="col-12"><label class="form-label">{{ __('Student') }} <span class="text-danger">*</span></label>
           <select name="student_id" class="form-select js-select" required>
             <option value="">— select —</option>
             @foreach ($students as $s)<option value="{{ $s->id }}">{{ $s->name }} ({{ $s->student_id }})</option>@endforeach
           </select></div>
-        <div class="col-md-7"><label class="form-label">{{ __('Pickup point') }}</label>
+        <div class="col-md-7"><label class="form-label">{{ __('Pickup Point') }}</label>
           <input name="pickup_point" class="form-control"></div>
-        <div class="col-md-5"><label class="form-label">{{ __('Starts on') }}</label>
+        <div class="col-md-5"><label class="form-label">{{ __('Starts On') }}</label>
           <input type="date" name="starts_on" class="form-control" value="{{ now()->format('Y-m-d') }}"></div>
       </div>
       <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Assign') }}</button></div>

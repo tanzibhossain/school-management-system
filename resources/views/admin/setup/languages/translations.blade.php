@@ -10,15 +10,15 @@
     <div class="card-header">
       <form method="GET" class="row g-2 align-items-center">
         <div class="col-md-4">
-          <input name="q" value="{{ $search }}" class="form-control form-control-sm" placeholder="{{ __('Search text…') }}">
+          <input name="q" value="{{ $search }}" class="form-control form-control-sm" placeholder="{{ __('Search Text…') }}">
         </div>
         <div class="col-auto form-check ms-2">
           <input class="form-check-input" type="checkbox" name="missing" value="1" id="missing" @checked($missingOnly) onchange="this.form.submit()">
-          <label class="form-check-label small" for="missing">{{ __('Untranslated only') }}</label>
+          <label class="form-check-label small" for="missing">{{ __('Untranslated Only') }}</label>
         </div>
         <div class="col-auto"><button class="btn btn-sm btn-outline-secondary">{{ __('Search') }}</button></div>
         <div class="col text-end">
-          <a href="{{ route('admin.languages.index') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> {{ __('Back to languages') }}</a>
+          <a href="{{ route('admin.languages.index') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> {{ __('Back To Languages') }}</a>
         </div>
       </form>
     </div>
@@ -28,7 +28,7 @@
       <div class="table-responsive">
         <table class="table align-middle mb-0">
           <thead><tr>
-            <th style="width:50%">{{ __('English (source)') }}</th>
+            <th style="width:50%">{{ __('English (Source)') }}</th>
             <th>{{ $language->native_name }}</th>
           </tr></thead>
           <tbody>
@@ -43,14 +43,14 @@
               </tr>
             @empty
               <tr><td colspan="2" class="text-center text-muted py-4">
-                {{ __('No strings found — run "Scan for new strings" on the Languages page.') }}</td></tr>
+                {{ __('No Strings Found — Run "Scan For New Strings" On The Languages Page.') }}</td></tr>
             @endforelse
           </tbody>
         </table>
       </div>
       <div class="card-footer d-flex justify-content-between align-items-center">
         <div>{{ $rows->links() }}</div>
-        <button class="btn btn-primary btn-sm"><i class="bi bi-save"></i> {{ __('Save translations') }}</button>
+        <button class="btn btn-primary btn-sm"><i class="bi bi-save"></i> {{ __('Save Translations') }}</button>
       </div>
     </form>
   </div>

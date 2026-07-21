@@ -24,18 +24,18 @@
           <option value="">— select —</option>
           @foreach ($categories as $cat)<option value="{{ $cat->id }}" @selected(($isEdit ? $it->category_id : old('category_id'))==$cat->id)>{{ $cat->name }}</option>@endforeach
         </select></div>
-      <div class="col-md-4"><label class="form-label">{{ __('Academic year') }} <span class="text-danger">*</span></label>
+      <div class="col-md-4"><label class="form-label">{{ __('Academic Year') }} <span class="text-danger">*</span></label>
         <select name="academic_year_id" class="form-select" required>
           <option value="">— select —</option>
           @foreach ($years as $y)<option value="{{ $y->id }}" @selected(($isEdit ? $it->academic_year_id : old('academic_year_id'))==$y->id)>{{ $y->year }}</option>@endforeach
         </select></div>
       <div class="col-md-4"><label class="form-label">{{ __('Class') }} <span class="text-muted small">(blank = all)</span></label>
         <select name="class_id" class="form-select">
-          <option value="">{{ __('All classes') }}</option>
+          <option value="">{{ __('All Classes') }}</option>
           @foreach ($classes as $cl)<option value="{{ $cl->id }}" @selected(($isEdit ? $it->class_id : old('class_id'))==$cl->id)>{{ $cl->name }}</option>@endforeach
         </select></div>
 
-      <div class="col-md-3"><label class="form-label">{{ __('Due day') }} <span class="text-muted small">(1–28)</span></label>
+      <div class="col-md-3"><label class="form-label">{{ __('Due Day') }} <span class="text-muted small">(1–28)</span></label>
         <input type="number" min="1" max="28" name="due_day" class="form-control" value="{{ $isEdit ? $it->due_day : old('due_day') }}"></div>
       <div class="col-md-9 d-flex align-items-end">
         <div class="form-check"><input type="hidden" name="is_mandatory" value="0"><input class="form-check-input" type="checkbox" name="is_mandatory" value="1" id="mand{{ $isEdit ? $it->id : 'New' }}" @checked($isEdit ? $it->is_mandatory : true)><label class="form-check-label" for="mand{{ $isEdit ? $it->id : 'New' }}">{{ __('Mandatory') }}</label></div>

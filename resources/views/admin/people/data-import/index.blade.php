@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Data import'))
+@section('title', __('Data Import'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Data import',
@@ -31,7 +31,7 @@
   <div class="modal fade" id="uploadModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.data-import.store') }}" enctype="multipart/form-data">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('Import file') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('Import File') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
         <div class="col-md-5"><label class="form-label">{{ __('Type') }} <span class="text-danger">*</span></label>
           <select name="type" class="form-select" required>

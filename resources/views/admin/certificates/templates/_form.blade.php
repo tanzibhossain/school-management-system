@@ -13,14 +13,14 @@
         <input name="name" class="form-control" value="{{ $isEdit ? $t->name : old('name') }}" required></div>
       <div class="col-12"><label class="form-label">{{ __('Body') }} <span class="text-danger">*</span></label>
         <textarea name="template_body" rows="5" class="form-control" required>{{ $isEdit ? $t->template_body : old('template_body') }}</textarea>
-        <div class="form-text">{{ __('Supports placeholders like') }} <code>@{{ student_name }}</code>, <code>@{{ conduct_remark }}</code>.</div></div>
-      <div class="col-md-6"><label class="form-label">{{ __('Signatory name') }}</label>
+        <div class="form-text">{{ __('Supports Placeholders Like') }} <code>@{{ student_name }}</code>, <code>@{{ conduct_remark }}</code>.</div></div>
+      <div class="col-md-6"><label class="form-label">{{ __('Signatory Name') }}</label>
         <input name="signatory_name" class="form-control" value="{{ $isEdit ? $t->signatory_name : old('signatory_name') }}"></div>
-      <div class="col-md-6"><label class="form-label">{{ __('Signatory designation') }}</label>
+      <div class="col-md-6"><label class="form-label">{{ __('Signatory Designation') }}</label>
         <input name="signatory_designation" class="form-control" value="{{ $isEdit ? $t->signatory_designation : old('signatory_designation') }}"></div>
-      <div class="col-12"><label class="form-label">{{ __('Footer text') }}</label>
+      <div class="col-12"><label class="form-label">{{ __('Footer Text') }}</label>
         <input name="footer_text" class="form-control" value="{{ $isEdit ? $t->footer_text : old('footer_text') }}"></div>
-      <div class="col-12"><div class="form-check"><input type="hidden" name="is_default" value="0"><input class="form-check-input" type="checkbox" name="is_default" value="1" id="def{{ $modalId }}" @checked($isEdit ? $t->is_default : false)><label class="form-check-label" for="def{{ $modalId }}">{{ __('Default template') }}</label></div></div>
+      <div class="col-12"><div class="form-check"><input type="hidden" name="is_default" value="0"><input class="form-check-input" type="checkbox" name="is_default" value="1" id="def{{ $modalId }}" @checked($isEdit ? $t->is_default : false)><label class="form-check-label" for="def{{ $modalId }}">{{ __('Default Template') }}</label></div></div>
     </div>
     <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Save') }}</button></div>
   </form>

@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('LMS — courses'))
+@section('title', __('LMS — Courses'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Courses',
@@ -29,7 +29,7 @@
   <div class="modal fade" id="createModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.lms.courses.store') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('New course') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('New Course') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
         <div class="col-12"><label class="form-label">{{ __('Title') }} <span class="text-danger">*</span></label>
           <input name="title" class="form-control" value="{{ old('title') }}" required></div>

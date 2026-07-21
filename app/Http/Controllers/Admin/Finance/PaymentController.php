@@ -58,6 +58,6 @@ class PaymentController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('status', __('Payment recorded.'));
+        return back()->with('status', __('Payment Recorded.'));
     }
 }

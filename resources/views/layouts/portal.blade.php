@@ -81,7 +81,7 @@
     <div class="sidebar-footer">
       <form method="POST" action="{{ route('logout') }}">
         @csrf
-        <button class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-box-arrow-right me-1"></i> {{ __('Sign out') }}</button>
+        <button class="btn btn-outline-secondary btn-sm w-100"><i class="bi bi-box-arrow-right me-1"></i> {{ __('Sign Out') }}</button>
       </form>
     </div>
   </aside>

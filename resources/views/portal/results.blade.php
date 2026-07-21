@@ -4,7 +4,7 @@
 @section('content')
 
   <div class="card">
-    <div class="card-header">{{ __('Published exam results') }}</div>
+    <div class="card-header">{{ __('Published Exam Results') }}</div>
     <div class="card-body p-0">
       <table class="table align-middle mb-0">
         <thead class="table-light">
@@ -26,7 +26,7 @@
               </td>
             </tr>
           @empty
-            <tr><td colspan="7" class="text-center text-muted py-4">{{ __('No results published yet.') }}</td></tr>
+            <tr><td colspan="7" class="text-center text-muted py-4">{{ __('No Results Published Yet.') }}</td></tr>
           @endforelse
         </tbody>
       </table>

@@ -30,14 +30,14 @@ class RoutineSetupController extends Controller
         ]);
         RoutinePeriod::create($data + ['school_id' => app('current_school_id')]);
 
-        return back()->with('status', __('Period added.'));
+        return back()->with('status', __('Period Added.'));
     }
 
     public function destroyPeriod(int $id): RedirectResponse
     {
         RoutinePeriod::where('school_id', app('current_school_id'))->findOrFail($id)->update(['is_trash' => true]);
 
-        return back()->with('status', __('Period removed.'));
+        return back()->with('status', __('Period Removed.'));
     }
 
     public function storeRoom(Request $request): RedirectResponse
@@ -48,13 +48,13 @@ class RoutineSetupController extends Controller
         ]);
         RoutineRoom::create($data + ['school_id' => app('current_school_id')]);
 
-        return back()->with('status', __('Room added.'));
+        return back()->with('status', __('Room Added.'));
     }
 
     public function destroyRoom(int $id): RedirectResponse
     {
         RoutineRoom::where('school_id', app('current_school_id'))->findOrFail($id)->update(['is_trash' => true]);
 
-        return back()->with('status', __('Room removed.'));
+        return back()->with('status', __('Room Removed.'));
     }
 }

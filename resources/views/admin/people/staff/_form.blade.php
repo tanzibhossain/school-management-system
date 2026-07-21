@@ -17,7 +17,7 @@
           <input name="name" class="form-control" value="{{ $isEdit ? $s->name : old('name') }}" required></div>
         <div class="col-md-3"><label class="form-label">{{ __('Gender') }}</label>
           <select name="gender" class="form-select">{!! $genderOptions($isEdit ? $s->gender : old('gender')) !!}</select></div>
-        <div class="col-md-3"><label class="form-label">{{ __('Date of birth') }}</label>
+        <div class="col-md-3"><label class="form-label">{{ __('Date Of Birth') }}</label>
           <input type="date" name="dob" class="form-control" value="{{ $isEdit ? optional($s->dob)->format('Y-m-d') : old('dob') }}"></div>
 
         <div class="col-md-6"><label class="form-label">{{ __('Designation') }}</label>
@@ -25,16 +25,16 @@
         <div class="col-md-6"><label class="form-label">{{ __('Department') }}</label>
           <select name="department_id" class="form-select">{!! $selOptions($departments, $isEdit ? $s->department_id : old('department_id')) !!}</select></div>
 
-        <div class="col-md-4"><label class="form-label">{{ __('Joining date') }}</label>
+        <div class="col-md-4"><label class="form-label">{{ __('Joining Date') }}</label>
           <input type="date" name="joining_date" class="form-control" value="{{ $isEdit ? optional($s->joining_date)->format('Y-m-d') : old('joining_date') }}"></div>
-        <div class="col-md-4"><label class="form-label">{{ __('Employment type') }}</label>
+        <div class="col-md-4"><label class="form-label">{{ __('Employment Type') }}</label>
           <input name="employment_type" class="form-control" value="{{ $isEdit ? $s->employment_type : old('employment_type') }}" placeholder="e.g. full_time"></div>
-        <div class="col-md-4"><label class="form-label">{{ __('Basic salary') }}</label>
+        <div class="col-md-4"><label class="form-label">{{ __('Basic Salary') }}</label>
           <input type="number" step="0.01" min="0" name="basic_salary" class="form-control" value="{{ $isEdit ? $s->basic_salary : old('basic_salary') }}"></div>
 
-        <div class="col-md-6"><label class="form-label">{{ __('Teaching subject') }}</label>
+        <div class="col-md-6"><label class="form-label">{{ __('Teaching Subject') }}</label>
           <select name="subject_id" class="form-select">{!! $selOptions($subjects, $isEdit ? $s->subject_id : old('subject_id')) !!}</select></div>
-        <div class="col-md-6"><label class="form-label">{{ __('RFID number') }}</label>
+        <div class="col-md-6"><label class="form-label">{{ __('RFID Number') }}</label>
           <input name="rfid_number" class="form-control" value="{{ $isEdit ? $s->rfid_number : old('rfid_number') }}"></div>
       </div>
     </div>

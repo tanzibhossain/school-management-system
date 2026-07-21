@@ -64,7 +64,7 @@
             </div></div>
           </div>
         @empty
-          <p class="text-muted mb-0">{{ __('No staff to show.') }}</p>
+          <p class="text-muted mb-0">{{ __('No Staff To Show.') }}</p>
         @endforelse
       </div>
     {!! $close !!}
@@ -81,7 +81,7 @@
             <p class="text-muted small mb-0">{{ \Illuminate\Support\Str::limit(strip_tags($n->body), 110) }}</p>
           </div></div></div>
         @empty
-          <p class="text-muted mb-0">{{ __('No notices published.') }}</p>
+          <p class="text-muted mb-0">{{ __('No Notices Published.') }}</p>
         @endforelse
       </div>
     {!! $close !!}
@@ -106,7 +106,7 @@
         @forelse($d['images'] ?? [] as $img)
           <div class="col-6 col-md-4 col-lg-3"><a href="{{ is_array($img) ? ($img['url'] ?? '#') : $img }}" target="_blank"><img src="{{ is_array($img) ? ($img['url'] ?? '') : $img }}" class="img-fluid rounded-3" style="aspect-ratio:1;object-fit:cover;width:100%;" alt=""></a></div>
         @empty
-          <p class="text-muted mb-0">{{ __('No photos yet.') }}</p>
+          <p class="text-muted mb-0">{{ __('No Photos Yet.') }}</p>
         @endforelse
       </div>
     {!! $close !!}
@@ -119,7 +119,7 @@
         @forelse($d['videos'] ?? [] as $v)
           <div class="col-md-6"><div class="ratio ratio-16x9"><iframe src="{{ is_array($v) ? ($v['url'] ?? '') : $v }}" allowfullscreen loading="lazy"></iframe></div></div>
         @empty
-          <p class="text-muted mb-0">{{ __('No videos yet.') }}</p>
+          <p class="text-muted mb-0">{{ __('No Videos Yet.') }}</p>
         @endforelse
       </div>
     {!! $close !!}
@@ -143,7 +143,7 @@
         </div>
         <div class="col-md-6"><div class="card"><div class="card-body">
           @if(session('contact_sent'))
-            <div class="alert alert-success"><i class="bi bi-check-circle"></i> {{ __('Thanks — your message has been sent.') }}</div>
+            <div class="alert alert-success"><i class="bi bi-check-circle"></i> {{ __('Thanks — Your Message Has Been Sent.') }}</div>
           @endif
           @if($errors->any())
             <div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul></div>
@@ -151,13 +151,13 @@
           <form method="POST" action="{{ route('contact.submit') }}">
             @csrf
             <div class="row g-2">
-              <div class="col-md-6"><input name="name" class="form-control" placeholder="{{ __('Your name') }}" value="{{ old('name') }}" required></div>
+              <div class="col-md-6"><input name="name" class="form-control" placeholder="{{ __('Your Name') }}" value="{{ old('name') }}" required></div>
               <div class="col-md-6"><input name="email" type="email" class="form-control" placeholder="{{ __('Email') }}" value="{{ old('email') }}"></div>
               <div class="col-md-6"><input name="phone" class="form-control" placeholder="{{ __('Phone') }}" value="{{ old('phone') }}"></div>
               <div class="col-md-6"><input name="subject" class="form-control" placeholder="{{ __('Subject') }}" value="{{ old('subject') }}"></div>
             </div>
             <div class="my-2"><textarea name="message" class="form-control" rows="4" placeholder="{{ __('Message') }}" required>{{ old('message') }}</textarea></div>
-            <button class="btn btn-brand"><i class="bi bi-send"></i> {{ __('Send message') }}</button>
+            <button class="btn btn-brand"><i class="bi bi-send"></i> {{ __('Send Message') }}</button>
           </form>
         </div></div></div>
       </div>

@@ -15,7 +15,7 @@
       </div></div>
     </div>
     <div class="col-lg-8">
-      <div class="card mb-3"><div class="card-header">{{ __('Student details') }}</div><div class="card-body">
+      <div class="card mb-3"><div class="card-header">{{ __('Student Details') }}</div><div class="card-body">
         <div class="row g-3">
           @foreach([
             'Admission no.' => $student->admission_number,
@@ -43,7 +43,7 @@
                 <td>{{ $g->phone ?? '—' }}</td>
               </tr>
             @empty
-              <tr><td colspan="3" class="text-center text-muted py-3">{{ __('No guardians on record.') }}</td></tr>
+              <tr><td colspan="3" class="text-center text-muted py-3">{{ __('No Guardians On Record.') }}</td></tr>
             @endforelse
           </tbody>
         </table>

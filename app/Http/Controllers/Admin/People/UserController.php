@@ -44,7 +44,7 @@ class UserController extends Controller
 
         $this->users->createUser($data, $schoolId);
 
-        return back()->with('status', __('User created.'));
+        return back()->with('status', __('User Created.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -59,7 +59,7 @@ class UserController extends Controller
 
         $this->users->updateUser($user, $data);
 
-        return back()->with('status', __('User updated.'));
+        return back()->with('status', __('User Updated.'));
     }
 
     public function changeRole(Request $request, int $id): RedirectResponse
@@ -72,7 +72,7 @@ class UserController extends Controller
 
         $this->users->changeRole($user, $data['role']);
 
-        return back()->with('status', __('Role updated.'));
+        return back()->with('status', __('Role Updated.'));
     }
 
     public function deactivate(int $id): RedirectResponse
@@ -80,11 +80,11 @@ class UserController extends Controller
         $user = User::where('school_id', app('current_school_id'))->findOrFail($id);
 
         if ($user->id === auth()->id()) {
-            return back()->with('error', __('You cannot deactivate your own account.'));
+            return back()->with('error', __('You Cannot Deactivate Your Own Account.'));
         }
 
         $this->users->deactivate($user);
 
-        return back()->with('status', __('User deactivated.'));
+        return back()->with('status', __('User Deactivated.'));
     }
 }

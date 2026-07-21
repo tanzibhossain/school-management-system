@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('ID cards'))
+@section('title', __('ID Cards'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'ID card batches',
@@ -32,7 +32,7 @@
   <div class="modal fade" id="genModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.id-cards.store') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('Generate ID card batch') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('Generate ID Card Batch') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
         <div class="col-md-6"><label class="form-label">{{ __('Type') }} <span class="text-danger">*</span></label>
           <select name="type" class="form-select" required>
@@ -43,11 +43,11 @@
             <option value="">— select —</option>
             @foreach ($templates as $t)<option value="{{ $t->id }}">{{ $t->name }} ({{ $t->type }})</option>@endforeach
           </select>
-          @if ($templates->isEmpty())<div class="form-text text-danger">{{ __('No ID templates — add one under ID templates first.') }}</div>@endif
+          @if ($templates->isEmpty())<div class="form-text text-danger">{{ __('No ID Templates — Add One Under ID Templates First.') }}</div>@endif
         </div>
         <div class="col-md-4"><label class="form-label">{{ __('Scope') }} <span class="text-danger">*</span></label>
           <select name="scope" id="idScope" class="form-select" required>
-            <option value="class">{{ __('A class') }}</option><option value="all">{{ __('All') }}</option>
+            <option value="class">{{ __('A Class') }}</option><option value="all">{{ __('All') }}</option>
           </select></div>
         <div class="col-md-4 id-cls"><label class="form-label">{{ __('Class') }}</label>
           <select name="class_id" id="idClass" class="form-select">
@@ -55,7 +55,7 @@
             @foreach ($classes as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
           </select></div>
         <div class="col-md-4 id-cls"><label class="form-label">{{ __('Section') }}</label>
-          <select name="section_id" id="idSection" class="form-select"><option value="">{{ __('All sections') }}</option></select></div>
+          <select name="section_id" id="idSection" class="form-select"><option value="">{{ __('All Sections') }}</option></select></div>
       </div>
       <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Generate') }}</button></div>
     </form>

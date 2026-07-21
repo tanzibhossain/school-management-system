@@ -26,7 +26,7 @@
             @else
                 <div class="text-center py-4 text-muted">
                     <i class="bi bi-mortarboard fs-1 text-slate-300"></i>
-                    <p class="mt-2 mb-0">{{ __('Not currently enrolled') }}</p>
+                    <p class="mt-2 mb-0">{{ __('Not Currently Enrolled') }}</p>
                 </div>
             @endif
         </x-card>
@@ -54,7 +54,7 @@
             @else
                 <div class="text-center py-4 text-muted">
                     <i class="bi bi-book fs-1 text-slate-300"></i>
-                    <p class="mt-2 mb-0">{{ __('No subjects enrolled') }}</p>
+                    <p class="mt-2 mb-0">{{ __('No Subjects Enrolled') }}</p>
                 </div>
             @endif
         </x-card>
@@ -88,7 +88,7 @@
                 </ul>
             @else
                 <div class="text-center py-4 text-muted">
-                    <p class="mb-0">{{ __('No previous academic records') }}</p>
+                    <p class="mb-0">{{ __('No Previous Academic Records') }}</p>
                 </div>
             @endif
         </x-card>
@@ -140,7 +140,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">{{ __('No exam results found') }}</td>
+                                <td colspan="6" class="text-center py-4 text-muted">{{ __('No Exam Results Found') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -173,7 +173,7 @@
             @else
                 <div class="text-center py-4 text-muted">
                     <i class="bi bi-file-earmark-text fs-1 text-slate-300"></i>
-                    <p class="mt-2 mb-0">{{ __('No report cards published') }}</p>
+                    <p class="mt-2 mb-0">{{ __('No Report Cards Published') }}</p>
                 </div>
             @endif
         </x-card>

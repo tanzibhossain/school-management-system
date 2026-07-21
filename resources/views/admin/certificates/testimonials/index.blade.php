@@ -28,7 +28,7 @@
   <div class="modal fade" id="issueModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.testimonials.store') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('Issue testimonial') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('Issue Testimonial') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
         <div class="col-12"><label class="form-label">{{ __('Student') }} <span class="text-danger">*</span></label>
           <select name="student_id" class="form-select js-select" required>
@@ -39,9 +39,9 @@
           <select name="template_id" class="form-select"><option value="">{{ __('Default') }}</option>
             @foreach ($templates as $tpl)<option value="{{ $tpl->id }}">{{ $tpl->name }}</option>@endforeach
           </select>
-          @if ($templates->isEmpty())<div class="form-text text-danger">{{ __('No templates — add one under the Templates tab first.') }}</div>@endif
+          @if ($templates->isEmpty())<div class="form-text text-danger">{{ __('No Templates — Add One Under The Templates Tab First.') }}</div>@endif
         </div>
-        <div class="col-12"><label class="form-label">{{ __('Conduct remark') }} <span class="text-danger">*</span></label>
+        <div class="col-12"><label class="form-label">{{ __('Conduct Remark') }} <span class="text-danger">*</span></label>
           <textarea name="conduct_remark" rows="2" class="form-control" required></textarea></div>
       </div>
       <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Issue') }}</button></div>

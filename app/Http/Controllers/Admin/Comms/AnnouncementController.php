@@ -58,28 +58,28 @@ class AnnouncementController extends Controller
             'expire_at' => $data['expire_at'] ?? null,
         ]); // AnnouncementObserver flushes cache
 
-        return back()->with('status', __('Announcement updated.'));
+        return back()->with('status', __('Announcement Updated.'));
     }
 
     public function publish(int $id): RedirectResponse
     {
         $this->announcements->publish($this->find($id));
 
-        return back()->with('status', __('Announcement published.'));
+        return back()->with('status', __('Announcement Published.'));
     }
 
     public function expire(int $id): RedirectResponse
     {
         $this->announcements->expire($this->find($id));
 
-        return back()->with('status', __('Announcement expired.'));
+        return back()->with('status', __('Announcement Expired.'));
     }
 
     public function destroy(int $id): RedirectResponse
     {
         $this->announcements->trash($this->find($id));
 
-        return back()->with('status', __('Announcement deleted.'));
+        return back()->with('status', __('Announcement Deleted.'));
     }
 
     private function find(int $id): Announcement

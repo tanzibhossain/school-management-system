@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('ID card templates'))
+@section('title', __('ID Card Templates'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'ID card templates',

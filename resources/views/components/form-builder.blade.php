@@ -70,7 +70,7 @@
         <aside class="col-lg-3 border-end form-builder-sidebar p-3" style="background: var(--color-slate-50); min-height: 70vh;">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="mb-0 fw-semibold">{{ __('Field Palette') }}</h6>
-                <input type="text" class="form-control form-control-sm" placeholder="{{ __('Search fields...') }}" id="field-search" style="width: auto; min-width: 150px;">
+                <input type="text" class="form-control form-control-sm" placeholder="{{ __('Search Fields...') }}" id="field-search" style="width: auto; min-width: 150px;">
             </div>
 
             <div class="field-categories">
@@ -108,15 +108,15 @@
                 <div class="row g-3">
                     <div class="col-md-8">
                         <label class="form-label fw-medium small">{{ __('Form Title') }}</label>
-                        <input type="text" class="form-control form-control-lg" id="form-title" value="{{ $formTitle }}" placeholder="{{ __('Enter form title') }}" @if($readonly) readonly @endif>
+                        <input type="text" class="form-control form-control-lg" id="form-title" value="{{ $formTitle }}" placeholder="{{ __('Enter Form Title') }}" @if($readonly) readonly @endif>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-medium small">{{ __('Form ID') }}</label>
-                        <input type="text" class="form-control" id="form-id" value="{{ $formData['id'] ?? '' }}" placeholder="{{ __('auto-generated') }}" @if($readonly) readonly @endif>
+                        <input type="text" class="form-control" id="form-id" value="{{ $formData['id'] ?? '' }}" placeholder="{{ __('Auto-generated') }}" @if($readonly) readonly @endif>
                     </div>
                     <div class="col-12">
                         <label class="form-label fw-medium small">{{ __('Description') }}</label>
-                        <textarea class="form-control" id="form-description" rows="2" placeholder="{{ __('Optional description...') }}">{{ $formDescription }}</textarea>
+                        <textarea class="form-control" id="form-description" rows="2" placeholder="{{ __('Optional Description...') }}">{{ $formDescription }}</textarea>
                     </div>
                 </div>
             </div>
@@ -130,8 +130,8 @@
                 @if(empty($formFields))
                     <div class="dropzone-empty text-center py-12">
                         <i class="bi bi-plus-circle fs-1 text-muted mb-3"></i>
-                        <h5 class="text-muted mb-2">{{ __('Drop fields here to build your form') }}</h5>
-                        <p class="text-muted small">{{ __('Drag fields from the left palette or click to add') }}</p>
+                        <h5 class="text-muted mb-2">{{ __('Drop Fields Here To Build Your Form') }}</h5>
+                        <p class="text-muted small">{{ __('Drag Fields From The Left Palette Or Click To Add') }}</p>
                     </div>
                 @else
                     <div class="form-fields-list" id="fields-container">
@@ -156,13 +156,13 @@
         <aside class="col-lg-3 border-start form-builder-settings p-3" style="background: var(--color-slate-50); min-height: 70vh;">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h6 class="mb-0 fw-semibold">{{ __('Field Settings') }}</h6>
-                <span class="badge bg-slate-100 text-slate-600" id="selected-field-count">{{ __('No field selected') }}</span>
+                <span class="badge bg-slate-100 text-slate-600" id="selected-field-count">{{ __('No Field Selected') }}</span>
             </div>
 
             <div id="field-settings-panel" class="settings-panel">
                 <div class="text-center text-muted py-5" id="no-selection-message">
                     <i class="bi bi-mouse fs-1 text-muted mb-3"></i>
-                    <p class="mb-0">{{ __('Click a field on the canvas to edit its properties') }}</p>
+                    <p class="mb-0">{{ __('Click A Field On The Canvas To Edit Its Properties') }}</p>
                 </div>
 
                 <div id="field-settings-form" style="display: none;">
@@ -180,17 +180,17 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-medium small">{{ __('Label') }} <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-sm" id="setting-label" placeholder="{{ __('Field label') }}">
+                            <input type="text" class="form-control form-control-sm" id="setting-label" placeholder="{{ __('Field Label') }}">
                         </div>
 
                         <div class="row g-2 mb-3">
                             <div class="col-6">
-                                <label class="form-label fw-medium small">{{ __('Name (API key)') }}</label>
-                                <input type="text" class="form-control form-control-sm" id="setting-name" placeholder="{{ __('auto-generated') }}">
+                                <label class="form-label fw-medium small">{{ __('Name (API Key)') }}</label>
+                                <input type="text" class="form-control form-control-sm" id="setting-name" placeholder="{{ __('Auto-generated') }}">
                             </div>
                             <div class="col-6">
                                 <label class="form-label fw-medium small">{{ __('Placeholder') }}</label>
-                                <input type="text" class="form-control form-control-sm" id="setting-placeholder" placeholder="{{ __('Enter placeholder text') }}">
+                                <input type="text" class="form-control form-control-sm" id="setting-placeholder" placeholder="{{ __('Enter Placeholder Text') }}">
                             </div>
                         </div>
 
@@ -209,7 +209,7 @@
                             </div>
 
                         <div class="mb-3" id="options-container" style="display: none;">
-                            <label class="form-label fw-medium small">{{ __('Options (one per line)') }}</label>
+                            <label class="form-label fw-medium small">{{ __('Options (One Per Line)') }}</label>
                             <textarea class="form-control form-control-sm" id="setting-options" rows="4" placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
                             <div class="form-text">Enter each option on a new line. Format: value|Label</div>
                         </div>
@@ -226,31 +226,31 @@
                                 <div class="col-6">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="val-email">
-                                        <label class="form-check-label small" for="val-email">{{ __('Email format') }}</label>
+                                        <label class="form-check-label small" for="val-email">{{ __('Email Format') }}</label>
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="val-minlength">
-                                        <label class="form-check-label small" for="val-minlength">{{ __('Min length') }}</label>
+                                        <label class="form-check-label small" for="val-minlength">{{ __('Min Length') }}</label>
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <input type="number" class="form-control form-control-sm" id="val-minlength-val" placeholder="{{ __('Min length') }}" style="display: none;">
+                                    <input type="number" class="form-control form-control-sm" id="val-minlength-val" placeholder="{{ __('Min Length') }}" style="display: none;">
                                 </div>
                                 <div class="col-6">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="val-maxlength">
-                                        <label class="form-check-label small" for="val-maxlength">{{ __('Max length') }}</label>
+                                        <label class="form-check-label small" for="val-maxlength">{{ __('Max Length') }}</label>
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <input type="number" class="form-control form-control-sm" id="val-maxlength-val" placeholder="{{ __('Max length') }}" style="display: none;">
+                                    <input type="number" class="form-control form-control-sm" id="val-maxlength-val" placeholder="{{ __('Max Length') }}" style="display: none;">
                                 </div>
                                 <div class="col-6">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="val-min">
-                                        <label class="form-check-label small" for="val-min">{{ __('Min value') }}</label>
+                                        <label class="form-check-label small" for="val-min">{{ __('Min Value') }}</label>
                                     </div>
                                 </div>
                                 <div class="col-6">
@@ -259,7 +259,7 @@
                                 <div class="col-6">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="val-max">
-                                        <label class="form-check-label small" for="val-max">{{ __('Max value') }}</label>
+                                        <label class="form-check-label small" for="val-max">{{ __('Max Value') }}</label>
                                     </div>
                                 </div>
                                 <div class="col-6">
@@ -268,18 +268,18 @@
                                 <div class="col-6">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="val-pattern">
-                                        <label class="form-check-label small" for="val-pattern">{{ __('Custom pattern (regex)') }}</label>
+                                        <label class="form-check-label small" for="val-pattern">{{ __('Custom Pattern (Regex)') }}</label>
                                     </div>
                                 </div>
                                 <div class="col-6">
-                                    <input type="text" class="form-control form-control-sm" id="val-pattern-val" placeholder="{{ __('Regex pattern') }}" style="display: none;">
+                                    <input type="text" class="form-control form-control-sm" id="val-pattern-val" placeholder="{{ __('Regex Pattern') }}" style="display: none;">
                                 </div>
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-medium small">{{ __('Help Text') }}</label>
-                            <textarea class="form-control form-control-sm" id="setting-help" rows="2" placeholder="{{ __('Help text shown below field') }}"></textarea>
+                            <textarea class="form-control form-control-sm" id="setting-help" rows="2" placeholder="{{ __('Help Text Shown Below Field') }}"></textarea>
                         </div>
 
                         <div class="d-flex gap-2">
@@ -324,7 +324,7 @@
                     <div class="modal-body">
                         <div class="input-group mb-3">
                             <button class="btn btn-outline-secondary" id="copy-json"><i class="bi bi-clipboard me-1"></i> {{ __('Copy JSON') }}</button>
-                            <button class="btn btn-outline-secondary" id="download-json"><i class="bi bi-download me-1"></i> {{ __('Download .json') }}</button>
+                            <button class="btn btn-outline-secondary" id="download-json"><i class="bi bi-download me-1"></i> {{ __('Download .Json') }}</button>
                             <input type="file" class="form-control d-none" id="json-file-input" accept=".json">
                             <button class="btn btn-outline-secondary" id="import-json-btn"><i class="bi bi-upload me-1"></i> {{ __('Import') }}</button>
                         </div>

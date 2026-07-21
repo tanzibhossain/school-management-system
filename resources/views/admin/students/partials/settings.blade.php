@@ -25,7 +25,7 @@
                         <x-input label="Religion" name="religion" value="{{ $student->religion }}" />
                     </div>
                     <div class="col-md-6">
-                        <x-select label="Blood Group" name="blood_group" :value="$student->blood_group" :options="['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']" placeholder="{{ __('Select blood group') }}" />
+                        <x-select label="Blood Group" name="blood_group" :value="$student->blood_group" :options="['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']" placeholder="{{ __('Select Blood Group') }}" />
                     </div>
                     <div class="col-md-6">
                         <x-input label="Category" name="category" value="{{ $student->category }}" placeholder="{{ __('General/OBC/SC/ST') }}" />
@@ -114,7 +114,7 @@
             @else
                 <div class="text-center py-4">
                     <i class="bi bi-person-plus fs-1 text-slate-300"></i>
-                    <p class="mt-2 mb-3 text-muted">{{ __('No guardian information on file') }}</p>
+                    <p class="mt-2 mb-3 text-muted">{{ __('No Guardian Information On File') }}</p>
                     <a href="{{ route('admin.students.guardian.create', $student) }}" class="btn btn-primary">
                         <i class="bi bi-person-plus me-1"></i> Add Guardian
                     </a>
@@ -172,25 +172,25 @@
                                 <div class="col-md-6">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" name="notify_sms_fee" id="notify_sms_fee" {{ $student->notify_sms_fee ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="notify_sms_fee">{{ __('Fee reminders') }}</label>
+                                        <label class="form-check-label" for="notify_sms_fee">{{ __('Fee Reminders') }}</label>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" name="notify_sms_attendance" id="notify_sms_attendance" {{ $student->notify_sms_attendance ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="notify_sms_attendance">{{ __('Absence alerts') }}</label>
+                                        <label class="form-check-label" for="notify_sms_attendance">{{ __('Absence Alerts') }}</label>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" name="notify_sms_exam" id="notify_sms_exam" {{ $student->notify_sms_exam ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="notify_sms_exam">{{ __('Exam notifications') }}</label>
+                                        <label class="form-check-label" for="notify_sms_exam">{{ __('Exam Notifications') }}</label>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" name="notify_sms_result" id="notify_sms_result" {{ $student->notify_sms_result ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="notify_sms_result">{{ __('Result announcements') }}</label>
+                                        <label class="form-check-label" for="notify_sms_result">{{ __('Result Announcements') }}</label>
                                     </div>
                                 </div>
                             </div>
@@ -204,25 +204,25 @@
                                 <div class="col-md-6">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" name="notify_email_fee" id="notify_email_fee" {{ $student->notify_email_fee ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="notify_email_fee">{{ __('Fee reminders') }}</label>
+                                        <label class="form-check-label" for="notify_email_fee">{{ __('Fee Reminders') }}</label>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" name="notify_email_attendance" id="notify_email_attendance" {{ $student->notify_email_attendance ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="notify_email_attendance">{{ __('Absence alerts') }}</label>
+                                        <label class="form-check-label" for="notify_email_attendance">{{ __('Absence Alerts') }}</label>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" name="notify_email_exam" id="notify_email_exam" {{ $student->notify_email_exam ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="notify_email_exam">{{ __('Exam notifications') }}</label>
+                                        <label class="form-check-label" for="notify_email_exam">{{ __('Exam Notifications') }}</label>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" name="notify_email_result" id="notify_email_result" {{ $student->notify_email_result ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="notify_email_result">{{ __('Result announcements') }}</label>
+                                        <label class="form-check-label" for="notify_email_result">{{ __('Result Announcements') }}</label>
                                     </div>
                                 </div>
                             </div>
@@ -236,13 +236,13 @@
                                 <div class="col-md-6">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" name="notify_push_fee" id="notify_push_fee" {{ $student->notify_push_fee ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="notify_push_fee">{{ __('Fee reminders') }}</label>
+                                        <label class="form-check-label" for="notify_push_fee">{{ __('Fee Reminders') }}</label>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" name="notify_push_attendance" id="notify_push_attendance" {{ $student->notify_push_attendance ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="notify_push_attendance">{{ __('Absence alerts') }}</label>
+                                        <label class="form-check-label" for="notify_push_attendance">{{ __('Absence Alerts') }}</label>
                                     </div>
                                 </div>
                             </div>

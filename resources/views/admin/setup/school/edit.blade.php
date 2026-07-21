@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('School settings'))
+@section('title', __('School Settings'))
 @section('content')
     @include('admin.partials.page-header', ['title' => 'School settings', 'crumbs' => ['Setup', 'School settings']])
 
@@ -19,7 +19,7 @@
                                 <input type="number" name="established" class="form-control" min="1800"
                                     max="{{ date('Y') }}"
                                     value="{{ old('established', optional($school->established)->format('Y')) }}"
-                                    placeholder="{{ __('e.g. 1942') }}">
+                                    placeholder="{{ __('E.g. 1942') }}">
                             </div>
                             <div class="col-md-12"><label class="form-label">{{ __('Email') }}</label>
                                 <input type="email" name="email" class="form-control"
@@ -42,7 +42,7 @@
                             <div class="col-md-5"><label class="form-label">{{ __('Field 1 Label') }}</label>
                                 <input name="institution_code_label" class="form-control"
                                     value="{{ old('institution_code_label', $school->institution_code_label) }}"
-                                    placeholder="{{ __('e.g. EIIN') }}">
+                                    placeholder="{{ __('E.g. EIIN') }}">
                             </div>
                             <div class="col-md-7"><label class="form-label">{{ __('Field 1 Code') }}</label>
                                 <input name="institution_code" class="form-control"
@@ -51,7 +51,7 @@
                             <div class="col-md-5"><label class="form-label">{{ __('Field 2 Label') }}</label>
                                 <input name="school_code_label" class="form-control"
                                     value="{{ old('school_code_label', $school->school_code_label) }}"
-                                    placeholder="{{ __('e.g. School code') }}">
+                                    placeholder="{{ __('E.g. School Code') }}">
                             </div>
                             <div class="col-md-7"><label class="form-label">{{ __('Field 2 Code') }}</label>
                                 <input name="school_code" class="form-control"
@@ -60,7 +60,7 @@
                             <div class="col-md-5"><label class="form-label">{{ __('Field 3 Label') }}</label>
                                 <input name="technical_branch_code_label" class="form-control"
                                     value="{{ old('technical_branch_code_label', $school->technical_branch_code_label) }}"
-                                    placeholder="{{ __('e.g. Technical branch code') }}">
+                                    placeholder="{{ __('E.g. Technical Branch Code') }}">
                             </div>
                             <div class="col-md-7"><label class="form-label">{{ __('Field 3 Code') }}</label>
                                 <input name="technical_branch_code" class="form-control"
@@ -110,7 +110,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div><label class="form-label">{{ __('Academic year pattern') }} <span class="text-danger">*</span></label>
+                        <div><label class="form-label">{{ __('Academic Year Pattern') }} <span class="text-danger">*</span></label>
                             <select name="academic_year_pattern" class="form-select" required>
                                 @foreach ($patterns as $val => $lbl)
                                     <option value="{{ $val }}" @selected(old('academic_year_pattern', $school->academic_year_pattern) === $val)>{{ $lbl }}</option>
@@ -210,7 +210,7 @@
                                     value="{{ old('topbar_text_color', $settings->topbar_text_color ?: '#ffffff') }}">
                             </div>
 
-                            <div class="col-md-6"><label class="form-label">{{ __('Announcement ticker') }}</label>
+                            <div class="col-md-6"><label class="form-label">{{ __('Announcement Ticker') }}</label>
                                 <select name="ticker_position" class="form-select">
                                     @foreach (['below_nav' => 'Show below the menu bar', 'above_nav' => 'Show above the menu bar', 'hidden' => 'Hidden'] as $val => $lbl)
                                         <option value="{{ $val }}" @selected(old('ticker_position', $settings->ticker_position ?? 'below_nav') === $val)>{{ $lbl }}</option>
@@ -230,16 +230,16 @@
                 <div class="card">
                     <div class="card-header">SEO &amp; social share</div>
                     <div class="card-body">
-                        <div class="mb-3"><label class="form-label">{{ __('Meta title') }}</label>
+                        <div class="mb-3"><label class="form-label">{{ __('Meta Title') }}</label>
                             <input name="meta_title" class="form-control"
                                 value="{{ old('meta_title', $settings->meta_title) }}"
-                                placeholder="{{ __('Defaults to the site name') }}">
+                                placeholder="{{ __('Defaults To The Site Name') }}">
                         </div>
-                        <div class="mb-3"><label class="form-label">{{ __('Meta description') }}</label>
+                        <div class="mb-3"><label class="form-label">{{ __('Meta Description') }}</label>
                             <textarea name="meta_description" rows="2" class="form-control"
-                                placeholder="{{ __('Short description for search engines') }}">{{ old('meta_description', $settings->meta_description) }}</textarea>
+                                placeholder="{{ __('Short Description For Search Engines') }}">{{ old('meta_description', $settings->meta_description) }}</textarea>
                         </div>
-                        <div class="mb-0"><label class="form-label">{{ __('Social share image') }}</label>
+                        <div class="mb-0"><label class="form-label">{{ __('Social Share Image') }}</label>
                             @if($ogUrl)
                                 <div class="mb-1"><img src="{{ $ogUrl }}" alt="share image" class="img-fluid rounded"
                             style="max-height:90px;"></div>@endif
@@ -252,13 +252,13 @@
             </div>
         </div>
 
-        <div class="mt-4"><button class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save settings') }}</button></div>
+        <div class="mt-4"><button class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save Settings') }}</button></div>
     </form>
 
     <form method="POST" action="{{ route('admin.modules.update') }}" class="mt-4">
         @csrf @method('PUT')
         <div class="card">
-            <div class="card-header">{{ __('Optional modules') }}</div>
+            <div class="card-header">{{ __('Optional Modules') }}</div>
             <div class="card-body">
                 <p class="text-muted small mb-3">Enable the optional modules your school uses. Disabled modules are
                     hidden from the menu and their APIs return 403.</p>
@@ -292,7 +292,7 @@
     <form method="POST" action="{{ route('admin.school.hours') }}" class="mt-4">
         @csrf @method('PUT')
         <div class="card">
-            <div class="card-header">{{ __('Opening hours') }} <span class="text-muted small">(drives attendance working days)</span>
+            <div class="card-header">{{ __('Opening Hours') }} <span class="text-muted small">(drives attendance working days)</span>
             </div>
             <div class="card-body">
                 <table class="table align-middle mb-0">
@@ -324,7 +324,7 @@
                         @endforeach
                     </tbody>
                 </table>
-                <div class="text-end mt-2"><button class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save hours') }}</button>
+                <div class="text-end mt-2"><button class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save Hours') }}</button>
                 </div>
             </div>
         </div>

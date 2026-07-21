@@ -27,7 +27,7 @@ class ExamTypeController extends Controller
     {
         $this->exams->createType(app('current_school_id'), $this->validated($request));
 
-        return back()->with('status', __('Exam type created.'));
+        return back()->with('status', __('Exam Type Created.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -35,7 +35,7 @@ class ExamTypeController extends Controller
         $type = ExamType::where('school_id', app('current_school_id'))->findOrFail($id);
         $this->exams->updateType($type, $this->validated($request));
 
-        return back()->with('status', __('Exam type updated.'));
+        return back()->with('status', __('Exam Type Updated.'));
     }
 
     public function destroy(int $id): RedirectResponse
@@ -43,12 +43,12 @@ class ExamTypeController extends Controller
         $type = ExamType::where('school_id', app('current_school_id'))->withCount('exams')->findOrFail($id);
 
         if ($type->exams_count > 0) {
-            return back()->with('error', __('Cannot delete an exam type that has exams.'));
+            return back()->with('error', __('Cannot Delete An Exam Type That Has Exams.'));
         }
 
         $type->delete();
 
-        return back()->with('status', __('Exam type deleted.'));
+        return back()->with('status', __('Exam Type Deleted.'));
     }
 
     /**

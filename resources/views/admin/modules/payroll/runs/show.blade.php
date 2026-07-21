@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Payroll run'))
+@section('title', __('Payroll Run'))
 @section('content')
   @php
     $period = \Carbon\Carbon::create()->month($run->month)->format('F') . ' ' . $run->year;
@@ -40,7 +40,7 @@
           @endforeach
         </tbody>
         <tfoot>
-          <tr class="table-light"><th colspan="4" class="text-end">{{ __('Total net') }}</th><th class="text-end">{{ number_format((float) $run->entries->sum('net_salary'), 2) }}</th></tr>
+          <tr class="table-light"><th colspan="4" class="text-end">{{ __('Total Net') }}</th><th class="text-end">{{ number_format((float) $run->entries->sum('net_salary'), 2) }}</th></tr>
         </tfoot>
       </table>
     @endif

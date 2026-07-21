@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Payroll runs'))
+@section('title', __('Payroll Runs'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Payroll runs',
@@ -27,7 +27,7 @@
   <div class="modal fade" id="createModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.payroll.runs.store') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('New payroll run') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('New Payroll Run') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
         <div class="col-md-6"><label class="form-label">{{ __('Month') }} <span class="text-danger">*</span></label>
           <select name="month" class="form-select" required>

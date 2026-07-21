@@ -133,7 +133,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="2" class="text-center py-4 text-muted">{{ __('No fee defaulters') }}</td>
+                            <td colspan="2" class="text-center py-4 text-muted">{{ __('No Fee Defaulters') }}</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -164,7 +164,7 @@
                                 <td class="text-end text-muted small">{{ $student->created_at->format('M j, Y') }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="3" class="text-center py-4 text-muted">{{ __('No recent students') }}</td></tr>
+                            <tr><td colspan="3" class="text-center py-4 text-muted">{{ __('No Recent Students') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -192,7 +192,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="2" class="text-center py-4 text-muted">{{ __('No upcoming exams') }}</td></tr>
+                            <tr><td colspan="2" class="text-center py-4 text-muted">{{ __('No Upcoming Exams') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>

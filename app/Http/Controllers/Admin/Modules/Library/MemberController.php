@@ -33,7 +33,7 @@ class MemberController extends Controller
     {
         $this->members->make(app('current_school_id'), $this->validated($request, null));
 
-        return back()->with('status', __('Member added.'));
+        return back()->with('status', __('Member Added.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -41,7 +41,7 @@ class MemberController extends Controller
         $member = LibraryMember::where('school_id', app('current_school_id'))->findOrFail($id);
         $this->members->modify($member, $this->validated($request, $id));
 
-        return back()->with('status', __('Member updated.'));
+        return back()->with('status', __('Member Updated.'));
     }
 
     public function deactivate(int $id): RedirectResponse
@@ -49,7 +49,7 @@ class MemberController extends Controller
         $member = LibraryMember::where('school_id', app('current_school_id'))->findOrFail($id);
         $this->members->deactivate($member);
 
-        return back()->with('status', __('Member deactivated.'));
+        return back()->with('status', __('Member Deactivated.'));
     }
 
     /**

@@ -32,6 +32,6 @@ class ModuleController extends Controller
             $this->modules->setEnabled($schoolId, $module, in_array($module, $enabled, true));
         }
 
-        return back()->with('status', __('Module settings saved.'));
+        return back()->with('status', __('Module Settings Saved.'));
     }
 }

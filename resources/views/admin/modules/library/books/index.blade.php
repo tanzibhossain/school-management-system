@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Library — books'))
+@section('title', __('Library — Books'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Books',

@@ -24,7 +24,7 @@ class DriverController extends Controller
     {
         $this->drivers->make(app('current_school_id'), $this->validated($request));
 
-        return back()->with('status', __('Driver added.'));
+        return back()->with('status', __('Driver Added.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -32,7 +32,7 @@ class DriverController extends Controller
         $driver = TransportDriver::where('school_id', app('current_school_id'))->findOrFail($id);
         $this->drivers->modify($driver, $this->validated($request));
 
-        return back()->with('status', __('Driver updated.'));
+        return back()->with('status', __('Driver Updated.'));
     }
 
     /**

@@ -31,12 +31,12 @@
   <div class="modal fade" id="createModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.subjects.store') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('New subject') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('New Subject') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <div class="mb-2"><label class="form-label">{{ __('Name') }} <span class="text-danger">*</span></label>
-          <input name="name" class="form-control" value="{{ old('name') }}" placeholder="{{ __('e.g. Mathematics') }}" required></div>
-        <div><label class="form-label">{{ __('Subject code') }}</label>
-          <input name="sub_code" class="form-control" value="{{ old('sub_code') }}" placeholder="{{ __('e.g. MATH-101') }}"></div>
+          <input name="name" class="form-control" value="{{ old('name') }}" placeholder="{{ __('E.g. Mathematics') }}" required></div>
+        <div><label class="form-label">{{ __('Subject Code') }}</label>
+          <input name="sub_code" class="form-control" value="{{ old('sub_code') }}" placeholder="{{ __('E.g. MATH-101') }}"></div>
       </div>
       <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Save') }}</button></div>
     </form>
@@ -46,11 +46,11 @@
     <div class="modal fade" id="editModal{{ $s->id }}" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
       <form method="POST" action="{{ route('admin.subjects.update', $s->id) }}">
         @csrf @method('PUT')
-        <div class="modal-header"><h5 class="modal-title">{{ __('Edit subject') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-header"><h5 class="modal-title">{{ __('Edit Subject') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body">
           <div class="mb-2"><label class="form-label">{{ __('Name') }} <span class="text-danger">*</span></label>
             <input name="name" class="form-control" value="{{ $s->name }}" required></div>
-          <div><label class="form-label">{{ __('Subject code') }}</label>
+          <div><label class="form-label">{{ __('Subject Code') }}</label>
             <input name="sub_code" class="form-control" value="{{ $s->sub_code }}"></div>
         </div>
         <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Save') }}</button></div>

@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Transport — vehicles'))
+@section('title', __('Transport — Vehicles'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Vehicles',

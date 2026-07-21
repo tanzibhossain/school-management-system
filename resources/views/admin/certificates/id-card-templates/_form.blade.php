@@ -30,13 +30,13 @@
         <input type="color" name="background_color" class="form-control form-control-color" value="{{ $isEdit ? $t->background_color : '#ffffff' }}"></div>
       <div class="col-md-3"><label class="form-label">{{ __('Accent') }}</label>
         <input type="color" name="accent_color" class="form-control form-control-color" value="{{ $isEdit ? $t->accent_color : '#1a56db' }}"></div>
-      <div class="col-12"><label class="form-label">{{ __('Visible fields') }}</label>
+      <div class="col-12"><label class="form-label">{{ __('Visible Fields') }}</label>
         <div class="d-flex flex-wrap gap-3">
           @foreach ($fields as $f)
             <div class="form-check"><input class="form-check-input" type="checkbox" name="visible_fields[]" value="{{ $f }}" id="vf{{ $modalId }}{{ $f }}" @checked(in_array($f, $current))><label class="form-check-label text-capitalize" for="vf{{ $modalId }}{{ $f }}">{{ str_replace('_',' ',$f) }}</label></div>
           @endforeach
         </div></div>
-      <div class="col-12"><div class="form-check"><input type="hidden" name="is_default" value="0"><input class="form-check-input" type="checkbox" name="is_default" value="1" id="def{{ $modalId }}" @checked($isEdit ? $t->is_default : false)><label class="form-check-label" for="def{{ $modalId }}">{{ __('Default for this type') }}</label></div></div>
+      <div class="col-12"><div class="form-check"><input type="hidden" name="is_default" value="0"><input class="form-check-input" type="checkbox" name="is_default" value="1" id="def{{ $modalId }}" @checked($isEdit ? $t->is_default : false)><label class="form-check-label" for="def{{ $modalId }}">{{ __('Default For This Type') }}</label></div></div>
     </div>
     <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Save') }}</button></div>
   </form>

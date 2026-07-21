@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Payroll — staff salaries'))
+@section('title', __('Payroll — Staff Salaries'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'Staff salaries', 'crumbs' => ['Payroll', 'Staff salaries']])
   @include('admin.modules.payroll._tabs', ['active' => 'salaries'])
@@ -16,7 +16,7 @@
             <td class="text-end">{{ number_format($sum['gross'], 2) }}</td>
             <td class="text-end">{{ number_format($sum['deductions'], 2) }}</td>
             <td class="text-end fw-semibold">{{ number_format($sum['net'], 2) }}</td>
-            <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('admin.payroll.staff-salaries.edit', $s->id) }}">{{ __('Set salary') }}</a></td>
+            <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('admin.payroll.staff-salaries.edit', $s->id) }}">{{ __('Set Salary') }}</a></td>
           </tr>
         @endforeach
       </tbody>

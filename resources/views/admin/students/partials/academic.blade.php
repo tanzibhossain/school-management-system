@@ -39,7 +39,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4 text-muted">{{ __('No academic records found') }}</td>
+                                <td colspan="7" class="text-center py-4 text-muted">{{ __('No Academic Records Found') }}</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -67,7 +67,7 @@
             @else
                 <div class="text-center py-4 text-muted">
                     <i class="bi bi-book fs-1 text-slate-300"></i>
-                    <p class="mt-2 mb-0">{{ __('No subjects assigned') }}</p>
+                    <p class="mt-2 mb-0">{{ __('No Subjects Assigned') }}</p>
                 </div>
             @endif
         </x-card>

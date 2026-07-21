@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Exam halls'))
+@section('title', __('Exam Halls'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Exam halls',
@@ -33,19 +33,19 @@
   <div class="modal fade" id="createModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.exam-halls.store') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('New exam hall') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('New Exam Hall') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
         <div class="col-12"><label class="form-label">{{ __('Name') }} <span class="text-danger">*</span></label>
-          <input name="name" class="form-control" value="{{ old('name') }}" placeholder="{{ __('e.g. Main Hall') }}" required></div>
+          <input name="name" class="form-control" value="{{ old('name') }}" placeholder="{{ __('E.g. Main Hall') }}" required></div>
         <div class="col-12"><label class="form-label">{{ __('Description') }}</label>
           <input name="description" class="form-control" value="{{ old('description') }}"></div>
         <div class="col-md-4"><label class="form-label">{{ __('Rows') }} <span class="text-danger">*</span></label>
           <input type="number" min="1" max="100" name="rows" class="form-control" value="{{ old('rows', 10) }}" required></div>
-        <div class="col-md-4"><label class="form-label">{{ __('Left seats/row') }} <span class="text-danger">*</span></label>
+        <div class="col-md-4"><label class="form-label">{{ __('Left Seats/row') }} <span class="text-danger">*</span></label>
           <input type="number" min="1" max="20" name="left_per_row" class="form-control" value="{{ old('left_per_row', 3) }}" required></div>
-        <div class="col-md-4"><label class="form-label">{{ __('Right seats/row') }}</label>
+        <div class="col-md-4"><label class="form-label">{{ __('Right Seats/row') }}</label>
           <input type="number" min="0" max="20" name="right_per_row" class="form-control" value="{{ old('right_per_row', 3) }}"></div>
-        <div class="col-12"><div class="alert alert-info py-2 mb-0 small">{{ __('Seats are generated as') }} <code>R01-L1, R01-L2, … R01-R1 …</code> {{ __('per row. You can block individual seats afterwards.') }}</div></div>
+        <div class="col-12"><div class="alert alert-info py-2 mb-0 small">{{ __('Seats Are Generated As') }} <code>R01-L1, R01-L2, … R01-R1 …</code> {{ __('Per Row. You Can Block Individual Seats Afterwards.') }}</div></div>
       </div>
       <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Create') }}</button></div>
     </form>

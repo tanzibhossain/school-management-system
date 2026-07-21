@@ -52,7 +52,7 @@ class LibraryMemberTest extends LibraryTestCase
         ]);
 
         $response->assertStatus(200);
-        $response->assertJsonFragment(['message' => 'Member deactivated.']);
+        $response->assertJsonFragment(['message' => 'Member Deactivated.']);
         $this->assertDatabaseHas('library_members', [
             'id' => $member->id,
             'is_active' => false,

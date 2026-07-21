@@ -57,7 +57,7 @@ class ExamController extends Controller
 
         $exam = $this->exams->create($schoolId, $data);
 
-        return redirect()->route('admin.exams.show', $exam->id)->with('status', __('Exam created.'));
+        return redirect()->route('admin.exams.show', $exam->id)->with('status', __('Exam Created.'));
     }
 
     public function show(int $id): View
@@ -105,7 +105,7 @@ class ExamController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('status', __('Subject added to exam.'));
+        return back()->with('status', __('Subject Added To Exam.'));
     }
 
     public function removeSubject(int $id, int $subjectId): RedirectResponse
@@ -119,7 +119,7 @@ class ExamController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('status', __('Subject removed.'));
+        return back()->with('status', __('Subject Removed.'));
     }
 
     private function transition(int $id, callable $action, string $message): RedirectResponse

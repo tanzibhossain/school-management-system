@@ -9,12 +9,12 @@
     @if ($isEdit) @method('PUT') @endif
     <div class="modal-header"><h5 class="modal-title">{{ $isEdit ? 'Edit member' : 'Add member' }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
     <div class="modal-body row g-3">
-      <div class="col-12"><label class="form-label">{{ __('User account') }} <span class="text-danger">*</span></label>
+      <div class="col-12"><label class="form-label">{{ __('User Account') }} <span class="text-danger">*</span></label>
         <select name="user_id" class="form-select js-select" required>
           <option value="">— select —</option>
           @foreach ($users as $usr)<option value="{{ $usr->id }}" @selected(($isEdit ? $m->user_id : old('user_id'))==$usr->id)>{{ $usr->name }}</option>@endforeach
         </select></div>
-      <div class="col-md-7"><label class="form-label">{{ __('Membership number') }} <span class="text-danger">*</span></label>
+      <div class="col-md-7"><label class="form-label">{{ __('Membership Number') }} <span class="text-danger">*</span></label>
         <input name="membership_number" class="form-control" value="{{ $isEdit ? $m->membership_number : old('membership_number') }}" required></div>
       <div class="col-md-5"><label class="form-label">{{ __('Type') }} <span class="text-danger">*</span></label>
         <select name="member_type" class="form-select" required>

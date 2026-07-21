@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Edit page'))
+@section('title', __('Edit Page'))
 @section('content')
   @php
     $admissionFieldDefaults = [
@@ -35,9 +35,9 @@
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div>
       <nav><ol class="breadcrumb small mb-1"><li class="breadcrumb-item">{{ __('Website') }}</li><li class="breadcrumb-item"><a href="{{ route('admin.pages.index') }}" class="text-decoration-none">{{ __('Pages') }}</a></li><li class="breadcrumb-item active">{{ $page->title }}</li></ol></nav>
-      <h1 class="h4 mb-0">{{ __('Edit page') }}</h1>
+      <h1 class="h4 mb-0">{{ __('Edit Page') }}</h1>
     </div>
-    @if ($page->status === 'published')<a class="btn btn-outline-secondary" href="{{ url('/' . $page->slug) }}" target="_blank"><i class="bi bi-box-arrow-up-right"></i> {{ __('View live') }}</a>@endif
+    @if ($page->status === 'published')<a class="btn btn-outline-secondary" href="{{ url('/' . $page->slug) }}" target="_blank"><i class="bi bi-box-arrow-up-right"></i> {{ __('View Live') }}</a>@endif
   </div>
 
   <form method="POST" action="{{ route('admin.pages.save', $page->id) }}">
@@ -57,8 +57,8 @@
           </select></div>
         <div class="col-md-3"><label class="form-label">{{ __('Template') }}</label>
           <select name="template" id="tpl-select" class="form-select">
-            <option value="full" @selected($view['template'] === 'full')>{{ __('Full width') }}</option>
-            <option value="sidebar" @selected($view['template'] === 'sidebar')>{{ __('With sidebar') }}</option>
+            <option value="full" @selected($view['template'] === 'full')>{{ __('Full Width') }}</option>
+            <option value="sidebar" @selected($view['template'] === 'sidebar')>{{ __('With Sidebar') }}</option>
           </select></div>
       </div>
     </div></div>
@@ -67,7 +67,7 @@
       {{-- Main column --}}
       <div id="main-col" class="{{ $view['template'] === 'sidebar' ? 'col-lg-8' : 'col-12' }}">
         <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
-          <span>{{ __('Content blocks') }}</span>
+          <span>{{ __('Content Blocks') }}</span>
           <div class="input-group input-group-sm" style="width:auto;">
             <select class="form-select" id="add-blocks-select">
               @foreach ($blocks as $t => $l)<option value="{{ $t }}">{{ $l }}</option>@endforeach
@@ -80,14 +80,14 @@
               @include('admin.website.pages._card', ['prefix' => "blocks[$i]", 'type' => $b['type'], 'label' => $blocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec])
             @endforeach
           </div>
-          <p class="text-muted small mb-0" id="blocks-empty" @if(count($view['blocks'])) style="display:none" @endif>{{ __('No blocks yet — add one above.') }}</p>
+          <p class="text-muted small mb-0" id="blocks-empty" @if(count($view['blocks'])) style="display:none" @endif>{{ __('No Blocks Yet — Add One Above.') }}</p>
         </div></div>
       </div>
 
       {{-- Sidebar column --}}
       <div id="side-col" class="col-lg-4" @if($view['template'] !== 'sidebar') style="display:none" @endif>
         <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
-          <span>{{ __('Sidebar blocks') }}</span>
+          <span>{{ __('Sidebar Blocks') }}</span>
           <div class="input-group input-group-sm" style="width:auto;">
             <select class="form-select" id="add-sidebar-select">
               @foreach ($sidebarBlocks as $t => $l)<option value="{{ $t }}">{{ $l }}</option>@endforeach
@@ -104,7 +104,7 @@
       </div>
     </div>
 
-    <div class="mt-3"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save page') }}</button>
+    <div class="mt-3"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save Page') }}</button>
       <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary">{{ __('Back') }}</a></div>
   </form>
 

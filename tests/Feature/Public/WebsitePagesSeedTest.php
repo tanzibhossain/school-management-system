@@ -41,7 +41,7 @@ class WebsitePagesSeedTest extends TestCase
         $this->get('/gallery')->assertOk()->assertSee('picsum.photos', false);
 
         // Identity pages render their content.
-        $this->get('/history')->assertOk()->assertSee('A proud history')->assertSee('Quick links');
+        $this->get('/history')->assertOk()->assertSee('A proud history')->assertSee('Quick Links');
         $this->get('/online-admission')->assertOk()->assertSee('Apply for admission');
     }
 

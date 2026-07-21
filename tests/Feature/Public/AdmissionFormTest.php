@@ -71,9 +71,9 @@ class AdmissionFormTest extends TestCase
     public function test_form_renders_all_sections(): void
     {
         $this->get('/online-admission')->assertOk()
-            ->assertSee('Birth certificate no.')
-            ->assertSee('Parent information')
-            ->assertSee('Present address')
+            ->assertSee('Birth Certificate No.')
+            ->assertSee('Parent Information')
+            ->assertSee('Present Address')
             ->assertSee('Class Six');
     }
 

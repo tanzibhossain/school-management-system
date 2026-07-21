@@ -152,16 +152,16 @@
                     <p class="mb-0 small"><i class="bi bi-envelope"></i> {{ $school->email }}</p>@endif
                 </div>
                 <div class="col-md-4">
-                    <h6 class="text-white-50 text-uppercase small mb-2">{{ __('Quick links') }}</h6>
+                    <h6 class="text-white-50 text-uppercase small mb-2">{{ __('Quick Links') }}</h6>
                     <div class="d-flex flex-column gap-1 small">
                         <a href="{{ route('home') }}#notices">{{ __('Notices') }}</a>
-                        <a href="{{ route('home') }}#results">{{ __('Check results') }}</a>
-                        <a href="{{ route('login') }}">{{ __('Portal login') }}</a>
+                        <a href="{{ route('home') }}#results">{{ __('Check Results') }}</a>
+                        <a href="{{ route('login') }}">{{ __('Portal Login') }}</a>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <h6 class="text-white-50 text-uppercase small mb-2">{{ __('Portal') }}</h6>
-                    <a href="{{ route('login') }}" class="btn btn-outline-light btn-sm">{{ __('Sign in') }}</a>
+                    <a href="{{ route('login') }}" class="btn btn-outline-light btn-sm">{{ __('Sign In') }}</a>
                 </div>
             </div>
             <hr class="border-secondary my-4">

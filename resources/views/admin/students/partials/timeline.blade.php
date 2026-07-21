@@ -40,7 +40,7 @@
         <div class="text-center py-5 text-muted">
             <i class="bi bi-clock-history fs-1 text-slate-300"></i>
             <h3 class="mt-3 mb-1">{{ __('No Timeline Events') }}</h3>
-            <p class="text-muted">{{ __('Timeline events will appear here as they occur.') }}</        </div>
+            <p class="text-muted">{{ __('Timeline Events Will Appear Here As They Occur.') }}</        </div>
     @endif
 </div>
 

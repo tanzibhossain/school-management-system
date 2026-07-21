@@ -24,6 +24,6 @@
         @endforeach
       </div>
     </div></div>
-    <div class="mt-4"><button class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save modules') }}</button></div>
+    <div class="mt-4"><button class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save Modules') }}</button></div>
   </form>
 @endsection

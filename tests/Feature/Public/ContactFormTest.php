@@ -45,7 +45,7 @@ class ContactFormTest extends TestCase
 
     public function test_contact_form_renders(): void
     {
-        $this->get('/contact')->assertOk()->assertSee('Send message')->assertSee('name="message"', false);
+        $this->get('/contact')->assertOk()->assertSee('Send Message')->assertSee('name="message"', false);
     }
 
     public function test_submission_stores_an_enquiry(): void

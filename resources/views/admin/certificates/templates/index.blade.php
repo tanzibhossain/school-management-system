@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Testimonial templates'))
+@section('title', __('Testimonial Templates'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Testimonial templates',

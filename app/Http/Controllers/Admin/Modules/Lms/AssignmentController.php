@@ -33,7 +33,7 @@ class AssignmentController extends Controller
 
         $this->assignments->create($course, $data);
 
-        return back()->with('status', __('Assignment created.'));
+        return back()->with('status', __('Assignment Created.'));
     }
 
     public function destroy(int $courseId, int $assignmentId): RedirectResponse
@@ -41,7 +41,7 @@ class AssignmentController extends Controller
         $assignment = $this->find($courseId, $assignmentId);
         $this->assignments->delete($assignment);
 
-        return redirect()->route('admin.lms.courses.show', $courseId)->with('status', __('Assignment removed.'));
+        return redirect()->route('admin.lms.courses.show', $courseId)->with('status', __('Assignment Removed.'));
     }
 
     public function show(int $courseId, int $assignmentId): View

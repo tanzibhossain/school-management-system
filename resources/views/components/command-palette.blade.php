@@ -100,7 +100,7 @@
         <div class="flex items-center gap-3 p-4 border-b border-slate-200">
             <div class="flex items-center gap-2 text-slate-500">
                 <kbd class="kbd px-2 py-1 text-xs font-mono bg-slate-100 rounded js-shortcut-hint">{{ __('Ctrl K') }}</kbd>
-                <span class="text-xs">{{ __('to open') }}</span>
+                <span class="text-xs">{{ __('To Open') }}</span>
             </div>
             <div class="flex-1 relative">
                 <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true"></i>
@@ -142,14 +142,14 @@
         <!-- Empty State -->
         <div class="command-empty hidden p-8 text-center text-slate-500">
             <i class="bi bi-search text-4xl text-slate-300 mb-3"></i>
-            <p class="text-slate-500">{{ __('No commands found') }}</p>
-            <p class="text-sm text-slate-400 mt-1">{{ __('Try a different search term') }}</p>
+            <p class="text-slate-500">{{ __('No Commands Found') }}</p>
+            <p class="text-sm text-slate-400 mt-1">{{ __('Try A Different Search Term') }}</p>
         </div>
 
         <!-- Footer Hint -->
         <div class="p-3 border-t border-slate-100 bg-slate-50">
             <div class="flex items-center justify-between text-xs text-slate-400">
-                <span>{{ __('Navigate with') }} <kbd class="kbd">↑</kbd><kbd class="kbd">↓</kbd>, select with <kbd class="kbd">⏎</kbd>, close with <kbd class="kbd">{{ __('Esc') }}</kbd></span>
+                <span>{{ __('Navigate With') }} <kbd class="kbd">↑</kbd><kbd class="kbd">↓</kbd>, select with <kbd class="kbd">⏎</kbd>, close with <kbd class="kbd">{{ __('Esc') }}</kbd></span>
                 <span class="text-slate-300 js-shortcut-hint">{{ __('Ctrl K') }}</span>
             </div>
         </div>

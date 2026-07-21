@@ -18,7 +18,7 @@
             <div class="card-body p-0">
               @php $entries = $rows[$key] ?? collect(); @endphp
               @if($entries->isEmpty())
-                <div class="text-muted small text-center py-3">{{ __('No classes') }}</div>
+                <div class="text-muted small text-center py-3">{{ __('No Classes') }}</div>
               @else
                 <ul class="list-group list-group-flush">
                   @foreach($entries as $e)

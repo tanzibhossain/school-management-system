@@ -27,7 +27,7 @@ class BookController extends Controller
     {
         $this->books->make(app('current_school_id'), $this->validated($request));
 
-        return back()->with('status', __('Book added.'));
+        return back()->with('status', __('Book Added.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -35,7 +35,7 @@ class BookController extends Controller
         $book = Book::where('school_id', app('current_school_id'))->findOrFail($id);
         $this->books->modify($book, $this->validated($request, $book));
 
-        return back()->with('status', __('Book updated.'));
+        return back()->with('status', __('Book Updated.'));
     }
 
     public function deactivate(int $id): RedirectResponse
@@ -43,7 +43,7 @@ class BookController extends Controller
         $book = Book::where('school_id', app('current_school_id'))->findOrFail($id);
         $this->books->deactivate($book);
 
-        return back()->with('status', __('Book deactivated.'));
+        return back()->with('status', __('Book Deactivated.'));
     }
 
     /**

@@ -4,7 +4,7 @@
   @php $m = ['queued'=>'secondary','processing'=>'info','completed'=>'success','failed'=>'danger']; @endphp
   @include('admin.partials.page-header', ['title' => 'SMS batch #' . $batch->id, 'crumbs' => ['Comms', 'SMS', 'Batch #' . $batch->id]])
 
-  <div class="mb-3"><a href="{{ route('admin.sms.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back to SMS') }}</a></div>
+  <div class="mb-3"><a href="{{ route('admin.sms.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back To SMS') }}</a></div>
 
   <div class="card mb-4"><div class="card-body">
     <dl class="row mb-0">
@@ -18,7 +18,7 @@
 
   <div class="card"><div class="card-header">Delivery log ({{ $batch->logs->count() }})</div><div class="card-body">
     @if ($batch->logs->isEmpty())
-      <p class="text-muted mb-0">{{ __('No per-recipient logs.') }}</p>
+      <p class="text-muted mb-0">{{ __('No Per-recipient Logs.') }}</p>
     @else
       <table class="table align-middle w-100 js-dt">
         <thead><tr><th>{{ __('Phone') }}</th><th>{{ __('Segments') }}</th><th>{{ __('Status') }}</th><th>{{ __('Error') }}</th></tr></thead>

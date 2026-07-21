@@ -39,7 +39,7 @@
         @if(!empty($bulkActions))
             <div class="bulk-actions d-flex align-items-center gap-2" style="display: none;">
                 <select class="form-select form-select-sm bulk-action-select" style="width: auto;" disabled>
-                    <option value="">{{ __('Bulk actions...') }}</option>
+                    <option value="">{{ __('Bulk Actions...') }}</option>
                     @foreach($bulkActions as $action)
                         <option value="{{ $action['id'] }}">{{ $action['label'] }}</option>
                     @endforeach

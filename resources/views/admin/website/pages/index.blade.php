@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Website pages'))
+@section('title', __('Website Pages'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Website pages',
@@ -25,7 +25,7 @@
               @if ($p->status === 'published')<a class="btn btn-sm btn-outline-secondary" href="{{ url('/' . $p->slug) }}" target="_blank">{{ __('View') }}</a>@endif
               @unless ($p->is_homepage)
                 <form method="POST" action="{{ route('admin.pages.homepage', $p->id) }}" class="d-inline">
-                  @csrf<button class="btn btn-sm btn-outline-secondary" title="{{ __('Set as homepage') }}"><i class="bi bi-house"></i></button>
+                  @csrf<button class="btn btn-sm btn-outline-secondary" title="{{ __('Set As Homepage') }}"><i class="bi bi-house"></i></button>
                 </form>
               @endunless
               <form method="POST" action="{{ route('admin.pages.destroy', $p->id) }}" class="d-inline" onsubmit="return confirm('Delete “{{ $p->title }}”?')">

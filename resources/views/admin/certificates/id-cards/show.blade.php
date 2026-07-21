@@ -4,7 +4,7 @@
   @php $m = ['queued'=>'secondary','processing'=>'info','completed'=>'success','failed'=>'danger']; @endphp
   @include('admin.partials.page-header', ['title' => 'ID card batch #' . $batch->id, 'crumbs' => ['Certificates', 'ID cards', 'Batch #' . $batch->id]])
 
-  <div class="mb-3"><a href="{{ route('admin.id-cards.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back to batches') }}</a></div>
+  <div class="mb-3"><a href="{{ route('admin.id-cards.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back To Batches') }}</a></div>
 
   <div class="card mb-4"><div class="card-body">
     <dl class="row mb-0">

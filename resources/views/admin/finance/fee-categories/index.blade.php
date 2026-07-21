@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Fee categories'))
+@section('title', __('Fee Categories'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Fee categories',
@@ -32,7 +32,7 @@
   <div class="modal fade" id="createModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.fee-categories.store') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('New category') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('New Category') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <label class="form-label">{{ __('Name') }} <span class="text-danger">*</span></label>
         <input name="name" class="form-control" value="{{ old('name') }}" required>
@@ -46,7 +46,7 @@
     <div class="modal fade" id="editModal{{ $c->id }}" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
       <form method="POST" action="{{ route('admin.fee-categories.update', $c->id) }}">
         @csrf @method('PUT')
-        <div class="modal-header"><h5 class="modal-title">{{ __('Edit category') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-header"><h5 class="modal-title">{{ __('Edit Category') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body">
           <label class="form-label">{{ __('Name') }} <span class="text-danger">*</span></label>
           <input name="name" class="form-control" value="{{ $c->name }}" required>

@@ -61,6 +61,6 @@ class StudentCreditController extends Controller
         }
 
         return redirect()->route('admin.student-credit.index', ['student_id' => $data['student_id']])
-            ->with('status', __('Credit adjusted.'));
+            ->with('status', __('Credit Adjusted.'));
     }
 }

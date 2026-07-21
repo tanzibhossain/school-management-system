@@ -1,18 +1,18 @@
 @extends('layouts.admin')
-@section('title', __('All conversations'))
+@section('title', __('All Conversations'))
 @section('content')
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
       <nav><ol class="breadcrumb small mb-1"><li class="breadcrumb-item">{{ __('Comms') }}</li><li class="breadcrumb-item"><a href="{{ route('admin.messages.index') }}" class="text-decoration-none">{{ __('Messages') }}</a></li><li class="breadcrumb-item active">{{ __('All') }}</li></ol></nav>
-      <h1 class="h4 mb-0">{{ __('All conversations') }} <span class="badge text-bg-secondary align-middle">{{ __('Oversight') }}</span></h1>
+      <h1 class="h4 mb-0">{{ __('All Conversations') }} <span class="badge text-bg-secondary align-middle">{{ __('Oversight') }}</span></h1>
     </div>
-    <a class="btn btn-outline-secondary" href="{{ route('admin.messages.index') }}"><i class="bi bi-inbox"></i> {{ __('My inbox') }}</a>
+    <a class="btn btn-outline-secondary" href="{{ route('admin.messages.index') }}"><i class="bi bi-inbox"></i> {{ __('My Inbox') }}</a>
   </div>
-  <p class="text-muted small mb-3">{{ __('Read-only visibility across the school. You can open any conversation and lock it, but you are not added as a participant.') }}</p>
+  <p class="text-muted small mb-3">{{ __('Read-only Visibility Across The School. You Can Open Any Conversation And Lock It, But You Are Not Added As A Participant.') }}</p>
 
   <div class="card"><div class="card-body">
     <table class="table table-hover align-middle w-100 js-dt">
-      <thead><tr><th>{{ __('Conversation') }}</th><th>{{ __('Type') }}</th><th>{{ __('Participants') }}</th><th>{{ __('Last activity') }}</th><th>{{ __('Status') }}</th><th class="text-end" data-orderable="false"></th></tr></thead>
+      <thead><tr><th>{{ __('Conversation') }}</th><th>{{ __('Type') }}</th><th>{{ __('Participants') }}</th><th>{{ __('Last Activity') }}</th><th>{{ __('Status') }}</th><th class="text-end" data-orderable="false"></th></tr></thead>
       <tbody>
         @foreach ($threads as $t)
           @php

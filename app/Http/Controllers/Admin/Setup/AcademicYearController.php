@@ -33,7 +33,7 @@ class AcademicYearController extends Controller
 
         $this->academic->create($data + ['school_id' => $schoolId, 'is_current' => false]);
 
-        return back()->with('status', __('Academic year created.'));
+        return back()->with('status', __('Academic Year Created.'));
     }
 
     public function update(Request $request, int $id): RedirectResponse
@@ -46,14 +46,14 @@ class AcademicYearController extends Controller
 
         $this->academic->update($year, $data);
 
-        return back()->with('status', __('Academic year updated.'));
+        return back()->with('status', __('Academic Year Updated.'));
     }
 
     public function setCurrent(int $id): RedirectResponse
     {
         $this->academic->setCurrentYear(app('current_school_id'), $id);
 
-        return back()->with('status', __('Current academic year updated.'));
+        return back()->with('status', __('Current Academic Year Updated.'));
     }
 
     public function destroy(int $id): RedirectResponse
@@ -61,11 +61,11 @@ class AcademicYearController extends Controller
         $year = AcademicYear::where('school_id', app('current_school_id'))->findOrFail($id);
 
         if ($year->is_current) {
-            return back()->with('error', __('Cannot delete the current academic year. Set another year as current first.'));
+            return back()->with('error', __('Cannot Delete The Current Academic Year. Set Another Year As Current First.'));
         }
 
         $this->academic->trash($year);
 
-        return back()->with('status', __('Academic year deleted.'));
+        return back()->with('status', __('Academic Year Deleted.'));
     }
 }

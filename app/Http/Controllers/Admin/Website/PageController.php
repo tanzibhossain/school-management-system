@@ -52,7 +52,7 @@ class PageController extends Controller
         // Seed an empty layout with the chosen template.
         $this->pages->saveLayout($page, ['template' => $data['template'], 'blocks' => [], 'sidebar' => []], $request->user());
 
-        return redirect()->route('admin.pages.edit', $page->id)->with('status', __('Page created — add your content.'));
+        return redirect()->route('admin.pages.edit', $page->id)->with('status', __('Page Created — Add Your Content.'));
     }
 
     public function edit(int $id): View
@@ -104,7 +104,7 @@ class PageController extends Controller
             $this->pages->publish($page->fresh(), $revision->id);
         }
 
-        return redirect()->route('admin.pages.edit', $page->id)->with('status', __('Page saved.'));
+        return redirect()->route('admin.pages.edit', $page->id)->with('status', __('Page Saved.'));
     }
 
     public function setHomepage(int $id): RedirectResponse
@@ -122,7 +122,7 @@ class PageController extends Controller
         $page = Page::forSchool($schoolId)->findOrFail($id);
         $page->delete();
 
-        return redirect()->route('admin.pages.index')->with('status', __('Page deleted.'));
+        return redirect()->route('admin.pages.index')->with('status', __('Page Deleted.'));
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────

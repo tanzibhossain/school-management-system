@@ -42,13 +42,13 @@
           <div class="card-header d-flex justify-content-between align-items-center">
             <span>Register — {{ \Illuminate\Support\Carbon::parse($date)->format('D, j M Y') }}</span>
             <div class="btn-group btn-group-sm">
-              <button type="button" class="btn btn-outline-secondary" onclick="setAll('present')">{{ __('All present') }}</button>
-              <button type="button" class="btn btn-outline-secondary" onclick="setAll('absent')">{{ __('All absent') }}</button>
+              <button type="button" class="btn btn-outline-secondary" onclick="setAll('present')">{{ __('All Present') }}</button>
+              <button type="button" class="btn btn-outline-secondary" onclick="setAll('absent')">{{ __('All Absent') }}</button>
             </div>
           </div>
           <div class="card-body p-0">
             @if($roster->isEmpty())
-              <div class="text-center text-muted py-4">{{ __('No active students in this section.') }}</div>
+              <div class="text-center text-muted py-4">{{ __('No Active Students In This Section.') }}</div>
             @else
               <table class="table align-middle mb-0">
                 <thead class="table-light"><tr><th>{{ __('Student') }}</th><th style="width:340px">{{ __('Status') }}</th></tr></thead>
@@ -71,7 +71,7 @@
             @endif
           </div>
           @unless($roster->isEmpty())
-            <div class="card-footer text-end"><button class="btn btn-primary"><i class="bi bi-save me-1"></i> {{ __('Save attendance') }}</button></div>
+            <div class="card-footer text-end"><button class="btn btn-primary"><i class="bi bi-save me-1"></i> {{ __('Save Attendance') }}</button></div>
           @endunless
         </div>
       </form>

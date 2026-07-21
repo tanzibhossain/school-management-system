@@ -32,16 +32,16 @@
   <div class="modal fade" id="createModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
     <form method="POST" action="{{ route('admin.exams.store') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('New exam') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('New Exam') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
         <div class="col-md-8"><label class="form-label">{{ __('Title') }} <span class="text-danger">*</span></label>
-          <input name="title" class="form-control" value="{{ old('title') }}" placeholder="{{ __('e.g. Midterm 2026') }}" required></div>
+          <input name="title" class="form-control" value="{{ old('title') }}" placeholder="{{ __('E.g. Midterm 2026') }}" required></div>
         <div class="col-md-4"><label class="form-label">{{ __('Type') }} <span class="text-danger">*</span></label>
           <select name="exam_type_id" class="form-select" required>
             <option value="">— select —</option>
             @foreach ($types as $t)<option value="{{ $t->id }}" @selected(old('exam_type_id')==$t->id)>{{ $t->name }}</option>@endforeach
           </select></div>
-        <div class="col-md-4"><label class="form-label">{{ __('Academic year') }} <span class="text-danger">*</span></label>
+        <div class="col-md-4"><label class="form-label">{{ __('Academic Year') }} <span class="text-danger">*</span></label>
           <select name="academic_year_id" class="form-select" required>
             @foreach ($years as $y)<option value="{{ $y->id }}" @selected($y->is_current)>{{ $y->year }}</option>@endforeach
           </select></div>
@@ -51,12 +51,12 @@
             @foreach ($classes as $c)<option value="{{ $c->id }}" @selected(old('class_id')==$c->id)>{{ $c->name }}</option>@endforeach
           </select></div>
         <div class="col-md-4"><label class="form-label">{{ __('Section') }} <span class="text-muted small">(optional)</span></label>
-          <select name="section_id" class="form-select"><option value="">{{ __('All sections') }}</option>
+          <select name="section_id" class="form-select"><option value="">{{ __('All Sections') }}</option>
             @foreach ($sections as $s)<option value="{{ $s->id }}" data-class="{{ $s->class_id }}">{{ $s->name }}</option>@endforeach
           </select></div>
-        <div class="col-md-6"><label class="form-label">{{ __('Start date') }} <span class="text-danger">*</span></label>
+        <div class="col-md-6"><label class="form-label">{{ __('Start Date') }} <span class="text-danger">*</span></label>
           <input type="date" name="start_date" class="form-control" value="{{ old('start_date') }}" required></div>
-        <div class="col-md-6"><label class="form-label">{{ __('End date') }} <span class="text-danger">*</span></label>
+        <div class="col-md-6"><label class="form-label">{{ __('End Date') }} <span class="text-danger">*</span></label>
           <input type="date" name="end_date" class="form-control" value="{{ old('end_date') }}" required></div>
       </div>
       <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Create') }}</button></div>

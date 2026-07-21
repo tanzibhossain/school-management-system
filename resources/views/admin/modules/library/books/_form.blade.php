@@ -11,7 +11,7 @@
     <div class="modal-body row g-3">
       <div class="col-md-8"><label class="form-label">{{ __('Title') }} <span class="text-danger">*</span></label>
         <input name="title" class="form-control" value="{{ $isEdit ? $b->title : old('title') }}" required></div>
-      <div class="col-md-4"><label class="form-label">{{ __('Total copies') }} <span class="text-danger">*</span></label>
+      <div class="col-md-4"><label class="form-label">{{ __('Total Copies') }} <span class="text-danger">*</span></label>
         <input type="number" min="1" name="total_copies" class="form-control" value="{{ $isEdit ? $b->total_copies : old('total_copies', 1) }}" required></div>
       <div class="col-md-6"><label class="form-label">{{ __('Author') }}</label>
         <input name="author" class="form-control" value="{{ $isEdit ? $b->author : old('author') }}"></div>

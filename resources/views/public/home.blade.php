@@ -12,7 +12,7 @@
                     <div class="d-flex flex-wrap gap-2">
                         <a href="#results" class="btn btn-light btn-lg px-4"><i class="bi bi-mortarboard"></i> Check
                             results</a>
-                        <a href="{{ route('login') }}" class="btn btn-outline-light btn-lg px-4">{{ __('Portal login') }}</a>
+                        <a href="{{ route('login') }}" class="btn btn-outline-light btn-lg px-4">{{ __('Portal Login') }}</a>
                     </div>
                 </div>
                 <div class="col-lg-5">
@@ -38,11 +38,11 @@
     <section id="notices" class="py-5">
         <div class="container">
             <div class="d-flex justify-content-between align-items-end mb-4">
-                <h2 class="section-title h3 mb-0">{{ __('Latest notices') }}</h2>
+                <h2 class="section-title h3 mb-0">{{ __('Latest Notices') }}</h2>
                 <span class="text-muted small">{{ $notices->count() }} active</span>
             </div>
             @if ($notices->isEmpty())
-                <p class="text-muted">{{ __('No notices published right now. Check back soon.') }}</p>
+                <p class="text-muted">{{ __('No Notices Published Right Now. Check Back Soon.') }}</p>
             @else
                 <div class="row g-3">
                     @foreach ($notices->take(6) as $n)
@@ -68,9 +68,9 @@
 
     <section id="staff" class="py-5 bg-light">
         <div class="container">
-            <h2 class="section-title h3 mb-4">{{ __('Our team') }}</h2>
+            <h2 class="section-title h3 mb-4">{{ __('Our Team') }}</h2>
             @if ($staff->isEmpty())
-                <p class="text-muted">{{ __('Staff profiles are coming soon.') }}</p>
+                <p class="text-muted">{{ __('Staff Profiles Are Coming Soon.') }}</p>
             @else
                 <div class="row g-3">
                     @foreach ($staff->take(8) as $member)
@@ -99,11 +99,11 @@
         <div class="container">
             <div class="card">
                 <div class="card-body p-4 p-lg-5 text-center">
-                    <h2 class="section-title h3 mb-2">{{ __('Check your exam results') }}</h2>
+                    <h2 class="section-title h3 mb-2">{{ __('Check Your Exam Results') }}</h2>
                     <p class="text-muted mb-4">Results are published here once released. Sign in to the student portal to
                         view full report cards.</p>
                     <a href="{{ route('login') }}" class="btn btn-brand btn-lg px-4"><i
-                            class="bi bi-box-arrow-in-right"></i> {{ __('Student portal login') }}</a>
+                            class="bi bi-box-arrow-in-right"></i> {{ __('Student Portal Login') }}</a>
                 </div>
             </div>
         </div>

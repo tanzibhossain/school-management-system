@@ -1,12 +1,12 @@
 @extends('layouts.admin')
-@section('title', __('Fee collection report'))
+@section('title', __('Fee Collection Report'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'Fee collection', 'crumbs' => ['Reports', 'Fee collection']])
 
   <ul class="nav nav-pills mb-3">
-    <li class="nav-item"><a class="nav-link active" href="{{ route('admin.reports.fee-collection') }}">{{ __('Fee collection') }}</a></li>
-    <li class="nav-item"><a class="nav-link" href="{{ route('admin.reports.outstanding-dues') }}">{{ __('Outstanding dues') }}</a></li>
-    <li class="nav-item"><a class="nav-link" href="{{ route('admin.reports.student-ledger') }}">{{ __('Student ledger') }}</a></li>
+    <li class="nav-item"><a class="nav-link active" href="{{ route('admin.reports.fee-collection') }}">{{ __('Fee Collection') }}</a></li>
+    <li class="nav-item"><a class="nav-link" href="{{ route('admin.reports.outstanding-dues') }}">{{ __('Outstanding Dues') }}</a></li>
+    <li class="nav-item"><a class="nav-link" href="{{ route('admin.reports.student-ledger') }}">{{ __('Student Ledger') }}</a></li>
   </ul>
 
   <form method="GET" class="card mb-3"><div class="card-body row g-2 align-items-end">
@@ -15,7 +15,7 @@
     <div class="col-sm-3"><label class="form-label small text-muted mb-1">To</label>
       <input type="date" name="date_to" class="form-control form-control-sm" value="{{ $to }}"></div>
     <div class="col-sm-6">
-      <button class="btn btn-sm btn-primary" name="run" value="1">{{ __('Run report') }}</button>
+      <button class="btn btn-sm btn-primary" name="run" value="1">{{ __('Run Report') }}</button>
       @if ($data)<a class="btn btn-sm btn-outline-danger" href="{{ route('admin.reports.fee-collection', ['date_from' => $from, 'date_to' => $to, 'format' => 'pdf']) }}" target="_blank"><i class="bi bi-file-pdf"></i> {{ __('PDF') }}</a>@endif
     </div>
   </div></form>
@@ -23,7 +23,7 @@
   @if ($data)
     <div class="row g-3 mb-3">
       <div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted small">{{ __('Payments') }}</div><div class="h4 mb-0">{{ $data['summary']['count'] }}</div></div></div></div>
-      <div class="col-md-8"><div class="card"><div class="card-body"><div class="text-muted small">{{ __('Totals by currency') }}</div>
+      <div class="col-md-8"><div class="card"><div class="card-body"><div class="text-muted small">{{ __('Totals By Currency') }}</div>
         @foreach ($data['summary']['totals_by_currency'] as $cur => $amt)<span class="badge text-bg-success me-1">{{ number_format((float) $amt, 2) }} {{ $cur }}</span>@endforeach
       </div></div></div>
     </div>
@@ -45,6 +45,6 @@
       </table>
     </div></div>
   @else
-    <div class="alert alert-info">{{ __('Pick a date range and run the report.') }}</div>
+    <div class="alert alert-info">{{ __('Pick A Date Range And Run The Report.') }}</div>
   @endif
 @endsection

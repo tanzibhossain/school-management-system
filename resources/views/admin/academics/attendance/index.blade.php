@@ -11,7 +11,7 @@
       </select></div>
     <div class="col-sm-3"><label class="form-label small text-muted mb-1">{{ __('Section') }}</label>
       <select name="section_id" id="fSection" class="form-select form-select-sm" data-sel="{{ $sectionId }}">
-        <option value="">{{ __('All sections') }}</option>
+        <option value="">{{ __('All Sections') }}</option>
       </select></div>
     <div class="col-sm-3"><label class="form-label small text-muted mb-1">{{ __('Date') }}</label>
       <input type="date" name="date" class="form-control form-control-sm" value="{{ $date }}"></div>
@@ -20,7 +20,7 @@
 
   @if ($classId)
     @if ($roster->isEmpty())
-      <div class="alert alert-warning">{{ __('No active students found for this class/section.') }}</div>
+      <div class="alert alert-warning">{{ __('No Active Students Found For This Class/section.') }}</div>
     @else
       <form method="POST" action="{{ route('admin.attendance.store') }}">
         @csrf
@@ -31,8 +31,8 @@
           <div class="d-flex justify-content-between mb-2">
             <div class="text-muted small">{{ $roster->count() }} students · {{ \Carbon\Carbon::parse($date)->format('D, d M Y') }}</div>
             <div class="btn-group btn-group-sm" role="group">
-              <button type="button" class="btn btn-outline-success" onclick="setAll('present')">{{ __('All present') }}</button>
-              <button type="button" class="btn btn-outline-danger" onclick="setAll('absent')">{{ __('All absent') }}</button>
+              <button type="button" class="btn btn-outline-success" onclick="setAll('present')">{{ __('All Present') }}</button>
+              <button type="button" class="btn btn-outline-danger" onclick="setAll('absent')">{{ __('All Absent') }}</button>
             </div>
           </div>
           <table class="table table-hover align-middle">
@@ -54,12 +54,12 @@
               @endforeach
             </tbody>
           </table>
-          <div class="text-end"><button class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save attendance') }}</button></div>
+          <div class="text-end"><button class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save Attendance') }}</button></div>
         </div></div>
       </form>
     @endif
   @else
-    <div class="alert alert-info">{{ __('Select a class and date to load the register.') }}</div>
+    <div class="alert alert-info">{{ __('Select A Class And Date To Load The Register.') }}</div>
   @endif
 
   @push('scripts')

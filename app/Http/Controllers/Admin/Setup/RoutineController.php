@@ -65,13 +65,13 @@ class RoutineController extends Controller
         ], [], ['subject_id' => 'subject', 'teacher_id' => 'teacher', 'room_id' => 'room', 'period_id' => 'period']);
 
         if ($this->scheduling->hasConflict($schoolId, $data['room_id'], $data['section_id'], $data['period_id'], $data['day_of_week'])) {
-            return back()->with('error', __('That room or section is already booked for this period and day.'));
+            return back()->with('error', __('That Room Or Section Is Already Booked For This Period And Day.'));
         }
 
         ClassRoutine::create($data + ['school_id' => $schoolId]);
 
         return redirect()->route('admin.routine.index', ['class_id' => $data['class_id'], 'section_id' => $data['section_id']])
-            ->with('status', __('Class added to routine.'));
+            ->with('status', __('Class Added To Routine.'));
     }
 
     public function destroy(int $id): RedirectResponse
@@ -82,6 +82,6 @@ class RoutineController extends Controller
         $cell->delete();
 
         return redirect()->route('admin.routine.index', ['class_id' => $classId, 'section_id' => $sectionId])
-            ->with('status', __('Routine entry removed.'));
+            ->with('status', __('Routine Entry Removed.'));
     }
 }

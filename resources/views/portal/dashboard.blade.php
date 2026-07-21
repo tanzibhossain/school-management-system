@@ -26,24 +26,24 @@
     </div>
     <div class="col-sm-4">
       <div class="card h-100"><div class="card-body">
-        <div class="text-muted small mb-1">{{ __('Outstanding dues') }}</div>
+        <div class="text-muted small mb-1">{{ __('Outstanding Dues') }}</div>
         <div class="h4 mb-0">{{ number_format($dues) }}</div>
-        <div class="text-muted" style="font-size:.78rem;"><a href="{{ route('portal.fees', ['student' => $student->id]) }}" class="text-decoration-none">{{ __('View fees') }}</a></div>
+        <div class="text-muted" style="font-size:.78rem;"><a href="{{ route('portal.fees', ['student' => $student->id]) }}" class="text-decoration-none">{{ __('View Fees') }}</a></div>
       </div></div>
     </div>
     <div class="col-sm-4">
       <div class="card h-100"><div class="card-body">
-        <div class="text-muted small mb-1">{{ __('Published results') }}</div>
+        <div class="text-muted small mb-1">{{ __('Published Results') }}</div>
         <div class="h4 mb-0">{{ $resultsCount }}</div>
-        <div class="text-muted" style="font-size:.78rem;"><a href="{{ route('portal.results', ['student' => $student->id]) }}" class="text-decoration-none">{{ __('View results') }}</a></div>
+        <div class="text-muted" style="font-size:.78rem;"><a href="{{ route('portal.results', ['student' => $student->id]) }}" class="text-decoration-none">{{ __('View Results') }}</a></div>
       </div></div>
     </div>
   </div>
 
   <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <span>{{ __('Recent notices') }}</span>
-      <a href="{{ route('portal.notices', ['student' => $student->id]) }}" class="small text-decoration-none">{{ __('View all') }}</a>
+      <span>{{ __('Recent Notices') }}</span>
+      <a href="{{ route('portal.notices', ['student' => $student->id]) }}" class="small text-decoration-none">{{ __('View All') }}</a>
     </div>
     <div class="card-body">
       @forelse($notices as $n)
@@ -52,7 +52,7 @@
           <div class="text-muted" style="font-size:.78rem;">{{ optional($n->publish_at)->format('j M Y') }}</div>
         </div>
       @empty
-        <div class="text-muted small text-center py-3">{{ __('No notices published.') }}</div>
+        <div class="text-muted small text-center py-3">{{ __('No Notices Published.') }}</div>
       @endforelse
     </div>
   </div>

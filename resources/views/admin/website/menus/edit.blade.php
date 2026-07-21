@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Navigation menu'))
+@section('title', __('Navigation Menu'))
 @section('content')
   @include('admin.partials.page-header', ['title' => 'Navigation menu', 'crumbs' => ['Website', 'Menus']])
 
@@ -25,7 +25,7 @@
     <div class="row g-4">
       <div class="col-lg-4">
         <div class="card">
-          <div class="card-header">{{ __('Add to menu') }}</div>
+          <div class="card-header">{{ __('Add To Menu') }}</div>
           <div class="card-body">
             <label class="form-label small">{{ __('Page') }}</label>
             <div class="input-group input-group-sm mb-3">
@@ -35,19 +35,19 @@
               <button class="btn btn-outline-primary" type="button" id="add-page-btn"><i class="bi bi-plus-lg"></i> {{ __('Add') }}</button>
             </div>
 
-            <label class="form-label small">{{ __('Custom link') }}</label>
+            <label class="form-label small">{{ __('Custom Link') }}</label>
             <input type="text" class="form-control form-control-sm mb-1" id="add-link-label" placeholder="{{ __('Label') }}">
             <div class="input-group input-group-sm mb-3">
               <input type="text" class="form-control" id="add-link-url" placeholder="https://…  or  /slug">
               <button class="btn btn-outline-primary" type="button" id="add-link-btn"><i class="bi bi-plus-lg"></i> {{ __('Add') }}</button>
             </div>
 
-            <label class="form-label small">{{ __('Dropdown (parent)') }}</label>
+            <label class="form-label small">{{ __('Dropdown (Parent)') }}</label>
             <div class="input-group input-group-sm">
-              <input type="text" class="form-control" id="add-dropdown-label" placeholder="{{ __('e.g. About') }}">
+              <input type="text" class="form-control" id="add-dropdown-label" placeholder="{{ __('E.g. About') }}">
               <button class="btn btn-outline-primary" type="button" id="add-dropdown-btn"><i class="bi bi-plus-lg"></i> {{ __('Add') }}</button>
             </div>
-            <div class="form-text mt-2">{{ __('Drag items to reorder. Drag an item onto a dropdown to nest it (one level).') }}</div>
+            <div class="form-text mt-2">{{ __('Drag Items To Reorder. Drag An Item Onto A Dropdown To Nest It (One Level).') }}</div>
           </div>
         </div>
       </div>
@@ -55,12 +55,12 @@
       <div class="col-lg-8">
         <div class="card">
           <div class="card-header d-flex justify-content-between align-items-center">
-            <span>{{ __('Menu structure') }}</span>
-            <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-save"></i> {{ __('Save menu') }}</button>
+            <span>{{ __('Menu Structure') }}</span>
+            <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-save"></i> {{ __('Save Menu') }}</button>
           </div>
           <div class="card-body">
             <ul class="menu-list list-unstyled mb-0" id="menu-root"></ul>
-            <p class="text-muted small mb-0 mt-2" id="menu-empty">{{ __('No items yet — add pages or links from the left.') }}</p>
+            <p class="text-muted small mb-0 mt-2" id="menu-empty">{{ __('No Items Yet — Add Pages Or Links From The Left.') }}</p>
           </div>
         </div>
       </div>

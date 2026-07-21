@@ -30,6 +30,6 @@ class SubmissionController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('status', __('Submission graded.'));
+        return back()->with('status', __('Submission Graded.'));
     }
 }

@@ -62,7 +62,7 @@
                         @if(count($notifications) > 0)
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                                 {{ count($notifications) > 9 ? '9+' : count($notifications) }}
-                                <span class="visually-hidden">{{ __('unread notifications') }}</span>
+                                <span class="visually-hidden">{{ __('Unread Notifications') }}</span>
                             </span>
                         @endif
                     </button>
@@ -70,11 +70,11 @@
                         <li class="dropdown-header d-flex justify-content-between align-items-center">
                             <span>{{ __('Notifications') }}</span>
                             @if(count($notifications) > 0)
-                                <a href="#" class="text-xs text-primary">{{ __('Mark all read') }}</a>
+                                <a href="#" class="text-xs text-primary">{{ __('Mark All Read') }}</a>
                             @endif
                         </li>
                         @if(empty($notifications))
-                            <li><span class="dropdown-item text-muted text-center py-4">{{ __('No new notifications') }}</span></li>
+                            <li><span class="dropdown-item text-muted text-center py-4">{{ __('No New Notifications') }}</span></li>
                         @else
                             @foreach($notifications as $notification)
                                 <li>
@@ -90,7 +90,7 @@
                                 </li>
                             @endforeach
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-center text-primary" href="#">{{ __('View all notifications') }}</a></li>
+                            <li><a class="dropdown-item text-center text-primary" href="#">{{ __('View All Notifications') }}</a></li>
                         @endif
                     </ul>
                 </div>

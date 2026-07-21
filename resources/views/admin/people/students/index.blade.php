@@ -10,7 +10,7 @@
   <form method="GET" class="card mb-3"><div class="card-body row g-2 align-items-end">
     <div class="col-sm-4"><label class="form-label small text-muted mb-1">{{ __('Class') }}</label>
       <select name="class_id" class="form-select form-select-sm">
-        <option value="">{{ __('All classes') }}</option>
+        <option value="">{{ __('All Classes') }}</option>
         @foreach ($classes as $c)
           <option value="{{ $c->id }}" @selected(($filters['class_id'] ?? null) == $c->id)>{{ $c->name }}</option>
         @endforeach
@@ -66,15 +66,15 @@
     <div class="modal fade" id="editModal{{ $st->id }}" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
       <form method="POST" action="{{ route('admin.students.update', $st->id) }}">
         @csrf @method('PUT')
-        <div class="modal-header"><h5 class="modal-title">{{ __('Edit student') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-header"><h5 class="modal-title">{{ __('Edit Student') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
         <div class="modal-body row g-3">
           <div class="col-md-8"><label class="form-label">{{ __('Name') }} <span class="text-danger">*</span></label>
             <input name="name" class="form-control" value="{{ $st->name }}" required></div>
           <div class="col-md-4"><label class="form-label">{{ __('Gender') }} <span class="text-danger">*</span></label>
             <select name="gender" class="form-select" required>{!! $genderOptions($st->gender) !!}</select></div>
-          <div class="col-md-4"><label class="form-label">{{ __('Date of birth') }}</label>
+          <div class="col-md-4"><label class="form-label">{{ __('Date Of Birth') }}</label>
             <input type="date" name="dob" class="form-control" value="{{ optional($st->dob)->format('Y-m-d') }}"></div>
-          <div class="col-md-4"><label class="form-label">{{ __('Blood group') }}</label>
+          <div class="col-md-4"><label class="form-label">{{ __('Blood Group') }}</label>
             <select name="blood_group" class="form-select">
               <option value="">—</option>
               @foreach (['A+','A-','B+','B-','AB+','AB-','O+','O-'] as $bg)

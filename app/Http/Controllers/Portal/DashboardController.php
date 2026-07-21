@@ -156,7 +156,7 @@ class DashboardController extends Controller
             return back()->withErrors($e->errors())->withInput();
         }
 
-        return redirect()->route('portal.leave', ['student' => $ctx['student']->id])->with('status', __('Leave request submitted.'));
+        return redirect()->route('portal.leave', ['student' => $ctx['student']->id])->with('status', __('Leave Request Submitted.'));
     }
 
     public function leaveCancel(int $id, StudentLeaveService $service): RedirectResponse
@@ -168,10 +168,10 @@ class DashboardController extends Controller
         try {
             $service->cancel($req, request()->user());
         } catch (\Throwable $e) {
-            return back()->with('error', __('This request can no longer be cancelled.'));
+            return back()->with('error', __('This Request Can No Longer Be Cancelled.'));
         }
 
-        return back()->with('status', __('Leave request cancelled.'));
+        return back()->with('status', __('Leave Request Cancelled.'));
     }
 
     /** Stream a report-card / marksheet PDF for the selected student + exam. */

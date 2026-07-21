@@ -7,8 +7,8 @@
       <h1 class="h4 mb-0">{{ __('Invoices') }}</h1>
     </div>
     <div class="d-flex gap-2">
-      <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#bulkModal"><i class="bi bi-collection"></i> {{ __('Bulk generate') }}</button>
-      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#singleModal"><i class="bi bi-plus-lg"></i> {{ __('Generate invoice') }}</button>
+      <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#bulkModal"><i class="bi bi-collection"></i> {{ __('Bulk Generate') }}</button>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#singleModal"><i class="bi bi-plus-lg"></i> {{ __('Generate Invoice') }}</button>
     </div>
   </div>
 
@@ -49,14 +49,14 @@
   <div class="modal fade" id="singleModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.invoices.generate-single') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('Generate invoice') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('Generate Invoice') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
         <div class="col-12"><label class="form-label">{{ __('Student') }} <span class="text-danger">*</span></label>
           <select name="student_id" class="form-select js-select" required>
             <option value="">— select —</option>
             @foreach ($students as $s)<option value="{{ $s->id }}">{{ $s->name }} ({{ $s->student_id }})</option>@endforeach
           </select></div>
-        <div class="col-md-6"><label class="form-label">{{ __('Academic year') }} <span class="text-danger">*</span></label>
+        <div class="col-md-6"><label class="form-label">{{ __('Academic Year') }} <span class="text-danger">*</span></label>
           <select name="academic_year_id" class="form-select" required>
             @foreach ($years as $y)<option value="{{ $y->id }}" @selected($y->is_current)>{{ $y->year }}</option>@endforeach
           </select></div>
@@ -68,7 +68,7 @@
           <select name="discount_id" class="form-select"><option value="">— none —</option>
             @foreach ($discounts as $d)<option value="{{ $d->id }}">{{ $d->name }}</option>@endforeach
           </select></div>
-        <div class="col-md-6"><label class="form-label">{{ __('Due date') }} <span class="text-danger">*</span></label>
+        <div class="col-md-6"><label class="form-label">{{ __('Due Date') }} <span class="text-danger">*</span></label>
           <input type="date" name="due_date" class="form-control" required></div>
       </div>
       <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button><button class="btn btn-primary">{{ __('Generate') }}</button></div>
@@ -79,14 +79,14 @@
   <div class="modal fade" id="bulkModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.invoices.generate-bulk') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('Bulk generate by class') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('Bulk Generate By Class') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
         <div class="col-md-6"><label class="form-label">{{ __('Class') }} <span class="text-danger">*</span></label>
           <select name="class_id" class="form-select" required>
             <option value="">— select —</option>
             @foreach ($classes as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach
           </select></div>
-        <div class="col-md-6"><label class="form-label">{{ __('Academic year') }} <span class="text-danger">*</span></label>
+        <div class="col-md-6"><label class="form-label">{{ __('Academic Year') }} <span class="text-danger">*</span></label>
           <select name="academic_year_id" class="form-select" required>
             @foreach ($years as $y)<option value="{{ $y->id }}" @selected($y->is_current)>{{ $y->year }}</option>@endforeach
           </select></div>
@@ -98,7 +98,7 @@
           <select name="discount_id" class="form-select"><option value="">— none —</option>
             @foreach ($discounts as $d)<option value="{{ $d->id }}">{{ $d->name }}</option>@endforeach
           </select></div>
-        <div class="col-12"><label class="form-label">{{ __('Due date') }} <span class="text-danger">*</span></label>
+        <div class="col-12"><label class="form-label">{{ __('Due Date') }} <span class="text-danger">*</span></label>
           <input type="date" name="due_date" class="form-control" required></div>
         <div class="col-12"><div class="alert alert-info py-2 mb-0 small">Generates one invoice per active student in the class who doesn't already have an open invoice for the period.</div></div>
       </div>

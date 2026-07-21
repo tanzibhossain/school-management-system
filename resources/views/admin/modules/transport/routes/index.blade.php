@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', __('Transport — routes'))
+@section('title', __('Transport — Routes'))
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Routes',
@@ -29,10 +29,10 @@
   <div class="modal fade" id="createModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
     <form method="POST" action="{{ route('admin.transport.routes.store') }}">
       @csrf
-      <div class="modal-header"><h5 class="modal-title">{{ __('New route') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-header"><h5 class="modal-title">{{ __('New Route') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body row g-3">
         <div class="col-12"><label class="form-label">{{ __('Name') }} <span class="text-danger">*</span></label>
-          <input name="name" class="form-control" value="{{ old('name') }}" placeholder="{{ __('e.g. Route A — Uptown') }}" required></div>
+          <input name="name" class="form-control" value="{{ old('name') }}" placeholder="{{ __('E.g. Route A — Uptown') }}" required></div>
         <div class="col-md-6"><label class="form-label">{{ __('Fare') }}</label>
           <input type="number" step="0.01" min="0" name="fare" class="form-control" value="{{ old('fare', 0) }}"></div>
         <div class="col-md-6"><label class="form-label">{{ __('Driver') }}</label>
