@@ -94,6 +94,18 @@ class LanguageModuleTest extends TestCase
         $this->assertSame(0, Translation::where('locale', 'en')->count());
     }
 
+    public function test_translation_seeder_ships_bangla_pack_without_overwriting_edits(): void
+    {
+        // A hand-edited value must survive re-seeding.
+        Translation::create(['locale' => 'bn', 'key' => 'Cancel', 'value' => 'কাস্টম']);
+
+        $this->seed(\Database\Seeders\TranslationSeeder::class);
+
+        $this->assertSame('কাস্টম', Translation::where('locale', 'bn')->where('key', 'Cancel')->first()->value);
+        $this->assertSame('ড্যাশবোর্ড', Translation::where('locale', 'bn')->where('key', 'Dashboard')->first()->value);
+        $this->assertGreaterThan(200, Translation::where('locale', 'bn')->whereNotNull('value')->count());
+    }
+
     public function test_default_language_cannot_be_deactivated_or_deleted(): void
     {
         $en = Language::where('code', 'en')->first();
