@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\Academics\AttendanceController;
 use App\Http\Controllers\Admin\Academics\ExamController;
 use App\Http\Controllers\Admin\Academics\ExamMarkController;
@@ -7,9 +8,7 @@ use App\Http\Controllers\Admin\Academics\ExamSeatingController;
 use App\Http\Controllers\Admin\Academics\ExamTypeController;
 use App\Http\Controllers\Admin\Academics\HallController;
 use App\Http\Controllers\Admin\Academics\MarkSettingController;
-use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\Auth\LoginController;
-use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Admin\Certificates\AdmitCardController;
 use App\Http\Controllers\Admin\Certificates\IdCardBatchController;
 use App\Http\Controllers\Admin\Certificates\IdCardTemplateController;
@@ -64,6 +63,7 @@ use App\Http\Controllers\Admin\Setup\SectionController;
 use App\Http\Controllers\Admin\Setup\SubjectController;
 use App\Http\Controllers\Admin\Website\MenuController;
 use App\Http\Controllers\Admin\Website\PageController as WebsitePageController;
+use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Payment\WebhookController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\HomeController;
