@@ -1,0 +1,155 @@
+# Website Page Builder — Elementor-style Live Editor · Plan
+
+**Status:** 🔵 **Planned, not started** · **Path:** `app/Modules/Website`, `app/Http/Controllers/Admin/Website`,
+`resources/views/admin/website/pages`, `resources/views/public` · **Depends on:** `20-website.md` §"Block
+Style & Layout" (✅ shipped — the Style/Layout tabs, `PageRenderService::sanitizeStyle/sanitizeLayout`, and
+`BlockPresentation` this plan builds on top of).
+
+**Resume note:** this file is the single source of truth for this feature. A fresh session (or a fresh Claude
+instance) should be able to read this file top to bottom and continue at whichever milestone has status
+`planned`/`in progress`, without re-deriving anything from chat history. Update the milestone table and the
+"Decisions" section as you go — that's what makes resuming after a context reset cheap.
+
+---
+
+## 1. Goal
+
+Today the admin block editor is a flat stack of block cards, each with Content/Style/Layout tabs, plus a "View
+Live" link that opens the real page in a new tab. The user has to save and reload to see the effect of a
+change.
+
+The goal is an editor that **looks and operates like Elementor (+ the Elementor Pro conveniences that make
+sense for a single-school website builder)**: a live canvas showing the real page, updating as you edit, a
+narrow settings panel instead of a stacked card list, click-to-select on the canvas, a responsive-viewport
+toggle, and a few Pro-grade quality-of-life features (revision history, copy/paste style, undo).
+
+## 2. Scope reality check — what "like Elementor" means here
+
+Elementor (and Elementor Pro) is a mature, multi-year commercial product with a huge surface area (Theme
+Builder, Popup Builder, a Forms widget system, dynamic tags, WooCommerce builder, a nested Flexbox-container
+layout engine, global widgets, a template library/marketplace, motion effects, custom CSS per element,
+white-label branding…). Cloning all of it is not a realistic goal for a single-school admin tool, and most of
+it doesn't map to this app's needs. This plan targets the subset that actually matters: **the live-editing
+experience and the polish that comes with it**, not every menu item Elementor has.
+
+**In scope** (this plan): live iframe preview, rail-and-panel editor layout, click-to-select, responsive
+viewport toggle, drag-reorder in the block rail, revision history (free — reuses the existing versioned-row
+model), copy/paste block style, session undo/redo.
+
+**Explicitly out of scope** (call out if the user wants one of these later — each is its own plan-sized
+project): a nested Section→Column→Widget/Container layout model (see §7, flagged as a future, separate,
+data-model-changing project), a Theme Builder (this app already has header/footer/site chrome via `SiteLayout`
++ `Menu` — no need to rebuild that inside the page editor), a Popup Builder, a generic drag-and-drop Forms
+widget (the app already has purpose-built `admission_form`/`contact` blocks), Dynamic Tags, global/reusable
+widgets library, a template marketplace.
+
+**Hard constraint carried over from the rest of the app:** no build step. Everything here is vanilla JS +
+Blade + CDN libraries (Bootstrap 5.3.3 already loaded; may add SortableJS from CDN for drag-reorder — no
+bundler, no npm build, no React/Vue). This mirrors how Elementor itself actually works under the hood (PHP
+re-renders a widget server-side on each edit and the browser injects the returned HTML into an iframe) — so
+the "no build step" constraint is not actually a limitation for this feature, it's the same architecture.
+
+## 3. Current state recap (read this before touching code)
+
+Content model — `page_layouts.layout_json` (LONGTEXT, every save is a **new row**, never mutated):
+```
+{ "template": "full" | "sidebar", "blocks": [ {type,data,style,layout}, ... ], "sidebar": [ {type,data,style,layout}, ... ] }
+```
+Flat arrays — no nesting/columns. 12 main-column block types + 4 sidebar block types (16 total), listed in
+`PageRenderService::BLOCKS` / `::SIDEBAR_BLOCKS`. Grid-of-cards types (`staff`, `notices`, `stats`,
+`gallery_photo`, `gallery_video`) get column controls; all 16 get visibility controls.
+
+Key files as they exist today:
+- `app/Modules/Website/Services/PageRenderService.php` — `buildView()`/`normalize()`/`cleanBlocks()` build the
+  render-ready view model from `layout_json`; `sanitizeStyle()`/`sanitizeLayout()` are the single sanitization
+  boundary (called from both admin save and public render — **reuse these, don't duplicate**).
+- `app/Modules/Website/Support/BlockPresentation.php` — turns sanitized `style`/`layout` into wrapper CSS
+  class/inline-style strings; shared by both renderers below.
+- `resources/views/public/blocks/render.blade.php`, `resources/views/public/sidebar/render.blade.php` — the
+  actual per-block-type HTML. **This is the single source of truth for what a block looks like on the real
+  site** — the live preview must render through these same views, not a reimplementation.
+- `resources/views/public/templates/{full,sidebar}.blade.php` — page-level template wrappers.
+- `resources/views/public/layout.blade.php` — site chrome (header/footer/CSS vars/reveal-animation JS).
+- `app/Http/Controllers/Admin/Website/PageController.php` — `edit()`/`layoutForEditor()`/`normalizeBlocks()`
+  (admin save path) and presumably the public `show()` action (verify method name before Phase 1).
+- `resources/views/admin/website/pages/edit.blade.php` + `_card.blade.php` + `_fields.blade.php` +
+  `_style_fields.blade.php` + `_layout_fields.blade.php` — today's stacked-card editor UI (Phase 3 replaces
+  the layout but keeps these partials as the content of the settings panel).
+- Routes (`routes/web.php` ~line 300, group prefix `admin`, name prefix presumably `admin.website.pages.`):
+  `pages.index/create/store/edit/save/homepage/destroy`. Phase 1 adds `pages.preview`.
+
+## 4. Architecture for live preview
+
+1. **New preview endpoint** — `POST /admin/pages/{id}/preview` (and a variant for not-yet-created pages, e.g.
+   `POST /admin/pages/preview` taking `template` in the body, for the "create" screen). Controller action reads
+   the posted (unsaved) `blocks`/`sidebar`/`template` from the request — same shape the save action already
+   parses — runs them through the **existing** `normalizeBlocks()` → `sanitizeStyle()`/`sanitizeLayout()` →
+   `PageRenderService::buildView()`-equivalent pipeline, and renders the **real** `public.templates.*` +
+   `public.layout` view chain, returning full HTML. No DB write, no cache (ephemeral, ignore the "no cache on
+   writes" rule only because this isn't a write at all).
+2. **`PageRenderService` needs one addition**: a method that builds the view model from an **in-memory** blocks
+   array instead of always loading `page_layouts.layout_json` from the DB (e.g. `buildViewFromRaw(array
+   $blocks, array $sidebar, string $template)`). Refactor `buildView()` to share this with the DB-loading path
+   rather than duplicating logic — same pattern already used for `sanitizeStyle`/`sanitizeLayout`.
+3. **Client side**: serialize the whole editor form (all blocks + style + layout + template) to JSON, debounce
+   ~300–400ms after the last input event, `fetch()` POST to the preview endpoint, get HTML back, and set it
+   into the canvas iframe via `iframe.srcdoc` (simplest; full reload per change — fine for Phase 2). Phase 6
+   upgrades this to a per-block partial render + targeted DOM patch so it stops flashing/losing scroll
+   position on every keystroke.
+4. Because the preview renders through the exact same Blade views as the live site, **preview and reality can
+   never drift** — this is the property that makes the whole feature trustworthy, keep it that way through
+   every later phase (never let Phase 3+ UI work introduce a second rendering path for "the canvas").
+
+## 5. Milestones
+
+| # | Milestone | What ships | Status |
+|---|---|---|---|
+| 1 | **Preview render endpoint** | `PageRenderService::buildViewFromRaw()`; `PageController::preview()`; route `admin.website.pages.preview`; returns full page HTML from posted (unsaved) block data through the real render pipeline | planned |
+| 2 | **Iframe canvas, debounced full reload** | `edit.blade.php` gains an iframe; vanilla JS serializes the form, debounces, POSTs to the preview endpoint, sets `iframe.srcdoc`. This alone delivers "live preview" — ship it even before Phase 3's UI rework | planned |
+| 3 | **Rail + panel editor layout** | Replace the stacked always-expanded block cards with Elementor's shape: one ~320px left panel that toggles between "block list" (compact rows, icon + label + add-button, reorder handles) and "selected block settings" (today's Content/Style/Layout tabs, plus a back arrow), canvas iframe fills the rest of the width | planned |
+| 4 | **Click-to-select + hover outline** | Rendered block wrappers get a `data-block-index` attribute; small script (injected into the preview HTML or attached post-load) posts click/hover events from the iframe to the parent via `postMessage`; parent opens that block's settings panel and outlines it in the canvas | planned |
+| 5 | **Responsive viewport toolbar** | Desktop/Laptop/Tablet/Mobile buttons above the canvas that resize the iframe's CSS width (1400/1200/768/375px) with a device-frame border — makes the already-shipped responsive Layout controls visibly testable live | planned |
+| 6 | **Per-block partial re-render (perf)** | Add a lightweight "render one block" endpoint/mode reusing `public.blocks.render`/`public.sidebar.render` directly; client does a targeted DOM replace inside the iframe instead of a full `srcdoc` reload — removes flicker/scroll-jump on every keystroke | planned |
+| 7 | **Rail drag-reorder** | SortableJS (CDN) on the block-list rail for drag-to-reorder, replacing/augmenting the up/down buttons. **Dragging directly on the canvas (true Elementor behavior) is out of scope for this milestone** — cross-iframe drag-and-drop is materially harder and lower value here; revisit only if requested | planned |
+| 8 | **Revision history ("Pro" niceties, cheap)** | `page_layouts` is already versioned (every save = new row, never mutated) — add a "History" view listing past versions (created_at/by) with a "Restore" action that copies an old row's JSON into a new current save. Near-zero backend cost since the data already exists | planned |
+| 9 | **Copy/paste block style ("Pro" niceties)** | "Copy style" / "Paste style" buttons per block in the settings panel; client-side only — stash the current block's `style` object in a JS variable, apply its values onto another block's hidden Style-tab inputs on paste. No backend change | planned |
+| 10 | **Session undo/redo ("Pro" niceties)** | Client-side history stack of serialized form snapshots (JSON), Ctrl+Z/Ctrl+Shift+Z restores a snapshot into the form + re-triggers a preview render. Scoped to the current editing session only (not persisted) | planned |
+
+Ship order matters less within 8–10 than 1→7; those three are independent add-ons and can be reordered or
+dropped without affecting the others.
+
+## 6. Testing
+
+- **Feature test** for the preview endpoint: POST a blocks payload (including out-of-range style values) and
+  assert the response HTML reflects sanitized values (e.g. a `padding_top` of `9999` gets clamped to `400`,
+  same assertion style as the existing sanitizer tests) — this is the one milestone with real backend logic to
+  cover.
+- Everything from Phase 2 onward is editor JS/UX — no PHPUnit coverage; verify manually per milestone (this
+  matches how the Style/Layout tabs work itself was verified — no way to check visuals from this sandbox, the
+  user drives manual QA in-browser).
+- Re-run `tests/Feature/Admin/` website suite after Phase 1 to confirm the new `buildViewFromRaw()` refactor
+  didn't change behavior for the existing DB-loading path (`buildView()` should become a thin wrapper calling
+  the new shared method with data loaded from `layout_json`).
+
+## 7. Future / explicitly deferred — nested Section → Column → Widget layout
+
+Real Elementor's structural model is nested containers (Section > Column > Widget, or newer Flexbox
+Containers), not a flat top-to-bottom block stack. This app's `blocks[]` array is flat by design and changing
+that is a **separate, larger, data-model-changing project**:
+- Would need a `columns: [{width, blocks: [...]}]` shape (or a recursive `container` block type) added to the
+  schema, plus recursive rendering in `render.blade.php`.
+- Backward compatibility: existing `layout_json` rows are flat — treat each existing top-level block as an
+  implicit full-width single-column row, so old content keeps rendering unchanged; only new content could use
+  multi-column rows. No migration of historical rows required.
+- Not started, not scheduled. Revisit only if the user explicitly asks for true multi-column row layouts (e.g.
+  "put the staff grid next to the stats block side-by-side") — until then the flat model plus the grid-column
+  controls already shipped (Module 20's Style/Layout work) covers the common cases.
+
+## 8. Decisions to confirm when resuming (if not already answered above)
+
+- Confirm the exact current route/controller method name for the public page `show()` action before Phase 1
+  (referenced as "presumably" above — verify, don't assume).
+- Confirm whether Phase 8's "Restore" action should require a confirmation step (recommended: yes, native
+  Bootstrap confirm modal, consistent with the delete/deactivate pattern used everywhere else in this admin).
+- Milestones 8–10 are independent "Pro flavor" add-ons — confirm before starting them that they're still
+  wanted, or whether to stop at Milestone 7 (core Elementor-like editing) and ship.
