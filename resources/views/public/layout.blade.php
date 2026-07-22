@@ -17,8 +17,8 @@
     <title>@yield('title', ($s->meta_title ?? null) ?: $siteName)</title>
     @if ($metaDesc)
     <meta name="description" content="{{ $metaDesc }}">@endif
-    @if ($faviconUrl)
-    <link rel="icon" href="{{ $faviconUrl }}">@endif
+    {{-- Falls back to the generic placeholder favicon until a school uploads its own. --}}
+    <link rel="icon" href="{{ $faviconUrl ?: asset('favicon.ico') }}">
     <meta property="og:title" content="@yield('title', ($s->meta_title ?? null) ?: $siteName)">
     @if ($metaDesc)
     <meta property="og:description" content="{{ $metaDesc }}">@endif
