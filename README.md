@@ -23,7 +23,7 @@ Every deployment serves exactly one school — no multi-tenant SaaS layer, no se
 
 | Category | Modules |
 |----------|---------|
-| **Core Platform** | School (single-school), Academic (years, classes, sections, subjects, routines), User/Auth (Sanctum + Spatie) |
+| **Core Platform** | School (single-school), Academic (years, classes, sections, subjects, routines), User/Auth (Sanctum + Spatie; self-service Account & Security page with password/email change, TOTP two-factor auth, and session/device management) |
 | **Student Lifecycle** | Student (enrollment, promotion, transfer, TC), Online Admission, Data Import |
 | **Academics** | Examination (types, exams, seating), Mark (grades, GPA, tabulation), Certificate (admit cards, testimonials, TC), Attendance (student + staff, RFID, auto clock-out) |
 | **Finance** | FeeItem (categories, items, discounts), Payment (invoices, bKash/SSLCommerz/Stripe/PayPal, cheques, refunds, credits), Payroll (salary components, runs, loan integration), Report (fee collection, dues, ledger) |
