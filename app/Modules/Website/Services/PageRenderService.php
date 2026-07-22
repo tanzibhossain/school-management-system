@@ -49,7 +49,7 @@ class PageRenderService
      * Normalise a raw layout_json array into a safe, render-ready structure.
      *
      * @param  array<string, mixed>|null  $layout
-     * @return array{template: string, blocks: array<int, array{type: string, data: array}>, sidebar: array<int, array{type: string, data: array}>}
+     * @return array{template: string, blocks: array<int, array{type: string, data: array, style: array, layout: array}>, sidebar: array<int, array{type: string, data: array, style: array, layout: array}>}
      */
     public function normalize(?array $layout): array
     {
@@ -118,7 +118,7 @@ class PageRenderService
      *
      * @param  array<int, mixed>  $blocks
      * @param  array<string, string>  $allowed
-     * @return array<int, array{type: string, data: array}>
+     * @return array<int, array{type: string, data: array, style: array, layout: array}>
      */
     private function cleanBlocks(array $blocks, array $allowed): array
     {
@@ -128,7 +128,67 @@ class PageRenderService
             if (! is_string($type) || ! array_key_exists($type, $allowed)) {
                 continue;
             }
-            $out[] = ['type' => $type, 'data' => is_array($block['data'] ?? null) ? $block['data'] : []];
+            $out[] = [
+                'type' => $type,
+                'data' => is_array($block['data'] ?? null) ? $block['data'] : [],
+                'style' => self::sanitizeStyle(is_array($block['style'] ?? null) ? $block['style'] : []),
+                'layout' => self::sanitizeLayout(is_array($block['layout'] ?? null) ? $block['layout'] : []),
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Clamp/coerce a block's Style-tab values to safe, known-shape data — the
+     * one place that decides what's a legal style value, shared by the admin
+     * save path (PageController::normalizeBlocks) and this render path, so
+     * stored layout_json can never carry something the renderer doesn't
+     * expect (a stray CSS injection, an out-of-range opacity, etc.).
+     *
+     * @param  array<string, mixed>  $style
+     * @return array<string, mixed>
+     */
+    public static function sanitizeStyle(array $style): array
+    {
+        $px = fn ($v) => $v === null || $v === '' ? null : max(0, min(400, (int) $v));
+        $hex = fn ($v) => is_string($v) && preg_match('/^#[0-9a-fA-F]{3,8}$/', trim($v)) ? trim($v) : null;
+        $url = fn ($v) => is_string($v) && trim($v) !== '' ? trim($v) : null;
+
+        return array_filter([
+            'padding_top' => $px($style['padding_top'] ?? null),
+            'padding_bottom' => $px($style['padding_bottom'] ?? null),
+            'margin_top' => $px($style['margin_top'] ?? null),
+            'margin_bottom' => $px($style['margin_bottom'] ?? null),
+            'bg_color' => $hex($style['bg_color'] ?? null),
+            'bg_image' => $url($style['bg_image'] ?? null),
+            'bg_overlay' => max(0, min(100, (int) ($style['bg_overlay'] ?? 0))),
+            'text_color' => $hex($style['text_color'] ?? null),
+            'radius' => $px($style['radius'] ?? null),
+            'shadow' => in_array($style['shadow'] ?? null, ['sm', 'md', 'lg'], true) ? $style['shadow'] : null,
+            'animation' => in_array($style['animation'] ?? null, ['fade', 'up'], true) ? $style['animation'] : null,
+        ], fn ($v) => $v !== null);
+    }
+
+    /**
+     * Clamp/coerce a block's Layout-tab values (per-breakpoint column count
+     * and visibility) — same reasoning as sanitizeStyle().
+     *
+     * @param  array<string, mixed>  $layout
+     * @return array{columns: array<string, int>, hide: array<string, bool>}
+     */
+    public static function sanitizeLayout(array $layout): array
+    {
+        $breakpoints = ['mobile', 'tablet', 'laptop', 'desktop'];
+        $columns = is_array($layout['columns'] ?? null) ? $layout['columns'] : [];
+        $hide = is_array($layout['hide'] ?? null) ? $layout['hide'] : [];
+
+        $out = ['columns' => [], 'hide' => []];
+        foreach ($breakpoints as $bp) {
+            if (isset($columns[$bp]) && $columns[$bp] !== '') {
+                $out['columns'][$bp] = max(1, min(6, (int) $columns[$bp]));
+            }
+            $out['hide'][$bp] = ! empty($hide[$bp]);
         }
 
         return $out;
@@ -245,14 +305,21 @@ class PageRenderService
     /**
      * Render-ready structure: normalized template + each block paired with its
      * resolved live data under 'd', ready for the Blade partials to consume.
+     * 'style'/'layout' pass through unresolved — they're presentation-only and
+     * never touch live module data — for BlockPresentation to turn into markup.
      *
      * @param  array<string, mixed>|null  $layout
-     * @return array{template: string, blocks: array<int, array{type: string, d: array}>, sidebar: array<int, array{type: string, d: array}>}
+     * @return array{template: string, blocks: array<int, array{type: string, d: array, style: array, layout: array}>, sidebar: array<int, array{type: string, d: array, style: array, layout: array}>}
      */
     public function buildView(int $schoolId, ?array $layout): array
     {
         $norm = $this->normalize($layout);
-        $map = fn (array $b): array => ['type' => $b['type'], 'd' => $this->resolveBlockData($schoolId, $b)];
+        $map = fn (array $b): array => [
+            'type' => $b['type'],
+            'd' => $this->resolveBlockData($schoolId, $b),
+            'style' => $b['style'] ?? [],
+            'layout' => $b['layout'] ?? [],
+        ];
 
         return [
             'template' => $norm['template'],

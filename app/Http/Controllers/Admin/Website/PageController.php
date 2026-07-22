@@ -145,7 +145,12 @@ class PageController extends Controller
                     $data['lines'] = implode("\n", array_map(fn ($l) => is_array($l) ? (($l['label'] ?? '').'|'.($l['value'] ?? '')) : $l, $data['lines']));
                 }
 
-                return ['type' => $b['type'] ?? '', 'data' => $data];
+                return [
+                    'type' => $b['type'] ?? '',
+                    'data' => $data,
+                    'style' => is_array($b['style'] ?? null) ? $b['style'] : [],
+                    'layout' => PageRenderService::sanitizeLayout(is_array($b['layout'] ?? null) ? $b['layout'] : []),
+                ];
             })->all();
         };
 
@@ -180,7 +185,10 @@ class PageController extends Controller
             }
 
             $data = array_filter($data, fn ($v) => $v !== null && $v !== '' && $v !== []);
-            $out[] = ['type' => $type, 'data' => $data];
+            $style = PageRenderService::sanitizeStyle(is_array($b['style'] ?? null) ? $b['style'] : []);
+            $layout = PageRenderService::sanitizeLayout(is_array($b['layout'] ?? null) ? $b['layout'] : []);
+
+            $out[] = ['type' => $type, 'data' => $data, 'style' => $style, 'layout' => $layout];
         }
 
         return $out;
