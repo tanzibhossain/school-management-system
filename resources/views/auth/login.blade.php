@@ -1,8 +1,8 @@
 @php
     $cfg = [
-        'admin'  => ['label' => 'Administrator', 'desc' => 'Management console', 'icon' => 'bi-shield-lock-fill', 'action' => route('admin.login')],
-        'staff'  => ['label' => 'Staff & Teachers', 'desc' => 'Teaching & staff portal', 'icon' => 'bi-mortarboard-fill', 'action' => route('staff.login')],
-        'family' => ['label' => 'Student & Guardian', 'desc' => 'Family portal', 'icon' => 'bi-people-fill', 'action' => route('login')],
+        'admin'  => ['label' => __('Administrator'), 'desc' => __('Management console'), 'icon' => 'bi-shield-lock-fill', 'action' => route('admin.login')],
+        'staff'  => ['label' => __('Staff & Teachers'), 'desc' => __('Teaching & staff portal'), 'icon' => 'bi-mortarboard-fill', 'action' => route('staff.login')],
+        'family' => ['label' => __('Student & Guardian'), 'desc' => __('Family portal'), 'icon' => 'bi-people-fill', 'action' => route('login')],
     ];
     $portal = $portal ?? 'family';
     $current = $cfg[$portal];
@@ -15,7 +15,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sign in · {{ $current['label'] }} · {{ $schoolName }}</title>
+  <title>{{ __('Sign In') }} · {{ $current['label'] }} · {{ $schoolName }}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -103,7 +103,7 @@
       <div class="auth-card">
         <span class="auth-eyebrow"><i class="bi {{ $current['icon'] }}"></i> {{ $current['label'] }}</span>
         <h2>{{ __('Welcome Back') }}</h2>
-        <p class="sub">{{ $current['desc'] }} — sign in to continue.</p>
+        <p class="sub">{{ $current['desc'] }} — {{ __('sign in to continue.') }}</p>
 
         @if ($errors->any())
           <div class="alert alert-danger py-2"><i class="bi bi-exclamation-circle me-1"></i>{{ $errors->first() }}</div>
