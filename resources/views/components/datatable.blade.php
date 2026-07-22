@@ -123,7 +123,7 @@
                             }
                         @endphp
                         <th scope="col" {{ $colAttrs }}>
-                            {{ $column['label'] }}
+                            {{ __($column['label']) }}
                         </th>
                     @endforeach
                     @if(!empty($actions))
@@ -138,7 +138,7 @@
                     <th></th>
                     @endif
                     @foreach($columns as $column)
-                        <th>{{ $column['label'] }}</th>
+                        <th>{{ __($column['label']) }}</th>
                     @endforeach
                     @if(!empty($actions))
                     <th>{{ __('Actions') }}</th>
@@ -173,7 +173,7 @@
                                             data-column="{{ $index }}"
                                             @if(!isset($column['visible']) || $column['visible']) checked @endif
                                         >
-                                        <label class="form-check-label">{{ $column['label'] }}</label>
+                                        <label class="form-check-label">{{ __($column['label']) }}</label>
                                     </div>
                                 </div>
                             @endif
@@ -189,9 +189,25 @@
     </div>
 </div>
 
+@php
+    $dtLanguage = [
+        'processing' => '<div class="spinner-border spinner-sm text-primary" role="status"><span class="visually-hidden">' . __('Loading...') . '</span></div>',
+        'zeroRecords' => __('No matching records found'),
+        'emptyTable' => __('No data available'),
+        'info' => __('Showing _START_ to _END_ of _TOTAL_ entries'),
+        'infoEmpty' => __('Showing 0 to 0 of 0 entries'),
+        'infoFiltered' => __('(filtered from _MAX_ total entries)'),
+        'lengthMenu' => __('_MENU_ entries per page'),
+        'search' => '',
+        'searchPlaceholder' => __('Search...'),
+    ];
+@endphp
+
 @push('scripts')
 <script>
 (function() {
+    const dtLanguage = @json($dtLanguage);
+
     // Wait for jQuery and DataTables
     function initDataTable() {
         if (typeof $ === 'undefined' || !$.fn.DataTable) {
@@ -261,7 +277,7 @@
                 },
                 error: function(xhr, error, thrown) {
                     console.error('DataTables AJAX error:', error, thrown);
-                    $table.find('tbody').html('<tr><td colspan="100%" class="text-center text-danger py-4">Failed to load data</td></tr>');
+                    $table.find('tbody').html('<tr><td colspan="100%" class="text-center text-danger py-4">' + @json(__('Failed to load data')) + '</td></tr>');
                 }
             },
             columns: dtColumns,
@@ -275,27 +291,18 @@
             dom: dom,
             rowId: rowId,
             responsive: true,
-            language: {
-                processing: '<div class="spinner-border spinner-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div>',
-                zeroRecords: 'No matching records found',
-                emptyTable: 'No data available',
-                info: 'Showing _START_ to _END_ of _TOTAL_ entries',
-                infoEmpty: 'Showing 0 to 0 of 0 entries',
-                infoFiltered: '(filtered from _MAX_ total entries)',
-                lengthMenu: '_MENU_ entries per page',
-                search: '',
-                searchPlaceholder: 'Search...',
+            language: Object.assign({}, dtLanguage, {
                 paginate: {
                     first: '<i class="bi bi-chevron-double-left"></i>',
                     last: '<i class="bi bi-chevron-double-right"></i>',
                     next: '<i class="bi bi-chevron-right"></i>',
                     previous: '<i class="bi bi-chevron-left"></i>'
                 }
-            },
+            }),
             buttons: exportButtons.length ? [
                 {
                     extend: 'collection',
-                    text: '<i class="bi bi-download me-1"></i> Export',
+                    text: '<i class="bi bi-download me-1"></i> ' + @json(__('Export')),
                     className: 'btn btn-outline-secondary btn-sm',
                     buttons: exportButtons.map(btn => {
                         if (typeof btn === 'string') {
@@ -323,7 +330,7 @@
                 const $wrapper = $(this.api().table().container());
                 const $length = $wrapper.find('.dataTables_length');
                 const colVisBtn = `
-                    <button class="btn btn-outline-secondary btn-sm ms-2" type="button" data-bs-toggle="modal" data-bs-target="#{{ $tableId }}-colvis" title="Column Visibility">
+                    <button class="btn btn-outline-secondary btn-sm ms-2" type="button" data-bs-toggle="modal" data-bs-target="#{{ $tableId }}-colvis" title="{{ __('Column Visibility') }}">
                         <i class="bi bi-columns-gap"></i>
                     </button>
                 `;
@@ -382,7 +389,7 @@
                 $bulkActions.show();
                 $bulkActions.find('.bulk-action-select').prop('disabled', false);
                 $bulkActions.find('.bulk-action-apply').prop('disabled', false);
-                $bulkActions.find('.bulk-count').text(count + ' selected').removeClass('d-none');
+                $bulkActions.find('.bulk-count').text(count + ' ' + @json(__('selected'))).removeClass('d-none');
             } else {
                 $bulkActions.hide();
                 $bulkActions.find('.bulk-action-select').prop('disabled', true);
@@ -408,7 +415,7 @@
 
             if (!selectedIds.length) return;
 
-            if (confirm('Apply action to ' + selectedIds.length + ' items?')) {
+            if (confirm(@json(__('Apply action to')) + ' ' + selectedIds.length + ' ' + @json(__('items?')))) {
                 // Dispatch custom event for bulk action
                 window.dispatchEvent(new CustomEvent('datatable:bulk-action', {
                     detail: { tableId: '{{ $tableId }}', action: actionId, ids: selectedIds }
