@@ -1,10 +1,15 @@
 # School Management System v2
 
-A **single-school, self-hosted** school management platform built with **Laravel 13**, **PHP 8.3**, **MySQL 8**, and **Redis 7**. Designed for a school to manage academics, students, staff, finances, communications, and more — all from a modern server-rendered **Laravel Blade + Bootstrap 5** admin interface.
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
+![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?logo=php&logoColor=white)
+![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
 
-> **Status:** 26 modules complete (21 core + 5 optional). 206+ admin feature tests passing.
+A **single-school, self-hosted** school management platform built with **Laravel 13**, **PHP 8.3**, **MySQL 8**, and **Redis 7**. Designed for a school to manage academics, students, staff, finances, and communications — all from a modern server-rendered **Laravel Blade + Bootstrap 5** admin interface.
 
-> **Note:** This is a **single-school, self-hosted** installation. Each deployment serves exactly one school. The `school_id` column exists for data ownership; there is only ever one school per deployment.
+Every deployment serves exactly one school — no multi-tenant SaaS layer, no separate frontend to stand up. Clone it, point it at your own database, and it's yours to run and modify.
+
+![Admin panel screenshot](.github/screenshot.jpg)
 
 ---
 
@@ -42,25 +47,38 @@ A **single-school, self-hosted** school management platform built with **Laravel
 
 ---
 
-## 🏗 Architecture
+## 🏗 Architecture & Project Structure
 
 ```
-app/
-├── Modules/                 # 26 domain modules (see table above)
-│   └── {Module}/
-│       ├── Http/
-│       │   ├── Controllers/  # Thin controllers (max 40 lines/method)
-│       │   ├── Requests/     # FormRequests for every write endpoint
-│       │   └── Resources/    # JsonResources — never return raw models
-│       ├── Models/           # Eloquent models with scopes, relationships
-│       ├── Repositories/     # Cache-aside pattern (Cache::tags)
-│       ├── Services/         # Business logic, DB transactions
-│       ├── Observers/        # Cache tag flushing on saved/deleted
-│       ├── database/migrations/
-│       └── routes/
-├── Services/                 # Shared services (PDF, PDF rendering, etc.)
-├── Repositories/             # BaseRepository, CacheRepository
-└── Providers/
+school-management-backend/
+├── app/
+│   ├── Modules/                # 26 domain modules (see table above)
+│   │   └── {Module}/
+│   │       ├── Http/
+│   │       │   ├── Controllers/  # Thin controllers (max 40 lines/method)
+│   │       │   ├── Requests/     # FormRequests for every write endpoint
+│   │       │   └── Resources/    # JsonResources — never return raw models
+│   │       ├── Models/           # Eloquent models with scopes, relationships
+│   │       ├── Repositories/     # Cache-aside pattern (Cache::tags)
+│   │       ├── Services/         # Business logic, DB transactions
+│   │       ├── Observers/        # Cache tag flushing on saved/deleted
+│   │       ├── database/migrations/
+│   │       └── routes/
+│   ├── Services/                # Shared services (PDF rendering, etc.)
+│   ├── Repositories/             # BaseRepository, CacheRepository
+│   └── Providers/
+├── docs/modules/                 # Per-module specification docs
+├── resources/views/              # Blade admin UI (Bootstrap 5, DataTables 2)
+│   ├── layouts/admin.blade.php
+│   └── admin/                    # Module-specific views
+├── routes/
+│   ├── web.php                   # Admin UI routes (auth + school middleware)
+│   └── api.php                   # API routes (sanctum + ability middleware)
+├── database/
+│   ├── seeders/                  # Module seeders (roles, permissions, grading, menus, languages)
+│   └── migrations/               # Shared migrations
+├── tests/Feature/                 # 206+ feature tests (mirrors modules)
+└── docker-compose.yml             # Full stack: app, nginx, db, redis, minio, horizon, scheduler
 ```
 
 **Key Patterns:**
@@ -77,25 +95,21 @@ app/
 ### Prerequisites
 - Docker Desktop (or Docker Engine + Compose)
 - Git
-- No local PHP/Node needed — everything runs in containers
 
 ### 1. Clone & Configure
 
 ```bash
 git clone https://github.com/your-org/school-management-backend.git
 cd school-management-backend
-
-# Copy environment file
 cp .env.example .env
 ```
 
 ### 2. Start Containers
 
-```bash
-# Build and start (3-5 min first run)
-docker compose up -d --build
+Builds and starts everything (3–5 min on the first run), then check that all services are healthy:
 
-# Verify all services healthy
+```bash
+docker compose up -d --build
 docker compose ps
 ```
 
@@ -103,8 +117,9 @@ Expected services: `app`, `nginx`, `db` (MySQL 8), `redis`, `minio`, `horizon`, 
 
 ### 3. Initialize Application
 
+Generates the app key, runs migrations, and links storage:
+
 ```bash
-# Generate app key, run migrations, link storage
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate --seed
 docker compose exec app php artisan storage:link
@@ -127,89 +142,6 @@ docker compose exec app php artisan storage:link
 > **Port Note:** Uses **8080** (not 8000) — Windows Hyper-V reserves 7980–8079.
 
 ---
-
-## ⚙️ Configuration
-
-Key `.env` variables to customize:
-
-```env
-APP_NAME="School Management System"
-APP_URL=http://localhost:8080
-
-# Database (Docker service name = db)
-DB_HOST=db
-DB_PORT=3306
-DB_DATABASE=school
-DB_USERNAME=school
-DB_PASSWORD=secret
-
-# Redis
-REDIS_HOST=redis
-REDIS_PORT=6379
-
-# MinIO (S3-compatible)
-AWS_ENDPOINT=http://minio:9000
-AWS_USE_PATH_STYLE_ENDPOINT=true
-AWS_ACCESS_KEY_ID=minioadmin
-AWS_SECRET_ACCESS_KEY=minioadmin
-AWS_DEFAULT_REGION=us-east-1
-AWS_BUCKET=school-files
-
-# SMS (optional - for SMS module)
-SMS_API_KEY=
-SMS_SENDER_ID=
-SMS_COST_PER_SEGMENT=0.50
-
-# Email (Resend)
-RESEND_API_KEY=
-
-# Payment Gateways (per-school, configured in admin UI)
-# Bangladesh: bKash + SSLCommerz | Others: Stripe + PayPal
-```
-
----
-
-## 🧪 Testing
-
-Tests run on an in-memory SQLite database (`DB_DATABASE=:memory:` in
-`phpunit.xml`) — no MySQL dependency, no leftover files. Each test class uses
-`RefreshDatabase`, so the schema is rebuilt per class via migration + rollback
-isolation.
-
-```bash
-# Run all tests (serial)
-docker compose exec app php artisan test
-
-# Run a specific module
-docker compose exec app php artisan test tests/Feature/Payment/
-```
-
-### Parallel testing (5× faster)
-
-The suite supports **parallel execution** via [ParaTest](https://github.com/paratestphp/paratest),
-which runs test classes across multiple PHP processes simultaneously. Each worker
-gets its own in-memory SQLite database, so tests are inherently parallel-safe.
-
-```bash
-# Full suite in parallel (8 processes — the sweet spot on most machines)
-docker compose exec app vendor/bin/paratest -p 8
-
-# A specific directory
-docker compose exec app vendor/bin/paratest -p 8 tests/Feature/Payment/
-
-# Adjust process count to match your CPU (e.g. 4 on a laptop, 12 on a CI runner)
-docker compose exec app vendor/bin/paratest -p 4
-```
-
-| Mode | Tests | Duration | Speedup |
-|------|-------|----------|---------|
-| Serial (`php artisan test`) | 578 | ~5 min 20s | 1× |
-| Parallel (`paratest -p 8`) | 578 | ~1 min 7s | **5.3×** |
-
-> **578 tests** covering all 26 modules. Use `-p 8` as the default; more
-> processes rarely help because per-process Laravel boot dominates, not CPU.
-
-
 
 ## 🔌 API Documentation
 
@@ -238,48 +170,34 @@ Postman collection auto-exported to `public/docs/collection.json`.
 
 ## 🛠 Common Commands
 
+**Daily workflow** (start, stop, check status, follow logs)
 ```bash
-# Daily workflow
-docker compose up -d                    # Start
-docker compose down                     # Stop
-docker compose ps                       # Status
-docker compose logs -f app              # Follow logs
+docker compose up -d
+docker compose down
+docker compose ps
+docker compose logs -f app
+```
 
-# Laravel commands (run inside container)
+**Laravel commands** (run inside the container — `queue:work` is optional, Horizon already processes the queue)
+```bash
 docker compose exec app php artisan migrate
 docker compose exec app php artisan migrate:fresh --seed
-docker compose exec app php artisan queue:work      # Or use Horizon
+docker compose exec app php artisan queue:work
 docker compose exec app php artisan schedule:run
 docker compose exec app php artisan test
+```
 
-# Code style
+**Code style**
+```bash
 docker compose exec app ./vendor/bin/pint
 docker compose exec app php artisan ide-helper:generate
 ```
 
 ---
 
-## 📁 Project Structure Highlights
-
-```
-├── app/Modules/              # 26 domain modules
-├── docs/modules/             # Per-module specification docs (01-school.md ... 27-language.md)
-├── resources/views/          # Blade admin UI (Bootstrap 5, DataTables 2)
-│   ├── layouts/admin.blade.php
-│   └── admin/                # Module-specific views
-├── routes/
-│   ├── web.php               # Admin UI routes (auth + school middleware)
-│   └── api.php               # API routes (sanctum + ability middleware)
-├── database/
-│   ├── seeders/              # Module seeders (roles, permissions, grading, menus, languages)
-│   └── migrations/           # Shared migrations
-├── tests/Feature/            # 206+ feature tests (mirrors modules)
-└── docker-compose.yml        # Full stack: app, nginx, db, redis, minio, horizon, scheduler
-```
-
----
-
 ## 🤝 Contributing
+
+Contributions are welcome — bug fixes, new modules, translations, docs.
 
 1. Fork the repository
 2. Create a feature branch off `dev`: `git checkout -b feature/amazing-feature`
@@ -287,7 +205,7 @@ docker compose exec app php artisan ide-helper:generate
    Service → Observer → Requests → Resources → Controller/Routes → Tests →
    Pint/DocBlocks), one commit per step — see `CLAUDE.md` for the full
    convention and commit message format
-4. Run tests: `docker compose exec app php artisan test`
+4. Run the test suite: `docker compose exec app php artisan test`
 5. Run Pint: `docker compose exec app ./vendor/bin/pint`
 6. Submit a PR to `dev`
 
