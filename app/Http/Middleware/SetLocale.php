@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Modules\Language\Models\Language;
 use App\Modules\Language\Models\Translation;
 use Closure;
+use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use Symfony\Component\HttpFoundation\Response;
@@ -67,7 +68,7 @@ class SetLocale
      * one shot, with no per-key path parsing. We mirror that here via
      * reflection, since Translator has no public method to do a flat merge.
      */
-    private function injectFlatLines(\Illuminate\Contracts\Translation\Translator $translator, string $locale, array $lines): void
+    private function injectFlatLines(Translator $translator, string $locale, array $lines): void
     {
         $property = new \ReflectionProperty($translator, 'loaded');
         $property->setAccessible(true);
