@@ -7,7 +7,9 @@ use App\Http\Controllers\Admin\Academics\ExamSeatingController;
 use App\Http\Controllers\Admin\Academics\ExamTypeController;
 use App\Http\Controllers\Admin\Academics\HallController;
 use App\Http\Controllers\Admin\Academics\MarkSettingController;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\Auth\LoginController;
+use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Admin\Certificates\AdmitCardController;
 use App\Http\Controllers\Admin\Certificates\IdCardBatchController;
 use App\Http\Controllers\Admin\Certificates\IdCardTemplateController;
@@ -93,9 +95,36 @@ Route::middleware('guest')->group(function (): void {
     // Staff & teachers.
     Route::get('/staff/login', [LoginController::class, 'showStaff'])->name('staff.login');
     Route::post('/staff/login', [LoginController::class, 'login']);
+
+    // Second step of login for accounts with two-factor enabled — see LoginController::login().
+    Route::get('/two-factor-challenge', [TwoFactorChallengeController::class, 'show'])->name('two-factor.challenge');
+    Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'verify'])->name('two-factor.verify');
 });
 
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
+
+// Email-change confirmation link (mailed to the NEW address) — one route shared
+// by all three portals, since the account itself isn't portal-specific.
+Route::get('/account/email/confirm/{user}/{token}', [AccountController::class, 'confirmEmailChange'])
+    ->middleware(['auth', 'signed'])->name('account.email.confirm');
+
+// Self-service account settings (name, password, email, 2FA, sessions) — the
+// same routes/controller are registered under each portal's prefix below so
+// `route('admin.account')` / `staff.account` / `portal.account` all resolve;
+// AccountController reads the portal off the current route name.
+$accountRoutes = function (): void {
+    Route::get('/account', [AccountController::class, 'show'])->name('account');
+    Route::put('/account/name', [AccountController::class, 'updateName'])->name('account.update-name');
+    Route::put('/account/password', [AccountController::class, 'updatePassword'])->name('account.update-password');
+    Route::post('/account/email', [AccountController::class, 'requestEmailChange'])->name('account.request-email');
+    Route::delete('/account/email', [AccountController::class, 'cancelEmailChange'])->name('account.cancel-email');
+    Route::get('/account/2fa/enable', [AccountController::class, 'showEnableTwoFactor'])->name('account.2fa.enable');
+    Route::post('/account/2fa/confirm', [AccountController::class, 'confirmTwoFactor'])->name('account.2fa.confirm');
+    Route::delete('/account/2fa', [AccountController::class, 'disableTwoFactor'])->name('account.2fa.disable');
+    Route::post('/account/2fa/recovery-codes', [AccountController::class, 'regenerateRecoveryCodes'])->name('account.2fa.recovery-codes');
+    Route::delete('/account/sessions/{history}', [AccountController::class, 'revokeSession'])->whereNumber('history')->name('account.sessions.revoke');
+    Route::post('/account/sessions/revoke-others', [AccountController::class, 'revokeOtherSessions'])->name('account.sessions.revoke-others');
+};
 
 // Language switcher — anyone (guest or logged in) can pick an active language.
 Route::get('/language/{code}', function (string $code) {
@@ -108,7 +137,7 @@ Route::get('/language/{code}', function (string $code) {
 
 // ── Staff / teacher portal ───────────────────────────────────────────────────
 Route::middleware(['auth', 'school', 'role:teacher|accountant|librarian|receptionist'])
-    ->prefix('staff')->name('staff.')->group(function (): void {
+    ->prefix('staff')->name('staff.')->group(function () use ($accountRoutes): void {
         Route::get('/', [App\Http\Controllers\Staff\DashboardController::class, 'index'])->name('dashboard');
         Route::get('/attendance', [App\Http\Controllers\Staff\AttendanceController::class, 'index'])->name('attendance');
         Route::post('/attendance', [App\Http\Controllers\Staff\AttendanceController::class, 'store'])->name('attendance.store');
@@ -127,11 +156,12 @@ Route::middleware(['auth', 'school', 'role:teacher|accountant|librarian|receptio
         Route::patch('/leave/{id}/cancel', [LeaveController::class, 'cancel'])->whereNumber('id')->name('leave.cancel');
         Route::get('/notices', [App\Http\Controllers\Staff\DashboardController::class, 'notices'])->name('notices');
         Route::get('/profile', [App\Http\Controllers\Staff\DashboardController::class, 'profile'])->name('profile');
+        $accountRoutes();
     });
 
 // ── Family portal (student + guardian) ─────────────────────────────────────────
 Route::middleware(['auth', 'school', 'role:student|parent'])
-    ->prefix('portal')->name('portal.')->group(function (): void {
+    ->prefix('portal')->name('portal.')->group(function () use ($accountRoutes): void {
         $c = App\Http\Controllers\Portal\DashboardController::class;
         Route::get('/', [$c, 'index'])->name('dashboard');
         Route::get('/attendance', [$c, 'attendance'])->name('attendance');
@@ -151,6 +181,7 @@ Route::middleware(['auth', 'school', 'role:student|parent'])
         Route::post('/messages', [$mc, 'store'])->name('messages.store');
         Route::get('/messages/{id}', [$mc, 'show'])->whereNumber('id')->name('messages.show');
         Route::post('/messages/{id}/reply', [$mc, 'reply'])->whereNumber('id')->name('messages.reply');
+        $accountRoutes();
     });
 
 // Gateway browser-return for family portal payments — public (the gateway drives
@@ -181,9 +212,10 @@ Route::post('/payments/webhook/stripe', [WebhookController::class, 'stripe'])
 Route::post('/payments/webhook/paypal', [WebhookController::class, 'paypal'])
     ->name('payments.webhook.paypal');
 
-Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(function (): void {
+Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(function () use ($accountRoutes): void {
     // Dashboard — admins and accountants (finance). Other staff use /staff.
     Route::get('/', [DashboardController::class, 'index'])->middleware('role:admin|accountant')->name('dashboard');
+    $accountRoutes();
 
     // ── Finance + Reports (role: admin OR accountant) ─────────────────────────
     // Spatie multi-role syntax is pipe-separated; a comma is read as the guard.

@@ -90,6 +90,7 @@
         @if(($messagesUnread ?? 0) > 0)<span class="badge text-bg-primary rounded-pill ms-auto">{{ $messagesUnread }}</span>@endif
       </a>
       <a href="{{ route('staff.profile') }}" class="nav-link {{ request()->routeIs('staff.profile') ? 'active' : '' }}"><i class="bi bi-person-badge"></i> {{ __('My Profile') }}</a>
+      <a href="{{ route('staff.account') }}" class="nav-link {{ request()->routeIs('staff.account*') ? 'active' : '' }}"><i class="bi bi-shield-lock"></i> {{ __('Account & Security') }}</a>
     </nav>
     <div class="sidebar-footer">
       <form method="POST" action="{{ route('logout') }}">

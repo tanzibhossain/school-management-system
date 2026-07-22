@@ -21,6 +21,7 @@
         "laravel/tinker": "^3.0",
         "league/flysystem-aws-s3-v3": "^3.35",
         "maatwebsite/excel": "^3.1",
+        "pragmarx/google2fa": "^9.0",
         "predis/predis": "^3.5",
         "smalot/pdfparser": "*",
         "spatie/laravel-permission": "^8.1",

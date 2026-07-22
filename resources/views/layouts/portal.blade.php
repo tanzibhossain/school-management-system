@@ -77,6 +77,7 @@
         @if(($messagesUnread ?? 0) > 0)<span class="badge text-bg-primary rounded-pill ms-auto">{{ $messagesUnread }}</span>@endif
       </a>
       <a href="{{ $link('portal.profile') }}" class="nav-link {{ request()->routeIs('portal.profile') ? 'active' : '' }}"><i class="bi bi-person-vcard"></i> {{ __('Profile') }}</a>
+      <a href="{{ route('portal.account') }}" class="nav-link {{ request()->routeIs('portal.account*') ? 'active' : '' }}"><i class="bi bi-shield-lock"></i> {{ __('Account & Security') }}</a>
     </nav>
     <div class="sidebar-footer">
       <form method="POST" action="{{ route('logout') }}">

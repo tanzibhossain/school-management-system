@@ -41,7 +41,7 @@
                     aria-label="Search (Ctrl or Cmd + K)"
                 >
                     <i class="bi bi-search" style="font-size: .95rem;" aria-hidden="true"></i>
-                    <span style="flex: 1 1 auto; font-size: .9rem;">Search…</span>
+                    <span style="flex: 1 1 auto; font-size: .9rem;">{{ __('Search…') }}</span>
                     <kbd class="js-shortcut-hint" style="font-size: .7rem; background: #e2e8f0; color: #475569; border-radius: 4px; padding: .1rem .4rem; font-family: monospace; white-space: nowrap;">{{ __('Ctrl K') }}</kbd>
                 </button>
             @endif
@@ -132,18 +132,15 @@
                         <li class="dropdown-header px-3 py-2">
                             <div class="fw-medium">{{ $user['name'] }}</div>
                             <div class="text-xs text-muted">{{ $user['email'] ?? '' }}</div>
-                            @if(isset($user['role']))
-                                <span class="badge badge-sm badge-neutral mt-1">{{ $user['role'] }}</span>
-                            @endif
                         </li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{{ route('admin.users.index') }}"><i class="bi bi-person me-2"></i> {{ __('Profile') }}</a></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.account') }}"><i class="bi bi-person me-2"></i> {{ __('Account & Security') }}</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit" class="dropdown-item text-danger w-100 text-start">
-                                    <i class="bi bi-box-arrow-right me-2"></i> Sign out
+                                    <i class="bi bi-box-arrow-right me-2"></i> {{ __('Sign Out') }}
                                 </button>
                             </form>
                         </li>
