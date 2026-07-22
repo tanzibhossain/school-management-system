@@ -4,6 +4,23 @@ All notable changes to this project are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Security
+- Rate-limited login and the two-factor challenge (5 attempts/minute, keyed
+  by email+IP and by the pending 2FA user+IP respectively) — neither had any
+  throttling before, so a 6-digit TOTP code was brute-forceable.
+- Changing your password or disabling two-factor authentication now signs
+  out every other active session automatically, instead of leaving a
+  possibly-compromised session logged in.
+- Requesting an email change now also notifies the *current* address with a
+  "wasn't you?" link that cancels the pending change without requiring
+  login — previously only the new address heard about the change at all.
+
+### Added
+- `.github/dependabot.yml` for scheduled composer/npm/docker/github-actions
+  dependency updates.
+
 ## [1.0.1] — 2026-07-23
 
 ### Added
