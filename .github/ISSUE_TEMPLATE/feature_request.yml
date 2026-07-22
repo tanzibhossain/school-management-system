@@ -1,0 +1,35 @@
+name: Feature Request
+description: Suggest a new module, capability, or improvement.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before requesting a feature, a quick check: this project is
+        single-school and self-hosted by design (see the README) — requests
+        that reintroduce multi-tenant/SaaS assumptions are likely out of
+        scope, but everything else is fair game.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: What are you trying to do that the app doesn't support today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How would you like it to work? Which module(s) would this touch?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any workarounds you're using today, or other approaches you thought about.
+    validations:
+      required: false

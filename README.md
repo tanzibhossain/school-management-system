@@ -203,30 +203,9 @@ docker compose exec app php artisan ide-helper:generate
 
 ## 🤝 Contributing
 
-Contributions are welcome — bug fixes, new modules, translations, docs.
-
-1. Fork the repository
-2. Create a feature branch off `dev`: `git checkout -b feature/amazing-feature`
-3. Follow the **10-step module pattern** (Migration → Model → Repository →
-   Service → Observer → Requests → Resources → Controller/Routes → Tests →
-   Pint/DocBlocks), one commit per step — see `CLAUDE.md` for the full
-   convention and commit message format
-4. Run the test suite: `docker compose exec app php artisan test`
-5. Run Pint: `docker compose exec app ./vendor/bin/pint`
-6. Run Larastan: `docker compose exec app ./vendor/bin/phpstan analyse`
-7. Submit a PR to `dev`
-
-Every PR runs the [Tests](.github/workflows/tests.yml), [Code Style](.github/workflows/pint.yml),
-and [Static Analysis](.github/workflows/phpstan.yml) workflows automatically — the badges at
-the top of this file reflect the current state of `dev`.
-
-### Code Standards
-- PHP 8.3, Laravel 13, strict types
-- PSR-12 + Laravel Pint (run before commit)
-- [Larastan](https://github.com/larastan/larastan) (PHPStan for Laravel) at level 5, raised over time
-- Every write endpoint: FormRequest + JsonResource
-- Controllers ≤ 40 lines/method — logic in Services
-- Repository pattern for reads (cached), Services for writes (transactional)
+Contributions are welcome — bug fixes, new modules, translations, docs. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow (10-step module
+pattern, commit conventions, and the checks every PR runs against `dev`).
 
 ---
 
@@ -258,6 +237,7 @@ make the modified source available to that service's users.
 
 - **Issues**: [GitHub Issues](https://github.com/tanzibhossain/school-management-system/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/tanzibhossain/school-management-system/discussions)
+- **Security vulnerabilities**: see [SECURITY.md](SECURITY.md) — please don't report these as public issues
 
 ---
 
