@@ -4,6 +4,7 @@ namespace App\Modules\Language\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
 class Language extends Model
@@ -27,7 +28,7 @@ class Language extends Model
     }
 
     /** Active languages, cached — read on every request by the switcher/middleware. */
-    public static function activeCached(): \Illuminate\Support\Collection
+    public static function activeCached(): Collection
     {
         return Cache::remember('languages:active', 3600, fn () => static::active()->get());
     }

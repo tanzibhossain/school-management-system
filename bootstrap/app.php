@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Middleware\CheckModuleEnabled;
 use App\Http\Middleware\ResolveSchool;
 use App\Http\Middleware\SetCurrentSchoolFromSession;
+use App\Http\Middleware\SetLocale;
 use App\Modules\Attendance\Console\AutoCloseStaffAttendance;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -27,7 +28,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('api', ResolveSchool::class);
 
         // Locale resolution + DB-stored translations on every web request.
-        $middleware->appendToGroup('web', \App\Http\Middleware\SetLocale::class);
+        $middleware->appendToGroup('web', SetLocale::class);
 
         // Gateways POST cross-site with no session CSRF token: SSLCommerz's
         // browser return and the Stripe/PayPal server-to-server webhooks.

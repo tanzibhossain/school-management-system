@@ -52,6 +52,7 @@ use App\Http\Controllers\Admin\People\StudentController;
 use App\Http\Controllers\Admin\People\UserController;
 use App\Http\Controllers\Admin\Setup\AcademicYearController;
 use App\Http\Controllers\Admin\Setup\ClassController;
+use App\Http\Controllers\Admin\Setup\LanguageController;
 use App\Http\Controllers\Admin\Setup\ModuleController;
 use App\Http\Controllers\Admin\Setup\ReferenceController;
 use App\Http\Controllers\Admin\Setup\RoutineController;
@@ -68,6 +69,7 @@ use App\Http\Controllers\Public\PageController as PublicPageController;
 use App\Http\Controllers\Staff\ClockController;
 use App\Http\Controllers\Staff\LeaveController;
 use App\Http\Controllers\Staff\MarkController;
+use App\Modules\Language\Models\Language;
 use Illuminate\Support\Facades\Route;
 
 // Public school homepage.
@@ -97,7 +99,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->
 
 // Language switcher — anyone (guest or logged in) can pick an active language.
 Route::get('/language/{code}', function (string $code) {
-    if (\App\Modules\Language\Models\Language::activeCached()->contains(fn ($l) => $l->code === $code)) {
+    if (Language::activeCached()->contains(fn ($l) => $l->code === $code)) {
         session(['app_locale' => $code]);
     }
 
@@ -245,7 +247,7 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::put('/modules', [ModuleController::class, 'update'])->name('modules.update');
 
         // Languages + translations editor
-        $lc = \App\Http\Controllers\Admin\Setup\LanguageController::class;
+        $lc = LanguageController::class;
         Route::get('/languages', [$lc, 'index'])->name('languages.index');
         Route::post('/languages', [$lc, 'store'])->name('languages.store');
         Route::put('/languages/{id}', [$lc, 'update'])->whereNumber('id')->name('languages.update');

@@ -8,6 +8,7 @@ use App\Modules\Language\Models\Translation;
 use App\Modules\School\Models\School;
 use Database\Seeders\LanguageSeeder;
 use Database\Seeders\RoleSeeder;
+use Database\Seeders\TranslationSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -99,7 +100,7 @@ class LanguageModuleTest extends TestCase
         // A hand-edited value must survive re-seeding.
         Translation::create(['locale' => 'bn', 'key' => 'Cancel', 'value' => 'কাস্টম']);
 
-        $this->seed(\Database\Seeders\TranslationSeeder::class);
+        $this->seed(TranslationSeeder::class);
 
         $this->assertSame('কাস্টম', Translation::where('locale', 'bn')->where('key', 'Cancel')->first()->value);
         $this->assertSame('ড্যাশবোর্ড', Translation::where('locale', 'bn')->where('key', 'Dashboard')->first()->value);

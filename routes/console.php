@@ -1,7 +1,10 @@
 <?php
 
+use App\Modules\Language\Models\Translation;
+use App\Modules\Language\Services\TranslationScanner;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -12,17 +15,17 @@ Artisan::command('inspire', function () {
 Schedule::command('attendance:auto-close')->everyThirtyMinutes();
 
 Artisan::command('translations:scan', function () {
-    $added = app(\App\Modules\Language\Services\TranslationScanner::class)->sync();
+    $added = app(TranslationScanner::class)->sync();
     $this->info("Scan complete — {$added} new strings registered.");
 })->purpose('Register __() strings for translation in every active language');
 
 Artisan::command('translations:export {locale}', function (string $locale) {
-    $map = \App\Modules\Language\Models\Translation::where('locale', $locale)
+    $map = Translation::where('locale', $locale)
         ->whereNotNull('value')->orderBy('key')->pluck('value', 'key')->all();
 
     $path = database_path("seeders/data/translations/{$locale}.json");
-    \Illuminate\Support\Facades\File::ensureDirectoryExists(dirname($path));
-    \Illuminate\Support\Facades\File::put(
+    File::ensureDirectoryExists(dirname($path));
+    File::put(
         $path,
         json_encode($map, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)."\n",
     );

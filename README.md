@@ -102,9 +102,10 @@ school-management-backend/
 - Docker Desktop (or Docker Engine + Compose)
 - Git
 
-### 1. Configure
+### 1. Clone & Configure
 
 ```bash
+git clone https://github.com/tanzibhossain/school-management-backend.git
 cd school-management-backend
 cp .env.example .env
 ```
