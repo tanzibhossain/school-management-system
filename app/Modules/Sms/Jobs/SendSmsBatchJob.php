@@ -108,7 +108,7 @@ class SendSmsBatchJob implements ShouldQueue
 
             return [
                 'student' => $student,
-                'body' => __('Sms.due_reminder', [
+                'body' => __('sms.due_reminder', [
                     'student' => $student->name,
                     'amount' => number_format($due->total_due, 2),
                     'currency' => $due->currency,
