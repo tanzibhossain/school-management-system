@@ -287,6 +287,9 @@
       --bs-btn-hover-bg: #4f46e5; --bs-btn-hover-border-color: #4f46e5;
       --bs-btn-active-bg: #4f46e5; --bs-btn-active-border-color: #4f46e5;
     }
+    .btn-secondary {
+      --bs-btn-hover-color: #000; --bs-btn-active-color: #000;
+    }
     .text-primary { color: #4f46e5 !important; }
     .bg-primary { background-color: #4f46e5 !important; }
     .badge.text-bg-primary, .badge.bg-primary { background-color: #4f46e5 !important; }
@@ -419,7 +422,27 @@
   <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+  @php
+    $jsDtLanguage = [
+        'processing' => '<div class="spinner-border spinner-sm text-primary" role="status"><span class="visually-hidden">' . __('Loading...') . '</span></div>',
+        'zeroRecords' => __('No matching records found'),
+        'emptyTable' => __('No data available'),
+        'info' => __('Showing _START_ to _END_ of _TOTAL_ entries'),
+        'infoEmpty' => __('Showing 0 to 0 of 0 entries'),
+        'infoFiltered' => __('(filtered from _MAX_ total entries)'),
+        'lengthMenu' => __('_MENU_ entries per page'),
+        'search' => __('Search:'),
+        'searchPlaceholder' => __('Search...'),
+        'paginate' => [
+            'first' => __('First'),
+            'last' => __('Last'),
+            'next' => __('Next'),
+            'previous' => __('Previous'),
+        ],
+    ];
+  @endphp
   <script>
+    var jsDtLanguage = @json($jsDtLanguage);
     // Auto-init any table with .js-dt as a DataTable; opt out per-column with data-orderable="false".
     $(function () {
       // Reparent Bootstrap modals to <body> so the offset .content / any stacking
@@ -440,7 +463,7 @@
       $('table.js-dt').each(function () {
         var $t = $(this); var noSort = [];
         $t.find('thead th').each(function (i) { if ($(this).data('orderable') === false) noSort.push(i); });
-        $t.DataTable({ pageLength: 25, order: [], columnDefs: [{ orderable: false, targets: noSort }] });
+        $t.DataTable({ pageLength: 25, order: [], columnDefs: [{ orderable: false, targets: noSort }], language: jsDtLanguage });
       });
       document.querySelectorAll('.js-select').forEach(function (el) { new TomSelect(el, { create: false }); });
     });
