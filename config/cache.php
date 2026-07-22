@@ -134,6 +134,12 @@ return [
     |
     */
 
-    'serializable_classes' => false,
+    // This app's Repository pattern (see CLAUDE.md) caches real Eloquent models/
+    // collections via Cache::tags([...])->remember() in every module — 'false'
+    // here silently turns every cached object into __PHP_Incomplete_Class on
+    // read (allowed_classes => false), which is what caused the language
+    // switcher to revert to English on every other page refresh. Must stay
+    // 'true' for this codebase's caching architecture to function.
+    'serializable_classes' => true,
 
 ];
