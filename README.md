@@ -147,6 +147,12 @@ docker compose exec app php artisan storage:link
 
 > **Port Note:** Uses **8080** (not 8000) — Windows Hyper-V reserves 7980–8079.
 
+> ⚠️ **Before going anywhere near production:** every credential above (all seeded
+> passwords, `minioadmin`/`minioadmin`, `school_user`/`school_pass`) is a well-known
+> default meant for local development only. Change every one of them — admin/staff/
+> student/guardian passwords, MinIO root credentials, MySQL credentials, `APP_KEY`,
+> and gateway/API secrets in `.env` — before exposing a deployment to the internet.
+
 ---
 
 ## 🔌 API Documentation
@@ -238,6 +244,7 @@ make the modified source available to that service's users.
 - **Issues**: [GitHub Issues](https://github.com/tanzibhossain/school-management-system/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/tanzibhossain/school-management-system/discussions)
 - **Security vulnerabilities**: see [SECURITY.md](SECURITY.md) — please don't report these as public issues
+- **Release notes**: see [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
