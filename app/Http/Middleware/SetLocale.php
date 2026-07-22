@@ -37,7 +37,7 @@ class SetLocale
         if ($chosen !== 'en') {
             $lines = Translation::linesFor($chosen);
             if ($lines !== []) {
-                app('translator')->addLines($lines, $chosen);
+                $this->injectFlatLines(app('translator'), $chosen, $lines);
             }
         }
 
@@ -47,5 +47,34 @@ class SetLocale
         View::share('appIsRtl', (bool) ($current->is_rtl ?? false));
 
         return $next($request);
+    }
+
+    /**
+     * Feed a flat [english key => translated value] map into the translator's
+     * JSON-style ('*' group) line cache for this locale.
+     *
+     * Deliberately NOT using Translator::addLines() here: it routes every key
+     * through Arr::set() against a dot-delimited path built from the raw key
+     * ("*.*.{locale}.{key}"). Any English key containing a literal "." — and
+     * many of ours do, e.g. "Search...", "Email address updated." — gets that
+     * dot parsed as a nested-array separator instead of staying part of a flat
+     * string key. That silently turns the value stored at the key's pre-dot
+     * prefix (e.g. "Search") into an array, and the next `__('Search')` call
+     * hands an array to htmlspecialchars()/e(), which is a fatal TypeError.
+     *
+     * Laravel's own JSON translation loader (loadJsonPaths()) never hits this:
+     * it merges a decoded {locale}.json file straight into the loaded array in
+     * one shot, with no per-key path parsing. We mirror that here via
+     * reflection, since Translator has no public method to do a flat merge.
+     */
+    private function injectFlatLines(\Illuminate\Contracts\Translation\Translator $translator, string $locale, array $lines): void
+    {
+        $property = new \ReflectionProperty($translator, 'loaded');
+        $property->setAccessible(true);
+
+        $loaded = $property->getValue($translator);
+        $loaded['*']['*'][$locale] = array_merge($loaded['*']['*'][$locale] ?? [], $lines);
+
+        $property->setValue($translator, $loaded);
     }
 }

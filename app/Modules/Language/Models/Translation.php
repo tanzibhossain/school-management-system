@@ -21,8 +21,14 @@ class Translation extends Model
     }
 
     /**
-     * Translated lines for a locale, shaped for Translator::addLines()
-     * (JSON-style keys use the '*' group).
+     * Translated lines for a locale: a flat [english key => translated value]
+     * map, keyed exactly by the raw English source string.
+     *
+     * Deliberately NOT prefixed/shaped for Translator::addLines() — that method
+     * re-parses each key as a dot-delimited path via Arr::set(), which mangles
+     * any English key containing a literal "." (e.g. "Search...", "Email
+     * address updated."). SetLocale injects these lines directly into the
+     * translator's flat '*' group cache instead; see SetLocale::injectFlatLines().
      *
      * @return array<string, string>
      */
@@ -33,7 +39,6 @@ class Translation extends Model
             3600,
             fn () => static::where('locale', $locale)->whereNotNull('value')
                 ->pluck('value', 'key')
-                ->mapWithKeys(fn ($value, $key) => ['*.'.$key => $value])
                 ->all(),
         );
     }
