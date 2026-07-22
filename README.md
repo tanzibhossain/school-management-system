@@ -1,4 +1,4 @@
-# School Management System v2
+# School Management System
 
 [![Tests](https://github.com/tanzibhossain/school-management-system/actions/workflows/tests.yml/badge.svg)](https://github.com/tanzibhossain/school-management-system/actions/workflows/tests.yml)
 [![Code Style](https://github.com/tanzibhossain/school-management-system/actions/workflows/pint.yml/badge.svg)](https://github.com/tanzibhossain/school-management-system/actions/workflows/pint.yml)
