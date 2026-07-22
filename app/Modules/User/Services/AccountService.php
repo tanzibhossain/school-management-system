@@ -3,6 +3,7 @@
 namespace App\Modules\User\Services;
 
 use App\Mail\AccountEmailChangeMail;
+use App\Mail\AccountEmailChangeNoticeMail;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -37,10 +38,16 @@ class AccountService
         $user->update(['password' => Hash::make($newPassword)]);
     }
 
-    /** Stashes the new address as pending and emails a confirmation link to it — never applies instantly. */
+    /**
+     * Stashes the new address as pending and emails a confirmation link to it
+     * — never applies instantly. Also notifies the CURRENT address with a
+     * "wasn't you?" cancel link, since that's the one channel the real owner
+     * still controls if the account has actually been compromised.
+     */
     public function requestEmailChange(User $user, string $newEmail): void
     {
         $token = Str::random(64);
+        $oldEmail = $user->email;
 
         $user->update([
             'pending_email' => $newEmail,
@@ -49,6 +56,7 @@ class AccountService
         ]);
 
         Mail::to($newEmail)->send(new AccountEmailChangeMail($user, $newEmail, $token));
+        Mail::to($oldEmail)->send(new AccountEmailChangeNoticeMail($user, $newEmail, $token));
     }
 
     public function cancelEmailChange(User $user): void
@@ -58,6 +66,28 @@ class AccountService
             'pending_email_token' => null,
             'pending_email_expires_at' => null,
         ]);
+    }
+
+    /**
+     * Cancels a pending change via the token from the "wasn't you?" notice
+     * mailed to the OLD address — deliberately callable without an
+     * authenticated session, since the real owner may already be locked out.
+     * Returns false (rather than throwing) for an invalid/stale/already-used
+     * link so the controller can show a calm "already handled" message.
+     */
+    public function cancelEmailChangeWithToken(User $user, string $token): bool
+    {
+        if (
+            ! $user->pending_email
+            || ! $user->pending_email_token
+            || ! Hash::check($token, $user->pending_email_token)
+        ) {
+            return false;
+        }
+
+        $this->cancelEmailChange($user);
+
+        return true;
     }
 
     /** @throws ValidationException if the token is wrong/expired/stale */

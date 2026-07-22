@@ -9363,13 +9363,13 @@ parameters:
 		-
 			message: '#^Access to an undefined property App\\Models\\User\:\:\$pending_email\.$#'
 			identifier: property.notFound
-			count: 1
+			count: 2
 			path: app/Modules/User/Services/AccountService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\User\:\:\$pending_email_token\.$#'
 			identifier: property.notFound
-			count: 1
+			count: 3
 			path: app/Modules/User/Services/AccountService.php
 
 		-

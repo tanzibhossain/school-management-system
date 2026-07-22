@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Modules\User\Services\AccountService;
 use App\Modules\User\Services\SessionDeviceService;
 use Illuminate\Http\RedirectResponse;
@@ -89,6 +90,31 @@ class AccountController extends Controller
         $this->account->confirmEmailChange($request->user(), $token);
 
         return back()->with('status', __('Email address updated.'));
+    }
+
+    /**
+     * Signed route from the "wasn't you?" notice mailed to the OLD address —
+     * deliberately NOT behind 'auth', since the real owner may already be
+     * locked out if the account is genuinely compromised. The signature
+     * alone guards the user id/token from tampering; the token is then
+     * checked against the live pending state so a stale or reused link
+     * fails quietly instead of cancelling something that's already resolved.
+     */
+    public function cancelEmailChangeExternal(Request $request, int $user, string $token): RedirectResponse
+    {
+        if (! $request->hasValidSignature()) {
+            abort(403);
+        }
+
+        $target = User::findOrFail($user);
+        $cancelled = $this->account->cancelEmailChangeWithToken($target, $token);
+
+        return redirect()->route('login')->with(
+            $cancelled ? 'status' : 'error',
+            $cancelled
+                ? __("The pending email change was cancelled. If this wasn't you, please change your password right away.")
+                : __('This link is invalid or the change was already handled.'),
+        );
     }
 
     public function showEnableTwoFactor(Request $request): View

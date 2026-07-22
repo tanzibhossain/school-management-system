@@ -109,6 +109,12 @@ Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->
 Route::get('/account/email/confirm/{user}/{token}', [AccountController::class, 'confirmEmailChange'])
     ->middleware(['auth', 'signed'])->name('account.email.confirm');
 
+// "Wasn't you?" cancel link mailed to the OLD address — deliberately NOT
+// behind 'auth' (the real owner may be locked out already); the signature
+// plus a live token check in the service is what guards this instead.
+Route::get('/account/email/cancel/{user}/{token}', [AccountController::class, 'cancelEmailChangeExternal'])
+    ->middleware('signed')->name('account.email.cancel-external');
+
 // Self-service account settings (name, password, email, 2FA, sessions) — the
 // same routes/controller are registered under each portal's prefix below so
 // `route('admin.account')` / `staff.account` / `portal.account` all resolve;

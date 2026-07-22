@@ -109,6 +109,12 @@
         @if ($errors->any())
           <div class="alert alert-danger py-2"><i class="bi bi-exclamation-circle me-1"></i>{{ $errors->first() }}</div>
         @endif
+        @if (session('status'))
+          <div class="alert alert-success py-2"><i class="bi bi-check-circle me-1"></i>{{ session('status') }}</div>
+        @endif
+        @if (session('error'))
+          <div class="alert alert-danger py-2"><i class="bi bi-exclamation-circle me-1"></i>{{ session('error') }}</div>
+        @endif
 
         <form method="POST" action="{{ $current['action'] }}">
           @csrf
