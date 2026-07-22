@@ -414,6 +414,10 @@
       @endif
       @yield('content')
     </main>
+
+    <footer class="border-top py-3 px-3 px-lg-4 text-center text-muted small">
+      {{ config('app.name', 'School Management System') }} v{{ config('app.version', '1.0.0') }}
+    </footer>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>

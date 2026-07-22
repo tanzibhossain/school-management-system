@@ -17,6 +17,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Version
+    |--------------------------------------------------------------------------
+    |
+    | Release version shown in the admin panel footer. Bump this (and tag the
+    | matching commit, per CLAUDE.md's Git Commit Convention) on each release
+    | — it's read from the environment so it can be set without a code change.
+    |
+    */
+
+    'version' => env('APP_VERSION', '1.0.0'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |
