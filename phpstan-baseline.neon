@@ -9369,7 +9369,7 @@ parameters:
 		-
 			message: '#^Access to an undefined property App\\Models\\User\:\:\$pending_email_token\.$#'
 			identifier: property.notFound
-			count: 3
+			count: 2
 			path: app/Modules/User/Services/AccountService.php
 
 		-
