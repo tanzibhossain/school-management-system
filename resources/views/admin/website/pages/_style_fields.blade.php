@@ -22,14 +22,14 @@
   <div class="col-6">
     <label class="form-label small text-muted mb-1">{{ __('Background color') }}</label>
     <div class="input-group input-group-sm js-color-pair">
-      <input type="color" class="form-control form-control-color js-color-swatch" value="{{ $s['bg_color'] ?: '#ffffff' }}">
+      <input type="color" class="form-control form-control-color js-color-swatch" value="{{ ($s['bg_color'] ?? null) ?: '#ffffff' }}">
       <input type="text" name="{{ $prefix }}[style][bg_color]" value="{{ $s['bg_color'] ?? '' }}" class="form-control js-color-text" placeholder="{{ __('None') }}" maxlength="9">
     </div>
   </div>
   <div class="col-6">
     <label class="form-label small text-muted mb-1">{{ __('Text color') }}</label>
     <div class="input-group input-group-sm js-color-pair">
-      <input type="color" class="form-control form-control-color js-color-swatch" value="{{ $s['text_color'] ?: '#000000' }}">
+      <input type="color" class="form-control form-control-color js-color-swatch" value="{{ ($s['text_color'] ?? null) ?: '#000000' }}">
       <input type="text" name="{{ $prefix }}[style][text_color]" value="{{ $s['text_color'] ?? '' }}" class="form-control js-color-text" placeholder="{{ __('None') }}" maxlength="9">
     </div>
   </div>
