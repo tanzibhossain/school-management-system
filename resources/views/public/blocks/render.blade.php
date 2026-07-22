@@ -1,8 +1,32 @@
 @php
+  // Local alias so the (fairly long) FQCN doesn't have to be repeated at
+  // every call site below — `use` imports aren't valid inside a compiled
+  // Blade @php block (it's PHP function-body code, not file-top-level).
+  $bp = \App\Modules\Website\Support\BlockPresentation::class;
+
   $contained = $contained ?? false;
-  $open = $contained ? '<div class="mb-4">' : '<section class="py-4 py-lg-5"><div class="container">';
-  $close = $contained ? '</div>' : '</div></section>';
+  $style = $style ?? [];
+  $layout = $layout ?? [];
+
+  // hero/admission_form manage their own spacing+background entirely — every
+  // other block type gets the standard section+container+default-padding
+  // treatment, with the Style tab's overrides applied on the same wrapper
+  // element so a custom value cleanly replaces the default instead of adding
+  // to it (inline style always wins over the py-4/py-lg-5 utility classes).
+  $selfContained = in_array($type, ['hero', 'admission_form'], true);
+  $wrap = $bp::wrapper($style, $layout);
+  $defaultSpacing = $selfContained ? '' : ($contained ? 'mb-3' : 'py-4 py-lg-5');
+  $wrapClass = trim($wrap['class'].' '.$defaultSpacing);
+  $wrapStyleAttr = $wrap['style'] !== '' ? ' style="'.$wrap['style'].'"' : '';
+
+  $open = $contained || $selfContained ? '' : '<div class="container">';
+  $close = $contained || $selfContained ? '' : '</div>';
 @endphp
+@if ($contained)
+  <div class="{{ $wrapClass }}"{!! $wrapStyleAttr !!}>
+@else
+  <section class="{{ $wrapClass }}"{!! $wrapStyleAttr !!}>
+@endif
 @switch($type)
   @case('hero')
     <header class="hero py-5" @if(!empty($d['image'])) style="background-image:linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.45)),url('{{ $d['image'] }}');background-size:cover;background-position:center;" @endif>
@@ -51,9 +75,9 @@
   @case('staff')
     {!! $open !!}
       @if(!empty($d['heading']))<h2 class="section-title h3 mb-4">{{ $d['heading'] }}</h2>@endif
-      <div class="row g-3">
+      <div class="row {{ $bp::columnClasses($layout, ['mobile' => 2, 'tablet' => 3, 'laptop' => 4, 'desktop' => 4]) }} g-3">
         @forelse($d['members'] ?? [] as $m)
-          <div class="col-6 col-md-3">
+          <div>
             <div class="card h-100 text-center"><div class="card-body">
               <div class="rounded-circle bg-light border d-inline-flex align-items-center justify-content-center mb-2" style="width:64px;height:64px;">
                 @if($m->photo)<img src="{{ $m->photo }}" class="rounded-circle" style="width:64px;height:64px;object-fit:cover;" alt="">
@@ -73,9 +97,9 @@
   @case('notices')
     {!! $open !!}
       <h2 class="section-title h3 mb-4">{{ $d['heading'] ?? 'Notices' }}</h2>
-      <div class="row g-3">
+      <div class="row {{ $bp::columnClasses($layout, ['mobile' => 1, 'tablet' => 2, 'laptop' => 3, 'desktop' => 3]) }} g-3">
         @forelse(($d['notices'] ?? collect())->take($d['limit'] ?? 6) as $n)
-          <div class="col-md-6 col-lg-4"><div class="card h-100"><div class="card-body">
+          <div><div class="card h-100"><div class="card-body">
             <div class="small text-muted mb-1"><i class="bi bi-megaphone-fill text-brand"></i> {{ optional($n->publish_at ?? $n->created_at)->format('d M Y') }}</div>
             <h3 class="h6 fw-semibold">{{ $n->title }}</h3>
             <p class="text-muted small mb-0">{{ \Illuminate\Support\Str::limit(strip_tags($n->body), 110) }}</p>
@@ -89,11 +113,11 @@
 
   @case('stats')
     {!! $open !!}
-      <div class="row g-3 text-center">
-        <div class="col-6 col-md-3"><div class="p-3 bg-light rounded-3"><div class="stat-num">{{ number_format($d['stats']['active_students'] ?? 0) }}</div><div class="text-muted small mt-1">{{ __('Students') }}</div></div></div>
-        <div class="col-6 col-md-3"><div class="p-3 bg-light rounded-3"><div class="stat-num">{{ number_format($d['stats']['active_staff'] ?? 0) }}</div><div class="text-muted small mt-1">Teachers &amp; staff</div></div></div>
+      <div class="row {{ $bp::columnClasses($layout, ['mobile' => 2, 'tablet' => 4, 'laptop' => 4, 'desktop' => 4]) }} g-3 text-center">
+        <div><div class="p-3 bg-light rounded-3"><div class="stat-num">{{ number_format($d['stats']['active_students'] ?? 0) }}</div><div class="text-muted small mt-1">{{ __('Students') }}</div></div></div>
+        <div><div class="p-3 bg-light rounded-3"><div class="stat-num">{{ number_format($d['stats']['active_staff'] ?? 0) }}</div><div class="text-muted small mt-1">Teachers &amp; staff</div></div></div>
         @foreach($d['items'] ?? [] as $it)
-          <div class="col-6 col-md-3"><div class="p-3 bg-light rounded-3"><div class="stat-num">{{ $it['value'] ?? '' }}</div><div class="text-muted small mt-1">{{ $it['label'] ?? '' }}</div></div></div>
+          <div><div class="p-3 bg-light rounded-3"><div class="stat-num">{{ $it['value'] ?? '' }}</div><div class="text-muted small mt-1">{{ $it['label'] ?? '' }}</div></div></div>
         @endforeach
       </div>
     {!! $close !!}
@@ -102,9 +126,9 @@
   @case('gallery_photo')
     {!! $open !!}
       @if(!empty($d['heading']))<h2 class="section-title h3 mb-4">{{ $d['heading'] }}</h2>@endif
-      <div class="row g-3">
+      <div class="row {{ $bp::columnClasses($layout, ['mobile' => 2, 'tablet' => 3, 'laptop' => 4, 'desktop' => 4]) }} g-3">
         @forelse($d['images'] ?? [] as $img)
-          <div class="col-6 col-md-4 col-lg-3"><a href="{{ is_array($img) ? ($img['url'] ?? '#') : $img }}" target="_blank"><img src="{{ is_array($img) ? ($img['url'] ?? '') : $img }}" class="img-fluid rounded-3" style="aspect-ratio:1;object-fit:cover;width:100%;" alt=""></a></div>
+          <div><a href="{{ is_array($img) ? ($img['url'] ?? '#') : $img }}" target="_blank"><img src="{{ is_array($img) ? ($img['url'] ?? '') : $img }}" class="img-fluid rounded-3" style="aspect-ratio:1;object-fit:cover;width:100%;" alt=""></a></div>
         @empty
           <p class="text-muted mb-0">{{ __('No Photos Yet.') }}</p>
         @endforelse
@@ -115,9 +139,9 @@
   @case('gallery_video')
     {!! $open !!}
       @if(!empty($d['heading']))<h2 class="section-title h3 mb-4">{{ $d['heading'] }}</h2>@endif
-      <div class="row g-3">
+      <div class="row {{ $bp::columnClasses($layout, ['mobile' => 1, 'tablet' => 2, 'laptop' => 2, 'desktop' => 2]) }} g-3">
         @forelse($d['videos'] ?? [] as $v)
-          <div class="col-md-6"><div class="ratio ratio-16x9"><iframe src="{{ is_array($v) ? ($v['url'] ?? '') : $v }}" allowfullscreen loading="lazy"></iframe></div></div>
+          <div><div class="ratio ratio-16x9"><iframe src="{{ is_array($v) ? ($v['url'] ?? '') : $v }}" allowfullscreen loading="lazy"></iframe></div></div>
         @empty
           <p class="text-muted mb-0">{{ __('No Videos Yet.') }}</p>
         @endforelse
@@ -164,3 +188,8 @@
     {!! $close !!}
     @break
 @endswitch
+@if ($contained)
+  </div>
+@else
+  </section>
+@endif

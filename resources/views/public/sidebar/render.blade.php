@@ -1,6 +1,14 @@
+@php
+  $style = $style ?? [];
+  $layout = $layout ?? [];
+  $wrap = \App\Modules\Website\Support\BlockPresentation::wrapper($style, $layout);
+  $wrapClass = trim($wrap['class'].' mb-3');
+  $wrapStyleAttr = $wrap['style'] !== '' ? ' style="'.$wrap['style'].'"' : '';
+@endphp
+<div class="{{ $wrapClass }}"{!! $wrapStyleAttr !!}>
 @switch($type)
   @case('quick_links')
-    <div class="card mb-3"><div class="card-body">
+    <div class="card"><div class="card-body">
       <h3 class="h6 section-title mb-3">{{ $d['heading'] ?? 'Quick links' }}</h3>
       <div class="d-flex flex-column gap-2">
         @foreach($d['links'] ?? [] as $l)
@@ -11,7 +19,7 @@
     @break
 
   @case('office_hours')
-    <div class="card mb-3"><div class="card-body">
+    <div class="card"><div class="card-body">
       <h3 class="h6 section-title mb-3">{{ $d['heading'] ?? 'Office hours' }}</h3>
       <ul class="list-unstyled small mb-0">
         @foreach($d['lines'] ?? [] as $line)
@@ -25,7 +33,7 @@
     @break
 
   @case('contact_info')
-    <div class="card mb-3"><div class="card-body">
+    <div class="card"><div class="card-body">
       <h3 class="h6 section-title mb-3">{{ $d['heading'] ?? 'Contact' }}</h3>
       <ul class="list-unstyled small mb-0">
         @if(($d['address'] ?? null) || ($d['school']->address ?? null))<li class="mb-2"><i class="bi bi-geo-alt text-brand"></i> {{ $d['address'] ?? $d['school']->address }}</li>@endif
@@ -36,7 +44,7 @@
     @break
 
   @case('recent_notices')
-    <div class="card mb-3"><div class="card-body">
+    <div class="card"><div class="card-body">
       <h3 class="h6 section-title mb-3">{{ $d['heading'] ?? 'Recent notices' }}</h3>
       @forelse(($d['notices'] ?? collect())->take($d['limit'] ?? 5) as $n)
         <div class="small border-bottom py-2">
@@ -49,3 +57,4 @@
     </div></div>
     @break
 @endswitch
+</div>
