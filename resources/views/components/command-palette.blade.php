@@ -1,10 +1,14 @@
 {{-- Command Palette Component --}}
 @props([
     'trigger' => 'meta+k',
-    'placeholder' => 'Search commands...',
+    'placeholder' => null,
     'class' => '',
     'maxResults' => 8,
 ])
+
+@php
+    $placeholder = $placeholder ?? __('Search commands...');
+@endphp
 
 @php
     $paletteId = 'command-palette-' . uniqid();
@@ -99,7 +103,7 @@
         <!-- Header -->
         <div class="flex items-center gap-3 p-4 border-b border-slate-200">
             <div class="flex items-center gap-2 text-slate-500">
-                <kbd class="kbd px-2 py-1 text-xs font-mono bg-slate-100 rounded js-shortcut-hint">{{ __('Ctrl K') }}</kbd>
+                <kbd class="kbd px-2 py-1 text-xs font-mono bg-black text-white rounded js-shortcut-hint">{{ __('Ctrl K') }}</kbd>
                 <span class="text-xs">{{ __('To Open') }}</span>
             </div>
             <div class="flex-1 relative">
@@ -165,91 +169,91 @@
     // ─── Command Data ───
     const commandData = [
         // Navigation
-        { id: 'dashboard', label: 'Dashboard', description: 'Go to dashboard', section: 'Navigation', icon: 'bi-speedometer2', url: routes.dashboard, keywords: 'home main overview', shortcut: 'g d' },
-        { id: 'students', label: 'Students', description: 'Manage students', section: 'Navigation', icon: 'bi-people-fill', url: routes.students, keywords: 'pupils list', shortcut: 'g s' },
-        { id: 'students-create', label: 'New Student', description: 'Add new student', section: 'Navigation', icon: 'bi-person-plus', url: routes['students.create'], keywords: 'add new pupil', shortcut: 'n s' },
-        { id: 'staff', label: 'Staff', description: 'Manage staff', section: 'Navigation', icon: 'bi-person-badge', url: routes.staff, keywords: 'teachers employees', shortcut: 'g t' },
+        { id: 'dashboard', label: {!! json_encode(__('Dashboard')) !!}, description: {!! json_encode(__('Go to dashboard')) !!}, section: {!! json_encode(__('Navigation')) !!}, icon: 'bi-speedometer2', url: routes.dashboard, keywords: 'home main overview', shortcut: 'g d' },
+        { id: 'students', label: {!! json_encode(__('Students')) !!}, description: {!! json_encode(__('Manage students')) !!}, section: {!! json_encode(__('Navigation')) !!}, icon: 'bi-people-fill', url: routes.students, keywords: 'pupils list', shortcut: 'g s' },
+        { id: 'students-create', label: {!! json_encode(__('New Student')) !!}, description: {!! json_encode(__('Add new student')) !!}, section: {!! json_encode(__('Navigation')) !!}, icon: 'bi-person-plus', url: routes['students.create'], keywords: 'add new pupil', shortcut: 'n s' },
+        { id: 'staff', label: {!! json_encode(__('Staff')) !!}, description: {!! json_encode(__('Manage staff')) !!}, section: {!! json_encode(__('Navigation')) !!}, icon: 'bi-person-badge', url: routes.staff, keywords: 'teachers employees', shortcut: 'g t' },
 
         // Setup
-        { id: 'school-settings', label: 'School Settings', description: 'Configure school settings', section: 'Setup', icon: 'bi-building-gear', url: routes['school.edit'], keywords: 'configuration', shortcut: 'g c' },
-        { id: 'modules', label: 'Modules', description: 'Enable/disable modules', section: 'Setup', icon: 'bi-toggles', url: routes.modules, keywords: 'features toggle optional', shortcut: 'g m' },
-        { id: 'pages', label: 'Website Pages', description: 'Manage website pages', section: 'Setup', icon: 'bi-window', url: routes.pages, keywords: 'website content', shortcut: 'g p' },
-        { id: 'academic-years', label: 'Academic Years', description: 'Manage academic years', section: 'Setup', icon: 'bi-calendar3', url: routes['academic-years'], keywords: 'years sessions', shortcut: 'g y' },
-        { id: 'classes', label: 'Classes & Sections', description: 'Manage classes and sections', section: 'Setup', icon: 'bi-diagram-3', url: routes.classes, keywords: 'classrooms grades', shortcut: 'g c' },
-        { id: 'subjects', label: 'Subjects', description: 'Manage subjects', section: 'Setup', icon: 'bi-book', url: routes.subjects, keywords: 'courses', shortcut: 'g b' },
-        { id: 'academic-groups', label: 'Academic Groups', description: 'Manage academic groups', section: 'Setup', icon: 'bi-people', url: routes.groups, keywords: 'streams tracks', shortcut: 'g g' },
-        { id: 'versions', label: 'Versions', description: 'Manage versions', section: 'Setup', icon: 'bi-translate', url: routes.versions, keywords: 'streams', shortcut: 'g v' },
-        { id: 'shifts', label: 'Shifts', description: 'Manage shifts', section: 'Setup', icon: 'bi-clock-history', url: routes.shifts, keywords: 'morning evening', shortcut: 'g h' },
-        { id: 'routine', label: 'Class Routine', description: 'Manage class routine', section: 'Setup', icon: 'bi-calendar3-week', url: routes.routine, keywords: 'schedule timetable', shortcut: 'g r' },
+        { id: 'school-settings', label: {!! json_encode(__('School Settings')) !!}, description: {!! json_encode(__('Configure school settings')) !!}, section: {!! json_encode(__('Setup')) !!}, icon: 'bi-building-gear', url: routes['school.edit'], keywords: 'configuration', shortcut: 'g c' },
+        { id: 'modules', label: {!! json_encode(__('Modules')) !!}, description: {!! json_encode(__('Enable/disable modules')) !!}, section: {!! json_encode(__('Setup')) !!}, icon: 'bi-toggles', url: routes.modules, keywords: 'features toggle optional', shortcut: 'g m' },
+        { id: 'pages', label: {!! json_encode(__('Website Pages')) !!}, description: {!! json_encode(__('Manage website pages')) !!}, section: {!! json_encode(__('Setup')) !!}, icon: 'bi-window', url: routes.pages, keywords: 'website content', shortcut: 'g p' },
+        { id: 'academic-years', label: {!! json_encode(__('Academic Years')) !!}, description: {!! json_encode(__('Manage academic years')) !!}, section: {!! json_encode(__('Setup')) !!}, icon: 'bi-calendar3', url: routes['academic-years'], keywords: 'years sessions', shortcut: 'g y' },
+        { id: 'classes', label: {!! json_encode(__('Classes & Sections')) !!}, description: {!! json_encode(__('Manage classes and sections')) !!}, section: {!! json_encode(__('Setup')) !!}, icon: 'bi-diagram-3', url: routes.classes, keywords: 'classrooms grades', shortcut: 'g c' },
+        { id: 'subjects', label: {!! json_encode(__('Subjects')) !!}, description: {!! json_encode(__('Manage subjects')) !!}, section: {!! json_encode(__('Setup')) !!}, icon: 'bi-book', url: routes.subjects, keywords: 'courses', shortcut: 'g b' },
+        { id: 'academic-groups', label: {!! json_encode(__('Academic Groups')) !!}, description: {!! json_encode(__('Manage academic groups')) !!}, section: {!! json_encode(__('Setup')) !!}, icon: 'bi-people', url: routes.groups, keywords: 'streams tracks', shortcut: 'g g' },
+        { id: 'versions', label: {!! json_encode(__('Versions')) !!}, description: {!! json_encode(__('Manage versions')) !!}, section: {!! json_encode(__('Setup')) !!}, icon: 'bi-translate', url: routes.versions, keywords: 'streams', shortcut: 'g v' },
+        { id: 'shifts', label: {!! json_encode(__('Shifts')) !!}, description: {!! json_encode(__('Manage shifts')) !!}, section: {!! json_encode(__('Setup')) !!}, icon: 'bi-clock-history', url: routes.shifts, keywords: 'morning evening', shortcut: 'g h' },
+        { id: 'routine', label: {!! json_encode(__('Class Routine')) !!}, description: {!! json_encode(__('Manage class routine')) !!}, section: {!! json_encode(__('Setup')) !!}, icon: 'bi-calendar3-week', url: routes.routine, keywords: 'schedule timetable', shortcut: 'g r' },
 
         // People
-        { id: 'designations', label: 'Designations', description: 'Manage designations', section: 'People', icon: 'bi-award', url: routes.designations, keywords: 'roles titles', shortcut: 'g d' },
-        { id: 'departments', label: 'Departments', description: 'Manage departments', section: 'People', icon: 'bi-building', url: routes.departments, keywords: 'divisions', shortcut: 'g e' },
-        { id: 'admissions', label: 'Admissions', description: 'Manage admissions', section: 'People', icon: 'bi-clipboard-check', url: routes.admissions, keywords: 'applications', shortcut: 'g a' },
-        { id: 'data-import', label: 'Data Import', description: 'Import students/staff', section: 'People', icon: 'bi-upload', url: routes['data-import'], keywords: 'bulk upload csv excel', shortcut: 'g i' },
-        { id: 'users', label: 'Users & Roles', description: 'Manage users and roles', section: 'People', icon: 'bi-person-gear', url: routes.users, keywords: 'accounts permissions', shortcut: 'g u' },
+        { id: 'designations', label: {!! json_encode(__('Designations')) !!}, description: {!! json_encode(__('Manage designations')) !!}, section: {!! json_encode(__('People')) !!}, icon: 'bi-award', url: routes.designations, keywords: 'roles titles', shortcut: 'g d' },
+        { id: 'departments', label: {!! json_encode(__('Departments')) !!}, description: {!! json_encode(__('Manage departments')) !!}, section: {!! json_encode(__('People')) !!}, icon: 'bi-building', url: routes.departments, keywords: 'divisions', shortcut: 'g e' },
+        { id: 'admissions', label: {!! json_encode(__('Admissions')) !!}, description: {!! json_encode(__('Manage admissions')) !!}, section: {!! json_encode(__('People')) !!}, icon: 'bi-clipboard-check', url: routes.admissions, keywords: 'applications', shortcut: 'g a' },
+        { id: 'data-import', label: {!! json_encode(__('Data Import')) !!}, description: {!! json_encode(__('Import students/staff')) !!}, section: {!! json_encode(__('People')) !!}, icon: 'bi-upload', url: routes['data-import'], keywords: 'bulk upload csv excel', shortcut: 'g i' },
+        { id: 'users', label: {!! json_encode(__('Users & Roles')) !!}, description: {!! json_encode(__('Manage users and roles')) !!}, section: {!! json_encode(__('People')) !!}, icon: 'bi-person-gear', url: routes.users, keywords: 'accounts permissions', shortcut: 'g u' },
 
         // Finance
-        { id: 'fee-categories', label: 'Fee Categories', description: 'Manage fee categories', section: 'Finance', icon: 'bi-tags', url: routes['fee-categories'], keywords: 'fees types', shortcut: 'f c' },
-        { id: 'fee-items', label: 'Fee Items', description: 'Manage fee items', section: 'Finance', icon: 'bi-cash-stack', url: routes['fee-items'], keywords: 'fees charges', shortcut: 'f i' },
-        { id: 'discounts', label: 'Discounts', description: 'Manage fee discounts', section: 'Finance', icon: 'bi-percent', url: routes['fee-discounts'], keywords: 'concessions scholarships', shortcut: 'f d' },
-        { id: 'invoices', label: 'Invoices', description: 'Manage invoices', section: 'Finance', icon: 'bi-receipt', url: routes.invoices, keywords: 'bills', shortcut: 'f v' },
-        { id: 'payments', label: 'Payments', description: 'Record payments', section: 'Finance', icon: 'bi-credit-card', url: routes.payments, keywords: 'transactions', shortcut: 'f p' },
-        { id: 'refunds', label: 'Refunds', description: 'Process refunds', section: 'Finance', icon: 'bi-arrow-return-left', url: routes.refunds, keywords: 'reimbursements', shortcut: 'f r' },
-        { id: 'student-credit', label: 'Student Credit', description: 'Manage student credit', section: 'Finance', icon: 'bi-wallet2', url: routes['student-credit'], keywords: 'balance ledger', shortcut: 'f s' },
-        { id: 'payment-config', label: 'Payment Settings', description: 'Payment mode, gateways & credentials', section: 'Setup', icon: 'bi-credit-card', url: routes['payment-config'], keywords: 'gateway settings bkash sslcommerz online offline', shortcut: 'g y' },
+        { id: 'fee-categories', label: {!! json_encode(__('Fee Categories')) !!}, description: {!! json_encode(__('Manage fee categories')) !!}, section: {!! json_encode(__('Finance')) !!}, icon: 'bi-tags', url: routes['fee-categories'], keywords: 'fees types', shortcut: 'f c' },
+        { id: 'fee-items', label: {!! json_encode(__('Fee Items')) !!}, description: {!! json_encode(__('Manage fee items')) !!}, section: {!! json_encode(__('Finance')) !!}, icon: 'bi-cash-stack', url: routes['fee-items'], keywords: 'fees charges', shortcut: 'f i' },
+        { id: 'discounts', label: {!! json_encode(__('Discounts')) !!}, description: {!! json_encode(__('Manage fee discounts')) !!}, section: {!! json_encode(__('Finance')) !!}, icon: 'bi-percent', url: routes['fee-discounts'], keywords: 'concessions scholarships', shortcut: 'f d' },
+        { id: 'invoices', label: {!! json_encode(__('Invoices')) !!}, description: {!! json_encode(__('Manage invoices')) !!}, section: {!! json_encode(__('Finance')) !!}, icon: 'bi-receipt', url: routes.invoices, keywords: 'bills', shortcut: 'f v' },
+        { id: 'payments', label: {!! json_encode(__('Payments')) !!}, description: {!! json_encode(__('Record payments')) !!}, section: {!! json_encode(__('Finance')) !!}, icon: 'bi-credit-card', url: routes.payments, keywords: 'transactions', shortcut: 'f p' },
+        { id: 'refunds', label: {!! json_encode(__('Refunds')) !!}, description: {!! json_encode(__('Process refunds')) !!}, section: {!! json_encode(__('Finance')) !!}, icon: 'bi-arrow-return-left', url: routes.refunds, keywords: 'reimbursements', shortcut: 'f r' },
+        { id: 'student-credit', label: {!! json_encode(__('Student Credit')) !!}, description: {!! json_encode(__('Manage student credit')) !!}, section: {!! json_encode(__('Finance')) !!}, icon: 'bi-wallet2', url: routes['student-credit'], keywords: 'balance ledger', shortcut: 'f s' },
+        { id: 'payment-config', label: {!! json_encode(__('Payment Settings')) !!}, description: {!! json_encode(__('Payment mode, gateways & credentials')) !!}, section: {!! json_encode(__('Setup')) !!}, icon: 'bi-credit-card', url: routes['payment-config'], keywords: 'gateway settings bkash sslcommerz online offline', shortcut: 'g y' },
 
         // Academics
-        { id: 'attendance', label: 'Attendance', description: 'Record attendance', section: 'Academics', icon: 'bi-calendar-check', url: routes.attendance, keywords: 'presence roll-call', shortcut: 'a a' },
-        { id: 'exam-types', label: 'Exam Types', description: 'Manage exam types', section: 'Academics', icon: 'bi-card-list', url: routes['exam-types'], keywords: 'examination types', shortcut: 'a e' },
-        { id: 'exams', label: 'Exams', description: 'Manage exams', section: 'Academics', icon: 'bi-journal-text', url: routes.exams, keywords: 'examinations tests', shortcut: 'a x' },
-        { id: 'mark-settings', label: 'Mark Settings', description: 'Configure mark settings', section: 'Academics', icon: 'bi-sliders', url: routes['mark-settings'], keywords: 'grading configuration', shortcut: 'a m' },
-        { id: 'exam-halls', label: 'Exam Halls', description: 'Manage exam halls', section: 'Academics', icon: 'bi-grid-3x3', url: routes['exam-halls'], keywords: 'rooms venues', shortcut: 'a h' },
+        { id: 'attendance', label: {!! json_encode(__('Attendance')) !!}, description: {!! json_encode(__('Record attendance')) !!}, section: {!! json_encode(__('Academics')) !!}, icon: 'bi-calendar-check', url: routes.attendance, keywords: 'presence roll-call', shortcut: 'a a' },
+        { id: 'exam-types', label: {!! json_encode(__('Exam Types')) !!}, description: {!! json_encode(__('Manage exam types')) !!}, section: {!! json_encode(__('Academics')) !!}, icon: 'bi-card-list', url: routes['exam-types'], keywords: 'examination types', shortcut: 'a e' },
+        { id: 'exams', label: {!! json_encode(__('Exams')) !!}, description: {!! json_encode(__('Manage exams')) !!}, section: {!! json_encode(__('Academics')) !!}, icon: 'bi-journal-text', url: routes.exams, keywords: 'examinations tests', shortcut: 'a x' },
+        { id: 'mark-settings', label: {!! json_encode(__('Mark Settings')) !!}, description: {!! json_encode(__('Configure mark settings')) !!}, section: {!! json_encode(__('Academics')) !!}, icon: 'bi-sliders', url: routes['mark-settings'], keywords: 'grading configuration', shortcut: 'a m' },
+        { id: 'exam-halls', label: {!! json_encode(__('Exam Halls')) !!}, description: {!! json_encode(__('Manage exam halls')) !!}, section: {!! json_encode(__('Academics')) !!}, icon: 'bi-grid-3x3', url: routes['exam-halls'], keywords: 'rooms venues', shortcut: 'a h' },
 
         // Exam sub-pages (require exam context - show when on exam pages)
-        { id: 'exam-marks-entry', label: 'Mark Entry', description: 'Enter marks for exam', section: 'Academics', icon: 'bi-pencil-square', url: '#', keywords: 'marks entry grades', shortcut: 'm e', context: 'exam' },
-        { id: 'exam-marks-results', label: 'Exam Results', description: 'View exam results', section: 'Academics', icon: 'bi-bar-chart', url: '#', keywords: 'results tabulation', shortcut: 'm r', context: 'exam' },
-        { id: 'exam-seating', label: 'Exam Seating', description: 'Manage exam seating', section: 'Academics', icon: 'bi-grid-3x3-gap', url: '#', keywords: 'seating arrangement', shortcut: 'm s', context: 'exam' },
+        { id: 'exam-marks-entry', label: {!! json_encode(__('Mark Entry')) !!}, description: {!! json_encode(__('Enter marks for exam')) !!}, section: {!! json_encode(__('Academics')) !!}, icon: 'bi-pencil-square', url: '#', keywords: 'marks entry grades', shortcut: 'm e', context: 'exam' },
+        { id: 'exam-marks-results', label: {!! json_encode(__('Exam Results')) !!}, description: {!! json_encode(__('View exam results')) !!}, section: {!! json_encode(__('Academics')) !!}, icon: 'bi-bar-chart', url: '#', keywords: 'results tabulation', shortcut: 'm r', context: 'exam' },
+        { id: 'exam-seating', label: {!! json_encode(__('Exam Seating')) !!}, description: {!! json_encode(__('Manage exam seating')) !!}, section: {!! json_encode(__('Academics')) !!}, icon: 'bi-grid-3x3-gap', url: '#', keywords: 'seating arrangement', shortcut: 'm s', context: 'exam' },
 
         // Comms
-        { id: 'announcements', label: 'Announcements', description: 'Manage announcements', section: 'Comms', icon: 'bi-megaphone', url: routes.announcements, keywords: 'notices circulars', shortcut: 'c a' },
-        { id: 'sms', label: 'SMS', description: 'Send SMS', section: 'Comms', icon: 'bi-chat-dots', url: routes.sms, keywords: 'text messages', shortcut: 'c s' },
-        { id: 'messages', label: 'Messages', description: 'View messages', section: 'Comms', icon: 'bi-chat-left-text', url: routes.messages, keywords: 'chat inbox', shortcut: 'c m' },
-        { id: 'enquiries', label: 'Enquiries', description: 'Contact-form enquiries', section: 'Comms', icon: 'bi-envelope-paper', url: routes.enquiries, keywords: 'contact messages inbox', shortcut: 'c q' },
+        { id: 'announcements', label: {!! json_encode(__('Announcements')) !!}, description: {!! json_encode(__('Manage announcements')) !!}, section: {!! json_encode(__('Comms')) !!}, icon: 'bi-megaphone', url: routes.announcements, keywords: 'notices circulars', shortcut: 'c a' },
+        { id: 'sms', label: {!! json_encode(__('SMS')) !!}, description: {!! json_encode(__('Send SMS')) !!}, section: {!! json_encode(__('Comms')) !!}, icon: 'bi-chat-dots', url: routes.sms, keywords: 'text messages', shortcut: 'c s' },
+        { id: 'messages', label: {!! json_encode(__('Messages')) !!}, description: {!! json_encode(__('View messages')) !!}, section: {!! json_encode(__('Comms')) !!}, icon: 'bi-chat-left-text', url: routes.messages, keywords: 'chat inbox', shortcut: 'c m' },
+        { id: 'enquiries', label: {!! json_encode(__('Enquiries')) !!}, description: {!! json_encode(__('Contact-form enquiries')) !!}, section: {!! json_encode(__('Comms')) !!}, icon: 'bi-envelope-paper', url: routes.enquiries, keywords: 'contact messages inbox', shortcut: 'c q' },
 
         // HR
-        { id: 'leave-types', label: 'Leave Types', description: 'Manage leave types', section: 'HR', icon: 'bi-card-checklist', url: routes['leave-types'], keywords: 'vacation sick', shortcut: 'h l' },
-        { id: 'student-leave', label: 'Student Leave', description: 'Student leave requests', section: 'HR', icon: 'bi-person-vcard', url: routes['student-leave'], keywords: 'absences', shortcut: 'h s' },
-        { id: 'staff-leave', label: 'Staff Leave', description: 'Staff leave requests', section: 'HR', icon: 'bi-person-workspace', url: routes['staff-leave'], keywords: 'teacher absence', shortcut: 'h t' },
-        { id: 'staff-loans', label: 'Staff Loans', description: 'Staff loan requests', section: 'HR', icon: 'bi-cash-stack', url: routes['staff-loans'], keywords: 'advances', shortcut: 'h n' },
+        { id: 'leave-types', label: {!! json_encode(__('Leave Types')) !!}, description: {!! json_encode(__('Manage leave types')) !!}, section: {!! json_encode(__('HR')) !!}, icon: 'bi-card-checklist', url: routes['leave-types'], keywords: 'vacation sick', shortcut: 'h l' },
+        { id: 'student-leave', label: {!! json_encode(__('Student Leave')) !!}, description: {!! json_encode(__('Student leave requests')) !!}, section: {!! json_encode(__('HR')) !!}, icon: 'bi-person-vcard', url: routes['student-leave'], keywords: 'absences', shortcut: 'h s' },
+        { id: 'staff-leave', label: {!! json_encode(__('Staff Leave')) !!}, description: {!! json_encode(__('Staff leave requests')) !!}, section: {!! json_encode(__('HR')) !!}, icon: 'bi-person-workspace', url: routes['staff-leave'], keywords: 'teacher absence', shortcut: 'h t' },
+        { id: 'staff-loans', label: {!! json_encode(__('Staff Loans')) !!}, description: {!! json_encode(__('Staff loan requests')) !!}, section: {!! json_encode(__('HR')) !!}, icon: 'bi-cash-stack', url: routes['staff-loans'], keywords: 'advances', shortcut: 'h n' },
 
         // Reports
-        { id: 'reports-fee', label: 'Fee Collection', description: 'Fee collection report', section: 'Reports', icon: 'bi-file-earmark-bar-graph', url: routes['reports-fee'], keywords: 'revenue', shortcut: 'r f' },
-        { id: 'reports-dues', label: 'Outstanding Dues', description: 'Outstanding dues report', section: 'Reports', icon: 'bi-file-earmark-bar-graph', url: routes['reports-dues'], keywords: 'arrears', shortcut: 'r o' },
-        { id: 'reports-ledger', label: 'Student Ledger', description: 'Student ledger report', section: 'Reports', icon: 'bi-file-earmark-bar-graph', url: routes['reports-ledger'], keywords: 'ledger statement', shortcut: 'r l' },
+        { id: 'reports-fee', label: {!! json_encode(__('Fee Collection')) !!}, description: {!! json_encode(__('Fee collection report')) !!}, section: {!! json_encode(__('Reports')) !!}, icon: 'bi-file-earmark-bar-graph', url: routes['reports-fee'], keywords: 'revenue', shortcut: 'r f' },
+        { id: 'reports-dues', label: {!! json_encode(__('Outstanding Dues')) !!}, description: {!! json_encode(__('Outstanding dues report')) !!}, section: {!! json_encode(__('Reports')) !!}, icon: 'bi-file-earmark-bar-graph', url: routes['reports-dues'], keywords: 'arrears', shortcut: 'r o' },
+        { id: 'reports-ledger', label: {!! json_encode(__('Student Ledger')) !!}, description: {!! json_encode(__('Student ledger report')) !!}, section: {!! json_encode(__('Reports')) !!}, icon: 'bi-file-earmark-bar-graph', url: routes['reports-ledger'], keywords: 'ledger statement', shortcut: 'r l' },
 
         // Optional Modules
-        { id: 'library', label: 'Library', description: 'Manage library', section: 'Optional', icon: 'bi-book-half', url: routes['library.books'], keywords: 'books borrow return', condition: 'library', shortcut: 'o l' },
-        { id: 'library-members', label: 'Library Members', description: 'Manage library members', section: 'Optional', icon: 'bi-person-lines-fill', url: routes['library.members'], keywords: 'members borrowers', condition: 'library', shortcut: 'o m' },
-        { id: 'library-borrow', label: 'Borrow/Return', description: 'Manage borrow/return', section: 'Optional', icon: 'bi-arrow-left-right', url: routes['library.borrow'], keywords: 'issue return books', condition: 'library', shortcut: 'o b' },
-        { id: 'transport', label: 'Transport', description: 'Manage transport', section: 'Optional', icon: 'bi-bus-front', url: routes['transport.routes'], keywords: 'bus routes vehicles', condition: 'transport', shortcut: 'o t' },
-        { id: 'transport-drivers', label: 'Drivers', description: 'Manage drivers', section: 'Optional', icon: 'bi-person-badge', url: routes['transport.drivers'], keywords: 'drivers staff', condition: 'transport', shortcut: 'o d' },
-        { id: 'transport-vehicles', label: 'Vehicles', description: 'Manage vehicles', section: 'Optional', icon: 'bi-truck', url: routes['transport.vehicles'], keywords: 'buses vans', condition: 'transport', shortcut: 'o v' },
-        { id: 'payroll', label: 'Payroll', description: 'Manage payroll', section: 'Optional', icon: 'bi-cash-coin', url: routes['payroll.runs'], keywords: 'salary payroll', condition: 'payroll', shortcut: 'o p' },
-        { id: 'payroll-components', label: 'Salary Components', description: 'Manage salary components', section: 'Optional', icon: 'bi-sliders', url: routes['payroll.components'], keywords: 'components allowances', condition: 'payroll', shortcut: 'o c' },
-        { id: 'payroll-salaries', label: 'Staff Salaries', description: 'Manage staff salaries', section: 'Optional', icon: 'bi-person-badge', url: routes['payroll.staff-salaries'], keywords: 'salaries payslips', condition: 'payroll', shortcut: 'o s' },
-        { id: 'lms', label: 'LMS', description: 'Learning management', section: 'Optional', icon: 'bi-easel', url: routes['lms.courses'], keywords: 'courses lessons', condition: 'lms', shortcut: 'o e' },
+        { id: 'library', label: {!! json_encode(__('Library')) !!}, description: {!! json_encode(__('Manage library')) !!}, section: {!! json_encode(__('Optional')) !!}, icon: 'bi-book-half', url: routes['library.books'], keywords: 'books borrow return', condition: 'library', shortcut: 'o l' },
+        { id: 'library-members', label: {!! json_encode(__('Library Members')) !!}, description: {!! json_encode(__('Manage library members')) !!}, section: {!! json_encode(__('Optional')) !!}, icon: 'bi-person-lines-fill', url: routes['library.members'], keywords: 'members borrowers', condition: 'library', shortcut: 'o m' },
+        { id: 'library-borrow', label: {!! json_encode(__('Borrow/Return')) !!}, description: {!! json_encode(__('Manage borrow/return')) !!}, section: {!! json_encode(__('Optional')) !!}, icon: 'bi-arrow-left-right', url: routes['library.borrow'], keywords: 'issue return books', condition: 'library', shortcut: 'o b' },
+        { id: 'transport', label: {!! json_encode(__('Transport')) !!}, description: {!! json_encode(__('Manage transport')) !!}, section: {!! json_encode(__('Optional')) !!}, icon: 'bi-bus-front', url: routes['transport.routes'], keywords: 'bus routes vehicles', condition: 'transport', shortcut: 'o t' },
+        { id: 'transport-drivers', label: {!! json_encode(__('Drivers')) !!}, description: {!! json_encode(__('Manage drivers')) !!}, section: {!! json_encode(__('Optional')) !!}, icon: 'bi-person-badge', url: routes['transport.drivers'], keywords: 'drivers staff', condition: 'transport', shortcut: 'o d' },
+        { id: 'transport-vehicles', label: {!! json_encode(__('Vehicles')) !!}, description: {!! json_encode(__('Manage vehicles')) !!}, section: {!! json_encode(__('Optional')) !!}, icon: 'bi-truck', url: routes['transport.vehicles'], keywords: 'buses vans', condition: 'transport', shortcut: 'o v' },
+        { id: 'payroll', label: {!! json_encode(__('Payroll')) !!}, description: {!! json_encode(__('Manage payroll')) !!}, section: {!! json_encode(__('Optional')) !!}, icon: 'bi-cash-coin', url: routes['payroll.runs'], keywords: 'salary payroll', condition: 'payroll', shortcut: 'o p' },
+        { id: 'payroll-components', label: {!! json_encode(__('Salary Components')) !!}, description: {!! json_encode(__('Manage salary components')) !!}, section: {!! json_encode(__('Optional')) !!}, icon: 'bi-sliders', url: routes['payroll.components'], keywords: 'components allowances', condition: 'payroll', shortcut: 'o c' },
+        { id: 'payroll-salaries', label: {!! json_encode(__('Staff Salaries')) !!}, description: {!! json_encode(__('Manage staff salaries')) !!}, section: {!! json_encode(__('Optional')) !!}, icon: 'bi-person-badge', url: routes['payroll.staff-salaries'], keywords: 'salaries payslips', condition: 'payroll', shortcut: 'o s' },
+        { id: 'lms', label: {!! json_encode(__('LMS')) !!}, description: {!! json_encode(__('Learning management')) !!}, section: {!! json_encode(__('Optional')) !!}, icon: 'bi-easel', url: routes['lms.courses'], keywords: 'courses lessons', condition: 'lms', shortcut: 'o e' },
 
         // Certificates & IDs
-        { id: 'cert-templates', label: 'Certificate Templates', description: 'Manage certificate templates', section: 'Certificates', icon: 'bi-file-earmark-text', url: routes['cert-templates'], keywords: 'templates design', shortcut: 't c' },
-        { id: 'testimonials', label: 'Testimonials', description: 'Issue testimonials', section: 'Certificates', icon: 'bi-award', url: routes.testimonials, keywords: 'testimonial certificate', shortcut: 't t' },
-        { id: 'admit-cards', label: 'Admit Cards', description: 'Generate admit cards', section: 'Certificates', icon: 'bi-card-checklist', url: routes['admit-cards'], keywords: 'admit card hall ticket', shortcut: 't a' },
-        { id: 'id-card-templates', label: 'ID Card Templates', description: 'Manage ID card templates', section: 'Certificates', icon: 'bi-credit-card-2-front', url: routes['id-card-templates'], keywords: 'id card template design', shortcut: 't i' },
-        { id: 'id-cards', label: 'ID Cards', description: 'Generate ID cards', section: 'Certificates', icon: 'bi-person-badge', url: routes['id-cards'], keywords: 'id card batch generate', shortcut: 't d' },
+        { id: 'cert-templates', label: {!! json_encode(__('Certificate Templates')) !!}, description: {!! json_encode(__('Manage certificate templates')) !!}, section: {!! json_encode(__('Certificates')) !!}, icon: 'bi-file-earmark-text', url: routes['cert-templates'], keywords: 'templates design', shortcut: 't c' },
+        { id: 'testimonials', label: {!! json_encode(__('Testimonials')) !!}, description: {!! json_encode(__('Issue testimonials')) !!}, section: {!! json_encode(__('Certificates')) !!}, icon: 'bi-award', url: routes.testimonials, keywords: 'testimonial certificate', shortcut: 't t' },
+        { id: 'admit-cards', label: {!! json_encode(__('Admit Cards')) !!}, description: {!! json_encode(__('Generate admit cards')) !!}, section: {!! json_encode(__('Certificates')) !!}, icon: 'bi-card-checklist', url: routes['admit-cards'], keywords: 'admit card hall ticket', shortcut: 't a' },
+        { id: 'id-card-templates', label: {!! json_encode(__('ID Card Templates')) !!}, description: {!! json_encode(__('Manage ID card templates')) !!}, section: {!! json_encode(__('Certificates')) !!}, icon: 'bi-credit-card-2-front', url: routes['id-card-templates'], keywords: 'id card template design', shortcut: 't i' },
+        { id: 'id-cards', label: {!! json_encode(__('ID Cards')) !!}, description: {!! json_encode(__('Generate ID cards')) !!}, section: {!! json_encode(__('Certificates')) !!}, icon: 'bi-person-badge', url: routes['id-cards'], keywords: 'id card batch generate', shortcut: 't d' },
 
         // Actions
-        { id: 'new-student', label: 'New Student', description: 'Create new student', section: 'Actions', icon: 'bi-person-plus', url: routes['students.create'], keywords: 'add pupil register', shortcut: 'n s' },
-        { id: 'new-admission', label: 'New Admission', description: 'Process new admission', section: 'Actions', icon: 'bi-clipboard-check', url: routes.admissions, keywords: 'enroll register', shortcut: 'n a' },
+        { id: 'new-student', label: {!! json_encode(__('New Student')) !!}, description: {!! json_encode(__('Create new student')) !!}, section: {!! json_encode(__('Actions')) !!}, icon: 'bi-person-plus', url: routes['students.create'], keywords: 'add pupil register', shortcut: 'n s' },
+        { id: 'new-admission', label: {!! json_encode(__('New Admission')) !!}, description: {!! json_encode(__('Process new admission')) !!}, section: {!! json_encode(__('Actions')) !!}, icon: 'bi-clipboard-check', url: routes.admissions, keywords: 'enroll register', shortcut: 'n a' },
     ];
 
     // ─── Fuzzy Search (Optimized) ───
