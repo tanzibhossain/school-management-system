@@ -130,6 +130,31 @@
             }
         }
 
+        /* Block "entrance animation" presets (Style tab) — deliberately minimal:
+           a short opacity/translate fade, once, the first time a block scrolls
+           into view. Respects prefers-reduced-motion for accessibility. */
+        .reveal {
+            opacity: 0;
+            transition: opacity .5s ease, transform .5s ease;
+        }
+
+        .reveal-up {
+            transform: translateY(20px);
+        }
+
+        .reveal.is-visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .reveal {
+                opacity: 1;
+                transform: none;
+                transition: none;
+            }
+        }
+
         @if ($s?->custom_css ?? false)
             {!! $s->custom_css !!}
         @endif
@@ -170,6 +195,28 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Reveal blocks with a Style-tab "entrance animation" once, the first
+        // time they scroll into view. No-op (blocks just render fully visible)
+        // if IntersectionObserver isn't available or the user prefers reduced motion.
+        (function () {
+            var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            var els = document.querySelectorAll('.reveal');
+            if (reduced || !('IntersectionObserver' in window)) {
+                els.forEach(function (el) { el.classList.add('is-visible'); });
+                return;
+            }
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        io.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: .15, rootMargin: '0px 0px -10% 0px' });
+            els.forEach(function (el) { io.observe(el); });
+        })();
+    </script>
 </body>
 
 </html>
