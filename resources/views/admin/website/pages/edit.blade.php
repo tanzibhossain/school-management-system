@@ -30,6 +30,11 @@
       'contact_info'  => [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'address','label'=>'Address','input'=>'text'],['key'=>'phone','label'=>'Phone','input'=>'text'],['key'=>'email','label'=>'Email','input'=>'text']],
       'recent_notices'=> [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'limit','label'=>'Max items','input'=>'number']],
     ];
+
+    // Block types whose content is a repeating grid of cards — these get the
+    // Layout tab's per-breakpoint "columns per row" control; every other
+    // block type is single-content and only gets visibility toggles.
+    $gridTypes = ['staff', 'notices', 'stats', 'gallery_photo', 'gallery_video'];
   @endphp
 
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -77,7 +82,7 @@
         </div><div class="card-body">
           <div id="blocks-list">
             @foreach ($view['blocks'] as $i => $b)
-              @include('admin.website.pages._card', ['prefix' => "blocks[$i]", 'type' => $b['type'], 'label' => $blocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec])
+              @include('admin.website.pages._card', ['prefix' => "blocks[$i]", 'type' => $b['type'], 'label' => $blocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes])
             @endforeach
           </div>
           <p class="text-muted small mb-0" id="blocks-empty" @if(count($view['blocks'])) style="display:none" @endif>{{ __('No Blocks Yet — Add One Above.') }}</p>
@@ -97,7 +102,7 @@
         </div><div class="card-body">
           <div id="sidebar-list">
             @foreach ($view['sidebar'] as $i => $b)
-              @include('admin.website.pages._card', ['prefix' => "sidebar[$i]", 'type' => $b['type'], 'label' => $sidebarBlocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec])
+              @include('admin.website.pages._card', ['prefix' => "sidebar[$i]", 'type' => $b['type'], 'label' => $sidebarBlocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes])
             @endforeach
           </div>
         </div></div>
@@ -110,10 +115,10 @@
 
   {{-- Hidden block templates for the "Add" buttons (prefix placeholder __I__) --}}
   @foreach ($blocks as $t => $l)
-    <template id="tpl-blocks-{{ $t }}">@include('admin.website.pages._card', ['prefix' => 'blocks[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec])</template>
+    <template id="tpl-blocks-{{ $t }}">@include('admin.website.pages._card', ['prefix' => 'blocks[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec, 'style' => [], 'layout' => [], 'gridTypes' => $gridTypes])</template>
   @endforeach
   @foreach ($sidebarBlocks as $t => $l)
-    <template id="tpl-sidebar-{{ $t }}">@include('admin.website.pages._card', ['prefix' => 'sidebar[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec])</template>
+    <template id="tpl-sidebar-{{ $t }}">@include('admin.website.pages._card', ['prefix' => 'sidebar[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec, 'style' => [], 'layout' => [], 'gridTypes' => $gridTypes])</template>
   @endforeach
 
   @push('scripts')
@@ -137,6 +142,23 @@
         var sidebar = this.value === 'sidebar';
         document.getElementById('side-col').style.display = sidebar ? '' : 'none';
         document.getElementById('main-col').className = sidebar ? 'col-lg-8' : 'col-12';
+      });
+
+      // Style tab: sync each color swatch <-> its hex text field, both ways.
+      // Delegated on document so it works for block cards cloned after page load.
+      document.addEventListener('input', function (e) {
+        if (e.target.matches('.js-color-swatch')) {
+          var text = e.target.closest('.js-color-pair').querySelector('.js-color-text');
+          text.value = e.target.value;
+        }
+        if (e.target.matches('.js-color-text')) {
+          var swatch = e.target.closest('.js-color-pair').querySelector('.js-color-swatch');
+          if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(e.target.value)) swatch.value = e.target.value;
+        }
+        if (e.target.matches('.js-range-echo')) {
+          var out = e.target.closest('.col-12').querySelector('label span:last-child');
+          if (out) out.textContent = e.target.value + '%';
+        }
       });
 
       // Initialize TinyMCE for rich text editors
