@@ -108,6 +108,9 @@ use App\Modules\Website\Observers\SiteLayoutObserver;
 use App\Modules\Website\Observers\SiteSettingObserver;
 use App\Modules\Website\Observers\WebsiteMediaObserver;
 use App\Modules\Website\Services\PublicPortalService;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -239,6 +242,27 @@ class AppServiceProvider extends ServiceProvider
             $view->with('messagesUnread', $user
                 ? app(MessageService::class)->unreadCountFor($user->school_id, $user->id)
                 : 0);
+        });
+
+        // ── Auth rate limiting ──────────────────────────────────────────────
+        // Keyed by (submitted email + IP), matching Laravel's own historical
+        // ThrottlesLogins convention — stops one attacker IP from credential-
+        // stuffing many accounts at full speed, without letting someone lock
+        // out a victim purely by rotating IPs (each attempt still has to name
+        // the victim's own email to consume their slot).
+        RateLimiter::for('login', function (Request $request) {
+            $key = strtolower((string) $request->input('email')).'|'.$request->ip();
+
+            return Limit::perMinute(5)->by($key);
+        });
+
+        // Keyed by the pending 2FA user id (stashed in session by
+        // LoginController::login()) + IP. A TOTP code is only 6 digits
+        // (1,000,000 possibilities), so this needs to be tight.
+        RateLimiter::for('two-factor', function (Request $request) {
+            $key = ($request->session()->get('2fa.user_id') ?? 'guest').'|'.$request->ip();
+
+            return Limit::perMinute(5)->by($key);
         });
     }
 }

@@ -88,17 +88,18 @@ Route::post('/contact', [ContactController::class, 'submit'])
 Route::middleware('guest')->group(function (): void {
     // Family portal (student + guardian) — the default login.
     Route::get('/login', [LoginController::class, 'showFamily'])->name('login');
-    Route::post('/login', [LoginController::class, 'login']);
+    Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:login');
     // Admin console.
     Route::get('/admin/login', [LoginController::class, 'showAdmin'])->name('admin.login');
-    Route::post('/admin/login', [LoginController::class, 'login']);
+    Route::post('/admin/login', [LoginController::class, 'login'])->middleware('throttle:login');
     // Staff & teachers.
     Route::get('/staff/login', [LoginController::class, 'showStaff'])->name('staff.login');
-    Route::post('/staff/login', [LoginController::class, 'login']);
+    Route::post('/staff/login', [LoginController::class, 'login'])->middleware('throttle:login');
 
     // Second step of login for accounts with two-factor enabled — see LoginController::login().
+    // Throttled tightly: a TOTP code is only 6 digits (1,000,000 possibilities).
     Route::get('/two-factor-challenge', [TwoFactorChallengeController::class, 'show'])->name('two-factor.challenge');
-    Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'verify'])->name('two-factor.verify');
+    Route::post('/two-factor-challenge', [TwoFactorChallengeController::class, 'verify'])->middleware('throttle:two-factor')->name('two-factor.verify');
 });
 
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
