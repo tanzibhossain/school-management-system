@@ -1,5 +1,9 @@
 {
     "$schema": "https://www.schemastore.org/package.json",
+    "name": "school-management-system",
+    "description": "Self-hosted, single-school management platform built on Laravel 13 with a server-rendered Blade admin panel.",
+    "author": "Tanzib Hossain <md.tanzib.hossain@gmail.com> (https://tanzibhossain.com)",
+    "license": "AGPL-3.0-only",
     "private": true,
     "type": "module",
     "scripts": {

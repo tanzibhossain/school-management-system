@@ -16,7 +16,7 @@ Review document. Nothing here is built. This is the **foundation** the four dash
 1. **Tooling: Turborepo + pnpm workspaces** (your choice). Shared packages for ui, api-client, auth, config,
    types; Turbo pipelines for build/lint/test/typecheck with caching.
 2. **Location — recommendation: a separate repository** (`school-management-main`), a standalone Turborepo,
-   NOT inside `school-management-backend`. Rationale: different runtime, deploy target, and ecosystem; the
+   NOT inside `school-management-system`. Rationale: different runtime, deploy target, and ecosystem; the
    backend already treats the frontend as a separate origin (`FRONTEND_URL`, CORS); clean CI/CD and access
    boundaries; matches the original plan. **When we build, connect that folder so I can write there.** (This
    spec lives in the backend `docs/` only because that's the connected workspace today.)

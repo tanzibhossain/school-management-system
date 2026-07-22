@@ -1,10 +1,17 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "tanzibhossain/school-management-system",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "description": "Self-hosted, single-school management platform (academics, students, staff, finance, communication) built on Laravel 13 with a server-rendered Blade admin panel.",
+    "keywords": ["laravel", "school-management-system", "school-erp", "student-management", "education", "self-hosted", "open-source", "school-admin", "attendance-system"],
+    "homepage": "https://github.com/tanzibhossain/school-management-system",
     "license": "AGPL-3.0-only",
+    "authors": [
+        {
+            "name": "Tanzib Hossain",
+            "homepage": "https://tanzibhossain.com"
+        }
+    ],
     "require": {
         "php": "^8.3",
         "barryvdh/laravel-dompdf": "^3.1",

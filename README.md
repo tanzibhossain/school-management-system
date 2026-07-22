@@ -1,15 +1,15 @@
 # School Management System v2
 
-[![Tests](https://github.com/tanzibhossain/school-management-backend/actions/workflows/tests.yml/badge.svg)](https://github.com/tanzibhossain/school-management-backend/actions/workflows/tests.yml)
-[![Code Style](https://github.com/tanzibhossain/school-management-backend/actions/workflows/pint.yml/badge.svg)](https://github.com/tanzibhossain/school-management-backend/actions/workflows/pint.yml)
-[![Static Analysis](https://github.com/tanzibhossain/school-management-backend/actions/workflows/phpstan.yml/badge.svg)](https://github.com/tanzibhossain/school-management-backend/actions/workflows/phpstan.yml)
+[![Tests](https://github.com/tanzibhossain/school-management-system/actions/workflows/tests.yml/badge.svg)](https://github.com/tanzibhossain/school-management-system/actions/workflows/tests.yml)
+[![Code Style](https://github.com/tanzibhossain/school-management-system/actions/workflows/pint.yml/badge.svg)](https://github.com/tanzibhossain/school-management-system/actions/workflows/pint.yml)
+[![Static Analysis](https://github.com/tanzibhossain/school-management-system/actions/workflows/phpstan.yml/badge.svg)](https://github.com/tanzibhossain/school-management-system/actions/workflows/phpstan.yml)
 [![PHPStan Level](https://img.shields.io/badge/PHPStan-level%205-brightgreen.svg)](phpstan.neon)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 ![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?logo=php&logoColor=white)
 ![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#-contributing)
-![GitHub Repo stars](https://img.shields.io/github/stars/tanzibhossain/school-management-backend?style=social)
+![GitHub Repo stars](https://img.shields.io/github/stars/tanzibhossain/school-management-system?style=social)
 
 A **single-school, self-hosted** school management platform built with **Laravel 13**, **PHP 8.3**, **MySQL 8**, and **Redis 7**. Designed for a school to manage academics, students, staff, finances, and communications — all from a modern server-rendered **Laravel Blade + Bootstrap 5** admin interface.
 
@@ -56,7 +56,7 @@ Every deployment serves exactly one school — no multi-tenant SaaS layer, no se
 ## 🏗 Architecture & Project Structure
 
 ```
-school-management-backend/
+school-management-system/
 ├── app/
 │   ├── Modules/                # 26 domain modules (see table above)
 │   │   └── {Module}/
@@ -105,8 +105,8 @@ school-management-backend/
 ### 1. Clone & Configure
 
 ```bash
-git clone https://github.com/tanzibhossain/school-management-backend.git
-cd school-management-backend
+git clone https://github.com/tanzibhossain/school-management-system.git
+cd school-management-system
 cp .env.example .env
 ```
 
@@ -256,10 +256,14 @@ make the modified source available to that service's users.
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/tanzibhossain/school-management-backend/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/tanzibhossain/school-management-backend/discussions)
+- **Issues**: [GitHub Issues](https://github.com/tanzibhossain/school-management-system/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/tanzibhossain/school-management-system/discussions)
 
 ---
 
 > **Built for schools, by developers who understand school operations.**  
 > Self-hosted. Single-school. Globally adaptable. Open source.
+
+---
+
+Built by [Tanzib Hossain](https://tanzibhossain.com) — [GitHub](https://github.com/tanzibhossain) · [LinkedIn](https://www.linkedin.com/in/md-tanzib-hossain-a2978939/)
