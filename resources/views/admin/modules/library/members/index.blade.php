@@ -2,9 +2,9 @@
 @section('title', __('Library — Members'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Members',
-    'crumbs' => ['Library', 'Members'],
-    'action' => ['label' => 'Add member', 'modal' => 'createModal'],
+    'title'  => __('Members'),
+    'crumbs' => [__('Library'), __('Members')],
+    'action' => ['label' => __('Add member'), 'modal' => 'createModal'],
   ])
 
   @include('admin.modules.library._tabs', ['active' => 'members'])

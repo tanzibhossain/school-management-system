@@ -3,7 +3,7 @@
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => $route->name,
-    'crumbs' => ['Transport', 'Routes', $route->name],
+    'crumbs' => [__('Transport'), __('Routes'), $route->name],
   ])
   <div class="mb-3"><a href="{{ route('admin.transport.routes.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back To Routes') }}</a></div>
 

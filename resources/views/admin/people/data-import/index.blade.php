@@ -2,9 +2,9 @@
 @section('title', __('Data Import'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Data import',
-    'crumbs' => ['People', 'Data import'],
-    'action' => ['label' => 'Import file', 'modal' => 'uploadModal'],
+    'title'  => __('Data import'),
+    'crumbs' => [__('People'), __('Data import')],
+    'action' => ['label' => __('Import file'), 'modal' => 'uploadModal'],
   ])
 
   @php $m = ['queued'=>'secondary','processing'=>'info','completed'=>'success','failed'=>'danger']; @endphp

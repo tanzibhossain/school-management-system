@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', __('Payments'))
 @section('content')
-  @include('admin.partials.page-header', ['title' => 'Payments', 'crumbs' => ['Finance', 'Payments']])
+  @include('admin.partials.page-header', ['title' => __('Payments'), 'crumbs' => [__('Finance'), __('Payments')]])
 
   <div class="card"><div class="card-body">
     <table class="table table-hover align-middle w-100 js-dt">

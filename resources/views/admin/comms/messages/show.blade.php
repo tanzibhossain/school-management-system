@@ -48,7 +48,7 @@
           <form method="POST" action="{{ route('admin.messages.reply', $thread->id) }}" class="card mt-3"><div class="card-body">
             @csrf
             <div class="input-group">
-              <textarea name="body" class="form-control" rows="2" placeholder="Write a reply…" required></textarea>
+              <textarea name="body" class="form-control" rows="2" placeholder="{{ __('Write a reply…') }}" required></textarea>
               <button class="btn btn-primary"><i class="bi bi-send"></i></button>
             </div>
           </div></form>

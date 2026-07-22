@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', __('Mark Settings'))
 @section('content')
-  @include('admin.partials.page-header', ['title' => 'Mark settings', 'crumbs' => ['Academics', 'Mark settings']])
+  @include('admin.partials.page-header', ['title' => __('Mark settings'), 'crumbs' => [__('Academics'), __('Mark settings')]])
 
   <div class="card"><div class="card-body">
     <p class="text-muted">{{ __('Per-class Grading Configuration. Grade Boundaries Must Be Applied Before Results Can Be Calculated.') }}</p>

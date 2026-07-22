@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', __('School Settings'))
 @section('content')
-    @include('admin.partials.page-header', ['title' => 'School settings', 'crumbs' => ['Setup', 'School settings']])
+    @include('admin.partials.page-header', ['title' => __('School settings'), 'crumbs' => [__('Setup'), __('School settings')]])
 
     <form method="POST" action="{{ route('admin.school.update') }}" enctype="multipart/form-data">
         @csrf @method('PUT')
@@ -301,7 +301,7 @@
                             <th>{{ __('Day') }}</th>
                             <th style="width:120px">{{ __('Open') }}</th>
                             <th>{{ __('From') }}</th>
-                            <th>To</th>
+                            <th>{{ __('To') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -339,10 +339,10 @@
                     var row = document.createElement('div');
                     row.className = 'input-group phone-row';
                     row.innerHTML =
-                        '<span class="input-group-text"><input class="form-check-input mt-0" type="radio" name="primary_phone" value="' + idx + '" title="Primary"></span>' +
-                        '<input name="phones[' + idx + '][phone]" class="form-control" placeholder="Phone">' +
+                        '<span class="input-group-text"><input class="form-check-input mt-0" type="radio" name="primary_phone" value="' + idx + '" title="{{ __('Primary') }}"></span>' +
+                        '<input name="phones[' + idx + '][phone]" class="form-control" placeholder="{{ __('Phone') }}">' +
                         '<input type="hidden" name="phones[' + idx + '][show_in_header]" value="0">' +
-                        '<span class="input-group-text"><input class="form-check-input mt-0 me-1" type="checkbox" name="phones[' + idx + '][show_in_header]" value="1"><label class="form-check-label small">Header</label></span>' +
+                        '<span class="input-group-text"><input class="form-check-input mt-0 me-1" type="checkbox" name="phones[' + idx + '][show_in_header]" value="1"><label class="form-check-label small">{{ __('Header') }}</label></span>' +
                         '<button type="button" class="btn btn-outline-danger rm-phone"><i class="bi bi-trash"></i></button>';
                     wrap.appendChild(row); idx++;
                 });

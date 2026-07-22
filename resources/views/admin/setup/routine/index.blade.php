@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', __('Class Routine'))
 @section('content')
-  @include('admin.partials.page-header', ['title' => 'Class routine', 'crumbs' => ['Setup', 'Class routine']])
+  @include('admin.partials.page-header', ['title' => __('Class routine'), 'crumbs' => [__('Setup'), __('Class routine')]])
 
   <ul class="nav nav-pills mb-3">
     <li class="nav-item"><a class="nav-link active" href="{{ route('admin.routine.index') }}">{{ __('Class Routine') }}</a></li>

@@ -2,9 +2,9 @@
 @section('title', 'Users & roles')
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Users & roles',
-    'crumbs' => ['People', 'Users & roles'],
-    'action' => ['label' => 'New user', 'modal' => 'createModal'],
+    'title'  => __('Users & roles'),
+    'crumbs' => [__('People'), __('Users & roles')],
+    'action' => ['label' => __('New user'), 'modal' => 'createModal'],
   ])
 
   <div class="card"><div class="card-body">

@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', __('Contact Enquiries'))
 @section('content')
-  @include('admin.partials.page-header', ['title' => 'Contact enquiries', 'crumbs' => ['Comms', 'Enquiries']])
+  @include('admin.partials.page-header', ['title' => __('Contact enquiries'), 'crumbs' => [__('Comms'), __('Enquiries')]])
 
   @if ($messages->isEmpty())
     <div class="card"><div class="card-body text-muted text-center py-5">{{ __('No Enquiries Yet. Messages Sent From The Public Contact Form Appear Here.') }}</div></div>

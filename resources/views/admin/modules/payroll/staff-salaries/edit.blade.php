@@ -3,7 +3,7 @@
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => 'Salary structure — ' . $staff->name,
-    'crumbs' => ['Payroll', 'Staff salaries', $staff->name],
+    'crumbs' => [__('Payroll'), __('Staff salaries'), $staff->name],
   ])
   <div class="mb-3"><a href="{{ route('admin.payroll.staff-salaries.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back To Staff Salaries') }}</a></div>
 

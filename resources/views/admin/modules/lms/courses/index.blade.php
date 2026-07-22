@@ -2,9 +2,9 @@
 @section('title', __('LMS — Courses'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Courses',
-    'crumbs' => ['LMS', 'Courses'],
-    'action' => ['label' => 'New course', 'modal' => 'createModal'],
+    'title'  => __('Courses'),
+    'crumbs' => [__('LMS'), __('Courses')],
+    'action' => ['label' => __('New course'), 'modal' => 'createModal'],
   ])
 
   <div class="card"><div class="card-body">

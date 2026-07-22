@@ -2,9 +2,9 @@
 @section('title', __('Transport — Routes'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Routes',
-    'crumbs' => ['Transport', 'Routes'],
-    'action' => ['label' => 'New route', 'modal' => 'createModal'],
+    'title'  => __('Routes'),
+    'crumbs' => [__('Transport'), __('Routes')],
+    'action' => ['label' => __('New route'), 'modal' => 'createModal'],
   ])
   @include('admin.modules.transport._tabs', ['active' => 'routes'])
 

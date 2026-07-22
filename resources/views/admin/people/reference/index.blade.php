@@ -3,7 +3,7 @@
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => $label,
-    'crumbs' => ['People', $label],
+    'crumbs' => [__('People'), $label],
     'action' => ['label' => 'New ' . \Illuminate\Support\Str::lower($singular), 'modal' => 'createModal'],
   ])
 

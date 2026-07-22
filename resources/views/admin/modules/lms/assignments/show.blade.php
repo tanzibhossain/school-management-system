@@ -3,7 +3,7 @@
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => $assignment->title,
-    'crumbs' => ['LMS', 'Courses', $assignment->course?->title, 'Submissions'],
+    'crumbs' => [__('LMS'), __('Courses'), $assignment->course?->title, __('Submissions')],
   ])
   <div class="mb-3"><a href="{{ route('admin.lms.courses.show', $assignment->course_id) }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back To Course') }}</a></div>
 

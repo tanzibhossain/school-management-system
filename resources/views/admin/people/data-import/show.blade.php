@@ -2,7 +2,7 @@
 @section('title', 'Import #' . $batch->id)
 @section('content')
   @php $m = ['queued'=>'secondary','processing'=>'info','completed'=>'success','failed'=>'danger']; @endphp
-  @include('admin.partials.page-header', ['title' => 'Import #' . $batch->id, 'crumbs' => ['People', 'Data import', 'Batch #' . $batch->id]])
+  @include('admin.partials.page-header', ['title' => 'Import #' . $batch->id, 'crumbs' => [__('People'), __('Data import'), 'Batch #' . $batch->id]])
 
   <div class="mb-3"><a href="{{ route('admin.data-import.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back To Imports') }}</a></div>
 

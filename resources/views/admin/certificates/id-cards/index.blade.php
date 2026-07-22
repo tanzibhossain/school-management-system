@@ -2,9 +2,9 @@
 @section('title', __('ID Cards'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'ID card batches',
-    'crumbs' => ['Certificates', 'ID cards'],
-    'action' => ['label' => 'Generate batch', 'modal' => 'genModal'],
+    'title'  => __('ID card batches'),
+    'crumbs' => [__('Certificates'), __('ID cards')],
+    'action' => ['label' => __('Generate batch'), 'modal' => 'genModal'],
   ])
   @include('admin.certificates._tabs', ['active' => 'id-cards'])
 
@@ -71,7 +71,7 @@
       });
       cls.addEventListener('change', function () {
         var cid = parseInt(cls.value, 10);
-        sec.innerHTML = '<option value="">All sections</option>';
+        sec.innerHTML = '<option value="">{{ __('All Sections') }}</option>';
         SECTIONS.filter(function (s) { return s.class_id === cid; }).forEach(function (s) {
           var o = document.createElement('option'); o.value = s.id; o.textContent = s.name; sec.appendChild(o);
         });

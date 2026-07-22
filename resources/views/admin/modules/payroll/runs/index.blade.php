@@ -2,9 +2,9 @@
 @section('title', __('Payroll Runs'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Payroll runs',
-    'crumbs' => ['Payroll', 'Runs'],
-    'action' => ['label' => 'New run', 'modal' => 'createModal'],
+    'title'  => __('Payroll runs'),
+    'crumbs' => [__('Payroll'), __('Runs')],
+    'action' => ['label' => __('New run'), 'modal' => 'createModal'],
   ])
   @include('admin.modules.payroll._tabs', ['active' => 'runs'])
 

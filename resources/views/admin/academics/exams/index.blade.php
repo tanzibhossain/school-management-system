@@ -2,9 +2,9 @@
 @section('title', __('Exams'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Exams',
-    'crumbs' => ['Academics', 'Exams'],
-    'action' => ['label' => 'New exam', 'modal' => 'createModal'],
+    'title'  => __('Exams'),
+    'crumbs' => [__('Academics'), __('Exams')],
+    'action' => ['label' => __('New exam'), 'modal' => 'createModal'],
   ])
 
   <div class="card"><div class="card-body">

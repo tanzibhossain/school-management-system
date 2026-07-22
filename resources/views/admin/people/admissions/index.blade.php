@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', __('Admissions'))
 @section('content')
-  @include('admin.partials.page-header', ['title' => 'Admission applications', 'crumbs' => ['People', 'Admissions']])
+  @include('admin.partials.page-header', ['title' => __('Admission applications'), 'crumbs' => [__('People'), __('Admissions')]])
 
   <form method="GET" class="card mb-3"><div class="card-body row g-2 align-items-end">
     <div class="col-sm-4"><label class="form-label small text-muted mb-1">{{ __('Status') }}</label>

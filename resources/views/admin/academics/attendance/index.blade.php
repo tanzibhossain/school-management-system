@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', __('Attendance'))
 @section('content')
-  @include('admin.partials.page-header', ['title' => 'Attendance register', 'crumbs' => ['Academics', 'Attendance']])
+  @include('admin.partials.page-header', ['title' => __('Attendance register'), 'crumbs' => [__('Academics'), __('Attendance')]])
 
   <form method="GET" class="card mb-3"><div class="card-body row g-2 align-items-end">
     <div class="col-sm-4"><label class="form-label small text-muted mb-1">{{ __('Class') }}</label>
@@ -68,7 +68,7 @@
       function fillSections() {
         var cls = document.getElementById('fClass'); var sec = document.getElementById('fSection');
         var cid = parseInt(cls.value, 10); var want = sec.getAttribute('data-sel');
-        sec.innerHTML = '<option value="">All sections</option>';
+        sec.innerHTML = '<option value="">{{ __('All Sections') }}</option>';
         SECTIONS.filter(function (s) { return s.class_id === cid; }).forEach(function (s) {
           var o = document.createElement('option'); o.value = s.id; o.textContent = s.name;
           if (String(s.id) === String(want)) o.selected = true;

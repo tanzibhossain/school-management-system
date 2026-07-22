@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', __('Outstanding Dues Report'))
 @section('content')
-  @include('admin.partials.page-header', ['title' => 'Outstanding dues', 'crumbs' => ['Reports', 'Outstanding dues']])
+  @include('admin.partials.page-header', ['title' => __('Outstanding dues'), 'crumbs' => [__('Reports'), __('Outstanding dues')]])
 
   <ul class="nav nav-pills mb-3">
     <li class="nav-item"><a class="nav-link" href="{{ route('admin.reports.fee-collection') }}">{{ __('Fee Collection') }}</a></li>

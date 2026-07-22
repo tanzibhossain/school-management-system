@@ -2,9 +2,9 @@
 @section('title', __('ID Card Templates'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'ID card templates',
-    'crumbs' => ['Certificates', 'ID templates'],
-    'action' => ['label' => 'New template', 'modal' => 'createModal'],
+    'title'  => __('ID card templates'),
+    'crumbs' => [__('Certificates'), __('ID templates')],
+    'action' => ['label' => __('New template'), 'modal' => 'createModal'],
   ])
   @include('admin.certificates._tabs', ['active' => 'id-templates'])
 

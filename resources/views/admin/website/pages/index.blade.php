@@ -2,9 +2,9 @@
 @section('title', __('Website Pages'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Website pages',
-    'crumbs' => ['Website', 'Pages'],
-    'action' => ['label' => 'New page', 'url' => route('admin.pages.create')],
+    'title'  => __('Website pages'),
+    'crumbs' => [__('Website'), __('Pages')],
+    'action' => ['label' => __('New page'), 'url' => route('admin.pages.create')],
   ])
 
   <div class="card"><div class="card-body">

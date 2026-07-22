@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', __('Enrol Student'))
 @section('content')
-  @include('admin.partials.page-header', ['title' => 'Enrol student', 'crumbs' => ['People', 'Students', 'Enrol']])
+  @include('admin.partials.page-header', ['title' => __('Enrol student'), 'crumbs' => [__('People'), __('Students'), __('Enrol')]])
 
   <div class="mb-3"><a href="{{ route('admin.students.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back To Students') }}</a></div>
 

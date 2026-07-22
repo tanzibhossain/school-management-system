@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', __('New Page'))
 @section('content')
-  @include('admin.partials.page-header', ['title' => 'New page', 'crumbs' => ['Website', 'Pages', 'New']])
+  @include('admin.partials.page-header', ['title' => __('New page'), 'crumbs' => [__('Website'), __('Pages'), __('New')]])
 
   <div class="row"><div class="col-lg-6">
     <div class="card"><div class="card-body">

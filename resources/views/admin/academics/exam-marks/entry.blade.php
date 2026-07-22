@@ -4,7 +4,7 @@
   @php $subjectName = $division->examSubject?->subjectRelation?->subject?->name ?? 'Subject'; @endphp
   @include('admin.partials.page-header', [
     'title'  => $subjectName . ' — ' . $division->name,
-    'crumbs' => ['Academics', 'Exams', $exam->title, 'Marks', $division->name],
+    'crumbs' => [__('Academics'), __('Exams'), $exam->title, __('Marks'), $division->name],
   ])
 
   <div class="mb-3"><a href="{{ route('admin.exam-marks.index', $exam->id) }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back To Marks') }}</a></div>

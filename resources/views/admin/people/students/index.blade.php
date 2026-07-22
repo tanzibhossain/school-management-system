@@ -2,9 +2,9 @@
 @section('title', __('Students'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Students',
-    'crumbs' => ['People', 'Students'],
-    'action' => ['label' => 'Enrol student', 'url' => route('admin.students.create')],
+    'title'  => __('Students'),
+    'crumbs' => [__('People'), __('Students')],
+    'action' => ['label' => __('Enrol student'), 'url' => route('admin.students.create')],
   ])
 
   <form method="GET" class="card mb-3"><div class="card-body row g-2 align-items-end">

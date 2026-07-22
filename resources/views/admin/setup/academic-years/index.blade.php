@@ -2,9 +2,9 @@
 @section('title', __('Academic Years'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Academic years',
-    'crumbs' => ['Setup', 'Academic years'],
-    'action' => ['label' => 'New year', 'modal' => 'createModal'],
+    'title'  => __('Academic years'),
+    'crumbs' => [__('Setup'), __('Academic years')],
+    'action' => ['label' => __('New year'), 'modal' => 'createModal'],
   ])
 
   <div class="card"><div class="card-body">

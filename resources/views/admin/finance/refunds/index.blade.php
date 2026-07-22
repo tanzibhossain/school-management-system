@@ -2,9 +2,9 @@
 @section('title', __('Refunds'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Refunds',
-    'crumbs' => ['Finance', 'Refunds'],
-    'action' => ['label' => 'Request refund', 'modal' => 'requestModal'],
+    'title'  => __('Refunds'),
+    'crumbs' => [__('Finance'), __('Refunds')],
+    'action' => ['label' => __('Request refund'), 'modal' => 'requestModal'],
   ])
 
   <div class="card"><div class="card-body">

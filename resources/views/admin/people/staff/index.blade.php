@@ -2,9 +2,9 @@
 @section('title', __('Staff'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Staff',
-    'crumbs' => ['People', 'Staff'],
-    'action' => ['label' => 'Hire staff', 'modal' => 'createModal'],
+    'title'  => __('Staff'),
+    'crumbs' => [__('People'), __('Staff')],
+    'action' => ['label' => __('Hire staff'), 'modal' => 'createModal'],
   ])
 
   <div class="card"><div class="card-body">

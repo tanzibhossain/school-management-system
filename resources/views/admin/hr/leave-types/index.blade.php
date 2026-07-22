@@ -2,9 +2,9 @@
 @section('title', __('Leave Types'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Leave types',
-    'crumbs' => ['HR', 'Leave types'],
-    'action' => ['label' => 'New type', 'modal' => 'createModal'],
+    'title'  => __('Leave types'),
+    'crumbs' => [__('HR'), __('Leave types')],
+    'action' => ['label' => __('New type'), 'modal' => 'createModal'],
   ])
 
   <div class="card"><div class="card-body">

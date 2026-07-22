@@ -3,7 +3,7 @@
 @section('content')
   @include('admin.partials.page-header', [
     'title'  => $course->title,
-    'crumbs' => ['LMS', 'Courses', $course->title],
+    'crumbs' => [__('LMS'), __('Courses'), $course->title],
   ])
   <div class="mb-3 d-flex justify-content-between">
     <a href="{{ route('admin.lms.courses.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back To Courses') }}</a>

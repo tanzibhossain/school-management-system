@@ -39,7 +39,7 @@
                     <thead class="table-light">
                         <tr>
                             <th style="width: 50px;">
-                                <input type="checkbox" class="form-check-input select-all" aria-label="Select all">
+                                <input type="checkbox" class="form-check-input select-all" aria-label="{{ __('Select all') }}">
                             </th>
                             <th>{{ __('Document') }}</th>
                             <th>{{ __('Type') }}</th>

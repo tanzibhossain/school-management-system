@@ -2,7 +2,7 @@
 @section('title', 'ID card batch #' . $batch->id)
 @section('content')
   @php $m = ['queued'=>'secondary','processing'=>'info','completed'=>'success','failed'=>'danger']; @endphp
-  @include('admin.partials.page-header', ['title' => 'ID card batch #' . $batch->id, 'crumbs' => ['Certificates', 'ID cards', 'Batch #' . $batch->id]])
+  @include('admin.partials.page-header', ['title' => 'ID card batch #' . $batch->id, 'crumbs' => [__('Certificates'), __('ID cards'), 'Batch #' . $batch->id]])
 
   <div class="mb-3"><a href="{{ route('admin.id-cards.index') }}" class="text-decoration-none small"><i class="bi bi-arrow-left"></i> {{ __('Back To Batches') }}</a></div>
 

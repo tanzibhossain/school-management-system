@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', __('Payroll — Staff Salaries'))
 @section('content')
-  @include('admin.partials.page-header', ['title' => 'Staff salaries', 'crumbs' => ['Payroll', 'Staff salaries']])
+  @include('admin.partials.page-header', ['title' => __('Staff salaries'), 'crumbs' => [__('Payroll'), __('Staff salaries')]])
   @include('admin.modules.payroll._tabs', ['active' => 'salaries'])
 
   <div class="card"><div class="card-body">

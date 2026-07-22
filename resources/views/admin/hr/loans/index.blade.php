@@ -2,9 +2,9 @@
 @section('title', __('Staff Loans'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Staff loans',
-    'crumbs' => ['HR', 'Staff loans'],
-    'action' => ['label' => 'New loan', 'modal' => 'createModal'],
+    'title'  => __('Staff loans'),
+    'crumbs' => [__('HR'), __('Staff loans')],
+    'action' => ['label' => __('New loan'), 'modal' => 'createModal'],
   ])
 
   <form method="GET" class="card mb-3"><div class="card-body row g-2 align-items-end">

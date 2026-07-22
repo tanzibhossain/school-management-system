@@ -2,9 +2,9 @@
 @section('title', __('Announcements'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Announcements',
-    'crumbs' => ['Comms', 'Announcements'],
-    'action' => ['label' => 'New announcement', 'modal' => 'createModal'],
+    'title'  => __('Announcements'),
+    'crumbs' => [__('Comms'), __('Announcements')],
+    'action' => ['label' => __('New announcement'), 'modal' => 'createModal'],
   ])
 
   @php

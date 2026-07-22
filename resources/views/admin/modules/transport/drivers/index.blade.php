@@ -2,9 +2,9 @@
 @section('title', __('Transport — Drivers'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Drivers',
-    'crumbs' => ['Transport', 'Drivers'],
-    'action' => ['label' => 'Add driver', 'modal' => 'createModal'],
+    'title'  => __('Drivers'),
+    'crumbs' => [__('Transport'), __('Drivers')],
+    'action' => ['label' => __('Add driver'), 'modal' => 'createModal'],
   ])
   @include('admin.modules.transport._tabs', ['active' => 'drivers'])
 

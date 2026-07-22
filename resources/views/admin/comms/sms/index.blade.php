@@ -2,9 +2,9 @@
 @section('title', __('SMS'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'SMS',
-    'crumbs' => ['Comms', 'SMS'],
-    'action' => ['label' => 'Compose', 'modal' => 'composeModal'],
+    'title'  => __('SMS'),
+    'crumbs' => [__('Comms'), __('SMS')],
+    'action' => ['label' => __('Compose'), 'modal' => 'composeModal'],
   ])
 
   <div class="card"><div class="card-body">
@@ -64,7 +64,7 @@
       });
       cls.addEventListener('change', function () {
         var cid = parseInt(cls.value, 10);
-        sec.innerHTML = '<option value="">All sections</option>';
+        sec.innerHTML = '<option value="">{{ __('All Sections') }}</option>';
         SECTIONS.filter(function (s) { return s.class_id === cid; }).forEach(function (s) {
           var o = document.createElement('option'); o.value = s.id; o.textContent = s.name; sec.appendChild(o);
         });

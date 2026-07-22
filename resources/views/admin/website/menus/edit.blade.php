@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', __('Navigation Menu'))
 @section('content')
-  @include('admin.partials.page-header', ['title' => 'Navigation menu', 'crumbs' => ['Website', 'Menus']])
+  @include('admin.partials.page-header', ['title' => __('Navigation menu'), 'crumbs' => [__('Website'), __('Menus')]])
 
   @php
     $tree = $menu->items->map(fn ($i) => [
@@ -90,16 +90,16 @@
         li.innerHTML =
           '<div class="card-body py-2 px-3">' +
             '<div class="d-flex align-items-center gap-2">' +
-              '<span class="mi-handle text-muted" style="cursor:grab" title="Drag">&#9776;</span>' +
+              '<span class="mi-handle text-muted" style="cursor:grab" title="{{ __('Drag') }}">&#9776;</span>' +
               '<input class="mi-label form-control form-control-sm" style="max-width:200px" value="' + esc(item.label) + '">' +
               '<select class="mi-type form-select form-select-sm" style="max-width:130px">' +
-                '<option value="page">Page</option>' +
-                '<option value="external">Custom link</option>' +
-                '<option value="dropdown">Dropdown</option>' +
+                '<option value="page">{{ __('Page') }}</option>' +
+                '<option value="external">{{ __('Custom link') }}</option>' +
+                '<option value="dropdown">{{ __('Dropdown') }}</option>' +
               '</select>' +
               '<select class="mi-page form-select form-select-sm" style="max-width:180px">' + pageSelect(item.page_id) + '</select>' +
               '<input class="mi-url form-control form-control-sm" style="max-width:200px" placeholder="https://… or /slug" value="' + esc(item.url) + '">' +
-              '<div class="form-check form-switch ms-1 mb-0"><input class="mi-target form-check-input" type="checkbox"' + (item.target === '_blank' ? ' checked' : '') + '><label class="form-check-label small">New tab</label></div>' +
+              '<div class="form-check form-switch ms-1 mb-0"><input class="mi-target form-check-input" type="checkbox"' + (item.target === '_blank' ? ' checked' : '') + '><label class="form-check-label small">{{ __('New tab') }}</label></div>' +
               '<button type="button" class="mi-remove btn btn-sm btn-outline-danger ms-auto">&times;</button>' +
             '</div>' +
           '</div>' +

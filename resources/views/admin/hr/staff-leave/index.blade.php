@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', __('Staff Leave'))
 @section('content')
-  @include('admin.partials.page-header', ['title' => 'Staff leave requests', 'crumbs' => ['HR', 'Staff leave']])
+  @include('admin.partials.page-header', ['title' => __('Staff leave requests'), 'crumbs' => [__('HR'), __('Staff leave')]])
 
   <form method="GET" class="card mb-3"><div class="card-body row g-2 align-items-end">
     <div class="col-sm-4"><label class="form-label small text-muted mb-1">{{ __('Status') }}</label>
@@ -17,7 +17,7 @@
   @php $m = ['pending'=>'warning','approved'=>'success','rejected'=>'danger','cancelled'=>'secondary']; @endphp
   <div class="card"><div class="card-body">
     <table class="table table-hover align-middle w-100 js-dt">
-      <thead><tr><th>{{ __('Staff') }}</th><th>{{ __('Type') }}</th><th>{{ __('From') }}</th><th>To</th><th>{{ __('Days') }}</th><th>{{ __('Status') }}</th><th class="text-end" data-orderable="false">{{ __('Actions') }}</th></tr></thead>
+      <thead><tr><th>{{ __('Staff') }}</th><th>{{ __('Type') }}</th><th>{{ __('From') }}</th><th>{{ __('To') }}</th><th>{{ __('Days') }}</th><th>{{ __('Status') }}</th><th class="text-end" data-orderable="false">{{ __('Actions') }}</th></tr></thead>
       <tbody>
         @foreach ($requests as $r)
           <tr>

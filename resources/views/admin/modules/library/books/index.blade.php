@@ -2,9 +2,9 @@
 @section('title', __('Library — Books'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Books',
-    'crumbs' => ['Library', 'Books'],
-    'action' => ['label' => 'Add book', 'modal' => 'createModal'],
+    'title'  => __('Books'),
+    'crumbs' => [__('Library'), __('Books')],
+    'action' => ['label' => __('Add book'), 'modal' => 'createModal'],
   ])
 
   @include('admin.modules.library._tabs', ['active' => 'books'])

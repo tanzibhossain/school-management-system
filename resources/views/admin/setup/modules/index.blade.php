@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', __('Modules'))
 @section('content')
-  @include('admin.partials.page-header', ['title' => 'Optional modules', 'crumbs' => ['Setup', 'Modules']])
+  @include('admin.partials.page-header', ['title' => __('Optional modules'), 'crumbs' => [__('Setup'), __('Modules')]])
 
   <form method="POST" action="{{ route('admin.modules.update') }}">
     @csrf @method('PUT')

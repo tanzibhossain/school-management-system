@@ -2,9 +2,9 @@
 @section('title', __('Testimonial Templates'))
 @section('content')
   @include('admin.partials.page-header', [
-    'title'  => 'Testimonial templates',
-    'crumbs' => ['Certificates', 'Templates'],
-    'action' => ['label' => 'New template', 'modal' => 'createModal'],
+    'title'  => __('Testimonial templates'),
+    'crumbs' => [__('Certificates'), __('Templates')],
+    'action' => ['label' => __('New template'), 'modal' => 'createModal'],
   ])
   @include('admin.certificates._tabs', ['active' => 'templates'])
 
