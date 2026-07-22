@@ -17,6 +17,7 @@ class LoginHistory extends Model
         'ip_address',
         'device_name',
         'user_agent',
+        'session_id',
         'status',
         'failed_reason',
         'logged_in_at',
