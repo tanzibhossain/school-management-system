@@ -54,6 +54,11 @@ class AccountController extends Controller
         ]);
         $this->account->changePassword($request->user(), $data['current_password'], $data['password']);
 
+        // A password change is exactly when a compromised session should be
+        // kicked out — otherwise an attacker who's already logged in keeps
+        // their session even after the real owner "secures" the account.
+        $this->sessions->revokeOtherSessions($request->user(), $request->session()->getId());
+
         return back()->with('status', __('Password updated.'));
     }
 
@@ -119,6 +124,10 @@ class AccountController extends Controller
     {
         $data = $request->validate(['current_password' => ['required', 'string']]);
         $this->account->disableTwoFactor($request->user(), $data['current_password']);
+
+        // Removing a security factor should also cut off any other session —
+        // same reasoning as the password-change revoke above.
+        $this->sessions->revokeOtherSessions($request->user(), $request->session()->getId());
 
         return back()->with('status', __('Two-factor authentication disabled.'));
     }
