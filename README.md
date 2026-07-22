@@ -2,7 +2,7 @@
 
 A **single-school, self-hosted** school management platform built with **Laravel 13**, **PHP 8.3**, **MySQL 8**, and **Redis 7**. Designed for a school to manage academics, students, staff, finances, communications, and more — all from a modern server-rendered **Laravel Blade + Bootstrap 5** admin interface.
 
-> **Status:** 27 modules complete (23 core + 4 optional). 206+ admin feature tests passing.
+> **Status:** 26 modules complete (21 core + 5 optional). 206+ admin feature tests passing.
 
 > **Note:** This is a **single-school, self-hosted** installation. Each deployment serves exactly one school. The `school_id` column exists for data ownership; there is only ever one school per deployment.
 
@@ -46,7 +46,7 @@ A **single-school, self-hosted** school management platform built with **Laravel
 
 ```
 app/
-├── Modules/                 # 27 domain modules (see table above)
+├── Modules/                 # 26 domain modules (see table above)
 │   └── {Module}/
 │       ├── Http/
 │       │   ├── Controllers/  # Thin controllers (max 40 lines/method)
@@ -117,8 +117,8 @@ docker compose exec app php artisan storage:link
 | Service | URL | Credentials |
 |---------|-----|-------------|
 | **Admin Portal** | http://localhost:8080/admin/login | `admin@school.edu.bd` / `Admin@1234` |
-| **Staff & Teachers Portal** | http://localhost:8080/staff/login | `teacher@school.edu.bd` / `Admin@1234` |
-| **Student & Guardian Portal** | http://localhost:8080/login | `student@school.edu.bd` / `Admin@1234` · Guardian: `parent@school.edu.bd` / `Admin@1234` |
+| **Staff & Teachers Portal** | http://localhost:8080/staff/login | `teacher@school.edu.bd` / `Teacher@1234` |
+| **Student & Guardian Portal** | http://localhost:8080/login | `student@school.edu.bd` / `Student@1234` · Guardian: `parent@school.edu.bd` / `Parent@1234` |
 | **API Health Check** | http://localhost:8080/api/v2/health | — |
 | **MinIO Console** | http://localhost:9001 | `minioadmin` / `minioadmin` |
 | **Horizon** | http://localhost:8080/horizon | Admin only |
@@ -206,7 +206,7 @@ docker compose exec app vendor/bin/paratest -p 4
 | Serial (`php artisan test`) | 578 | ~5 min 20s | 1× |
 | Parallel (`paratest -p 8`) | 578 | ~1 min 7s | **5.3×** |
 
-> **578 tests** covering all 27 modules. Use `-p 8` as the default; more
+> **578 tests** covering all 26 modules. Use `-p 8` as the default; more
 > processes rarely help because per-process Laravel boot dominates, not CPU.
 
 
@@ -262,7 +262,7 @@ docker compose exec app php artisan ide-helper:generate
 ## 📁 Project Structure Highlights
 
 ```
-├── app/Modules/              # 27 domain modules
+├── app/Modules/              # 26 domain modules
 ├── docs/modules/             # Per-module specification docs (01-school.md ... 27-language.md)
 ├── resources/views/          # Blade admin UI (Bootstrap 5, DataTables 2)
 │   ├── layouts/admin.blade.php
@@ -282,11 +282,14 @@ docker compose exec app php artisan ide-helper:generate
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Follow the **10-step commit pattern** above
+2. Create a feature branch off `dev`: `git checkout -b feature/amazing-feature`
+3. Follow the **10-step module pattern** (Migration → Model → Repository →
+   Service → Observer → Requests → Resources → Controller/Routes → Tests →
+   Pint/DocBlocks), one commit per step — see `CLAUDE.md` for the full
+   convention and commit message format
 4. Run tests: `docker compose exec app php artisan test`
 5. Run Pint: `docker compose exec app ./vendor/bin/pint`
-6. Submit a PR to `develop`
+6. Submit a PR to `dev`
 
 ### Code Standards
 - PHP 8.3, Laravel 13, strict types
@@ -299,7 +302,11 @@ docker compose exec app php artisan ide-helper:generate
 
 ## 📄 License
 
-MIT License — see [LICENSE](LICENSE) for details.
+GNU Affero General Public License v3.0 (AGPL-3.0) — see [LICENSE](LICENSE) for details.
+
+The AGPL's network-use clause means that if you run a modified version of
+this software as a network service (e.g. a hosted SaaS offering), you must
+make the modified source available to that service's users.
 
 ---
 
