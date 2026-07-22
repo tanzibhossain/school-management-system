@@ -1,9 +1,15 @@
 # School Management System v2
 
+[![Tests](https://github.com/your-org/school-management-backend/actions/workflows/tests.yml/badge.svg)](https://github.com/your-org/school-management-backend/actions/workflows/tests.yml)
+[![Code Style](https://github.com/your-org/school-management-backend/actions/workflows/pint.yml/badge.svg)](https://github.com/your-org/school-management-backend/actions/workflows/pint.yml)
+[![Static Analysis](https://github.com/your-org/school-management-backend/actions/workflows/phpstan.yml/badge.svg)](https://github.com/your-org/school-management-backend/actions/workflows/phpstan.yml)
+[![PHPStan Level](https://img.shields.io/badge/PHPStan-level%205-brightgreen.svg)](phpstan.neon)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 ![PHP](https://img.shields.io/badge/PHP-8.3-777BB4?logo=php&logoColor=white)
 ![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#-contributing)
+![GitHub Repo stars](https://img.shields.io/github/stars/your-org/school-management-backend?style=social)
 
 A **single-school, self-hosted** school management platform built with **Laravel 13**, **PHP 8.3**, **MySQL 8**, and **Redis 7**. Designed for a school to manage academics, students, staff, finances, and communications — all from a modern server-rendered **Laravel Blade + Bootstrap 5** admin interface.
 
@@ -96,10 +102,9 @@ school-management-backend/
 - Docker Desktop (or Docker Engine + Compose)
 - Git
 
-### 1. Clone & Configure
+### 1. Configure
 
 ```bash
-git clone https://github.com/your-org/school-management-backend.git
 cd school-management-backend
 cp .env.example .env
 ```
@@ -207,11 +212,17 @@ Contributions are welcome — bug fixes, new modules, translations, docs.
    convention and commit message format
 4. Run the test suite: `docker compose exec app php artisan test`
 5. Run Pint: `docker compose exec app ./vendor/bin/pint`
-6. Submit a PR to `dev`
+6. Run Larastan: `docker compose exec app ./vendor/bin/phpstan analyse`
+7. Submit a PR to `dev`
+
+Every PR runs the [Tests](.github/workflows/tests.yml), [Code Style](.github/workflows/pint.yml),
+and [Static Analysis](.github/workflows/phpstan.yml) workflows automatically — the badges at
+the top of this file reflect the current state of `dev`.
 
 ### Code Standards
 - PHP 8.3, Laravel 13, strict types
 - PSR-12 + Laravel Pint (run before commit)
+- [Larastan](https://github.com/larastan/larastan) (PHPStan for Laravel) at level 5, raised over time
 - Every write endpoint: FormRequest + JsonResource
 - Controllers ≤ 40 lines/method — logic in Services
 - Repository pattern for reads (cached), Services for writes (transactional)

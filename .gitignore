@@ -33,6 +33,9 @@ storage/*.key
 .phpunit.result.cache
 /.phpunit.cache
 
+# Larastan / PHPStan cache
+/storage/phpstan
+
 # IDE / Editors
 /.idea
 /.vscode

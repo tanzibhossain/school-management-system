@@ -1,0 +1,29 @@
+name: Code Style
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+
+jobs:
+  pint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      # --test checks formatting without rewriting files; fails the job if
+      # anything is out of line with the Laravel/PSR-12 preset in pint.json.
+      - name: Check code style (Laravel Pint)
+        run: vendor/bin/pint --test

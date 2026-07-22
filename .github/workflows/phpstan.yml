@@ -1,0 +1,36 @@
+name: Static Analysis
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+
+jobs:
+  phpstan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          coverage: none
+
+      - name: Copy .env
+        run: cp .env.example .env
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Generate application key
+        run: php artisan key:generate
+
+      # Uses phpstan.neon at the repo root (Larastan level 5 to start).
+      # If a phpstan-baseline.neon exists it's picked up automatically via
+      # the `includes:` line in phpstan.neon once uncommented.
+      - name: Run Larastan / PHPStan
+        run: vendor/bin/phpstan analyse --memory-limit=2G

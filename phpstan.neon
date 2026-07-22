@@ -1,0 +1,18 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    paths:
+        - app
+        - database
+
+    # Conservative starting level for a codebase that's never run static
+    # analysis before. Raise it (up to 9) as violations are cleared —
+    # see https://phpstan.org/user-guide/rule-levels
+    level: 5
+
+    tmpDir: storage/phpstan
+
+    excludePaths:
+        - app/Modules/*/database/migrations/*
