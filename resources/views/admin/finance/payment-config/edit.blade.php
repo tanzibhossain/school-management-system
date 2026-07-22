@@ -1,20 +1,20 @@
 @extends('layouts.admin')
 @section('title', __('Payment Settings'))
 @section('content')
-  @include('admin.partials.page-header', ['title' => 'Payment settings', 'crumbs' => ['Settings', 'Payment']])
+  @include('admin.partials.page-header', ['title' => __('Payment settings'), 'crumbs' => [__('Settings'), __('Payment')]])
 
   <form method="POST" action="{{ route('admin.payment-config.update') }}" autocomplete="off">
     @csrf @method('PUT')
 
     {{-- How fees are collected --}}
     <div class="card mb-4">
-      <div class="card-header">How do you collect fees?</div>
+      <div class="card-header">{{ __('How do you collect fees?') }}</div>
       <div class="card-body">
         <div class="row g-2">
           @foreach([
-            'offline' => ['Offline only', 'Cash, cheque and bank transfer recorded at the office.'],
-            'online'  => ['Online only', 'Families pay through a payment gateway.'],
-            'both'    => ['Offline & online', 'Accept both — families can pay online or at the office.'],
+            'offline' => [__('Offline only'), __('Cash, cheque and bank transfer recorded at the office.')],
+            'online'  => [__('Online only'), __('Families pay through a payment gateway.')],
+            'both'    => [__('Offline & online'), __('Accept both — families can pay online or at the office.')],
           ] as $val => $meta)
             <div class="col-md-4">
               <label class="border rounded p-3 d-block h-100 {{ old('payment_mode', $config->payment_mode) === $val ? 'border-primary' : '' }}" style="cursor:pointer;">
@@ -32,7 +32,7 @@
 
     {{-- Online gateways available for this school's country --}}
     <div class="d-flex align-items-center justify-content-between mb-2">
-      <h2 class="h6 mb-0 text-muted">{{ __('Online Gateways') }} <span class="text-muted small">— available for your country</span></h2>
+      <h2 class="h6 mb-0 text-muted">{{ __('Online Gateways') }} <span class="text-muted small">— {{ __('available for your country') }}</span></h2>
     </div>
     <div class="row g-4" id="onlineGateways" style="transition:opacity .15s;">
       @forelse($gateways as $key => $def)
@@ -43,7 +43,7 @@
         <div class="col-lg-6">
           <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
-              <span><i class="bi {{ $def['icon'] ?? 'bi-credit-card' }} me-1"></i>{{ $def['label'] }}
+              <span><i class="bi {{ $def['icon'] ?? 'bi-credit-card' }} me-1"></i>{{ __($def['label']) }}
                 <span class="text-muted small">({{ implode(', ', $def['currencies']) }})</span></span>
               @if($configured)<span class="badge text-bg-success">{{ __('Credentials Set') }}</span>@endif
             </div>
@@ -52,13 +52,13 @@
                 <input type="hidden" name="gw[{{ $key }}][enabled]" value="0">
                 <input class="form-check-input" type="checkbox" role="switch" name="gw[{{ $key }}][enabled]" value="1"
                        id="{{ $key }}On" @checked($config->gatewayEnabled($key))>
-                <label class="form-check-label" for="{{ $key }}On">Enable {{ $def['label'] }}</label>
+                <label class="form-check-label" for="{{ $key }}On">{{ __('Enable') }} {{ __($def['label']) }}</label>
               </div>
               <div class="row g-2">
                 @foreach($def['fields'] as $field => $meta)
                   @php $has = filled($config->credential($key, $field)); @endphp
                   <div class="col-md-6">
-                    <label class="form-label small">{{ $meta['label'] }}
+                    <label class="form-label small">{{ __($meta['label']) }}
                       @if(! empty($meta['required']))<span class="text-danger star-{{ $key }}" style="display:none">*</span>@endif</label>
                     <input name="gw[{{ $key }}][cred][{{ $field }}]"
                            type="{{ ! empty($meta['secret']) ? 'password' : 'text' }}"
@@ -95,7 +95,7 @@
             <input name="invoice_prefix" class="form-control" value="{{ old('invoice_prefix', $config->invoice_prefix) }}" placeholder="e.g. INV-"></div>
           <div class="col-md-6"><label class="form-label">{{ __('Receipt Prefix') }}</label>
             <input name="receipt_prefix" class="form-control" value="{{ old('receipt_prefix', $config->receipt_prefix) }}" placeholder="e.g. RCP-"></div>
-          <div class="col-12"><div class="alert alert-light border py-2 mb-0 small text-muted">Current sequences — invoices: {{ $config->invoice_last_seq }}, receipts: {{ $config->receipt_last_seq }}.</div></div>
+          <div class="col-12"><div class="alert alert-light border py-2 mb-0 small text-muted">{{ __('Current sequences') }} — {{ __('invoices') }}: {{ $config->invoice_last_seq }}, {{ __('receipts') }}: {{ $config->receipt_last_seq }}.</div></div>
         </div></div>
       </div>
       <div class="col-lg-6">
