@@ -1,0 +1,33 @@
+version: 2
+updates:
+  # PHP dependencies (composer.json / composer.lock).
+  - package-ecosystem: "composer"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      laravel:
+        patterns:
+          - "laravel/*"
+      dev-dependencies:
+        dependency-type: "development"
+
+  # Frontend build tooling (package.json / package-lock.json — Vite, Tailwind).
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+
+  # Base image in Dockerfile.
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Actions used by the CI workflows (tests.yml, pint.yml, phpstan.yml).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
