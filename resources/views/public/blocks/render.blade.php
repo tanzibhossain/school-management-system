@@ -8,12 +8,16 @@
   $style = $style ?? [];
   $layout = $layout ?? [];
 
-  // Identifies this rendered block back to its editor row (blocks[$index]) —
-  // used only by the admin live-preview iframe's click-to-select/drag-reorder/
-  // context-menu bridge (see public/layout.blade.php); inert data attributes
-  // (and draggable is simply absent) on the real public site.
-  $editorAttrs = isset($index)
-    ? ' data-block-index="'.(int) $index.'" data-block-group="'.e($group ?? 'blocks').'" draggable="true"'
+  // Identifies this rendered block back to its editor row — used only by the
+  // admin live-preview iframe's click-to-select/drag-reorder/context-menu/
+  // drag-into-container bridge (see public/layout.blade.php); inert data
+  // attributes (and draggable is simply absent) on the real public site.
+  // $path is a list of indices from the root ([2] for the 3rd top-level
+  // block, [2,0] for its 1st child, [2,0,1] for that child's 2nd child, …) —
+  // recursive nesting needs more than a single flat index to address a
+  // block, see §7g in docs/modules/28-elementor-block-editor-plan.md.
+  $editorAttrs = isset($path)
+    ? ' data-block-path="'.e(implode(',', $path)).'" data-block-group="'.e($group ?? 'blocks').'" data-block-type="'.e($type).'" draggable="true"'
     : '';
 
   // hero/admission_form manage their own spacing+background entirely — every
@@ -314,9 +318,9 @@
         $containerGap = max(0, min(80, (int) ($d['gap'] ?? 16)));
       @endphp
       <div class="d-flex flex-{{ $containerDir }}" style="gap:{{ $containerGap }}px;">
-        @forelse ($d['blocks'] ?? [] as $child)
+        @forelse ($d['blocks'] ?? [] as $childIndex => $child)
           @if($containerDir === 'row')<div class="flex-fill">@endif
-          @include('public.blocks.render', ['type' => $child['type'], 'd' => $child['d'], 'style' => $child['style'], 'layout' => $child['layout'], 'contained' => true])
+          @include('public.blocks.render', ['type' => $child['type'], 'd' => $child['d'], 'style' => $child['style'], 'layout' => $child['layout'], 'contained' => true, 'group' => $group ?? null, 'path' => isset($path) ? array_merge($path, [$childIndex]) : null])
           @if($containerDir === 'row')</div>@endif
         @empty
           <p class="text-muted mb-0">{{ __('Empty Container — Add Blocks In The Editor.') }}</p>
@@ -328,9 +332,9 @@
   @case('grid')
     {!! $open !!}
       <div class="row {{ $bp::columnClasses($layout, ['mobile' => 1, 'tablet' => 2, 'laptop' => 3, 'desktop' => 3]) }} g-3">
-        @forelse ($d['blocks'] ?? [] as $child)
+        @forelse ($d['blocks'] ?? [] as $childIndex => $child)
           <div>
-            @include('public.blocks.render', ['type' => $child['type'], 'd' => $child['d'], 'style' => $child['style'], 'layout' => $child['layout'], 'contained' => true])
+            @include('public.blocks.render', ['type' => $child['type'], 'd' => $child['d'], 'style' => $child['style'], 'layout' => $child['layout'], 'contained' => true, 'group' => $group ?? null, 'path' => isset($path) ? array_merge($path, [$childIndex]) : null])
           </div>
         @empty
           <p class="text-muted mb-0">{{ __('Empty Grid — Add Blocks In The Editor.') }}</p>

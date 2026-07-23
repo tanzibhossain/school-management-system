@@ -162,16 +162,21 @@
         /* Admin live-preview click-to-select — only active when this page is
            rendered inside the editor's iframe (see the gated script below and
            docs/modules/28-elementor-block-editor-plan.md Milestone 4). Inert
-           otherwise: no visual effect on the real public site. */
-        body.is-editor-preview [data-block-index] { cursor: pointer; }
+           otherwise: no visual effect on the real public site. [data-block-path]
+           marks every editor-addressable block, top-level AND nested (see §7g). */
+        body.is-editor-preview [data-block-path] { cursor: pointer; }
         body.is-editor-preview .is-block-hover { outline: 2px dashed #6c8fff; outline-offset: -2px; }
         body.is-editor-preview .is-block-selected { outline: 2px solid var(--brand); outline-offset: -2px; }
-        /* In-canvas drag-and-drop reordering + right-click context menu — see
-           the gated script below. */
-        body.is-editor-preview [data-block-index] { cursor: grab; }
-        body.is-editor-preview [data-block-index].is-dragging { opacity: .35; cursor: grabbing; }
-        body.is-editor-preview [data-block-index].drop-before { box-shadow: inset 0 3px 0 0 var(--brand); }
-        body.is-editor-preview [data-block-index].drop-after { box-shadow: inset 0 -3px 0 0 var(--brand); }
+        /* In-canvas drag-and-drop reordering/nesting + right-click context
+           menu — see the gated script below. */
+        body.is-editor-preview [data-block-path] { cursor: grab; }
+        body.is-editor-preview [data-block-path].is-dragging { opacity: .35; cursor: grabbing; }
+        body.is-editor-preview [data-block-path].drop-before { box-shadow: inset 0 3px 0 0 var(--brand); }
+        body.is-editor-preview [data-block-path].drop-after { box-shadow: inset 0 -3px 0 0 var(--brand); }
+        /* Hovering a Container/Grid's own body (not near a sibling's top/
+           bottom edge) while dragging — "drop INSIDE this" instead of
+           "insert next to this". */
+        body.is-editor-preview [data-block-path].drop-into { outline: 2px dashed var(--brand); outline-offset: -4px; background: color-mix(in srgb, var(--brand) 8%, transparent); }
         #editor-context-menu button:hover { background: #f1f3f5; }
         /* Dragging a new block in from the editor's Add Block panel (see the
            gated script below) — a subtle tint over the whole canvas so it's
@@ -244,22 +249,45 @@
             if (window.self === window.top) return;
             document.body.classList.add('is-editor-preview');
 
+            // ── Path helpers ──────────────────────────────────────────────────
+            // A block's address is its data-block-path ("2" for the 3rd
+            // top-level block, "2,0" for its 1st child, "2,0,1" for that
+            // child's 2nd child, …) — see §7g in
+            // docs/modules/28-elementor-block-editor-plan.md. The LAST segment
+            // of a block's own path is always its index among its own
+            // siblings (the server renders children in array order), which is
+            // what makes reorder/insert math below simple: no separate
+            // sibling-index lookup needed, it's already encoded in the path.
+            function parsePath(str) { return str.split(',').map(function (s) { return parseInt(s, 10); }); }
+            function pathsEqual(a, b) { return a.length === b.length && a.every(function (v, i) { return v === b[i]; }); }
+            // True if `path` IS `ancestorPath` or nested under it — used to
+            // stop a container from being dropped into its own descendant.
+            function isWithin(path, ancestorPath) {
+                if (path.length < ancestorPath.length) return false;
+                for (var i = 0; i < ancestorPath.length; i++) if (path[i] !== ancestorPath[i]) return false;
+                return true;
+            }
+
             var selected = null;
             document.addEventListener('mouseover', function (e) {
-                var el = e.target.closest('[data-block-index]');
+                var el = e.target.closest('[data-block-path]');
                 document.querySelectorAll('.is-block-hover').forEach(function (n) {
                     if (n !== el) n.classList.remove('is-block-hover');
                 });
                 if (el) el.classList.add('is-block-hover');
             });
             document.addEventListener('mouseout', function (e) {
-                var el = e.target.closest('[data-block-index]');
+                var el = e.target.closest('[data-block-path]');
                 if (el) el.classList.remove('is-block-hover');
             });
             // Capture phase: intercept before a link/form inside the block
-            // gets to act — this is a preview, clicks should select, not navigate.
+            // gets to act — this is a preview, clicks should select, not
+            // navigate. closest() naturally resolves to the DEEPEST matching
+            // element under the cursor, so clicking a nested child selects
+            // THAT child, not its container — nested blocks are just as
+            // click-selectable as top-level ones, no extra logic needed.
             document.addEventListener('click', function (e) {
-                var el = e.target.closest('[data-block-index]');
+                var el = e.target.closest('[data-block-path]');
                 if (!el) {
                     // Clicked the canvas background, not a block — tell the
                     // parent so it can collapse the sidebar back to its
@@ -283,32 +311,36 @@
                     source: 'page-preview',
                     type: 'select-block',
                     group: el.dataset.blockGroup,
-                    index: el.dataset.blockIndex,
+                    path: parsePath(el.dataset.blockPath),
                 }, '*');
             }, true);
 
-            // ── In-canvas drag-and-drop reordering ───────────────────────────
+            // ── In-canvas drag-and-drop: reorder, or drop INTO a container ───
             // Native HTML5 DnD (draggable="true" is set server-side in this
             // editor-preview context only — see public/blocks/render.blade.php
             // and public/sidebar/render.blade.php). Dragging is confined to a
-            // single group (main blocks vs sidebar blocks are separate arrays)
-            // — the drop computes a full new index order and hands it to the
-            // parent, which reorders the actual rail list (the source of
-            // truth) and re-renders; this iframe doesn't move any DOM itself.
+            // single group (main blocks vs sidebar blocks are separate arrays,
+            // and nesting never crosses that boundary either). One shared
+            // 'move-block' message (below) covers plain sibling reordering,
+            // dropping a block INSIDE a container/grid, and pulling a nested
+            // child back OUT to a shallower level — they're all "move this
+            // path to this position under that parent" to the parent editor,
+            // which owns the actual DOM (the source of truth) and never
+            // trusts this iframe to move anything itself.
             var dragSrc = null;
             function clearDropMarkers() {
-                document.querySelectorAll('.drop-before, .drop-after').forEach(function (n) {
-                    n.classList.remove('drop-before', 'drop-after');
+                document.querySelectorAll('.drop-before, .drop-after, .drop-into').forEach(function (n) {
+                    n.classList.remove('drop-before', 'drop-after', 'drop-into');
                 });
             }
             document.addEventListener('dragstart', function (e) {
-                var el = e.target.closest('[data-block-index]');
+                var el = e.target.closest('[data-block-path]');
                 if (!el) return;
                 dragSrc = el;
                 el.classList.add('is-dragging');
                 if (e.dataTransfer) {
                     e.dataTransfer.effectAllowed = 'move';
-                    try { e.dataTransfer.setData('text/plain', el.dataset.blockIndex); } catch (err) {}
+                    try { e.dataTransfer.setData('text/plain', el.dataset.blockPath); } catch (err) {}
                 }
             });
             document.addEventListener('dragend', function () {
@@ -327,35 +359,59 @@
             // add-block drag is in progress (via .types, which IS readable
             // early) and show a generic insertion indicator; the actual
             // group/type payload is read once, on drop.
-            var externalTarget = null;
             function isExternalBlockDrag(e) {
                 return !dragSrc && !!e.dataTransfer
                     && Array.prototype.indexOf.call(e.dataTransfer.types, 'application/x-block-type') !== -1;
             }
+            // Shared by both drag kinds (reposition an existing block, or add
+            // a brand-new one): given the element currently under the
+            // pointer, decide whether this is "insert as a sibling before/
+            // after it" or — if it's a Container/Grid and the pointer isn't
+            // near its top/bottom edge — "drop AS A CHILD of it". Returns
+            // {toParentPath, toIndex} in both cases, ready to hand straight
+            // to a move-block/add-block-at message; null if there's no valid
+            // target under the pointer at all (drop => append at group root).
+            function classifyDropTarget(el, clientY) {
+                if (!el) return null;
+                var path = parsePath(el.dataset.blockPath);
+                var rect = el.getBoundingClientRect();
+                var relY = clientY - rect.top;
+                var isContainer = el.dataset.blockType === 'container' || el.dataset.blockType === 'grid';
+                var edge = Math.min(24, rect.height * 0.25);
+                if (isContainer && relY > edge && relY < rect.height - edge) {
+                    return { mode: 'into', el: el, before: null, toParentPath: path, toIndex: null };
+                }
+                var before = relY < rect.height / 2;
+                return {
+                    mode: 'sibling', el: el, before: before,
+                    toParentPath: path.slice(0, -1),
+                    toIndex: path[path.length - 1] + (before ? 0 : 1),
+                };
+            }
+            function markDropTarget(target) {
+                clearDropMarkers();
+                if (!target) return;
+                target.el.classList.add(target.mode === 'into' ? 'drop-into' : (target.before ? 'drop-before' : 'drop-after'));
+            }
             document.addEventListener('dragover', function (e) {
                 if (dragSrc) {
-                    var el = e.target.closest('[data-block-index]');
-                    if (!el || el === dragSrc || el.dataset.blockGroup !== dragSrc.dataset.blockGroup) return;
+                    var el = e.target.closest('[data-block-path]');
+                    var group = dragSrc.dataset.blockGroup;
+                    var dragPath = parsePath(dragSrc.dataset.blockPath);
+                    if (!el || el === dragSrc || el.dataset.blockGroup !== group) { clearDropMarkers(); return; }
+                    var targetPath = parsePath(el.dataset.blockPath);
+                    // Can't drop a block into (or next to, in a way that's
+                    // really "into") its own descendant subtree.
+                    if (isWithin(targetPath, dragPath)) { clearDropMarkers(); return; }
                     e.preventDefault();
-                    clearDropMarkers();
-                    var rect = el.getBoundingClientRect();
-                    var before = (e.clientY - rect.top) < rect.height / 2;
-                    el.classList.add(before ? 'drop-before' : 'drop-after');
+                    markDropTarget(classifyDropTarget(el, e.clientY));
                     return;
                 }
                 if (!isExternalBlockDrag(e)) return;
                 e.preventDefault();
                 document.body.classList.add('is-external-drag-over');
-                clearDropMarkers();
-                var el = e.target.closest('[data-block-index]');
-                if (el) {
-                    var rect = el.getBoundingClientRect();
-                    var before = (e.clientY - rect.top) < rect.height / 2;
-                    el.classList.add(before ? 'drop-before' : 'drop-after');
-                    externalTarget = { index: parseInt(el.dataset.blockIndex, 10), group: el.dataset.blockGroup, before: before };
-                } else {
-                    externalTarget = null; // over empty canvas — appends at the end on drop
-                }
+                var el = e.target.closest('[data-block-path]');
+                markDropTarget(el ? classifyDropTarget(el, e.clientY) : null);
             });
             document.addEventListener('dragleave', function (e) {
                 // relatedTarget is null when the pointer leaves the document
@@ -368,23 +424,19 @@
             document.addEventListener('drop', function (e) {
                 document.body.classList.remove('is-external-drag-over');
                 if (dragSrc) {
-                    var el = e.target.closest('[data-block-index]');
-                    if (!el || el === dragSrc || el.dataset.blockGroup !== dragSrc.dataset.blockGroup) return;
-                    e.preventDefault();
+                    var el = e.target.closest('[data-block-path]');
                     var group = dragSrc.dataset.blockGroup;
-                    var nodes = Array.prototype.slice.call(
-                        document.querySelectorAll('[data-block-index][data-block-group="' + group + '"]')
-                    );
-                    var order = nodes.map(function (n) { return parseInt(n.dataset.blockIndex, 10); });
-                    var fromVal = parseInt(dragSrc.dataset.blockIndex, 10);
-                    var toVal = parseInt(el.dataset.blockIndex, 10);
-                    var rect = el.getBoundingClientRect();
-                    var before = (e.clientY - rect.top) < rect.height / 2;
-                    order.splice(order.indexOf(fromVal), 1);
-                    var insertAt = order.indexOf(toVal) + (before ? 0 : 1);
-                    order.splice(insertAt, 0, fromVal);
+                    var dragPath = parsePath(dragSrc.dataset.blockPath);
+                    if (!el || el === dragSrc || el.dataset.blockGroup !== group) return;
+                    var targetPath = parsePath(el.dataset.blockPath);
+                    if (isWithin(targetPath, dragPath)) return;
+                    e.preventDefault();
+                    var target = classifyDropTarget(el, e.clientY);
                     clearDropMarkers();
-                    window.parent.postMessage({ source: 'page-preview', type: 'reorder-blocks', group: group, order: order }, '*');
+                    window.parent.postMessage({
+                        source: 'page-preview', type: 'move-block', group: group,
+                        fromPath: dragPath, toParentPath: target.toParentPath, toIndex: target.toIndex,
+                    }, '*');
                     return;
                 }
                 if (!e.dataTransfer) return;
@@ -394,22 +446,23 @@
                 try { payload = JSON.parse(raw); } catch (err) { return; }
                 if (!payload || !payload.type || !payload.group) return;
                 e.preventDefault();
-                clearDropMarkers();
+                var el = e.target.closest('[data-block-path]');
                 // Only honor the hovered insertion point if it's the SAME
                 // group as what's being dropped (you can't insert a
                 // Sidebar-only block type among main content blocks, or vice
                 // versa) — otherwise fall back to appending at the end of
-                // the correct group, same as clicking the picker item would.
-                var useTarget = externalTarget && externalTarget.group === payload.group;
+                // the correct group's root, same as clicking the picker item
+                // would.
+                var target = (el && el.dataset.blockGroup === payload.group) ? classifyDropTarget(el, e.clientY) : null;
+                clearDropMarkers();
                 window.parent.postMessage({
                     source: 'page-preview',
                     type: 'add-block-at',
                     group: payload.group,
                     blockType: payload.type,
-                    index: useTarget ? externalTarget.index : null,
-                    before: useTarget ? externalTarget.before : null,
+                    toParentPath: target ? target.toParentPath : [],
+                    toIndex: target ? target.toIndex : null,
                 }, '*');
-                externalTarget = null;
             });
 
             // ── Right-click context menu: Copy Style / Paste Style / Delete ──
@@ -423,7 +476,7 @@
                 if (m) m.remove();
             }
             document.addEventListener('contextmenu', function (e) {
-                var el = e.target.closest('[data-block-index]');
+                var el = e.target.closest('[data-block-path]');
                 closeContextMenu();
                 if (!el) return;
                 e.preventDefault();
@@ -445,7 +498,7 @@
                         ev.stopPropagation();
                         window.parent.postMessage({
                             source: 'page-preview', type: 'context-action', action: a.action,
-                            group: el.dataset.blockGroup, index: el.dataset.blockIndex,
+                            group: el.dataset.blockGroup, path: parsePath(el.dataset.blockPath),
                         }, '*');
                         closeContextMenu();
                     });

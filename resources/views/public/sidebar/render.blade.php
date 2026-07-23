@@ -5,9 +5,12 @@
   $wrapClass = trim($wrap['class'].' mb-3');
   $wrapStyleAttr = $wrap['style'] !== '' ? ' style="'.$wrap['style'].'"' : '';
   // See public/blocks/render.blade.php — same click-to-select/drag-reorder/
-  // context-menu bridge attributes.
-  $editorAttrs = isset($index)
-    ? ' data-block-index="'.(int) $index.'" data-block-group="'.e($group ?? 'sidebar').'" draggable="true"'
+  // context-menu bridge attributes (sidebar blocks never nest, so $path is
+  // always a single-element array here, but the attribute name matches the
+  // main blocks render partial so the parent-side JS doesn't need two
+  // different lookup schemes).
+  $editorAttrs = isset($path)
+    ? ' data-block-path="'.e(implode(',', $path)).'" data-block-group="'.e($group ?? 'sidebar').'" data-block-type="'.e($type).'" draggable="true"'
     : '';
 @endphp
 <div class="{{ $wrapClass }}"{!! $wrapStyleAttr !!}{!! $editorAttrs !!}>

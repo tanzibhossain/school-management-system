@@ -433,6 +433,132 @@ can only be read on `drop`, never during `dragover` (a spec-level restriction); 
   standard web platform behavior, but this is exactly the kind of thing that should get a real manual pass
   (drag from each category, drop above/below/between existing blocks, drop on an empty canvas, drop a
   Sidebar-category item and confirm it can't land among main content blocks) before trusting it.
+- **Superseded by §7g below**: the `index`/`before` addressing scheme described here, and the "nested children
+  aren't a drop target" limitation, no longer apply — §7g replaces the whole addressing model with recursive
+  paths and makes nested children fully canvas-interactive, including as drag/drop targets.
+
+## 7g. Recursive nesting: arbitrary depth, canvas-interactive children, drag-into-container, structure-aware undo/redo
+
+Requested as an explicit, scoped-up follow-on to §7d's Container/Grid model, closing all four gaps that
+section's own "What was NOT built" list had flagged. This is the actual "nested Section→Column→Widget layout"
+project §7 originally described as a separate, data-model-changing undertaking — landed here in a
+*deliberately* smaller form than a full Elementor-style engine (see "What's still not built" below), but no
+longer capped at one level and no longer read-only-via-sidebar.
+
+**The core change is addressing.** Every prior canvas feature (click-to-select, drag-reorder, right-click menu,
+the fast per-block preview patch, drag-from-sidebar-into-canvas) identified a block by a single flat
+`data-block-index` + `data-block-group` pair — which only worked because nesting was capped at one level and
+nested children were never canvas-addressable at all. Recursive nesting needs more than one number, so every
+one of those features now runs on a **path**: a list of indices from the root (`"2"` for the 3rd top-level
+block, `"2,0"` for its 1st child, `"2,0,1"` for that child's 2nd child, …), carried as `data-block-path` (was
+`data-block-index`) on every rendered block, top-level or nested alike. A path's *last segment* is always that
+block's own index among its siblings (the server renders children in array order), which is what keeps the
+reorder/insert math simple — no separate sibling-index lookup is ever needed, it's already encoded in the path
+itself.
+
+**Backend — arbitrary depth, not single-level:**
+- `PageRenderService::MAX_NESTING_DEPTH = 6` (a generous but real cap — not truly infinite, both to bound
+  worst-case render/save cost and to guarantee the recursion terminates). `LEAF_BLOCKS` changes meaning: it's
+  no longer "the only allow-list nesting ever uses," it's now "the allow-list once a branch has reached
+  `MAX_NESTING_DEPTH`" — below that depth, the full `BLOCKS` list (container/grid included) is allowed, so a
+  container CAN hold another container.
+  `resolveNestedBlocks()`/`cleanBlocks()` (`PageRenderService`) and `normalizeBlocks()`
+  (`PageController`) all gained a `$depth` parameter threaded through their existing recursive calls, switching
+  the child allow-list to `LEAF_BLOCKS` once `$depth + 1 >= MAX_NESTING_DEPTH`. `layoutForEditor()`'s `$reverse`
+  closure needed **no change** — it was already unconditionally recursive (it doesn't gate on type, since it's
+  just reversing multiline-field encoding for display, not deciding what's allowed to be saved).
+- `previewBlock()`'s single-block fast-render path still resolves data at `depth=0` regardless of how deep the
+  previewed block actually lives in the tree — a known, accepted inaccuracy (documented inline): it can only
+  affect a nested container's own `MAX_NESTING_DEPTH` bookkeeping during that one fast preview render, never on
+  save (which always uses the real depth), so it was judged not worth threading true depth through the whole
+  `previewBlock()` request just for this cosmetic edge case.
+
+**Admin editing UI — genuinely recursive, not a rewrite:** `_card.blade.php`'s existing
+`@if (container/grid) @include(_nested_blocks)` branch was ALREADY structurally recursive by construction —
+if a child is itself a container/grid, including `_card.blade.php` for it hits that same branch again. The
+only things actually stopping deeper nesting before this were: (1) `_nested_blocks.blade.php`'s "Add child"
+`<select>` only ever offered `LEAF_BLOCKS`, and (2) the hidden `tpl-child-{type}` templates
+(`edit.blade.php`) were only generated for `LEAF_BLOCKS`. Both now use the full `BLOCKS` list, with
+`_nested_blocks.blade.php` computing its own current depth from `$prefix` (`substr_count($prefix,
+'[data][blocks]')`) to stop *offering* Container/Grid as an addable child once `MAX_NESTING_DEPTH` would be
+exceeded — UX politeness matching the backend's real, independently-enforced cap, not the actual guard.
+
+**Canvas interactivity for nested children — falls out of the path rewrite almost for free:**
+`public/blocks/render.blade.php`'s container/grid `@case`s now pass `path` (parent's path + child index) and
+`group` down through their recursive `@include`, so nested children get `data-block-path`/`data-block-group`/
+`data-block-type` exactly like top-level blocks. Since `closest('[data-block-path]')` always resolves to the
+*deepest* matching element under the cursor, hover/click/drag/right-click on a nested block already "just
+work" for selection — the only genuinely new logic needed was for drag-and-drop reordering/nesting (below).
+`data-block-type` is a new attribute (both render partials) recording the block's own type, needed so the drop
+logic can recognize "this target is a Container/Grid" without inspecting rendered markup.
+
+**Drag into/out of a container:** `public/layout.blade.php`'s `dragover`/`drop` handlers gained
+`classifyDropTarget(el, clientY)` — given whatever's under the pointer, if it's a Container/Grid and the
+pointer isn't within its top/bottom ~25%-height edge zone, the drop is classified `mode:'into'` (append as a
+new child); otherwise it's `mode:'sibling'` (insert before/after, the pre-existing behavior). A guard
+(`isWithin(targetPath, dragPath)`) stops a block from being dropped into its own descendant subtree (which
+would orphan/cycle the data). One unified `move-block` message (`{group, fromPath, toParentPath, toIndex}`)
+**replaces** the old `reorder-blocks` message (which posted a full flat sibling-order array — unworkable once
+siblings can live at different nesting levels) for every case: plain reordering, dropping into a container, and
+pulling a nested child back out to a shallower level or a different container are all just "move the block at
+`fromPath` to `toIndex` within `toParentPath`'s list" to the parent, which resolves both ends via new
+`resolveListByPath()`/`resolveCardByPath()` helpers (a live DOM walk down through nested `.nested-blocks-list`
+rails — never a cached path attribute, same "always live, never stale" philosophy the pre-existing top-level
+`list.children[index]` lookups already relied on) and moves the real `.block-card` node with `insertBefore()`
+(reference-node-based, so it's correct regardless of index shifts from the node's own removal). The
+drag-from-Add-Block-panel path (`add-block-at`, §7f) was upgraded the same way — `index`/`before` became
+`toParentPath`/`toIndex`, so a *brand new* block can also be dropped straight into a container, not just an
+existing one moved into it. `addBlockAt()` (`edit.blade.php`) now branches on whether it's inserting at the
+root (ordinary `tpl-{group}-{type}` template) or into a nested list (`tpl-child-{type}` + `__PREFIX__`
+substitution from the destination list's own `data-prefix`, exactly like `_nested_blocks.blade.php`'s own "Add"
+button already did).
+
+**The per-block fast preview path (`runBlockPreview()`) is now nesting-aware too**, since a nested child's
+`.block-card` is genuinely findable via path/group in the iframe now (it wasn't before — nested edits always
+silently fell back to a full reload). Fixing this surfaced a real, previously-**dormant** bug in
+`blockFormData()`: its regex only stripped one level of prefix (`blocks[2]` → `block`), which for a nested
+field (`blocks[2][data][blocks][0][data][text]`) would have produced a malformed field name
+(`block[data][blocks][0][data][text]`) never matching what `previewBlock()` expects. Fixed with a
+depth-agnostic regex (`/^(?:blocks|sidebar)\[\d+\](?:\[data\]\[blocks\]\[\d+\])*/`). Also fixed: the `contained`
+flag `runBlockPreview()` posts was computed only from the page template, which is wrong for any nested child
+(always rendered `contained=>true` by its parent's own `@case`, regardless of template) — now `path.length > 1`
+forces it.
+
+**Structure-aware undo/redo — the actual bug this closes, not just the documented "might mismatch" gap:**
+the pre-existing `captureCardFields()`/`restoreList()` were positional and **flat** — `.block-settings [name]`
+sweeps up every DOM descendant's fields, including nested children's, with no record of which fields belonged
+to which child or how many children existed. Worse than the old docs suggested: restoring *any* snapshot of a
+populated container didn't just risk misalignment on a *changed* child count, it **unconditionally dropped every
+nested child**, every time — `restoreList()` only ever cloned a *top-level* `tpl-{group}-{type}` template (always
+empty), so a freshly-restored container had zero nested `.block-card`s for the extra captured field values to
+apply onto; they were silently discarded. Replaced with a real recursive tree capture/restore: `captureCard()`
+records `{type, fields, children}`, where `fields` is filtered to this card's own fields only
+(`el.closest('.block-card') === card`, which correctly excludes a nested child's fields even though they're DOM
+descendants of the same subtree) and `children` recurses into `captureCard()` for each item in the card's own
+`.nested-blocks-list`, if it has one. `restoreCardInto()` is the structural inverse — rebuilds one card (via
+`tpl-{group}-{type}` at the root or `tpl-child-{type}` one level down, same template choice `addChildBlock()`
+already makes) and recursively restores its children into the freshly-created nested list. A container's whole
+subtree now round-trips exactly through undo/redo, regardless of how many children it had or how deep the
+nesting went — this was the one item from §7d's gap list that was closer to "broken" than "incomplete."
+
+**What's still not built** (kept out of scope for this pass, flag before extending further):
+- **The editor's own sidebar rail drag handle** (`.js-drag-handle`, SortableJS via `initNestedSortables()`) is
+  still scoped to reordering *within* one container's own children list — it has no `group` option, so it can't
+  drag a block from one container's rail into a different container's rail, or promote a nested child back to
+  top-level, the way the *canvas* drag-and-drop (above) now can. Canvas drag is the more natural place for that
+  interaction anyway (you can see the whole page while doing it); making the rail match wasn't requested.
+- **Multi-column ROW layouts across pre-existing top-level blocks** (§7's original framing — "put the staff
+  grid next to the stats block side-by-side" without manually moving them into a new Container first) still
+  requires the user to explicitly add a Container/Grid and drag the existing blocks into it; there's no
+  "select two blocks and wrap them in a new row" shortcut.
+- **Verification gap, same as every prior nesting change**: none of this has run through Pint/PHPStan/PHPUnit
+  or a real browser — no PHP/Docker in this sandbox. This is the largest single change of the whole editor
+  project (recursive backend depth-tracking across 3 PHP methods, a rewritten cross-iframe drag-and-drop
+  protocol, and a full undo/redo rewrite) — a real manual pass matters more here than for any prior §7x entry:
+  at minimum, build a container inside a container inside a container (3 levels), drag existing blocks into and
+  out of nested containers from the canvas, right-click a nested child, undo/redo across several nested
+  add/remove/move actions, save, and reload the editor to confirm the saved `layout_json` round-trips through
+  both the public page and the editor's own re-opened state.
 
 ## 8. Decisions to confirm when resuming (if not already answered above)
 

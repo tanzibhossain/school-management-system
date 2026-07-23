@@ -44,10 +44,20 @@ class PageRenderService
     ];
 
     /**
-     * BLOCKS minus 'container'/'grid' — the allow-list for a container/grid's
-     * own nested children (single-level nesting only: a container can't hold
-     * another container/grid). Used by normalizeBlocks()/cleanBlocks()/
-     * resolveNestedBlocks() wherever nested block data is processed.
+     * Nesting is now recursive — a container/grid CAN hold another
+     * container/grid — but not infinitely: past MAX_NESTING_DEPTH levels,
+     * LEAF_BLOCKS (below) becomes the allow-list instead of the full BLOCKS
+     * list, so a container/grid type is simply not accepted anymore at that
+     * depth and the tree is guaranteed to terminate. See §7g in
+     * docs/modules/28-elementor-block-editor-plan.md.
+     */
+    public const MAX_NESTING_DEPTH = 6;
+
+    /**
+     * BLOCKS minus 'container'/'grid' — the allow-list used once nesting has
+     * reached MAX_NESTING_DEPTH (see above). Used by normalizeBlocks()/
+     * cleanBlocks()/resolveNestedBlocks() wherever nested block data is
+     * processed.
      */
     public const LEAF_BLOCKS = [
         'hero' => 'Hero banner',
@@ -116,7 +126,7 @@ class PageRenderService
      * @param  array{type: string, data: array}  $block
      * @return array<string, mixed>
      */
-    public function resolveBlockData(int $schoolId, array $block): array
+    public function resolveBlockData(int $schoolId, array $block, int $depth = 0): array
     {
         $data = $block['data'] ?? [];
 
@@ -133,7 +143,7 @@ class PageRenderService
                 'field_data' => $this->prepareAdmissionFormFields($data['fields'] ?? $data['hidden'] ?? []),
             ],
             'container', 'grid' => $data + [
-                'blocks' => $this->resolveNestedBlocks($schoolId, is_array($data['blocks'] ?? null) ? $data['blocks'] : []),
+                'blocks' => $this->resolveNestedBlocks($schoolId, is_array($data['blocks'] ?? null) ? $data['blocks'] : [], $depth + 1),
             ],
             default => $data,
         };
@@ -143,11 +153,14 @@ class PageRenderService
      * Resolve a container/grid's own children into the same {type,d,style,
      * layout} shape buildViewFromBlocks() produces for top-level blocks, so
      * public/blocks/render.blade.php can recursively @include itself for
-     * each one. Not click-to-select/drag/right-click-able on the canvas
-     * (they render without a data-block-index — see render.blade.php) —
-     * nested children are edited via the container's own rail panel instead
-     * (see admin/website/pages/_nested_blocks.blade.php); single-level only,
-     * so a nested child is never itself a container/grid.
+     * each one — genuinely recursively: a child that is itself
+     * container/grid gets its OWN 'blocks' resolved the same way, via the
+     * mutual recursion with resolveBlockData() above, up to
+     * MAX_NESTING_DEPTH (beyond which the allow-list drops to LEAF_BLOCKS,
+     * so a container/grid type simply stops being accepted and the
+     * recursion terminates). $depth is the depth of the children being
+     * resolved here (1 for a top-level container's own children, 2 for
+     * their children's children, …).
      *
      * $blocks is arbitrary decoded JSON from layout_json (not a statically
      * guaranteed shape — a stored container's children could in principle
@@ -158,17 +171,18 @@ class PageRenderService
      * @param  list<array<string, mixed>>  $blocks
      * @return array<int, array{type: string, d: array, style: array, layout: array}>
      */
-    private function resolveNestedBlocks(int $schoolId, array $blocks): array
+    private function resolveNestedBlocks(int $schoolId, array $blocks, int $depth): array
     {
+        $allowed = $depth >= self::MAX_NESTING_DEPTH ? self::LEAF_BLOCKS : self::BLOCKS;
         $out = [];
         foreach ($blocks as $b) {
             $type = $b['type'] ?? null;
-            if (! is_string($type) || ! array_key_exists($type, self::LEAF_BLOCKS)) {
+            if (! is_string($type) || ! array_key_exists($type, $allowed)) {
                 continue;
             }
             $out[] = [
                 'type' => $type,
-                'd' => $this->resolveBlockData($schoolId, $b),
+                'd' => $this->resolveBlockData($schoolId, $b, $depth),
                 'style' => $b['style'] ?? [],
                 'layout' => $b['layout'] ?? [],
             ];
@@ -200,14 +214,18 @@ class PageRenderService
     }
 
     /**
-     * Drop any block whose type isn't in the allow-list and coerce data to array.
+     * Drop any block whose type isn't in the allow-list and coerce data to
+     * array. Recurses into a container/grid's own children (genuinely, to
+     * MAX_NESTING_DEPTH — see the constant's docblock) so a container nested
+     * inside a container is cleaned the same way as a top-level one.
      *
      * @param  array<int, mixed>  $blocks
      * @param  array<string, string>  $allowed
      * @return array<int, array{type: string, data: array, style: array, layout: array}>
      */
-    private function cleanBlocks(array $blocks, array $allowed): array
+    private function cleanBlocks(array $blocks, array $allowed, int $depth = 0): array
     {
+        $childAllowed = $depth + 1 >= self::MAX_NESTING_DEPTH ? self::LEAF_BLOCKS : self::BLOCKS;
         $out = [];
         foreach ($blocks as $block) {
             $type = $block['type'] ?? null;
@@ -216,7 +234,7 @@ class PageRenderService
             }
             $data = is_array($block['data'] ?? null) ? $block['data'] : [];
             if (in_array($type, ['container', 'grid'], true)) {
-                $data['blocks'] = $this->cleanBlocks(is_array($data['blocks'] ?? null) ? $data['blocks'] : [], self::LEAF_BLOCKS);
+                $data['blocks'] = $this->cleanBlocks(is_array($data['blocks'] ?? null) ? $data['blocks'] : [], $childAllowed, $depth + 1);
             }
             $out[] = [
                 'type' => $type,

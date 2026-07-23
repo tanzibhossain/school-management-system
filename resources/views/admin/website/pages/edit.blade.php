@@ -378,13 +378,18 @@
     <template id="tpl-sidebar-{{ $t }}">@include('admin.website.pages._card', ['prefix' => 'sidebar[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec, 'style' => [], 'layout' => [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$t] ?? 'bi-square', 'blockIcons' => $blockIcons])</template>
   @endforeach
 
-  {{-- Hidden templates for a Container/Grid's own nested children — leaf
-       types only (single-level nesting). Uses a __PREFIX__ token instead of
-       a literal "blocks"/"sidebar" root: addChildBlock() substitutes it with
-       the specific container's own data-prefix at insert time, since a
-       child's real prefix ("blocks[2][data][blocks][0]") depends on which
-       container it's being added to, not a fixed top-level list. --}}
-  @foreach (\App\Modules\Website\Services\PageRenderService::LEAF_BLOCKS as $t => $l)
+  {{-- Hidden templates for a Container/Grid's own nested children — every
+       block type, INCLUDING container/grid (nesting is recursive now, see
+       §7g in docs/modules/28-elementor-block-editor-plan.md) — the
+       "how deep is too deep" cap is enforced by _nested_blocks.blade.php
+       simply not offering container/grid in its "Add child" dropdown past
+       PageRenderService::MAX_NESTING_DEPTH, not by omitting the template
+       here. Uses a __PREFIX__ token instead of a literal "blocks"/"sidebar"
+       root: addChildBlock() substitutes it with the specific container's
+       own data-prefix at insert time, since a child's real prefix
+       ("blocks[2][data][blocks][0]") depends on which container it's being
+       added to, not a fixed top-level list. --}}
+  @foreach (\App\Modules\Website\Services\PageRenderService::BLOCKS as $t => $l)
     <template id="tpl-child-{{ $t }}">@include('admin.website.pages._card', ['prefix' => '__PREFIX__[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec, 'style' => [], 'layout' => [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$t] ?? 'bi-square', 'blockIcons' => $blockIcons])</template>
   @endforeach
 
@@ -555,23 +560,89 @@
         var list = document.getElementById(group + '-list');
         finishBlockInsert(list, insertBlockHtml(list, html, null));
       }
+      // ── Path resolution (arbitrary nesting depth — see §7g in
+      // docs/modules/28-elementor-block-editor-plan.md) ─────────────────────
+      // A block's path is the same list of indices its rendered element
+      // carries as data-block-path in the preview iframe ("2" for the 3rd
+      // top-level block, "2,0" for its 1st child, …). These walk the
+      // EDITOR's own live DOM — never cached, always recomputed — exactly
+      // like the pre-existing top-level `list.children[index]` lookups this
+      // whole system has always relied on, just generalized to descend
+      // through nested containers' own `.nested-blocks-list` rails too.
+      function resolveListByPath(group, parentPath) {
+        var list = document.getElementById(group === 'sidebar' ? 'sidebar-list' : 'blocks-list');
+        for (var i = 0; i < parentPath.length && list; i++) {
+          var card = list.children[parentPath[i]];
+          // A card's OWN nested-blocks-list is always the first one found by
+          // subtree order (its wrap comes before any deeper descendant's —
+          // see the comment in _nested_blocks.blade.php), so a plain
+          // (non-:scope) querySelector is safe here.
+          list = card ? card.querySelector('.nested-blocks-wrap > .nested-blocks-list') : null;
+        }
+        return list || null;
+      }
+      function resolveCardByPath(group, path) {
+        if (!path || !path.length) return null;
+        var parentList = resolveListByPath(group, path.slice(0, -1));
+        return parentList ? (parentList.children[path[path.length - 1]] || null) : null;
+      }
+      // The inverse: given a card already in hand (e.g. from a form 'input'
+      // event target), walk UP to compute its own path.
+      function computeCardPath(card, group) {
+        var path = [];
+        var node = card;
+        while (node) {
+          var list = node.parentElement;
+          if (!list) return null;
+          var idx = Array.prototype.indexOf.call(list.children, node);
+          if (idx < 0) return null;
+          path.unshift(idx);
+          if (list.id === 'blocks-list' || list.id === 'sidebar-list') {
+            if ((group === 'sidebar') !== (list.id === 'sidebar-list')) return null;
+            return path;
+          }
+          // Not a root list — must be a nested container's children rail;
+          // step up to the .block-card that owns it. (.closest() only ever
+          // finds an ANCESTOR, so this can't accidentally jump to a child
+          // card instead of the true parent.)
+          node = list.closest('.block-card');
+          if (!node) return null;
+        }
+        return null;
+      }
+      function pathWithin(path, ancestorPath) {
+        if (path.length < ancestorPath.length) return false;
+        for (var i = 0; i < ancestorPath.length; i++) if (path[i] !== ancestorPath[i]) return false;
+        return true;
+      }
       // Dragging a block-type box from the Add Block panel and dropping it
       // at a specific spot on the canvas (see public/layout.blade.php's
-      // 'add-block-at' postMessage) — index/before describe a position
-      // among the group's blocks AS THEY WERE the last time the preview
-      // rendered (the iframe's data-block-index values), which lines up
-      // with this list's current DOM order under the same invariant every
-      // other canvas-driven action (reorder-blocks, select-block) relies on.
-      function addBlockAt(group, type, index, before) {
-        var tpl = document.getElementById('tpl-' + group + '-' + type);
-        var list = document.getElementById(group + '-list');
-        if (!tpl || !list) return;
-        var html = tpl.innerHTML.split('__I__').join(blockIdx++);
-        var refNode = null;
-        if (index !== null && index !== undefined) {
-          var existing = list.children[index];
-          if (existing) refNode = before ? existing : existing.nextElementSibling;
+      // 'add-block-at' postMessage) — toParentPath/toIndex describe a
+      // position among the DESTINATION list's children AS THEY WERE the
+      // last time the preview rendered, which lines up with that list's
+      // current DOM order under the same invariant every other
+      // canvas-driven action (move-block, select-block) relies on.
+      // toParentPath non-empty means "drop as a new child inside that
+      // container" — uses the tpl-child-{type} template (a __PREFIX__
+      // token substituted from the destination list's own data-prefix),
+      // exactly like _nested_blocks.blade.php's own "Add" button
+      // (addChildBlock()) does; empty path means the ordinary top-level
+      // tpl-{group}-{type} template.
+      function addBlockAt(group, type, toParentPath, toIndex) {
+        var list = resolveListByPath(group, toParentPath || []);
+        if (!list) return;
+        var html;
+        if (toParentPath && toParentPath.length) {
+          var tpl = document.getElementById('tpl-child-' + type);
+          if (!tpl) return;
+          var prefixRoot = list.dataset.prefix + '[data][blocks]';
+          html = tpl.innerHTML.split('__PREFIX__').join(prefixRoot).split('__I__').join(blockIdx++);
+        } else {
+          var tpl = document.getElementById('tpl-' + group + '-' + type);
+          if (!tpl) return;
+          html = tpl.innerHTML.split('__I__').join(blockIdx++);
         }
+        var refNode = (toIndex !== null && toIndex !== undefined) ? (list.children[toIndex] || null) : null;
         finishBlockInsert(list, insertBlockHtml(list, html, refNode));
       }
       // A container/grid's own "Add" control (see _nested_blocks.blade.php)
@@ -773,25 +844,54 @@
         saveBtn.disabled = JSON.stringify(snapshotState()) === initialSnapshotJson;
       }
 
-      function captureCardFields(card) {
-        return Array.prototype.map.call(card.querySelectorAll('.block-settings [name]'), function (el) {
+      // Structure-aware capture/restore (§7g in
+      // docs/modules/28-elementor-block-editor-plan.md): a card's OWN fields
+      // are isolated from a nested child's by checking which .block-card
+      // el.closest('.block-card') resolves to — plain '.block-settings
+      // [name]' would otherwise sweep up every descendant's fields too
+      // (nested cards live inside their parent's DOM subtree), flattening
+      // them into one undifferentiated positional array with no record of
+      // how many children existed or where the boundaries between them
+      // were. That flat/positional approach is what let undo/redo silently
+      // DROP a container's children on every restore before this fix — a
+      // fresh tpl-{group}-{type} clone starts with zero nested cards, so
+      // there was nothing for those extra captured values to slot into.
+      function cardOwnFields(card) {
+        return Array.prototype.filter.call(card.querySelectorAll('.block-settings [name]'), function (el) {
+          return el.closest('.block-card') === card;
+        });
+      }
+      function captureCardOwnFields(card) {
+        return cardOwnFields(card).map(function (el) {
           return (el.type === 'checkbox' || el.type === 'radio') ? { checked: el.checked } : { value: el.value };
         });
       }
-      function applyCardFields(card, captured) {
-        var els = card.querySelectorAll('.block-settings [name]');
+      function applyCardOwnFields(card, captured) {
+        var els = cardOwnFields(card);
         captured.forEach(function (c, i) {
           var el = els[i];
           if (!el) return;
           if (el.type === 'checkbox' || el.type === 'radio') { el.checked = !!c.checked; } else { el.value = c.value; }
         });
       }
+      // A card's own nested-blocks-list, if it has one (see the identical
+      // "first in document order = the direct one" reasoning in
+      // resolveListByPath() above) — null for a leaf block.
+      function ownNestedList(card) {
+        return card.querySelector('.nested-blocks-wrap > .nested-blocks-list');
+      }
+      function captureCard(card) {
+        var typeInput = cardOwnFields(card).filter(function (el) { return /\[type\]$/.test(el.name); })[0];
+        var nestedList = ownNestedList(card);
+        return {
+          type: typeInput ? typeInput.value : '',
+          fields: captureCardOwnFields(card),
+          children: nestedList ? Array.prototype.map.call(nestedList.children, captureCard) : null,
+        };
+      }
       function captureList(listId) {
         var list = document.getElementById(listId);
-        return Array.prototype.map.call(list.children, function (card) {
-          var typeInput = card.querySelector('[name$="[type]"]');
-          return { type: typeInput ? typeInput.value : '', fields: captureCardFields(card) };
-        });
+        return Array.prototype.map.call(list.children, captureCard);
       }
       function snapshotState() {
         return {
@@ -803,16 +903,38 @@
           sidebar: captureList('sidebar-list'),
         };
       }
+      // Rebuilds one card from a captured node — top-level via the ordinary
+      // tpl-{group}-{type} template, a nested child via tpl-child-{type}
+      // (same __PREFIX__ substitution addChildBlock() uses) — then
+      // recursively rebuilds any children it had, so a container's whole
+      // subtree round-trips exactly, regardless of how many children it had
+      // or how deep the nesting went.
+      function restoreCardInto(list, group, snap, isChild) {
+        var tpl = document.getElementById(isChild ? 'tpl-child-' + snap.type : 'tpl-' + group + '-' + snap.type);
+        if (!tpl) return null;
+        var html;
+        if (isChild) {
+          var prefixRoot = list.dataset.prefix + '[data][blocks]';
+          html = tpl.innerHTML.split('__PREFIX__').join(prefixRoot).split('__I__').join(blockIdx++);
+        } else {
+          html = tpl.innerHTML.split('__I__').join(blockIdx++);
+        }
+        list.insertAdjacentHTML('beforeend', html);
+        var card = list.lastElementChild;
+        applyCardOwnFields(card, snap.fields);
+        if (snap.children) {
+          var nestedList = ownNestedList(card);
+          if (nestedList) {
+            snap.children.forEach(function (childSnap) { restoreCardInto(nestedList, group, childSnap, true); });
+            updateEmptyState(nestedList);
+          }
+        }
+        return card;
+      }
       function restoreList(listId, group, snapshotBlocks) {
         var list = document.getElementById(listId);
         list.innerHTML = '';
-        snapshotBlocks.forEach(function (b) {
-          var tpl = document.getElementById('tpl-' + group + '-' + b.type);
-          if (!tpl) return;
-          var html = tpl.innerHTML.split('__I__').join(blockIdx++);
-          list.insertAdjacentHTML('beforeend', html);
-          applyCardFields(list.lastElementChild, b.fields);
-        });
+        snapshotBlocks.forEach(function (b) { restoreCardInto(list, group, b, false); });
       }
       function restoreSnapshot(snap) {
         document.querySelector('[name="title"]').value = snap.title;
@@ -1087,7 +1209,15 @@
           var fd = new FormData();
           card.querySelectorAll('[name]').forEach(function (el) {
             if ((el.type === 'checkbox' || el.type === 'radio') && !el.checked) return;
-            fd.append(el.name.replace(/^(blocks|sidebar)\[\d+\]/, 'block'), el.value);
+            // Strip this block's own addressing prefix down to a bare
+            // "block" root, regardless of nesting depth — a top-level
+            // field is named "blocks[2][data][text]", a child nested one
+            // level in is "blocks[2][data][blocks][0][data][text]", one
+            // level deeper still repeats the "[data][blocks][N]" segment
+            // again, and so on. previewBlock() only ever expects a single
+            // block's own field names ("block[data][text]"), never a
+            // nested wrapper.
+            fd.append(el.name.replace(/^(?:blocks|sidebar)\[\d+\](?:\[data\]\[blocks\]\[\d+\])*/, 'block'), el.value);
           });
           return fd;
         }
@@ -1106,14 +1236,19 @@
           if (!named || !frameDoc) { schedulePreview(); return; }
 
           var group = /^sidebar\[/.test(named.name) ? 'sidebar' : 'blocks';
-          var list = document.getElementById(group === 'sidebar' ? 'sidebar-list' : 'blocks-list');
-          var index = Array.prototype.indexOf.call(list.children, card);
-          var target = index < 0 ? null : frameDoc.querySelector('[data-block-group="' + group + '"][data-block-index="' + index + '"]');
+          var path = computeCardPath(card, group);
+          var target = path ? frameDoc.querySelector('[data-block-group="' + group + '"][data-block-path="' + path.join(',') + '"]') : null;
           if (!target) { schedulePreview(); return; } // never rendered there yet — do a full reload instead
 
           var fd = blockFormData(card);
           fd.append('group', group);
-          fd.append('contained', (group === 'blocks' && document.getElementById('tpl-select').value === 'sidebar') ? '1' : '0');
+          // A nested child (path.length > 1) is ALWAYS rendered inside its
+          // parent's own wrapper (see the container/grid @case in
+          // public/blocks/render.blade.php, which always passes
+          // contained=>true to its children) regardless of the page
+          // template; only a top-level block's containment depends on the
+          // sidebar template's narrower column.
+          fd.append('contained', (path.length > 1 || (group === 'blocks' && document.getElementById('tpl-select').value === 'sidebar')) ? '1' : '0');
           setStatus(@json(__('Updating…')));
 
           fetch(blockPreviewUrl, {
@@ -1128,8 +1263,14 @@
             tmp.innerHTML = html.trim();
             var next = tmp.firstElementChild;
             if (!next) throw new Error('empty block render');
-            next.setAttribute('data-block-index', index);
+            next.setAttribute('data-block-path', path.join(','));
             next.setAttribute('data-block-group', group);
+            // previewBlock() doesn't know this block's own type isn't
+            // changing (it just re-renders the fields it was given) — carry
+            // it over from the element being replaced so drag-into-container
+            // detection (data-block-type) keeps working after a field edit.
+            var oldType = target.getAttribute('data-block-type');
+            if (oldType) next.setAttribute('data-block-type', oldType);
             target.replaceWith(next);
             setStatus(@json(__('Up To Date')));
           }).catch(function () {
@@ -1164,13 +1305,15 @@
 
       // ── Preview canvas bridge ────────────────────────────────────────────
       // The preview iframe (public/layout.blade.php) posts messages for
-      // everything that happens directly on the canvas: click-to-select,
-      // clicking the background (deselect), drag-reorder, and the
-      // right-click Copy/Paste/Delete menu. The rendered index is
-      // positional (the Nth block-card currently in the list), which lines
-      // up exactly with what the preview just rendered — the preview is
-      // built from this same form's current DOM order (see runPreview()
-      // above).
+      // everything that happens directly on the canvas: click-to-select
+      // (including nested children — see §7g), clicking the background
+      // (deselect), drag-reorder/drag-into-a-container, and the right-click
+      // Copy/Paste/Delete menu. Every block is addressed by PATH (a list of
+      // indices from the root, e.g. [2,0,1]) rather than a single flat
+      // index, resolved against this form's current DOM order via
+      // resolveCardByPath()/resolveListByPath() above — which lines up
+      // exactly with what the preview just rendered, the same invariant
+      // every canvas-driven action has always relied on.
       window.addEventListener('message', function (e) {
         // Verify by sender identity (e.source), not e.origin: the preview
         // iframe is loaded via .srcdoc, whose origin serializes as the
@@ -1184,8 +1327,7 @@
         if (!msg || msg.source !== 'page-preview') return;
 
         if (msg.type === 'select-block') {
-          var list = document.getElementById(msg.group === 'sidebar' ? 'sidebar-list' : 'blocks-list');
-          var card = list && list.children[parseInt(msg.index, 10)];
+          var card = resolveCardByPath(msg.group, msg.path);
           if (card) {
             showPanel('blocks');
             openBlockCard(card);
@@ -1201,17 +1343,23 @@
           return;
         }
 
-        if (msg.type === 'reorder-blocks') {
-          var list = document.getElementById(msg.group === 'sidebar' ? 'sidebar-list' : 'blocks-list');
-          if (!list || !Array.isArray(msg.order)) return;
-          var children = Array.prototype.slice.call(list.children);
-          // msg.order is the full new sequence of ORIGINAL indices (into
-          // `children`, which is still in the pre-drag order at this point)
-          // — re-appending each in turn reorders the list to match.
-          msg.order.forEach(function (origIndex) {
-            var node = children[origIndex];
-            if (node) list.appendChild(node);
-          });
+        if (msg.type === 'move-block') {
+          // Covers plain sibling reordering, dropping a block INSIDE a
+          // container/grid, and pulling a nested child back out — all
+          // "move the block at fromPath to toIndex within toParentPath's
+          // list" (see the matching comment in public/layout.blade.php).
+          if (!Array.isArray(msg.fromPath) || !Array.isArray(msg.toParentPath)) return;
+          if (pathWithin(msg.toParentPath, msg.fromPath)) return; // can't nest a block inside itself
+          var card = resolveCardByPath(msg.group, msg.fromPath);
+          var destList = resolveListByPath(msg.group, msg.toParentPath);
+          if (!card || !destList) return;
+          var refNode = (msg.toIndex !== null && msg.toIndex !== undefined) ? (destList.children[msg.toIndex] || null) : null;
+          if (refNode === card) return; // dropped on itself — no-op
+          var srcList = card.parentElement;
+          destList.insertBefore(card, refNode);
+          updateEmptyState(srcList);
+          updateEmptyState(destList);
+          initNestedSortables();
           schedulePreview();
           pushHistory();
           return;
@@ -1222,13 +1370,12 @@
           // dropped on the canvas — see addBlockAt() and the dragstart/drop
           // handlers above/in public/layout.blade.php.
           if (!msg.group || !msg.blockType) return;
-          addBlockAt(msg.group, msg.blockType, msg.index, msg.before);
+          addBlockAt(msg.group, msg.blockType, msg.toParentPath || [], msg.toIndex);
           return;
         }
 
         if (msg.type === 'context-action') {
-          var list = document.getElementById(msg.group === 'sidebar' ? 'sidebar-list' : 'blocks-list');
-          var card = list && list.children[parseInt(msg.index, 10)];
+          var card = resolveCardByPath(msg.group, msg.path);
           if (!card) return;
           if (msg.action === 'copy') { copyStyleFromCard(card); }
           else if (msg.action === 'paste') { pasteStyleToCard(card); }

@@ -264,8 +264,17 @@ class PageController extends Controller
     }
 
     /** @param array<string, string> $allowed */
-    private function normalizeBlocks(array $raw, array $allowed): array
+    private function normalizeBlocks(array $raw, array $allowed, int $depth = 0): array
     {
+        // Recursive nesting up to PageRenderService::MAX_NESTING_DEPTH: a
+        // container/grid's own children go through this same normalization,
+        // and CAN themselves be container/grid — until $depth would exceed
+        // the cap, at which point the allow-list drops to LEAF_BLOCKS so a
+        // container/grid type is no longer accepted and the tree terminates.
+        $childAllowed = $depth + 1 >= PageRenderService::MAX_NESTING_DEPTH
+            ? PageRenderService::LEAF_BLOCKS
+            : PageRenderService::BLOCKS;
+
         $out = [];
         foreach ($raw as $b) {
             $type = $b['type'] ?? null;
@@ -274,13 +283,11 @@ class PageController extends Controller
             }
             $data = is_array($b['data'] ?? null) ? $b['data'] : [];
 
-            // Single-level nesting only: a container/grid's own children go
-            // through this same normalization, restricted to leaf types (no
-            // nested container/grid) — see PageRenderService::LEAF_BLOCKS.
             if (in_array($type, ['container', 'grid'], true)) {
                 $data['blocks'] = $this->normalizeBlocks(
                     is_array($data['blocks'] ?? null) ? $data['blocks'] : [],
-                    PageRenderService::LEAF_BLOCKS
+                    $childAllowed,
+                    $depth + 1
                 );
             }
 

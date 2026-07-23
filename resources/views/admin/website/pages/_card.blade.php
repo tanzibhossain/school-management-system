@@ -38,9 +38,10 @@
             @include('admin.website.pages._fields', ['prefix' => $prefix, 'type' => $type, 'data' => $data, 'spec' => $spec])
           @endif
           @if (in_array($type, ['container', 'grid'], true))
-            {{-- Nested children mini-rail — single-level nesting only (a
-                 container/grid's own children are always leaf types). See
-                 docs/modules/28-elementor-block-editor-plan.md §7d. --}}
+            {{-- Nested children mini-rail — recursive: a child can itself be
+                 a container/grid, up to PageRenderService::MAX_NESTING_DEPTH
+                 (see _nested_blocks.blade.php). See
+                 docs/modules/28-elementor-block-editor-plan.md §7d/§7g. --}}
             @include('admin.website.pages._nested_blocks', ['prefix' => $prefix, 'children' => $data['blocks'] ?? [], 'spec' => $spec, 'gridTypes' => $gridTypes, 'blockIcons' => $blockIcons ?? []])
           @endif
         </div>
