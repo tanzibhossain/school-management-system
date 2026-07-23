@@ -145,6 +145,21 @@ that is a **separate, larger, data-model-changing project**:
   "put the staff grid next to the stats block side-by-side") — until then the flat model plus the grid-column
   controls already shipped (Module 20's Style/Layout work) covers the common cases.
 
+## 7a. Rich text editor: Quill, not TinyMCE
+
+Turned up while wiring the live preview to rich-text fields: `edit.blade.php` had a dead `initRichTextEditors()`
+function targeting TinyMCE, but **no TinyMCE script was ever loaded anywhere in the app** — it was a no-op from
+day one. The block editor's actual rich-text editing has always been powered by **Quill 2.0.2** (open source,
+BSD-3, loaded globally from CDN in `layouts/admin.blade.php` — no API key, no build step), via a per-field inline
+init script in `_fields.blade.php`. That per-field script only ran once at page load, though, so a richtext block
+added later via "Add block" got an inert, un-initialized Quill container. Fixed by removing the dead TinyMCE code
+and per-field script entirely, replacing it with one shared, idempotent `initQuillEditors()` in `edit.blade.php`
+(guarded by `data-quill-init`, called on page load and again from `addBlock()`), and wiring Quill's `text-change`
+into the same `scheduleBlockPreview()`/`schedulePreview()` routing every other field already uses — previously
+richtext edits never triggered a live-preview update at all, since Quill syncs its hidden input via `.value =`,
+which doesn't fire native `input`/`change` events. Also extended the Quill treatment to `image_text`'s `html`
+field (previously a plain textarea despite rendering as raw HTML on the public site, same as `richtext`).
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1
