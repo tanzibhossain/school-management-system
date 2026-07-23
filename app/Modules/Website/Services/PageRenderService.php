@@ -142,9 +142,15 @@ class PageRenderService
                     ->where('is_trash', false)->orderByDesc('is_current')->orderByDesc('year')->get(['id', 'year']),
                 'field_data' => $this->prepareAdmissionFormFields($data['fields'] ?? $data['hidden'] ?? []),
             ],
-            'container', 'grid' => $data + [
+            // array_merge(), not `+`: $data already has its OWN 'blocks' key
+            // (the raw, unresolved stored children) — `+` only fills in
+            // MISSING keys, so it would silently keep the raw array and
+            // discard the resolved one below, leaving every child without
+            // its 'd' key (undefined array key at render time). array_merge()
+            // correctly lets the resolved value win.
+            'container', 'grid' => array_merge($data, [
                 'blocks' => $this->resolveNestedBlocks($schoolId, is_array($data['blocks'] ?? null) ? $data['blocks'] : [], $depth + 1),
-            ],
+            ]),
             default => $data,
         };
     }
