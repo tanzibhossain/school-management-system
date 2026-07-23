@@ -179,6 +179,7 @@
   @endforeach
 
   @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script>
       var blockIdx = 1000;
       function addBlock(group, type) {
@@ -216,6 +217,22 @@
         } else {
           openBlockCard(card);
         }
+      }
+
+      // Drag-to-reorder via the grip handle — reordering is a structural
+      // change (positions shift for every block after the moved one), so it
+      // always triggers a full preview reload, same as the up/down buttons.
+      if (window.Sortable) {
+        ['blocks-list', 'sidebar-list'].forEach(function (id) {
+          var list = document.getElementById(id);
+          if (!list) return;
+          new Sortable(list, {
+            handle: '.js-drag-handle',
+            animation: 150,
+            ghostClass: 'opacity-50',
+            onEnd: function () { schedulePreview(); },
+          });
+        });
       }
 
       document.addEventListener('click', function (e) {
