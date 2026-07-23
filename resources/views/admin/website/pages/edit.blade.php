@@ -76,7 +76,10 @@
       <nav><ol class="breadcrumb small mb-1"><li class="breadcrumb-item">{{ __('Website') }}</li><li class="breadcrumb-item"><a href="{{ route('admin.pages.index') }}" class="text-decoration-none">{{ __('Pages') }}</a></li><li class="breadcrumb-item active">{{ $page->title }}</li></ol></nav>
       <h1 class="h4 mb-0">{{ __('Edit Page') }}</h1>
     </div>
-    @if ($page->status === 'published')<a class="btn btn-outline-secondary" href="{{ url('/' . $page->slug) }}" target="_blank"><i class="bi bi-box-arrow-up-right"></i> {{ __('View Live') }}</a>@endif
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary" href="{{ route('admin.pages.history', $page->id) }}"><i class="bi bi-clock-history"></i> {{ __('History') }}</a>
+      @if ($page->status === 'published')<a class="btn btn-outline-secondary" href="{{ url('/' . $page->slug) }}" target="_blank"><i class="bi bi-box-arrow-up-right"></i> {{ __('View Live') }}</a>@endif
+    </div>
   </div>
 
   <form method="POST" action="{{ route('admin.pages.save', $page->id) }}" id="page-form">

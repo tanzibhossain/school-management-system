@@ -186,6 +186,28 @@ class PageController extends Controller
         return back()->with('status', "“{$page->title}” is now the homepage.");
     }
 
+    /** List every saved revision of this page — every save is a kept row, never overwritten. */
+    public function history(int $id): View
+    {
+        $schoolId = app('current_school_id');
+        $page = Page::forSchool($schoolId)->with('layouts.createdBy')->findOrFail($id);
+
+        return view('admin.website.pages.history', ['page' => $page]);
+    }
+
+    /** Copy an old revision's layout into a brand-new (draft) row — history is never rewound or destroyed. */
+    public function restore(Request $request, int $id, int $layoutId): RedirectResponse
+    {
+        $schoolId = app('current_school_id');
+        $page = Page::forSchool($schoolId)->findOrFail($id);
+        $revision = $page->layouts()->findOrFail($layoutId);
+
+        $this->pages->restore($page, $revision, $request->user());
+
+        return redirect()->route('admin.pages.edit', $page->id)
+            ->with('status', __('Revision restored as a new draft — review and Save to publish it.'));
+    }
+
     public function destroy(int $id): RedirectResponse
     {
         $schoolId = app('current_school_id');

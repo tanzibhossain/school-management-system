@@ -305,6 +305,8 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::post('/pages/{id}/preview', [WebsitePageController::class, 'preview'])->whereNumber('id')->name('pages.preview');
         Route::post('/pages/{id}/preview-block', [WebsitePageController::class, 'previewBlock'])->whereNumber('id')->name('pages.preview-block');
         Route::post('/pages/{id}/homepage', [WebsitePageController::class, 'setHomepage'])->whereNumber('id')->name('pages.homepage');
+        Route::get('/pages/{id}/history', [WebsitePageController::class, 'history'])->whereNumber('id')->name('pages.history');
+        Route::post('/pages/{id}/restore/{layoutId}', [WebsitePageController::class, 'restore'])->whereNumber(['id', 'layoutId'])->name('pages.restore');
         Route::delete('/pages/{id}', [WebsitePageController::class, 'destroy'])->whereNumber('id')->name('pages.destroy');
 
         // Navigation menu editor
