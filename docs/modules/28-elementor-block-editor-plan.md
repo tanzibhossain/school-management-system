@@ -1,10 +1,12 @@
 # Website Page Builder — Elementor-style Live Editor · Plan
 
 **Status:** ✅ **All 10 milestones done**, plus a **fullscreen Elementor-style shell rebuild** (§7b), a
-**sidebar UX pass** (§7c), and a **widget library + nested Container/Grid model** (§7d) — 8 new leaf block
-types, a searchable categorized Add Block picker, and single-level block nesting (all done, pending user
-verification — this last one in particular needs real `pint`/`phpstan`/`phpunit` + manual QA, see §7d's closing
-note) · **Path:** `app/Modules/Website`, `app/Http/Controllers/Admin/Website`,
+**sidebar UX pass** (§7c), a **widget library + nested Container/Grid model** (§7d), and a **video block
+options overhaul** (§7e) — 8 new leaf block types, a searchable categorized Add Block picker, single-level
+block nesting, and a full Elementor-style video block (source picker, self-hosted `<video>` vs. embed,
+autoplay/mute/loop/controls/download/preload/poster) (all done, pending user verification — needs real
+`pint`/`phpstan`/`phpunit` + manual QA, see §7d/§7e's closing notes) · **Path:** `app/Modules/Website`,
+`app/Http/Controllers/Admin/Website`,
 `resources/views/admin/website/pages`, `resources/views/public`, `resources/views/layouts/admin-fullscreen.blade.php`
 · **Depends on:** `20-website.md` §"Block Style & Layout" (✅ shipped — the Style/Layout tabs,
 `PageRenderService::sanitizeStyle/sanitizeLayout`, and `BlockPresentation` this plan builds on top of).
@@ -354,6 +356,45 @@ hint) — small, backward-compatible additions to the existing `$spec`-driven fi
   new/changed JS), this is the most important thing to check before trusting it in production: at minimum, add
   a page with a Container holding 2-3 leaf blocks and a Grid holding a few more, save, reload the editor, and
   confirm both the public page and the editor's own re-opened state match what was configured.
+
+## 7e. Video block options overhaul
+
+Requested via a mockup of Elementor's own Video widget settings. Replaced the video block's original 3-field
+spec (heading/url/caption) with the full set: `source` (YouTube/Vimeo/Dailymotion/VideoPress/Self Hosted),
+`url` (External URL, relabeled from the old field — same key, so existing saved video blocks keep working
+unchanged, implicitly treated as YouTube since they predate the `source` field), `file_url` (Video File URL),
+`start_time`/`end_time` (seconds), `autoplay`/`mute`/`loop`/`controls`/`download` (toggles), `preload`
+(None/Metadata/Auto), `poster` (image URL), `caption`.
+
+**No file upload** — `file_url`/`poster` are plain URL text fields, not an actual upload picker. This app's
+entire block editor is URL-paste-based (every image/gallery/video field already works this way); building real
+file upload (MinIO wiring, an upload endpoint, progress UI) is a separate, much bigger feature this request
+didn't ask for and wasn't built here.
+
+**Two small, generic `_fields.blade.php` additions** (reusable by any future block, not video-specific):
+- **`'input' => 'switch'`** — identical hidden+checkbox pair as the existing `checkbox` type, just adds
+  `form-switch` for the pill-toggle look the mockup showed. A field can also carry `'default' => true` (only
+  `video`'s `controls` uses this) — distinguishes "never touched, \$data has no key" (empty string) from
+  "explicitly saved unchecked" (string `'0'`) so a spec-level default doesn't fight a real saved value. Select
+  fields got the equivalent `'default_value'` for the same reason (video's `preload` defaults to `metadata`).
+- **`'depends_on' => ['key' => 'source', 'values' => ['self_hosted']]`** — conditional field visibility (used
+  by `url`/`file_url` to show only the relevant one for the selected Source, matching the mockup exactly).
+  Renders as a `data-depends-on`/`data-depends-values` attribute on the field's wrapper div; a new
+  `applyFieldDependencies(card)` in `edit.blade.php` evaluates it against the current value of the named sibling
+  control, called on page load, after `addBlock()`/`addChildBlock()`/`restoreSnapshot()`, and via a delegated
+  `change` listener. **Known limitation**: looks up the depended-on control by `[name$="[data][KEY]"]`, which
+  for a checkbox/switch matches its hidden(0) input first, not the checkbox itself — a boolean field as the
+  *depended-on* control isn't supported by this lookup (not needed yet: `source` is a `<select>`).
+
+**Public rendering** (`public/blocks/render.blade.php`'s `video` case): `self_hosted` renders a native
+`<video>` with `preload`/`poster`/`controls`/`controlslist="nodownload"` (hides the download button — a
+widely-supported but non-standard attribute; Chrome/Edge/Firefox all honor it)/`autoplay muted`(forced
+together, since browsers require muted for autoplay to actually run)/`loop`, and a `#t=start,end` fragment on
+the `<source>` for start/end time (the standard Media Fragments URI way to seek native `<video>`). Any other
+source does a best-effort YouTube watch/short-link → embed URL normalization (regex-extracted video ID) plus
+`autoplay`/`mute`/`loop`/`controls`/`start`/`end` as YouTube embed URL params — Vimeo/Dailymotion/VideoPress
+are trusted to already be a pasted embeddable URL, with no per-platform param mapping (avoids guessing at
+those platforms' own embed APIs, which this app doesn't integrate with).
 
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
