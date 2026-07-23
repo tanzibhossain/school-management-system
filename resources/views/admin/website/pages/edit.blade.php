@@ -217,7 +217,11 @@
         @if ($page->status === 'published')
           <a class="btn btn-outline-secondary btn-sm" href="{{ url('/' . $page->slug) }}" target="_blank" title="{{ __('Preview') }}"><i class="bi bi-eye"></i></a>
         @endif
-        <button type="submit" form="page-form" class="btn btn-primary btn-sm">
+        {{-- Starts disabled — updateSaveButtonState() (see the undo/redo
+             history section below) enables it the moment the form actually
+             differs from the state the editor loaded with, and disables it
+             again if you undo back to that same state. --}}
+        <button type="submit" form="page-form" class="btn btn-primary btn-sm" id="btn-save" disabled>
           <i class="bi bi-cloud-upload"></i> {{ $page->status === 'published' ? __('Update') : __('Publish') }}
         </button>
       </div>
@@ -758,6 +762,16 @@
       var historyIndex = -1;
       var pushHistoryTimer = null;
       var HISTORY_LIMIT = 50;
+      // The very first snapshot pushHistory() ever takes (the page as the
+      // editor loaded it) — cached separately from history_[0] because
+      // HISTORY_LIMIT eventually shifts history_[0] out on a long editing
+      // session, but "the state Update should be disabled at" never changes.
+      var initialSnapshotJson = null;
+      function updateSaveButtonState() {
+        var saveBtn = document.getElementById('btn-save');
+        if (!saveBtn || initialSnapshotJson === null) return;
+        saveBtn.disabled = JSON.stringify(snapshotState()) === initialSnapshotJson;
+      }
 
       function captureCardFields(card) {
         return Array.prototype.map.call(card.querySelectorAll('.block-settings [name]'), function (el) {
@@ -819,6 +833,7 @@
         applyAllFieldDependencies();
         schedulePreview();
         updateUndoRedoButtons();
+        updateSaveButtonState();
       }
       function pushHistory() {
         var snap = snapshotState();
@@ -826,7 +841,9 @@
         history_.push(snap);
         if (history_.length > HISTORY_LIMIT) history_.shift();
         historyIndex = history_.length - 1;
+        if (initialSnapshotJson === null) initialSnapshotJson = JSON.stringify(snap);
         updateUndoRedoButtons();
+        updateSaveButtonState();
       }
       function schedulePushHistory() {
         clearTimeout(pushHistoryTimer);
@@ -1003,6 +1020,7 @@
             var card = container.closest('.block-card');
             if (card && window.scheduleBlockPreview) { window.scheduleBlockPreview(card); } else { schedulePreview(); }
             schedulePushHistory();
+            updateSaveButtonState();
           });
         });
       }
@@ -1135,6 +1153,7 @@
             schedulePreview();
           }
           schedulePushHistory();
+          updateSaveButtonState();
         }
         form.addEventListener('input', handleFormChange);
         form.addEventListener('change', handleFormChange);
