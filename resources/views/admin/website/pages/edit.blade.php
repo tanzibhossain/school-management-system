@@ -283,7 +283,8 @@
               setup: function(editor) {
                 editor.on('change input undo redo', function() {
                   editor.save();
-                  schedulePreview();
+                  var card = editor.getElement().closest('.block-card');
+                  if (card && window.scheduleBlockPreview) { window.scheduleBlockPreview(card); } else { schedulePreview(); }
                 });
               }
             });
@@ -305,6 +306,7 @@
         var frame = document.getElementById('preview-frame');
         var statusEl = document.getElementById('preview-status');
         var previewUrl = @json(route('admin.pages.preview', $page->id));
+        var blockPreviewUrl = @json(route('admin.pages.preview-block', $page->id));
         var timer = null;
         var inFlight = null;
 
@@ -342,11 +344,86 @@
           });
         }
 
-        // Any change anywhere in the form (text/select/textarea/checkbox/
-        // range/color) schedules a re-render. Delegated so it also covers
-        // block cards added/cloned after page load.
-        form.addEventListener('input', schedulePreview);
-        form.addEventListener('change', schedulePreview);
+        // ── Per-block partial re-render ─────────────────────────────────────
+        // A plain field edit inside one block's Content/Style/Layout tabs
+        // doesn't need the whole iframe reloaded — just that one element
+        // patched in place. Falls back to the full runPreview() above for
+        // anything structural (add/remove/reorder/template — those already
+        // call schedulePreview() directly) or if anything about the
+        // lightweight path doesn't check out (iframe not settled yet, target
+        // element missing, request fails) so the preview never gets stuck.
+        function blockFormData(card) {
+          var fd = new FormData();
+          card.querySelectorAll('[name]').forEach(function (el) {
+            if ((el.type === 'checkbox' || el.type === 'radio') && !el.checked) return;
+            fd.append(el.name.replace(/^(blocks|sidebar)\[\d+\]/, 'block'), el.value);
+          });
+          return fd;
+        }
+
+        function scheduleBlockPreview(card) {
+          setStatus(@json(__('Editing…')));
+          clearTimeout(card._previewTimer);
+          card._previewTimer = setTimeout(function () { runBlockPreview(card); }, 350);
+        }
+        window.scheduleBlockPreview = scheduleBlockPreview;
+
+        function runBlockPreview(card) {
+          var named = card.querySelector('[name]');
+          var frameDoc;
+          try { frameDoc = frame.contentDocument; } catch (e) { frameDoc = null; }
+          if (!named || !frameDoc) { schedulePreview(); return; }
+
+          var group = /^sidebar\[/.test(named.name) ? 'sidebar' : 'blocks';
+          var list = document.getElementById(group === 'sidebar' ? 'sidebar-list' : 'blocks-list');
+          var index = Array.prototype.indexOf.call(list.children, card);
+          var target = index < 0 ? null : frameDoc.querySelector('[data-block-group="' + group + '"][data-block-index="' + index + '"]');
+          if (!target) { schedulePreview(); return; } // never rendered there yet — do a full reload instead
+
+          var fd = blockFormData(card);
+          fd.append('group', group);
+          fd.append('contained', (group === 'blocks' && document.getElementById('tpl-select').value === 'sidebar') ? '1' : '0');
+          setStatus(@json(__('Updating…')));
+
+          fetch(blockPreviewUrl, {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          }).then(function (res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.text();
+          }).then(function (html) {
+            var tmp = frameDoc.createElement('div');
+            tmp.innerHTML = html.trim();
+            var next = tmp.firstElementChild;
+            if (!next) throw new Error('empty block render');
+            next.setAttribute('data-block-index', index);
+            next.setAttribute('data-block-group', group);
+            target.replaceWith(next);
+            setStatus(@json(__('Up To Date')));
+          }).catch(function () {
+            // Something about the fast path failed — fall back to a full
+            // reload so the preview is never left stale.
+            schedulePreview();
+          });
+        }
+
+        // Any change anywhere in the form schedules a re-render — a plain
+        // field edit inside a block's own settings goes through the
+        // lightweight single-block path, everything else (page meta,
+        // template) does a full reload. Delegated so it also covers block
+        // cards added/cloned after page load.
+        function handleFormChange(e) {
+          var card = e.target.closest('.block-card');
+          var withinSettings = e.target.closest('.block-settings');
+          if (card && withinSettings) {
+            scheduleBlockPreview(card);
+          } else {
+            schedulePreview();
+          }
+        }
+        form.addEventListener('input', handleFormChange);
+        form.addEventListener('change', handleFormChange);
 
         document.addEventListener('DOMContentLoaded', schedulePreview);
         if (document.readyState !== 'loading') schedulePreview();
