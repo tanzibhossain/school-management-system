@@ -302,6 +302,7 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::post('/pages', [WebsitePageController::class, 'store'])->name('pages.store');
         Route::get('/pages/{id}/edit', [WebsitePageController::class, 'edit'])->whereNumber('id')->name('pages.edit');
         Route::put('/pages/{id}', [WebsitePageController::class, 'save'])->whereNumber('id')->name('pages.save');
+        Route::post('/pages/{id}/preview', [WebsitePageController::class, 'preview'])->whereNumber('id')->name('pages.preview');
         Route::post('/pages/{id}/homepage', [WebsitePageController::class, 'setHomepage'])->whereNumber('id')->name('pages.homepage');
         Route::delete('/pages/{id}', [WebsitePageController::class, 'destroy'])->whereNumber('id')->name('pages.destroy');
 

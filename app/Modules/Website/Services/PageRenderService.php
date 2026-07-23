@@ -314,6 +314,25 @@ class PageRenderService
     public function buildView(int $schoolId, ?array $layout): array
     {
         $norm = $this->normalize($layout);
+
+        return $this->buildViewFromBlocks($schoolId, $norm['template'], $norm['blocks'], $norm['sidebar']);
+    }
+
+    /**
+     * Same render-ready shape as buildView(), but from an already-normalized
+     * blocks/sidebar array (each block already {type,data,style,layout}) held
+     * in memory instead of loaded from a page's stored layout_json. This is
+     * the seam the admin live-preview endpoint uses: it runs the admin's
+     * posted (unsaved) form data through the exact same
+     * live-data-resolution + presentation pipeline as a saved, published page,
+     * so the preview can never drift from what the real site would render.
+     *
+     * @param  array<int, array{type: string, data: array, style: array, layout: array}>  $blocks
+     * @param  array<int, array{type: string, data: array, style: array, layout: array}>  $sidebar
+     * @return array{template: string, blocks: array<int, array{type: string, d: array, style: array, layout: array}>, sidebar: array<int, array{type: string, d: array, style: array, layout: array}>}
+     */
+    public function buildViewFromBlocks(int $schoolId, string $template, array $blocks, array $sidebar): array
+    {
         $map = fn (array $b): array => [
             'type' => $b['type'],
             'd' => $this->resolveBlockData($schoolId, $b),
@@ -321,10 +340,12 @@ class PageRenderService
             'layout' => $b['layout'] ?? [],
         ];
 
+        $template = $template === 'sidebar' ? 'sidebar' : 'full';
+
         return [
-            'template' => $norm['template'],
-            'blocks' => array_map($map, $norm['blocks']),
-            'sidebar' => array_map($map, $norm['sidebar']),
+            'template' => $template,
+            'blocks' => array_map($map, $blocks),
+            'sidebar' => $template === 'sidebar' ? array_map($map, $sidebar) : [],
         ];
     }
 }

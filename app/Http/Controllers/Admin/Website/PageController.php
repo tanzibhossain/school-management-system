@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Admin\Website;
 
+use App\Modules\School\Models\School;
 use App\Modules\Website\Models\Page;
+use App\Modules\Website\Models\SiteSetting;
 use App\Modules\Website\Services\PageRenderService;
 use App\Modules\Website\Services\PageService;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +20,10 @@ use Illuminate\View\View;
  */
 class PageController extends Controller
 {
-    public function __construct(private readonly PageService $pages) {}
+    public function __construct(
+        private readonly PageService $pages,
+        private readonly PageRenderService $render,
+    ) {}
 
     public function index(): View
     {
@@ -105,6 +110,35 @@ class PageController extends Controller
         }
 
         return redirect()->route('admin.pages.edit', $page->id)->with('status', __('Page Saved.'));
+    }
+
+    /**
+     * Render the page exactly as the public site would, from the editor's
+     * current (unsaved) form state — no DB write. Posted blocks/sidebar go
+     * through the same normalizeBlocks()/sanitizeStyle()/sanitizeLayout()
+     * boundary as a real save, then PageRenderService::buildViewFromBlocks()
+     * resolves live module data (notices/stats/staff) exactly like the public
+     * PageController does, so the preview can never show something the saved
+     * page wouldn't. Used by the editor's live-preview iframe (debounced,
+     * re-POSTed on every change) — never cached, never persisted.
+     */
+    public function preview(Request $request, int $id): View
+    {
+        $schoolId = app('current_school_id');
+        $page = Page::forSchool($schoolId)->findOrFail($id);
+
+        $template = $request->input('template') === 'sidebar' ? 'sidebar' : 'full';
+        $blocks = $this->normalizeBlocks($request->input('blocks', []), PageRenderService::BLOCKS);
+        $sidebar = $template === 'sidebar'
+            ? $this->normalizeBlocks($request->input('sidebar', []), PageRenderService::SIDEBAR_BLOCKS)
+            : [];
+
+        return view('public.page', [
+            'page' => $page,
+            'view' => $this->render->buildViewFromBlocks($schoolId, $template, $blocks, $sidebar),
+            'settings' => SiteSetting::forSchool($schoolId),
+            'school' => School::current(),
+        ]);
     }
 
     public function setHomepage(int $id): RedirectResponse
