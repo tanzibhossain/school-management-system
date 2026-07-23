@@ -396,6 +396,44 @@ source does a best-effort YouTube watch/short-link → embed URL normalization (
 are trusted to already be a pasted embeddable URL, with no per-platform param mapping (avoids guessing at
 those platforms' own embed APIs, which this app doesn't integrate with).
 
+## 7f. Drag a new block from the Add Block panel into the canvas
+
+Requested as a follow-up to §7d's search/category picker: drag a block-type box directly from the sidebar's
+Add Block panel and drop it at a specific spot on the live preview, instead of only click-to-append.
+
+Cross-window HTML5 drag-and-drop: the drag *source* (`.js-add-block` in `edit.blade.php`, now
+`draggable="true"`) is in the parent document; the drop *target* is inside the preview iframe's separate
+`.srcdoc` document. Native `dragstart`/`dragover`/`drop` fire across that boundary without any special
+handling (it's a browser-level gesture, not gated by same-origin script access) — but `dataTransfer.getData()`
+can only be read on `drop`, never during `dragover` (a spec-level restriction); `dragover` can only see
+`e.dataTransfer.types` (the registered MIME type *names*, not their values). So:
+- **Parent side**: `dragstart` on a `.js-add-block` sets `dataTransfer` (`application/x-block-type` +
+  `text/plain` fallback, JSON `{group,type}`) and `effectAllowed = 'copy'`.
+- **Iframe side** (`public/layout.blade.php`'s existing gated editor-bridge script, extended): `dragover`
+  checks `e.dataTransfer.types` for `application/x-block-type` to recognize "an external add-block drag is in
+  progress" (reusing the same `drop-before`/`drop-after` insertion-line indicator as internal reorder-drag) —
+  it doesn't know *which* block type or group yet, only that *something* is being dragged in. On `drop`, it
+  finally reads the real `{group,type}` payload and posts `{type:'add-block-at', group, blockType, index,
+  before}` to the parent — `index`/`before` come from the last hovered `[data-block-index]` element, but are
+  only honored if that element's `data-block-group` matches the dropped item's own group (you can't drop a
+  Sidebar-only block among main content blocks or vice versa); otherwise it falls back to `index: null` (append
+  at the end — same as clicking the picker item).
+- **Parent handler**: `addBlockAt(group, type, index, before)` — a new sibling to `addBlock()`, both now
+  built on shared `insertBlockHtml()`/`finishBlockInsert()` helpers (`addBlock()` always inserts at the end,
+  `addBlockAt()` inserts before/after `list.children[index]`, same DOM-order-matches-last-render invariant
+  every other canvas message already depends on — see `reorder-blocks`/`select-block`).
+- A subtle whole-canvas background tint (`body.is-external-drag-over`) shows while a drag is in progress, even
+  before hovering a specific block, so it's clear the canvas is a valid drop target from the moment the drag
+  starts.
+- **Scope match with §7d**: like the click-to-add path, this only targets *top-level* blocks/sidebar lists —
+  dropping directly into a Container/Grid's nested children isn't supported (nested children still aren't
+  canvas-interactive at all, per §7d's documented limitations); add a block to a container via its own sidebar
+  mini-rail (`_nested_blocks.blade.php`) instead.
+- Not verified in a real browser (no PHP/Docker in this sandbox) — cross-iframe native drag-and-drop is
+  standard web platform behavior, but this is exactly the kind of thing that should get a real manual pass
+  (drag from each category, drop above/below/between existing blocks, drop on an empty canvas, drop a
+  Sidebar-category item and confirm it can't land among main content blocks) before trusting it.
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1
