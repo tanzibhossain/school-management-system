@@ -13,11 +13,11 @@
     ];
 
     $spec = [
-      'hero'          => [['key'=>'title','label'=>'Title','input'=>'text'],['key'=>'subtitle','label'=>'Subtitle','input'=>'text'],['key'=>'image','label'=>'Background image URL','input'=>'text'],['key'=>'button_text','label'=>'Button text','input'=>'text'],['key'=>'button_url','label'=>'Button URL','input'=>'text']],
+      'hero'          => [['key'=>'title','label'=>'Title','input'=>'text'],['key'=>'subtitle','label'=>'Subtitle','input'=>'text'],['key'=>'image','label'=>'Background image URL','input'=>'media'],['key'=>'button_text','label'=>'Button text','input'=>'text'],['key'=>'button_url','label'=>'Button URL','input'=>'text']],
       'heading'       => [['key'=>'text','label'=>'Text','input'=>'text'],['key'=>'align','label'=>'Align','input'=>'select','options'=>['start'=>'Left','center'=>'Center','end'=>'Right']]],
       'richtext'      => [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'html','label'=>'Content (HTML allowed)','input'=>'textarea']],
-      'image'         => [['key'=>'url','label'=>'Image URL','input'=>'text'],['key'=>'caption','label'=>'Caption','input'=>'text']],
-      'image_text'    => [['key'=>'image','label'=>'Image URL','input'=>'text'],['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'html','label'=>'Content','input'=>'textarea'],['key'=>'image_side','label'=>'Image side','input'=>'select','options'=>['left'=>'Left','right'=>'Right']]],
+      'image'         => [['key'=>'url','label'=>'Image URL','input'=>'media'],['key'=>'caption','label'=>'Caption','input'=>'text']],
+      'image_text'    => [['key'=>'image','label'=>'Image URL','input'=>'media'],['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'html','label'=>'Content','input'=>'textarea'],['key'=>'image_side','label'=>'Image side','input'=>'select','options'=>['left'=>'Left','right'=>'Right']]],
       'staff'         => [['key'=>'heading','label'=>'Heading','input'=>'text']],
       'notices'       => [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'limit','label'=>'Max items','input'=>'number']],
       'stats'         => [['key'=>'heading','label'=>'Heading','input'=>'text']],
@@ -42,7 +42,7 @@
         ['key'=>'controls','label'=>'Player Controls','input'=>'switch','default'=>true],
         ['key'=>'download','label'=>'Download Button','input'=>'switch'],
         ['key'=>'preload','label'=>'Preload','input'=>'select','options'=>['none'=>'None','metadata'=>'Metadata','auto'=>'Auto'], 'default_value'=>'metadata'],
-        ['key'=>'poster','label'=>'Poster Image URL','input'=>'text','placeholder'=>'https://…'],
+        ['key'=>'poster','label'=>'Poster Image URL','input'=>'media','placeholder'=>'https://…'],
         ['key'=>'caption','label'=>'Caption','input'=>'text'],
       ],
       'button'        => [['key'=>'text','label'=>'Button text','input'=>'text'],['key'=>'url','label'=>'Button URL','input'=>'text'],['key'=>'align','label'=>'Align','input'=>'select','options'=>['start'=>'Left','center'=>'Center','end'=>'Right']],['key'=>'open_new_tab','label'=>'Open in new tab','input'=>'checkbox']],
@@ -392,6 +392,29 @@
   @foreach (\App\Modules\Website\Services\PageRenderService::BLOCKS as $t => $l)
     <template id="tpl-child-{{ $t }}">@include('admin.website.pages._card', ['prefix' => '__PREFIX__[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec, 'style' => [], 'layout' => [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$t] ?? 'bi-square', 'blockIcons' => $blockIcons])</template>
   @endforeach
+
+  {{-- Media Library modal — opened by any field's "Browse" button (see
+       _fields.blade.php's 'media' input, openMediaPicker() below). One
+       shared modal/grid for the whole editor; mediaPickerTargetInput tracks
+       which text field a click on a thumbnail should fill. --}}
+  <div class="modal fade" id="media-picker-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title mb-0">{{ __('Media Library') }}</h6>
+          <button type="button" class="btn btn-primary btn-sm ms-auto me-2" onclick="document.getElementById('media-upload-input').click()">
+            <i class="bi bi-upload"></i> {{ __('Upload') }}
+          </button>
+          <input type="file" id="media-upload-input" class="d-none" accept="image/*,video/mp4,video/webm">
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
+        </div>
+        <div class="modal-body">
+          <div id="media-picker-status" class="small text-muted mb-2"></div>
+          <div id="media-picker-grid" class="row row-cols-3 row-cols-md-4 g-2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -1383,6 +1406,109 @@
           return;
         }
       });
+
+      // ── Media Library (upload + picker) ─────────────────────────────────
+      // Shared modal opened from any 'media' field's "Browse" button
+      // (_fields.blade.php). One flow: list -> click Upload -> re-list ->
+      // click a thumbnail to fill whichever input opened the modal.
+      (function () {
+        var modalEl = document.getElementById('media-picker-modal');
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        var grid = document.getElementById('media-picker-grid');
+        var status = document.getElementById('media-picker-status');
+        var uploadInput = document.getElementById('media-upload-input');
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        var targetInput = null;
+        var items = null; // cached list — refetched lazily, not on every open
+
+        window.openMediaPicker = function (btn) {
+          // The Browse button sits right after the text input inside the
+          // same .input-group (_fields.blade.php's 'media' markup).
+          targetInput = btn.closest('.input-group').querySelector('.media-field-input');
+          modal.show();
+          if (!items) loadMediaLibrary();
+        };
+
+        function loadMediaLibrary() {
+          status.textContent = @json(__('Loading…'));
+          fetch(@json(route('admin.media.index')), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+            .then(function (data) { items = data; renderGrid(); })
+            .catch(function () { status.textContent = @json(__('Failed to load media library.')); });
+        }
+
+        function renderGrid() {
+          grid.innerHTML = '';
+          status.textContent = items.length ? '' : @json(__('No media uploaded yet.'));
+          items.forEach(function (item) {
+            var col = document.createElement('div');
+            col.className = 'col';
+            var thumbInner = item.is_image
+              ? '<img src="' + item.url + '" class="w-100" style="height:90px;object-fit:cover;" alt="">'
+              : '<div class="w-100 d-flex align-items-center justify-content-center bg-body-secondary" style="height:90px;"><i class="bi bi-file-play fs-3"></i></div>';
+            col.innerHTML =
+              '<div class="border rounded position-relative media-picker-item" style="cursor:pointer;">' +
+                thumbInner +
+                '<button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 py-0 px-1 media-picker-delete" title="' + @json(__('Delete')) + '"><i class="bi bi-trash"></i></button>' +
+                '<div class="small text-truncate px-1" title="' + item.filename + '">' + item.filename + '</div>' +
+              '</div>';
+            col.querySelector('.media-picker-item').addEventListener('click', function (e) {
+              if (e.target.closest('.media-picker-delete')) return;
+              selectMedia(item);
+            });
+            col.querySelector('.media-picker-delete').addEventListener('click', function (e) {
+              e.stopPropagation();
+              deleteMedia(item);
+            });
+            grid.appendChild(col);
+          });
+        }
+
+        function selectMedia(item) {
+          if (!targetInput) { modal.hide(); return; }
+          targetInput.value = item.url;
+          // Same event the field would fire if typed by hand — the existing
+          // per-block preview/dirty-tracking/history listeners already
+          // react to 'input' on every text field, nothing new to wire up.
+          targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+          modal.hide();
+        }
+
+        function deleteMedia(item) {
+          if (!confirm(@json(__('Delete this file? Any block still referencing its URL will show a broken link.')))) return;
+          fetch(@json(url('/admin/media')) + '/' + item.id, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+          }).then(function (res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            items = null;
+            loadMediaLibrary();
+          }).catch(function () { alert(@json(__('Delete failed.'))); });
+        }
+
+        uploadInput.addEventListener('change', function () {
+          var file = uploadInput.files[0];
+          if (!file) return;
+          var fd = new FormData();
+          fd.append('file', file);
+          status.textContent = @json(__('Uploading…'));
+          fetch(@json(route('admin.media.store')), {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+          }).then(function (res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+          }).then(function (created) {
+            items = items ? [created].concat(items) : [created];
+            renderGrid();
+            uploadInput.value = '';
+          }).catch(function () {
+            status.textContent = @json(__('Upload failed.'));
+            uploadInput.value = '';
+          });
+        });
+      })();
     </script>
   @endpush
 @endsection
