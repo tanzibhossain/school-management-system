@@ -1,6 +1,10 @@
 {{-- Universal per-block "Style" tab — same fields for every block type.
      Vars: $prefix, $style --}}
 @php $s = $style ?? []; @endphp
+<div class="d-flex justify-content-end gap-1 mb-2">
+  <button type="button" class="btn btn-sm btn-outline-secondary js-copy-style" title="{{ __('Copy This Block\'s Style') }}"><i class="bi bi-clipboard"></i> {{ __('Copy Style') }}</button>
+  <button type="button" class="btn btn-sm btn-outline-secondary js-paste-style" disabled title="{{ __('Paste The Copied Style Here') }}"><i class="bi bi-clipboard-check"></i> {{ __('Paste Style') }}</button>
+</div>
 <div class="row g-2">
   <div class="col-6">
     <label class="form-label small text-muted mb-1">{{ __('Padding top (px)') }}</label>

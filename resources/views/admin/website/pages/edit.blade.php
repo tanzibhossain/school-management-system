@@ -192,6 +192,9 @@
         document.getElementById(group + '-list').insertAdjacentHTML('beforeend', html);
         var empty = document.getElementById('blocks-empty'); if (empty) empty.style.display = 'none';
         initQuillEditors();
+        // A style may already be copied from an earlier block — the new
+        // block's Paste Style button starts disabled server-side, enable it too.
+        if (copiedStyle) { document.querySelectorAll('.js-paste-style').forEach(function (b) { b.disabled = false; }); }
         // Open the newly added block's settings immediately, like Elementor
         // does when you drop a new widget — you're almost always about to
         // configure it right away.
@@ -238,13 +241,50 @@
         });
       }
 
+      // Copy/paste block style — a single "clipboard" shared across every
+      // block on the page, matching Elementor Pro's copy/paste-style
+      // behavior. Client-side only, no backend involvement: paste just sets
+      // the target block's own Style-tab field values and re-dispatches
+      // input/change so the existing swatch-sync/range-echo/preview-schedule
+      // listeners all pick it up exactly as if the user had typed it.
+      var copiedStyle = null;
+      function styleFieldsIn(card) {
+        var out = {};
+        card.querySelectorAll('[name*="[style]["]').forEach(function (el) {
+          var m = el.name.match(/\[style\]\[([a-zA-Z0-9_]+)\]$/);
+          if (m) out[m[1]] = el.value;
+        });
+        return out;
+      }
+
       document.addEventListener('click', function (e) {
         var up = e.target.closest('.js-up'), down = e.target.closest('.js-down'), rm = e.target.closest('.js-remove');
         var toggle = e.target.closest('.js-block-toggle');
+        var copyStyle = e.target.closest('.js-copy-style'), pasteStyle = e.target.closest('.js-paste-style');
         if (up) { var c = up.closest('.block-card'); if (c.previousElementSibling) c.parentNode.insertBefore(c, c.previousElementSibling); schedulePreview(); return; }
         if (down) { var c = down.closest('.block-card'); if (c.nextElementSibling) c.parentNode.insertBefore(c.nextElementSibling, c); schedulePreview(); return; }
         if (rm) { rm.closest('.block-card').remove(); schedulePreview(); return; }
-        if (toggle) { toggleBlockCard(toggle.closest('.block-card')); }
+        if (toggle) { toggleBlockCard(toggle.closest('.block-card')); return; }
+        if (copyStyle) {
+          copiedStyle = styleFieldsIn(copyStyle.closest('.block-card'));
+          document.querySelectorAll('.js-paste-style').forEach(function (b) { b.disabled = false; });
+          copyStyle.classList.replace('btn-outline-secondary', 'btn-success');
+          setTimeout(function () { copyStyle.classList.replace('btn-success', 'btn-outline-secondary'); }, 700);
+          return;
+        }
+        if (pasteStyle) {
+          if (!copiedStyle) return;
+          var card = pasteStyle.closest('.block-card');
+          Object.keys(copiedStyle).forEach(function (key) {
+            var input = card.querySelector('[name$="[style][' + key + ']"]');
+            if (!input) return;
+            input.value = copiedStyle[key];
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+          pasteStyle.classList.replace('btn-outline-secondary', 'btn-success');
+          setTimeout(function () { pasteStyle.classList.replace('btn-success', 'btn-outline-secondary'); }, 700);
+        }
       });
       document.addEventListener('keydown', function (e) {
         if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.js-block-toggle')) {
