@@ -57,6 +57,18 @@
     .js-block-chevron { transition: transform .15s ease; }
     .block-card.is-open .js-block-chevron { transform: rotate(180deg); }
     .js-drag-handle { cursor: grab; }
+
+    /* Responsive viewport toolbar — resizes the preview iframe to simulate a
+       breakpoint, so the Layout tab's per-breakpoint columns/visibility
+       controls are visibly testable. Widths mirror the Bootstrap infixes
+       BlockPresentation maps breakpoints onto (base/-md/-lg/-xl). */
+    #preview-viewport-wrap { background: var(--bs-tertiary-bg, #f1f3f5); transition: padding .15s ease; }
+    #preview-frame { background: #fff; transition: width .2s ease; }
+    #preview-viewport-wrap.vp-laptop { padding: 0; }
+    #preview-viewport-wrap.vp-laptop #preview-frame { width: 1200px; max-width: 100%; }
+    #preview-viewport-wrap.vp-tablet #preview-frame { width: 768px; max-width: 100%; box-shadow: 0 0 0 1px var(--bs-border-color); }
+    #preview-viewport-wrap.vp-mobile #preview-frame { width: 375px; max-width: 100%; border-radius: 14px; box-shadow: 0 0 0 1px var(--bs-border-color); }
+    #preview-viewport-wrap.vp-tablet, #preview-viewport-wrap.vp-mobile { padding: 1rem 0; }
   </style>
 
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -140,11 +152,17 @@
            this form's current (unsaved) values. See docs/modules/28-elementor-block-editor-plan.md. --}}
       <div class="col-lg-6">
         <div class="card sticky-top" style="top:1rem;">
-          <div class="card-header d-flex justify-content-between align-items-center">
+          <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
             <span><i class="bi bi-eye"></i> {{ __('Live Preview') }}</span>
+            <div class="btn-group btn-group-sm" role="group" aria-label="{{ __('Preview Viewport') }}" id="viewport-toolbar">
+              <button type="button" class="btn btn-outline-secondary active" data-viewport="desktop" title="{{ __('Desktop') }}"><i class="bi bi-display"></i></button>
+              <button type="button" class="btn btn-outline-secondary" data-viewport="laptop" title="{{ __('Laptop') }}"><i class="bi bi-laptop"></i></button>
+              <button type="button" class="btn btn-outline-secondary" data-viewport="tablet" title="{{ __('Tablet') }}"><i class="bi bi-tablet"></i></button>
+              <button type="button" class="btn btn-outline-secondary" data-viewport="mobile" title="{{ __('Mobile') }}"><i class="bi bi-phone"></i></button>
+            </div>
             <span class="small text-muted" id="preview-status"></span>
           </div>
-          <div class="card-body p-0">
+          <div class="card-body p-0 d-flex justify-content-center" id="preview-viewport-wrap">
             <iframe id="preview-frame" title="{{ __('Live Preview') }}" sandbox="allow-same-origin allow-scripts" style="width:100%;height:82vh;border:0;display:block;"></iframe>
           </div>
         </div>
@@ -218,6 +236,16 @@
         var sidebar = this.value === 'sidebar';
         document.getElementById('side-col').style.display = sidebar ? '' : 'none';
         schedulePreview();
+      });
+
+      // Responsive viewport toolbar — resizes the preview iframe only, no re-render needed.
+      document.getElementById('viewport-toolbar').addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-viewport]');
+        if (!btn) return;
+        this.querySelectorAll('[data-viewport]').forEach(function (b) { b.classList.toggle('active', b === btn); });
+        var wrap = document.getElementById('preview-viewport-wrap');
+        wrap.classList.remove('vp-laptop', 'vp-tablet', 'vp-mobile');
+        if (btn.dataset.viewport !== 'desktop') wrap.classList.add('vp-' + btn.dataset.viewport);
       });
 
       // Style tab: sync each color swatch <-> its hex text field, both ways.
