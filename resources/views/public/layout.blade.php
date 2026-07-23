@@ -166,6 +166,13 @@
         body.is-editor-preview [data-block-index] { cursor: pointer; }
         body.is-editor-preview .is-block-hover { outline: 2px dashed #6c8fff; outline-offset: -2px; }
         body.is-editor-preview .is-block-selected { outline: 2px solid var(--brand); outline-offset: -2px; }
+        /* In-canvas drag-and-drop reordering + right-click context menu — see
+           the gated script below. */
+        body.is-editor-preview [data-block-index] { cursor: grab; }
+        body.is-editor-preview [data-block-index].is-dragging { opacity: .35; cursor: grabbing; }
+        body.is-editor-preview [data-block-index].drop-before { box-shadow: inset 0 3px 0 0 var(--brand); }
+        body.is-editor-preview [data-block-index].drop-after { box-shadow: inset 0 -3px 0 0 var(--brand); }
+        #editor-context-menu button:hover { background: #f1f3f5; }
     </style>
 </head>
 
@@ -249,7 +256,14 @@
             // gets to act — this is a preview, clicks should select, not navigate.
             document.addEventListener('click', function (e) {
                 var el = e.target.closest('[data-block-index]');
-                if (!el) return;
+                if (!el) {
+                    // Clicked the canvas background, not a block — tell the
+                    // parent so it can collapse the sidebar back to its
+                    // default panel (see edit.blade.php's click-outside handling).
+                    if (selected) { selected.classList.remove('is-block-selected'); selected = null; }
+                    window.parent.postMessage({ source: 'page-preview', type: 'deselect' }, '*');
+                    return;
+                }
                 e.preventDefault();
                 e.stopPropagation();
                 if (selected) selected.classList.remove('is-block-selected');
@@ -268,6 +282,115 @@
                     index: el.dataset.blockIndex,
                 }, '*');
             }, true);
+
+            // ── In-canvas drag-and-drop reordering ───────────────────────────
+            // Native HTML5 DnD (draggable="true" is set server-side in this
+            // editor-preview context only — see public/blocks/render.blade.php
+            // and public/sidebar/render.blade.php). Dragging is confined to a
+            // single group (main blocks vs sidebar blocks are separate arrays)
+            // — the drop computes a full new index order and hands it to the
+            // parent, which reorders the actual rail list (the source of
+            // truth) and re-renders; this iframe doesn't move any DOM itself.
+            var dragSrc = null;
+            function clearDropMarkers() {
+                document.querySelectorAll('.drop-before, .drop-after').forEach(function (n) {
+                    n.classList.remove('drop-before', 'drop-after');
+                });
+            }
+            document.addEventListener('dragstart', function (e) {
+                var el = e.target.closest('[data-block-index]');
+                if (!el) return;
+                dragSrc = el;
+                el.classList.add('is-dragging');
+                if (e.dataTransfer) {
+                    e.dataTransfer.effectAllowed = 'move';
+                    try { e.dataTransfer.setData('text/plain', el.dataset.blockIndex); } catch (err) {}
+                }
+            });
+            document.addEventListener('dragend', function () {
+                if (dragSrc) dragSrc.classList.remove('is-dragging');
+                clearDropMarkers();
+                dragSrc = null;
+            });
+            document.addEventListener('dragover', function (e) {
+                var el = e.target.closest('[data-block-index]');
+                if (!el || !dragSrc || el === dragSrc || el.dataset.blockGroup !== dragSrc.dataset.blockGroup) return;
+                e.preventDefault();
+                clearDropMarkers();
+                var rect = el.getBoundingClientRect();
+                var before = (e.clientY - rect.top) < rect.height / 2;
+                el.classList.add(before ? 'drop-before' : 'drop-after');
+            });
+            document.addEventListener('drop', function (e) {
+                var el = e.target.closest('[data-block-index]');
+                if (!el || !dragSrc || el === dragSrc || el.dataset.blockGroup !== dragSrc.dataset.blockGroup) return;
+                e.preventDefault();
+                var group = dragSrc.dataset.blockGroup;
+                var nodes = Array.prototype.slice.call(
+                    document.querySelectorAll('[data-block-index][data-block-group="' + group + '"]')
+                );
+                var order = nodes.map(function (n) { return parseInt(n.dataset.blockIndex, 10); });
+                var fromVal = parseInt(dragSrc.dataset.blockIndex, 10);
+                var toVal = parseInt(el.dataset.blockIndex, 10);
+                var rect = el.getBoundingClientRect();
+                var before = (e.clientY - rect.top) < rect.height / 2;
+                order.splice(order.indexOf(fromVal), 1);
+                var insertAt = order.indexOf(toVal) + (before ? 0 : 1);
+                order.splice(insertAt, 0, fromVal);
+                clearDropMarkers();
+                window.parent.postMessage({ source: 'page-preview', type: 'reorder-blocks', group: group, order: order }, '*');
+            });
+
+            // ── Right-click context menu: Copy Style / Paste Style / Delete ──
+            // A small hand-rolled menu (Bootstrap is loaded in this document,
+            // but its dropdown JS is built around a trigger element, not an
+            // arbitrary cursor position, so a plain absolutely-positioned menu
+            // is simpler here). Actions are dispatched to the parent, which
+            // already owns the copy/paste-style clipboard and block removal.
+            function closeContextMenu() {
+                var m = document.getElementById('editor-context-menu');
+                if (m) m.remove();
+            }
+            document.addEventListener('contextmenu', function (e) {
+                var el = e.target.closest('[data-block-index]');
+                closeContextMenu();
+                if (!el) return;
+                e.preventDefault();
+                var menu = document.createElement('div');
+                menu.id = 'editor-context-menu';
+                menu.className = 'shadow-sm';
+                menu.style.cssText = 'position:fixed;z-index:99999;background:#fff;border:1px solid rgba(0,0,0,.15);'
+                    + 'border-radius:.375rem;min-width:170px;padding:.25rem 0;font-family:system-ui,-apple-system,sans-serif;font-size:.875rem;';
+                [
+                    { action: 'copy', icon: 'bi-clipboard', label: @json(__('Copy Style')) },
+                    { action: 'paste', icon: 'bi-clipboard-check', label: @json(__('Paste Style')) },
+                    { action: 'delete', icon: 'bi-trash', label: @json(__('Remove')), danger: true },
+                ].forEach(function (a) {
+                    var item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'btn btn-sm w-100 text-start border-0 rounded-0 d-flex align-items-center gap-2 px-3 py-1' + (a.danger ? ' text-danger' : '');
+                    item.innerHTML = '<i class="bi ' + a.icon + '"></i> ' + a.label;
+                    item.addEventListener('click', function (ev) {
+                        ev.stopPropagation();
+                        window.parent.postMessage({
+                            source: 'page-preview', type: 'context-action', action: a.action,
+                            group: el.dataset.blockGroup, index: el.dataset.blockIndex,
+                        }, '*');
+                        closeContextMenu();
+                    });
+                    menu.appendChild(item);
+                });
+                document.body.appendChild(menu);
+                var rect = menu.getBoundingClientRect();
+                var left = e.clientX, top = e.clientY;
+                if (left + rect.width > window.innerWidth) left = window.innerWidth - rect.width - 8;
+                if (top + rect.height > window.innerHeight) top = window.innerHeight - rect.height - 8;
+                menu.style.left = Math.max(4, left) + 'px';
+                menu.style.top = Math.max(4, top) + 'px';
+            }, true);
+            document.addEventListener('click', closeContextMenu);
+            document.addEventListener('scroll', closeContextMenu, true);
+            document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeContextMenu(); });
         })();
     </script>
 </body>
