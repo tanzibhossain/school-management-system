@@ -6,6 +6,54 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-07-24
+
+### Added
+- **Elementor-style live page builder** for the Website module's block editor — replaces the old form-only
+  editor with a fullscreen, WYSIWYG canvas: a resizable block-layers sidebar (Add Block / block settings /
+  page settings / revision history panels, remembers its width across pages), a live preview iframe that
+  re-renders through the exact same Blade views as the public site (never a separate preview
+  re-implementation that could drift), and a responsive desktop/laptop/tablet/mobile viewport toolbar.
+- Click-to-select, drag-to-reorder, and right-click Copy Style / Paste Style / Remove directly on the live
+  canvas, instead of hunting through a separate settings form for the right block.
+- Drag a block type straight from the Add Block panel onto the canvas to insert it at an exact position —
+  including directly into a Container/Grid.
+- 8 new block types: **Video** (YouTube/Vimeo/Dailymotion/VideoPress/self-hosted, with the full Elementor-
+  style option set — start/end time, autoplay/mute/loop/controls/download, poster, preload), **Button**,
+  **Divider**, **Spacer**, **Icon**, **Google Maps**, and two layout blocks — **Container** (flex row/column)
+  and **Grid** (responsive column count) — that hold their own nested child blocks.
+- Nested blocks can now go arbitrarily deep (a Container can hold another Container, up to 6 levels) and are
+  fully canvas-interactive at every depth: click-select, drag-reorder, drag directly into or out of a
+  container or between containers, and right-click — the same as any top-level block.
+- Per-block **Style** (padding/margin/background/text color/radius/shadow/entrance animation) and **Layout**
+  (per-breakpoint column count and visibility) tabs, applied consistently across every block type on the
+  public site.
+- Session undo/redo, page revision history with one-click restore, and copy/paste block style between
+  blocks.
+- The page editor's Update/Publish button now stays disabled until something has actually changed since the
+  page was opened — including re-disabling itself if you undo all the way back to that starting state.
+- `.github/dependabot.yml` for scheduled composer/npm/docker/github-actions dependency updates.
+
+### Changed
+- Page editor sidebar is resizable (12.5%–25% of viewport width, drag the divider) and remembers its width
+  the next time any page is opened for editing.
+- A block's Content/Style/Layout tabs are smaller, fully bordered, and the active tab is now filled with the
+  site's brand color instead of Bootstrap's default top-border-only styling.
+
+### Fixed
+- A saved page with a populated Container or Grid block could throw `Undefined array key "d"` on the public
+  site (and in the editor's own live preview) — the block's resolved child data was being silently discarded
+  by an array-merge ordering bug.
+- Undo/redo could silently drop every child of a Container/Grid block when restoring a history snapshot; it
+  now round-trips a container's full nested structure correctly regardless of how deep it goes.
+- The responsive viewport toolbar (desktop/laptop/tablet/mobile) wasn't actually resizing the live preview.
+- The page editor's sidebar-resize divider was effectively unclickable — a CSS `overflow` rule was clipping
+  away most of its draggable hit area.
+- Removed dead TinyMCE integration code that was never actually loaded in this app — rich text editing has
+  always really been powered by Quill; a rich-text block added after the initial page load previously got an
+  inert, non-functioning editor because of this leftover code path.
+- Fixed a `postMessage` console error when interacting with the live preview iframe.
+
 ### Security
 - Rate-limited login and the two-factor challenge (5 attempts/minute, keyed
   by email+IP and by the pending 2FA user+IP respectively) — neither had any
@@ -17,9 +65,11 @@ follows [Semantic Versioning](https://semver.org/).
   "wasn't you?" link that cancels the pending change without requiring
   login — previously only the new address heard about the change at all.
 
-### Added
-- `.github/dependabot.yml` for scheduled composer/npm/docker/github-actions
-  dependency updates.
+### Notes
+- The block editor's recursive Container/Grid nesting, canvas drag-into-container, and structure-aware
+  undo/redo are the largest single change to the Website module since 1.0.0 and have not been run through
+  Pint, PHPStan/Larastan, PHPUnit, or a real browser in the environment this was built in — verify locally
+  (especially deeply nested layouts and the drag-and-drop interactions) before relying on this in production.
 
 ## [1.0.1] — 2026-07-23
 
@@ -85,5 +135,6 @@ First tagged release.
   MySQL) are for local development only — see the README's Quick Start
   for the full list and the warning to change them before production use.
 
+[1.2.0]: https://github.com/tanzibhossain/school-management-system/compare/v1.0.1...v1.2.0
 [1.0.1]: https://github.com/tanzibhossain/school-management-system/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/tanzibhossain/school-management-system/releases/tag/v1.0.0
