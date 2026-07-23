@@ -99,14 +99,20 @@
 
     .editor-sidebar {
       position: relative; flex: 0 0 auto; display: flex; flex-direction: column;
-      width: 15vw; min-width: 15vw; max-width: 25vw;
-      background: #fff; border-right: 1px solid var(--bs-border-color); overflow: hidden;
+      width: 12.5vw; min-width: 12.5vw; max-width: 25vw;
+      background: #fff; border-right: 1px solid var(--bs-border-color);
     }
     .sidebar-resize-handle {
-      position: absolute; top: 0; right: -3px; width: 6px; height: 100%; cursor: col-resize; z-index: 5;
+      /* Straddles the sidebar's right edge (half in, half out) so it's easy
+         to grab from either side. Needs .editor-sidebar to NOT clip with
+         overflow:hidden — it used to, which clipped away the outer half of
+         this handle and left only a ~3px sliver clickable, so dragging felt
+         broken. Sidebar content that needs clipping (long dropdowns, wide
+         tables) gets it from .sidebar-panel's own overflow-x instead. */
+      position: absolute; top: 0; right: -4px; width: 8px; height: 100%; cursor: col-resize; z-index: 5;
     }
     .sidebar-resize-handle:hover, .sidebar-resize-handle.is-dragging { background: rgba(79,70,229,.25); }
-    .sidebar-panel { display: none; flex: 1 1 auto; overflow-y: auto; padding: .85rem; }
+    .sidebar-panel { display: none; flex: 1 1 auto; overflow-y: auto; overflow-x: hidden; padding: .85rem; }
     .sidebar-panel.active { display: block; }
 
     .editor-canvas {
@@ -428,11 +434,21 @@
         if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       });
 
-      // ── Resizable sidebar (15vw floor, 25vw ceiling) ─────────────────────
+      // ── Resizable sidebar (12.5vw floor, 25vw ceiling) ───────────────────
+      // Width is stored as a vw PERCENTAGE (not px) under one fixed
+      // localStorage key shared by every page's editor — so the split you
+      // leave on one page's editor is restored the next time you open ANY
+      // page for editing, not just this one.
       (function () {
         var sidebar = document.getElementById('editor-sidebar');
         var handle = document.getElementById('sidebar-resize-handle');
         if (!sidebar || !handle) return;
+        var MIN_PCT = 12.5, MAX_PCT = 25;
+        var STORAGE_KEY = 'website-editor-sidebar-width-pct';
+        function clampPct(pct) { return Math.min(MAX_PCT, Math.max(MIN_PCT, pct)); }
+        var storedPct = parseFloat(localStorage.getItem(STORAGE_KEY));
+        if (!isNaN(storedPct)) sidebar.style.width = clampPct(storedPct) + 'vw';
+
         var dragging = false;
         handle.addEventListener('mousedown', function (e) {
           dragging = true;
@@ -442,10 +458,8 @@
         });
         document.addEventListener('mousemove', function (e) {
           if (!dragging) return;
-          var min = window.innerWidth * 0.15;
-          var max = window.innerWidth * 0.25;
-          var w = Math.min(max, Math.max(min, e.clientX));
-          sidebar.style.width = w + 'px';
+          var pct = clampPct((e.clientX / window.innerWidth) * 100);
+          sidebar.style.width = pct + 'vw';
         });
         document.addEventListener('mouseup', function () {
           if (!dragging) return;
@@ -457,6 +471,10 @@
           // handler above would immediately reset the sidebar right after
           // every resize.
           sidebarResizeJustEnded = true;
+          var pct = parseFloat(sidebar.style.width);
+          if (!isNaN(pct)) {
+            try { localStorage.setItem(STORAGE_KEY, pct); } catch (err) {}
+          }
         });
       })();
 
