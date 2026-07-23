@@ -64,7 +64,9 @@ class PageController extends Controller
     public function edit(int $id): View
     {
         $schoolId = app('current_school_id');
-        $page = Page::forSchool($schoolId)->with('layouts')->findOrFail($id);
+        // .createdBy eager-loaded for the editor's in-sidebar History panel
+        // (see history()/restore() below) — avoids an N+1 there.
+        $page = Page::forSchool($schoolId)->with('layouts.createdBy')->findOrFail($id);
         $layout = $page->layouts->first();  // latest revision
 
         return view('admin.website.pages.edit', [

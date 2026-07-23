@@ -1,10 +1,10 @@
 # Website Page Builder — Elementor-style Live Editor · Plan
 
-**Status:** ✅ **All 10 milestones done** (verified via `pint`/`phpstan`/`phpunit`; manual browser QA by the
-user in progress) · **Path:** `app/Modules/Website`, `app/Http/Controllers/Admin/Website`,
-`resources/views/admin/website/pages`, `resources/views/public` · **Depends on:** `20-website.md` §"Block
-Style & Layout" (✅ shipped — the Style/Layout tabs, `PageRenderService::sanitizeStyle/sanitizeLayout`, and
-`BlockPresentation` this plan builds on top of).
+**Status:** ✅ **All 10 milestones done**, plus a follow-up **fullscreen Elementor-style shell rebuild** (§7b,
+done, pending user verification) · **Path:** `app/Modules/Website`, `app/Http/Controllers/Admin/Website`,
+`resources/views/admin/website/pages`, `resources/views/public`, `resources/views/layouts/admin-fullscreen.blade.php`
+· **Depends on:** `20-website.md` §"Block Style & Layout" (✅ shipped — the Style/Layout tabs,
+`PageRenderService::sanitizeStyle/sanitizeLayout`, and `BlockPresentation` this plan builds on top of).
 
 **Resume note:** this file is the single source of truth for this feature. A fresh session (or a fresh Claude
 instance) should be able to read this file top to bottom and continue at whichever milestone has status
@@ -160,6 +160,72 @@ into the same `scheduleBlockPreview()`/`schedulePreview()` routing every other f
 richtext edits never triggered a live-preview update at all, since Quill syncs its hidden input via `.value =`,
 which doesn't fire native `input`/`change` events. Also extended the Quill treatment to `image_text`'s `html`
 field (previously a plain textarea despite rendering as raw HTML on the public site, same as `richtext`).
+
+## 7b. Fullscreen editor shell (post-Milestone-10 follow-up)
+
+Requested after all 10 milestones shipped: make the editor page itself look and operate like Elementor's
+actual app chrome, not just "a two-column form with a live preview embedded in it". Concretely: hide the admin
+sidebar/topbar entirely on this one route, and replace the page content with a fullscreen app shell — topbar +
+resizable left sidebar (rail/settings panels) + a full-bleed scrollable canvas — matching the layout Elementor
+itself uses when you click "Edit with Elementor".
+
+**New layout:** `resources/views/layouts/admin-fullscreen.blade.php` — a minimal shell (no `<x-sidebar>`,
+`<x-header>`, content padding/max-width, footer, jQuery, DataTables, TomSelect). Keeps Bootstrap 5.3.3 +
+Bootstrap Icons + Quill (CDN) since the editor still needs them, and the same indigo (`#4f46e5`) accent
+override as `layouts/admin.blade.php` for visual consistency. `html, body { overflow: hidden }` — the shell
+owns 100vh and its own panes manage their own scrolling, the outer page never scrolls.
+`edit.blade.php` now `@extends('layouts.admin-fullscreen')` instead of `layouts.admin`.
+
+**Topbar** (`.editor-topbar`, 3 sections, matches the request verbatim):
+1. Back icon (→ `admin.pages.index`), Add Block icon, Page Settings icon, Undo/Redo, History icon — the icon
+   buttons with `data-panel="add"/"settings"/"history"` are handled by a small `showPanel(name)` function that
+   toggles `.sidebar-panel.active` + `.js-panel-btn.active`, no page navigation involved.
+2. Page name (mirrors the Title field live via a plain `input` listener), the four-button viewport toolbar
+   (unchanged from Milestone 5, just moved from the old preview-card header into the topbar), preview status text.
+3. Preview icon (live site link, only when published), Publish/Update button — a `<button form="page-form">`
+   *outside* the `<form>` tag (valid HTML5; submits the form by `id` without needing to be a DOM descendant).
+   Label switches Publish/Update based on `$page->status`.
+
+**Sidebar** (`#editor-sidebar`): `width: 10vw; min-width: 220px; max-width: 25vw` by default, drag-resizable
+via a 6px handle (`#sidebar-resize-handle`, plain `mousedown`/`mousemove`/`mouseup`, clamped to
+`max(220px, 10vw)`–`25vw`) — the 220px floor is the "adjust yourself for laptop" the request asked for, since
+10vw on a 1366px laptop screen (~137px) is too narrow for usable form controls. Four `.sidebar-panel`s, only
+one visible at a time (`showPanel()`):
+- **`blocks`** (default) — the same `#main-col`/`#blocks-list`/`#side-col`/`#sidebar-list` block-rail markup
+  from Milestone 3, unchanged, just without the inline "Add" dropdown+button (moved to the `add` panel).
+- **`add`** — a vertical button grid, one button per block type (`.js-add-block[data-group][data-type]`),
+  calling the existing `addBlock(group, type)` then `showPanel('blocks')`. Replaces the old
+  `<select>`+"Add" button pair.
+- **`settings`** — Title/Slug/Status/Template, the fields that were briefly a dedicated full-width row
+  (previous request) and are now a vertically-stacked sidebar panel instead, since there's no more full-width
+  row to put them in.
+- **`history`** — inline revision list (`$page->layouts`, eager-loaded with `createdBy` by
+  `PageController::edit()` to avoid an N+1), each with a Restore form. **Not** nested inside `#page-form`
+  (HTML forbids nested `<form>`s) — sits as a DOM sibling of the `<form>`, which is fine since `showPanel()`
+  selects by `.sidebar-panel` class/`data-panel` attribute, not by parentage. The standalone
+  `admin/website/pages/history.blade.php` page + `admin.pages.history` route still exist too (unlinked from
+  the topbar now, but harmless to keep for direct access).
+
+**Canvas** (`.editor-canvas`, reuses the `#preview-viewport-wrap` id so the Milestone 5 viewport-toggle JS
+needed no changes beyond swapping `#preview-viewport-wrap` from a Bootstrap-card body to the flex canvas
+itself): `flex:1; overflow:auto; display:flex; justify-content:center;`, iframe at `width:100%; height:100%`
+(was a fixed `82vh` inside a sticky card before). Viewport breakpoint classes (`.vp-laptop/.vp-tablet/.vp-mobile`)
+now live on `.editor-canvas` and just change `#preview-frame`'s pixel width, same as before.
+
+**Preserved on purpose:** every element ID/class the existing (large) editor script depends on —
+`#page-form`, `#blocks-list`, `#sidebar-list`, `#main-col`, `#side-col`, `#tpl-select`, `#preview-frame`,
+`#preview-viewport-wrap`, `#viewport-toolbar`, `#preview-status`, `#btn-undo`, `#btn-redo`, `.block-card`,
+`.block-row`, `.block-settings`, every `.js-*` class — so live preview, click-to-select, drag-reorder,
+copy/paste style, and undo/redo all kept working with only additive JS (`showPanel()`, the resize-drag IIFE,
+the `.js-add-block` click branch) rather than a rewrite of the existing logic. `restoreSnapshot()` (undo/redo)
+and the `tpl-select` change handler were extended to also toggle the new `#add-side-section` panel visibility
+alongside the pre-existing `#side-col` toggle, so template switching and undo/redo stay consistent with the
+Add panel's sidebar-block-type visibility.
+
+**New translation keys added** (`database/seeders/data/translations/bn.json`): "Add Block", "Page Settings",
+"Preview", "Update", "Untitled", "Unknown", "No revisions yet.", "Restore this revision as a new draft?".
+
+**Not yet done:** user verification (Pint/PHPStan/PHPUnit + manual browser QA) — ask for this after committing.
 
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
