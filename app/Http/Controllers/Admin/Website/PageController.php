@@ -9,6 +9,7 @@ use App\Modules\Website\Services\PageRenderService;
 use App\Modules\Website\Services\PageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\View\View;
 
@@ -139,6 +140,41 @@ class PageController extends Controller
             'settings' => SiteSetting::forSchool($schoolId),
             'school' => School::current(),
         ]);
+    }
+
+    /**
+     * Render exactly one block from posted (unsaved) field values — the
+     * lightweight counterpart to preview(): used once the editor has an
+     * initial full render in the iframe, so a plain field edit inside a
+     * single block's Content/Style/Layout tabs can patch just that element
+     * in place instead of reloading the whole iframe (see edit.blade.php's
+     * scheduleBlockPreview()). Goes through the same normalizeBlocks()/
+     * sanitizeStyle()/sanitizeLayout()/resolveBlockData() calls as a full
+     * preview or a real save — never a second rendering path.
+     */
+    public function previewBlock(Request $request, int $id): Response
+    {
+        $schoolId = app('current_school_id');
+        Page::forSchool($schoolId)->findOrFail($id); // scopes/authorizes this request to the school's own page
+
+        $group = $request->input('group') === 'sidebar' ? 'sidebar' : 'blocks';
+        $allowed = $group === 'sidebar' ? PageRenderService::SIDEBAR_BLOCKS : PageRenderService::BLOCKS;
+
+        $blocks = $this->normalizeBlocks([$request->input('block', [])], $allowed);
+        if ($blocks === []) {
+            return response('', 204);
+        }
+        $block = $blocks[0];
+
+        $html = view($group === 'sidebar' ? 'public.sidebar.render' : 'public.blocks.render', [
+            'type' => $block['type'],
+            'd' => $this->render->resolveBlockData($schoolId, $block),
+            'style' => $block['style'],
+            'layout' => $block['layout'],
+            'contained' => $request->boolean('contained'),
+        ])->render();
+
+        return response($html);
     }
 
     public function setHomepage(int $id): RedirectResponse
