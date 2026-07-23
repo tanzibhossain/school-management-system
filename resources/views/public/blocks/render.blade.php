@@ -1,7 +1,7 @@
 @php
-  // Local alias so the (fairly long) FQCN doesn't have to be repeated at
-  // every call site below — `use` imports aren't valid inside a compiled
-  // Blade @php block (it's PHP function-body code, not file-top-level).
+  // Local alias so the (fairly long) FQCN does not have to be repeated at
+  // every call site below — `use` imports are not valid inside a compiled
+  // Blade @php block (it compiles to PHP function-body code, not file-top-level).
   $bp = \App\Modules\Website\Support\BlockPresentation::class;
 
   $contained = $contained ?? false;
@@ -9,20 +9,20 @@
   $layout = $layout ?? [];
 
   // Identifies this rendered block back to its editor row — used only by the
-  // admin live-preview iframe's click-to-select/drag-reorder/context-menu/
-  // drag-into-container bridge (see public/layout.blade.php); inert data
+  // click-to-select/drag-reorder/context-menu/drag-into-container bridge in
+  // the admin live-preview iframe (see public/layout.blade.php); inert data
   // attributes (and draggable is simply absent) on the real public site.
   // $path is a list of indices from the root ([2] for the 3rd top-level
-  // block, [2,0] for its 1st child, [2,0,1] for that child's 2nd child, …) —
-  // recursive nesting needs more than a single flat index to address a
-  // block, see §7g in docs/modules/28-elementor-block-editor-plan.md.
+  // block, [2,0] for its 1st child, [2,0,1] for the 2nd child of that
+  // child, …) — recursive nesting needs more than a single flat index to
+  // address a block, see §7g in docs/modules/28-elementor-block-editor-plan.md.
   $editorAttrs = isset($path)
     ? ' data-block-path="'.e(implode(',', $path)).'" data-block-group="'.e($group ?? 'blocks').'" data-block-type="'.e($type).'" draggable="true"'
     : '';
 
   // hero/admission_form manage their own spacing+background entirely — every
   // other block type gets the standard section+container+default-padding
-  // treatment, with the Style tab's overrides applied on the same wrapper
+  // treatment, with the Style tab overrides applied on the same wrapper
   // element so a custom value cleanly replaces the default instead of adding
   // to it (inline style always wins over the py-4/py-lg-5 utility classes).
   $selfContained = in_array($type, ['hero', 'admission_form'], true);
@@ -76,9 +76,9 @@
     {!! $open !!}
       @php
         // Video Options panel — see docs/modules/28-elementor-block-editor-plan.md
-        // §7e. 'controls' defaults ON (matches _fields.blade.php's spec-level
-        // default for a freshly added block); the rest default OFF, same
-        // as an unset checkbox anywhere else in this app.
+        // §7e. `controls` defaults ON (matches the spec-level default in
+        // _fields.blade.php for a freshly added block); the rest default
+        // OFF, same as an unset checkbox anywhere else in this app.
         $vSource = in_array($d['source'] ?? null, ['youtube', 'vimeo', 'dailymotion', 'videopress', 'self_hosted'], true) ? $d['source'] : 'youtube';
         $vStart = isset($d['start_time']) && $d['start_time'] !== '' ? max(0, (int) $d['start_time']) : null;
         $vEnd = isset($d['end_time']) && $d['end_time'] !== '' ? max(0, (int) $d['end_time']) : null;
@@ -112,7 +112,7 @@
           // start/end/autoplay/mute/loop/controls as URL params. Other
           // platforms (Vimeo/Dailymotion/VideoPress) are trusted to already
           // be a pasted embeddable URL — no per-platform param mapping for
-          // those, to avoid guessing at APIs this app doesn't integrate with.
+          // those, to avoid guessing at APIs this app does not integrate with.
           if ($vSource === 'youtube' && $embedUrl !== '') {
             if (preg_match('/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{6,})/', $embedUrl, $m)) {
               $embedUrl = 'https://www.youtube.com/embed/'.$m[1];

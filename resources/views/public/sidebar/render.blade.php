@@ -7,7 +7,7 @@
   // See public/blocks/render.blade.php — same click-to-select/drag-reorder/
   // context-menu bridge attributes (sidebar blocks never nest, so $path is
   // always a single-element array here, but the attribute name matches the
-  // main blocks render partial so the parent-side JS doesn't need two
+  // main blocks render partial so the parent-side JS does not need two
   // different lookup schemes).
   $editorAttrs = isset($path)
     ? ' data-block-path="'.e(implode(',', $path)).'" data-block-group="'.e($group ?? 'sidebar').'" data-block-type="'.e($type).'" draggable="true"'
