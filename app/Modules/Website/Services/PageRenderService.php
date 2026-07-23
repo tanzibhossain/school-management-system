@@ -23,8 +23,43 @@ class PageRenderService
     public const BLOCKS = [
         'hero' => 'Hero banner',
         'heading' => 'Heading',
-        'richtext' => 'Rich text',
+        'richtext' => 'Text editor',
         'image' => 'Image',
+        'video' => 'Video',
+        'button' => 'Button',
+        'divider' => 'Divider',
+        'spacer' => 'Spacer',
+        'google_maps' => 'Google Maps',
+        'icon' => 'Icon',
+        'image_text' => 'Image + text',
+        'staff' => 'Staff list',
+        'notices' => 'Notices',
+        'stats' => 'Statistics',
+        'gallery_photo' => 'Photo gallery',
+        'gallery_video' => 'Video gallery',
+        'admission_form' => 'Admission form',
+        'contact' => 'Contact',
+        'container' => 'Container',
+        'grid' => 'Grid',
+    ];
+
+    /**
+     * BLOCKS minus 'container'/'grid' — the allow-list for a container/grid's
+     * own nested children (single-level nesting only: a container can't hold
+     * another container/grid). Used by normalizeBlocks()/cleanBlocks()/
+     * resolveNestedBlocks() wherever nested block data is processed.
+     */
+    public const LEAF_BLOCKS = [
+        'hero' => 'Hero banner',
+        'heading' => 'Heading',
+        'richtext' => 'Text editor',
+        'image' => 'Image',
+        'video' => 'Video',
+        'button' => 'Button',
+        'divider' => 'Divider',
+        'spacer' => 'Spacer',
+        'google_maps' => 'Google Maps',
+        'icon' => 'Icon',
         'image_text' => 'Image + text',
         'staff' => 'Staff list',
         'notices' => 'Notices',
@@ -41,6 +76,16 @@ class PageRenderService
         'office_hours' => 'Office hours',
         'contact_info' => 'Contact info',
         'recent_notices' => 'Recent notices',
+    ];
+
+    /**
+     * Groups BLOCKS into the Add Block panel's categories (see
+     * admin/website/pages/edit.blade.php). Any BLOCKS key not listed here
+     * falls back to 'advanced' — see edit.blade.php's category-building loop.
+     */
+    public const CATEGORIES = [
+        'layout' => ['container', 'grid'],
+        'basic' => ['heading', 'image', 'richtext', 'video', 'button', 'divider', 'spacer', 'google_maps', 'icon'],
     ];
 
     public function __construct(private readonly PublicPortalService $portal) {}
@@ -87,8 +132,43 @@ class PageRenderService
                     ->where('is_trash', false)->orderByDesc('is_current')->orderByDesc('year')->get(['id', 'year']),
                 'field_data' => $this->prepareAdmissionFormFields($data['fields'] ?? $data['hidden'] ?? []),
             ],
+            'container', 'grid' => $data + [
+                'blocks' => $this->resolveNestedBlocks($schoolId, is_array($data['blocks'] ?? null) ? $data['blocks'] : []),
+            ],
             default => $data,
         };
+    }
+
+    /**
+     * Resolve a container/grid's own children into the same {type,d,style,
+     * layout} shape buildViewFromBlocks() produces for top-level blocks, so
+     * public/blocks/render.blade.php can recursively @include itself for
+     * each one. Not click-to-select/drag/right-click-able on the canvas
+     * (they render without a data-block-index — see render.blade.php) —
+     * nested children are edited via the container's own rail panel instead
+     * (see admin/website/pages/_nested_blocks.blade.php); single-level only,
+     * so a nested child is never itself a container/grid.
+     *
+     * @param  array<int, array{type: string, data: array, style?: array, layout?: array}>  $blocks
+     * @return array<int, array{type: string, d: array, style: array, layout: array}>
+     */
+    private function resolveNestedBlocks(int $schoolId, array $blocks): array
+    {
+        $out = [];
+        foreach ($blocks as $b) {
+            $type = $b['type'] ?? null;
+            if (! is_string($type) || ! array_key_exists($type, self::LEAF_BLOCKS)) {
+                continue;
+            }
+            $out[] = [
+                'type' => $type,
+                'd' => $this->resolveBlockData($schoolId, $b),
+                'style' => $b['style'] ?? [],
+                'layout' => $b['layout'] ?? [],
+            ];
+        }
+
+        return $out;
     }
 
     /**
@@ -128,9 +208,13 @@ class PageRenderService
             if (! is_string($type) || ! array_key_exists($type, $allowed)) {
                 continue;
             }
+            $data = is_array($block['data'] ?? null) ? $block['data'] : [];
+            if (in_array($type, ['container', 'grid'], true)) {
+                $data['blocks'] = $this->cleanBlocks(is_array($data['blocks'] ?? null) ? $data['blocks'] : [], self::LEAF_BLOCKS);
+            }
             $out[] = [
                 'type' => $type,
-                'data' => is_array($block['data'] ?? null) ? $block['data'] : [],
+                'data' => $data,
                 'style' => self::sanitizeStyle(is_array($block['style'] ?? null) ? $block['style'] : []),
                 'layout' => self::sanitizeLayout(is_array($block['layout'] ?? null) ? $block['layout'] : []),
             ];

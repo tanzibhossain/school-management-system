@@ -1,8 +1,10 @@
 # Website Page Builder — Elementor-style Live Editor · Plan
 
-**Status:** ✅ **All 10 milestones done**, plus a **fullscreen Elementor-style shell rebuild** (§7b) and a
-**sidebar UX pass** (§7c) — canvas drag/right-click, click-outside-to-close, Add Block as the default panel
-(all done, pending user verification) · **Path:** `app/Modules/Website`, `app/Http/Controllers/Admin/Website`,
+**Status:** ✅ **All 10 milestones done**, plus a **fullscreen Elementor-style shell rebuild** (§7b), a
+**sidebar UX pass** (§7c), and a **widget library + nested Container/Grid model** (§7d) — 8 new leaf block
+types, a searchable categorized Add Block picker, and single-level block nesting (all done, pending user
+verification — this last one in particular needs real `pint`/`phpstan`/`phpunit` + manual QA, see §7d's closing
+note) · **Path:** `app/Modules/Website`, `app/Http/Controllers/Admin/Website`,
 `resources/views/admin/website/pages`, `resources/views/public`, `resources/views/layouts/admin-fullscreen.blade.php`
 · **Depends on:** `20-website.md` §"Block Style & Layout" (✅ shipped — the Style/Layout tabs,
 `PageRenderService::sanitizeStyle/sanitizeLayout`, and `BlockPresentation` this plan builds on top of).
@@ -268,6 +270,90 @@ the rail on click.
   each action.
 - **No new translation keys** — the context menu reuses the existing "Copy Style"/"Paste Style"/"Remove"
   strings already shown on the sidebar's per-block buttons.
+
+## 7d. Widget library expansion + nested Container/Grid model
+
+Requested via a mockup of Elementor's own widget picker (search bar + collapsible Layout/Basic/Advanced
+categories, boxed icon-over-label items) that additionally listed several block types this app didn't have:
+Container, Grid, Button, Divider, Spacer, Google Maps, Icon, plus a generic "Text Editor" (already covered by
+the existing `richtext` block, just relabeled). Explicitly asked to build **all of it, including Container/
+Grid** — the nested-layout model §7 originally scoped out as "its own separate, data-model-changing project".
+Rather than the full Section→Column→Widget/Container engine described there, this ships a deliberately
+smaller, lower-risk version of that idea — see "What was NOT built" below for the gap between the two.
+
+**New leaf block types** (flat, no nesting — same architecture as every existing block):
+`video` (single embed + caption), `button` (text/url/align/open-in-new-tab), `divider` (line style + width %),
+`spacer` (height px), `icon` (Bootstrap Icon class + size + color + optional link), `google_maps` (embed URL +
+height). Each is a `PageRenderService::BLOCKS`/`LEAF_BLOCKS` entry, a `public/blocks/render.blade.php` `@case`,
+an `edit.blade.php` `$spec` entry, and a `$blockIcons` entry — the same 4-touchpoint pattern every prior block
+type already followed, nothing new architecturally. `_fields.blade.php` gained a `checkbox` input type (for
+button's "open in new tab") and optional `placeholder` support on text/number fields (for icon's `bi-star`
+hint) — small, backward-compatible additions to the existing `$spec`-driven field renderer.
+
+**Container/Grid — single-level nesting, not a full layout engine:**
+- `PageRenderService::LEAF_BLOCKS` = `BLOCKS` minus `container`/`grid` — the allow-list for a container/grid's
+  own children. A child is *never itself* a container/grid — nesting is exactly one level deep. This is the
+  single biggest scope-reduction from the original out-of-scope Section→Column→Widget idea: no recursive tree,
+  no arbitrary depth, no column-within-column layouts.
+- **Storage**: a container/grid's children live at `data.blocks` — an array of ordinary `{type,data,style,
+  layout}` block objects, structurally identical to the top-level `blocks`/`sidebar` arrays. No new top-level
+  `layout_json` shape; nesting is just "one block's data happens to contain more blocks".
+- **Backend recursion** (one extra `if (container/grid)` branch in each place, not a rewrite): `PageController
+  ::normalizeBlocks()` recurses into `data.blocks` on save (restricted to `LEAF_BLOCKS`); `layoutForEditor()`'s
+  `$reverse` closure recurses the same way when loading a page back into the editor (multiline-field reversal
+  for a nested gallery_photo/quick_links etc.); `PageRenderService::cleanBlocks()` recurses for the public
+  render path (`normalize()`/`buildView()`); a new `PageRenderService::resolveNestedBlocks()` recurses
+  `resolveBlockData()` for each child so notices/stats/staff data resolves correctly even nested inside a
+  container.
+- **Public rendering**: `container` renders children in a `d-flex flex-{column|row}` wrapper (its own
+  `direction`/`gap` fields); `grid` renders children in a Bootstrap `.row` using the *existing*
+  `BlockPresentation::columnClasses()` + the Layout tab's per-breakpoint column count — the same mechanism
+  `staff`/`notices`/`stats` already use, just pointed at arbitrary children instead of a fixed data source (so
+  `grid` added `'grid'` to `edit.blade.php`'s `$gridTypes` array to get that Layout-tab control). Both cases
+  `@include('public.blocks.render', [...])` themselves recursively, once per child, with `contained => true`
+  (skips the double `.container` wrapper, matches how sidebar items are treated).
+- **Admin editing — a self-contained mini rail, not a rewrite of the main rail**: a container/grid's Content
+  tab (`_card.blade.php`) additionally includes a new `_nested_blocks.blade.php` partial: its own
+  `.nested-blocks-list` (children rendered via `_card.blade.php` recursively — since children are always leaf
+  types, this can't recurse a second time), its own "no children yet" message, and its own Add-child
+  `<select>` + button (leaf types only). New hidden `<template id="tpl-child-{type}">` tags use a `__PREFIX__`
+  token (instead of a literal `blocks`/`sidebar` root) — `addChildBlock()` substitutes it with the specific
+  container instance's own `data-prefix` attribute at insert time, since a child's real form name
+  (`blocks[2][data][blocks][0][data][text]`) depends on *which* container it's being added to.
+- **Up/down/remove/Copy-Style/Paste-Style buttons work on nested children for free** — they're all already
+  generic (`.closest('.block-card')` + `.parentElement`), never hardcoded to the top-level list IDs, so no
+  changes were needed there. Drag-reorder (SortableJS) required one addition: `initNestedSortables()` inits
+  Sortable on every `.nested-blocks-list` (idempotent via `data-sortable-init`), called after any structural
+  change that could introduce one.
+- **What was NOT built** (the real gap vs. a "full" nested layout engine, kept deliberately out of scope for
+  risk/time reasons — flag to the user before extending further):
+  - **No canvas interactivity for nested children.** `public/blocks/render.blade.php`'s recursive `@include`
+    calls don't pass `$index`/`$group`, so nested children never get `data-block-index`/`draggable` —
+    unlike top-level blocks, they can't be click-to-selected, drag-reordered, or right-clicked directly on the
+    canvas. The *container itself* is fully canvas-interactive (it's a normal top-level block); its children
+    are only editable via the sidebar's nested mini-rail. `runBlockPreview()`'s per-block partial-preview path
+    already falls back to a full `schedulePreview()` reload for a nested-child edit (its card isn't found in
+    `blocks-list`/`sidebar-list`'s direct children) — correct, just not the fast path.
+  - **Undo/redo does not reliably round-trip a container's children.** `captureCardFields()`/`applyCardFields()`
+    are positional (Nth named field in `.block-settings`, which naturally sweeps up nested descendants too),
+    but `restoreList()` rebuilds a container fresh from its *empty* `<template>` before reapplying captured
+    values — if the child count changed since the snapshot, positions won't line up. Same category of gap as
+    `admission_form`'s dynamic custom fields (already documented in §6/Milestone 10) — not solved here for the
+    same reason: a real fix needs fully recursive, structure-aware snapshots, not just positional field values.
+  - **No visual nested-drag-and-drop** (dragging a block from the canvas *into* a container, or between
+    containers) — children are only added/removed/reordered via the sidebar's mini rail's own controls.
+  - These are reasonable follow-ups if the user wants the nesting experience closer to feature-parity with
+    top-level blocks; each is its own scoped chunk of work, not a quick add.
+- **No new translation keys for block/field labels** — confirmed the existing convention: `PageRenderService
+  ::BLOCKS`/`LEAF_BLOCKS` labels and `$spec` field labels are plain, un-`__()`-wrapped strings everywhere in
+  this codebase (verified none of "Hero banner", "Photo gallery", etc. exist in `bn.json` either) — always
+  English regardless of locale, by prior design, not something this change needed to alter. Only the new UI
+  chrome I did wrap in `__()` (category names, search placeholder, empty-state messages) got `bn.json` entries.
+- **Verification gap**: none of this has run through Pint/PHPStan/PHPUnit or a real browser — no PHP/Docker in
+  this sandbox. Given the size of this change (new PHP recursion in 2 files, a new Blade partial, ~250 lines of
+  new/changed JS), this is the most important thing to check before trusting it in production: at minimum, add
+  a page with a Container holding 2-3 leaf blocks and a Grid holding a few more, save, reload the editor, and
+  confirm both the public page and the editor's own re-opened state match what was configured.
 
 ## 8. Decisions to confirm when resuming (if not already answered above)
 

@@ -68,6 +68,61 @@
     {!! $close !!}
     @break
 
+  @case('video')
+    {!! $open !!}
+      @if(!empty($d['heading']))<h2 class="section-title h3 mb-3">{{ $d['heading'] }}</h2>@endif
+      @if(!empty($d['url']))
+        <div class="ratio ratio-16x9"><iframe src="{{ $d['url'] }}" allowfullscreen loading="lazy"></iframe></div>
+        @if(!empty($d['caption']))<p class="text-muted small mt-2 mb-0">{{ $d['caption'] }}</p>@endif
+      @else
+        <p class="text-muted mb-0">{{ __('No Video URL Set.') }}</p>
+      @endif
+    {!! $close !!}
+    @break
+
+  @case('button')
+    {!! $open !!}
+      <div class="text-{{ $d['align'] ?? 'start' }}">
+        <a href="{{ $d['url'] ?? '#' }}" class="btn btn-brand"@if(!empty($d['open_new_tab'])) target="_blank" rel="noopener"@endif>{{ $d['text'] ?? __('Click Here') }}</a>
+      </div>
+    {!! $close !!}
+    @break
+
+  @case('divider')
+    {!! $open !!}
+      <hr class="my-0" style="border-top-style:{{ in_array($d['line_style'] ?? null, ['solid','dashed','dotted'], true) ? $d['line_style'] : 'solid' }};width:{{ max(1, min(100, (int) ($d['width_pct'] ?? 100))) }}%;margin-left:auto;margin-right:auto;">
+    {!! $close !!}
+    @break
+
+  @case('spacer')
+    {!! $open !!}
+      <div style="height:{{ max(0, min(400, (int) ($d['height'] ?? 40))) }}px;" aria-hidden="true"></div>
+    {!! $close !!}
+    @break
+
+  @case('icon')
+    {!! $open !!}
+      @php
+        $iconMarkup = '<i class="bi '.e($d['icon'] ?? 'bi-star').'" style="font-size:'.max(12, min(200, (int) ($d['size'] ?? 32))).'px;color:'.(!empty($d['color']) ? e($d['color']) : 'var(--brand)').';"></i>';
+      @endphp
+      <div class="text-{{ $d['align'] ?? 'center' }}">
+        @if(!empty($d['url']))<a href="{{ $d['url'] }}">{!! $iconMarkup !!}</a>@else{!! $iconMarkup !!}@endif
+      </div>
+    {!! $close !!}
+    @break
+
+  @case('google_maps')
+    {!! $open !!}
+      @if(!empty($d['embed_url']))
+        <div class="rounded-3 overflow-hidden" style="height:{{ max(120, min(1000, (int) ($d['height'] ?? 320))) }}px;">
+          <iframe src="{{ $d['embed_url'] }}" style="width:100%;height:100%;border:0;" loading="lazy" allowfullscreen></iframe>
+        </div>
+      @else
+        <p class="text-muted mb-0">{{ __('No Map URL Set.') }}</p>
+      @endif
+    {!! $close !!}
+    @break
+
   @case('image_text')
     {!! $open !!}
       <div class="row g-4 align-items-center {{ ($d['image_side'] ?? 'left') === 'right' ? 'flex-row-reverse' : '' }}">
@@ -192,6 +247,38 @@
             <button class="btn btn-brand"><i class="bi bi-send"></i> {{ __('Send Message') }}</button>
           </form>
         </div></div></div>
+      </div>
+    {!! $close !!}
+    @break
+
+  @case('container')
+    {!! $open !!}
+      @php
+        $containerDir = ($d['direction'] ?? 'column') === 'row' ? 'row' : 'column';
+        $containerGap = max(0, min(80, (int) ($d['gap'] ?? 16)));
+      @endphp
+      <div class="d-flex flex-{{ $containerDir }}" style="gap:{{ $containerGap }}px;">
+        @forelse ($d['blocks'] ?? [] as $child)
+          @if($containerDir === 'row')<div class="flex-fill">@endif
+          @include('public.blocks.render', ['type' => $child['type'], 'd' => $child['d'], 'style' => $child['style'], 'layout' => $child['layout'], 'contained' => true])
+          @if($containerDir === 'row')</div>@endif
+        @empty
+          <p class="text-muted mb-0">{{ __('Empty Container — Add Blocks In The Editor.') }}</p>
+        @endforelse
+      </div>
+    {!! $close !!}
+    @break
+
+  @case('grid')
+    {!! $open !!}
+      <div class="row {{ $bp::columnClasses($layout, ['mobile' => 1, 'tablet' => 2, 'laptop' => 3, 'desktop' => 3]) }} g-3">
+        @forelse ($d['blocks'] ?? [] as $child)
+          <div>
+            @include('public.blocks.render', ['type' => $child['type'], 'd' => $child['d'], 'style' => $child['style'], 'layout' => $child['layout'], 'contained' => true])
+          </div>
+        @empty
+          <p class="text-muted mb-0">{{ __('Empty Grid — Add Blocks In The Editor.') }}</p>
+        @endforelse
       </div>
     {!! $close !!}
     @break

@@ -224,8 +224,13 @@ class PageController extends Controller
     /** Turn stored array fields back into editable multiline strings for the form. */
     private function layoutForEditor(?array $layout): array
     {
-        $reverse = function (array $blocks): array {
-            return collect($blocks)->map(function ($b) {
+        // Recursive (self-referencing via `use (&$reverse)`) so a container/
+        // grid's own nested children get the same multiline-field reversal
+        // as top-level blocks (e.g. a gallery_photo nested inside a
+        // container still needs its `images` array turned back into a
+        // newline-separated textarea value for editing).
+        $reverse = function (array $blocks) use (&$reverse): array {
+            return collect($blocks)->map(function ($b) use (&$reverse) {
                 $data = is_array($b['data'] ?? null) ? $b['data'] : [];
                 foreach (['images', 'videos'] as $f) {
                     if (isset($data[$f]) && is_array($data[$f])) {
@@ -237,6 +242,9 @@ class PageController extends Controller
                 }
                 if (isset($data['lines']) && is_array($data['lines'])) {
                     $data['lines'] = implode("\n", array_map(fn ($l) => is_array($l) ? (($l['label'] ?? '').'|'.($l['value'] ?? '')) : $l, $data['lines']));
+                }
+                if (in_array($b['type'] ?? null, ['container', 'grid'], true)) {
+                    $data['blocks'] = $reverse(is_array($data['blocks'] ?? null) ? $data['blocks'] : []);
                 }
 
                 return [
@@ -265,6 +273,16 @@ class PageController extends Controller
                 continue;
             }
             $data = is_array($b['data'] ?? null) ? $b['data'] : [];
+
+            // Single-level nesting only: a container/grid's own children go
+            // through this same normalization, restricted to leaf types (no
+            // nested container/grid) — see PageRenderService::LEAF_BLOCKS.
+            if (in_array($type, ['container', 'grid'], true)) {
+                $data['blocks'] = $this->normalizeBlocks(
+                    is_array($data['blocks'] ?? null) ? $data['blocks'] : [],
+                    PageRenderService::LEAF_BLOCKS
+                );
+            }
 
             foreach (['images', 'videos'] as $f) {
                 if (isset($data[$f])) {
