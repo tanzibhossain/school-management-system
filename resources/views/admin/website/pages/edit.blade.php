@@ -154,6 +154,8 @@
       padding: .85rem .4rem; min-height: 76px; cursor: pointer; text-align: center;
     }
     .block-picker-item:hover { border-color: var(--bs-primary); box-shadow: 0 1px 6px rgba(79,70,229,.15); }
+    .block-picker-item { cursor: grab; }
+    .block-picker-item.is-dragging { opacity: .4; }
     .block-picker-item i { font-size: 1.3rem; color: #64748b; }
     .block-picker-item span { font-size: .68rem; color: #475569; line-height: 1.15; }
     .block-picker-item.is-hidden { display: none; }
@@ -247,7 +249,7 @@
                   </div>
                   <div class="block-picker-grid">
                     @foreach ($cat['types'] as $t)
-                      <button type="button" class="block-picker-item js-add-block" data-group="blocks" data-type="{{ $t }}" data-label="{{ \Illuminate\Support\Str::lower($blocks[$t] ?? $t) }}">
+                      <button type="button" class="block-picker-item js-add-block" draggable="true" data-group="blocks" data-type="{{ $t }}" data-label="{{ \Illuminate\Support\Str::lower($blocks[$t] ?? $t) }}">
                         <i class="bi {{ $blockIcons[$t] ?? 'bi-square' }}"></i>
                         <span>{{ $blocks[$t] ?? $t }}</span>
                       </button>
@@ -264,7 +266,7 @@
               </div>
               <div class="block-picker-grid">
                 @foreach ($sidebarBlocks as $t => $l)
-                  <button type="button" class="block-picker-item js-add-block" data-group="sidebar" data-type="{{ $t }}" data-label="{{ \Illuminate\Support\Str::lower($l) }}">
+                  <button type="button" class="block-picker-item js-add-block" draggable="true" data-group="sidebar" data-type="{{ $t }}" data-label="{{ \Illuminate\Support\Str::lower($l) }}">
                     <i class="bi {{ $blockIcons[$t] ?? 'bi-square' }}"></i>
                     <span>{{ $l }}</span>
                   </button>
@@ -478,12 +480,22 @@
           });
         });
       }
-      function addBlock(group, type) {
-        var tpl = document.getElementById('tpl-' + group + '-' + type);
-        if (!tpl) return;
-        var html = tpl.innerHTML.split('__I__').join(blockIdx++);
-        var list = document.getElementById(group + '-list');
+      // Inserts a template's HTML either at the end of `list` or right
+      // before `refNode` (an existing child of `list`) — shared by
+      // addBlock() (always appends) and addBlockAt() (canvas drag-drop,
+      // arbitrary position) so there's one insertion implementation.
+      function insertBlockHtml(list, html, refNode) {
+        if (refNode) {
+          refNode.insertAdjacentHTML('beforebegin', html);
+          return refNode.previousElementSibling;
+        }
         list.insertAdjacentHTML('beforeend', html);
+        return list.lastElementChild;
+      }
+      // Everything a freshly inserted top-level block needs regardless of
+      // where it landed — shared by addBlock() and addBlockAt().
+      function finishBlockInsert(list, card) {
+        if (!card) return;
         updateEmptyState(list);
         initQuillEditors();
         initNestedSortables();
@@ -494,10 +506,36 @@
         // settings immediately, like Elementor does when you drop a new
         // widget — you're almost always about to configure it right away.
         showPanel('blocks');
-        openBlockCard(list.lastElementChild);
-        applyFieldDependencies(list.lastElementChild);
+        openBlockCard(card);
+        applyFieldDependencies(card);
         schedulePreview();
         pushHistory();
+      }
+      function addBlock(group, type) {
+        var tpl = document.getElementById('tpl-' + group + '-' + type);
+        if (!tpl) return;
+        var html = tpl.innerHTML.split('__I__').join(blockIdx++);
+        var list = document.getElementById(group + '-list');
+        finishBlockInsert(list, insertBlockHtml(list, html, null));
+      }
+      // Dragging a block-type box from the Add Block panel and dropping it
+      // at a specific spot on the canvas (see public/layout.blade.php's
+      // 'add-block-at' postMessage) — index/before describe a position
+      // among the group's blocks AS THEY WERE the last time the preview
+      // rendered (the iframe's data-block-index values), which lines up
+      // with this list's current DOM order under the same invariant every
+      // other canvas-driven action (reorder-blocks, select-block) relies on.
+      function addBlockAt(group, type, index, before) {
+        var tpl = document.getElementById('tpl-' + group + '-' + type);
+        var list = document.getElementById(group + '-list');
+        if (!tpl || !list) return;
+        var html = tpl.innerHTML.split('__I__').join(blockIdx++);
+        var refNode = null;
+        if (index !== null && index !== undefined) {
+          var existing = list.children[index];
+          if (existing) refNode = before ? existing : existing.nextElementSibling;
+        }
+        finishBlockInsert(list, insertBlockHtml(list, html, refNode));
       }
       // A container/grid's own "Add" control (see _nested_blocks.blade.php)
       // — same idea as addBlock() above, but the child's prefix is built
@@ -530,6 +568,31 @@
           var nestedList = wrap && wrap.querySelector('.nested-blocks-list');
           if (select && nestedList) addChildBlock(nestedList, select.value);
         }
+      });
+
+      // Drag a block-type box from the Add Block panel straight onto the
+      // canvas — the counterpart to public/layout.blade.php's dragover/drop
+      // handling. This side just publishes what's being dragged
+      // (dataTransfer can't be read by the iframe until drop, only its
+      // .types checked during dragover — see that file's comment); the
+      // iframe computes the drop position and posts back an 'add-block-at'
+      // message (handled below, near the other canvas-bridge messages).
+      document.addEventListener('dragstart', function (e) {
+        var item = e.target.closest('.js-add-block');
+        if (!item) return;
+        var payload = JSON.stringify({ group: item.dataset.group, type: item.dataset.type });
+        item.classList.add('is-dragging');
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = 'copy';
+          try {
+            e.dataTransfer.setData('application/x-block-type', payload);
+            e.dataTransfer.setData('text/plain', payload);
+          } catch (err) {}
+        }
+      });
+      document.addEventListener('dragend', function (e) {
+        var item = e.target.closest('.js-add-block');
+        if (item) item.classList.remove('is-dragging');
       });
 
       // Rail: only one block's Content/Style/Layout panel open at a time,
@@ -1099,6 +1162,15 @@
           });
           schedulePreview();
           pushHistory();
+          return;
+        }
+
+        if (msg.type === 'add-block-at') {
+          // A block-type box was dragged from the Add Block panel and
+          // dropped on the canvas — see addBlockAt() and the dragstart/drop
+          // handlers above/in public/layout.blade.php.
+          if (!msg.group || !msg.blockType) return;
+          addBlockAt(msg.group, msg.blockType, msg.index, msg.before);
           return;
         }
 

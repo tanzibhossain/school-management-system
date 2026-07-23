@@ -173,6 +173,10 @@
         body.is-editor-preview [data-block-index].drop-before { box-shadow: inset 0 3px 0 0 var(--brand); }
         body.is-editor-preview [data-block-index].drop-after { box-shadow: inset 0 -3px 0 0 var(--brand); }
         #editor-context-menu button:hover { background: #f1f3f5; }
+        /* Dragging a new block in from the editor's Add Block panel (see the
+           gated script below) — a subtle tint over the whole canvas so it's
+           clear this is a valid drop target even before hovering a block. */
+        body.is-editor-preview.is-external-drag-over { background: color-mix(in srgb, var(--brand) 5%, #fff); }
     </style>
 </head>
 
@@ -312,33 +316,100 @@
                 clearDropMarkers();
                 dragSrc = null;
             });
+            // ── Drag a NEW block in from the editor's Add Block panel ────────
+            // The drag source lives in the PARENT document's sidebar (see
+            // edit.blade.php), not in here — HTML5 dragstart/dragover/drop
+            // fire across the iframe boundary natively (it's a browser-level
+            // gesture, not restricted by same-origin/sandbox the way script
+            // access is), but dataTransfer.getData() can only be READ on
+            // drop, never during dragover (a spec-level security
+            // restriction) — so during dragover we only know an external
+            // add-block drag is in progress (via .types, which IS readable
+            // early) and show a generic insertion indicator; the actual
+            // group/type payload is read once, on drop.
+            var externalTarget = null;
+            function isExternalBlockDrag(e) {
+                return !dragSrc && !!e.dataTransfer
+                    && Array.prototype.indexOf.call(e.dataTransfer.types, 'application/x-block-type') !== -1;
+            }
             document.addEventListener('dragover', function (e) {
-                var el = e.target.closest('[data-block-index]');
-                if (!el || !dragSrc || el === dragSrc || el.dataset.blockGroup !== dragSrc.dataset.blockGroup) return;
+                if (dragSrc) {
+                    var el = e.target.closest('[data-block-index]');
+                    if (!el || el === dragSrc || el.dataset.blockGroup !== dragSrc.dataset.blockGroup) return;
+                    e.preventDefault();
+                    clearDropMarkers();
+                    var rect = el.getBoundingClientRect();
+                    var before = (e.clientY - rect.top) < rect.height / 2;
+                    el.classList.add(before ? 'drop-before' : 'drop-after');
+                    return;
+                }
+                if (!isExternalBlockDrag(e)) return;
                 e.preventDefault();
+                document.body.classList.add('is-external-drag-over');
                 clearDropMarkers();
-                var rect = el.getBoundingClientRect();
-                var before = (e.clientY - rect.top) < rect.height / 2;
-                el.classList.add(before ? 'drop-before' : 'drop-after');
+                var el = e.target.closest('[data-block-index]');
+                if (el) {
+                    var rect = el.getBoundingClientRect();
+                    var before = (e.clientY - rect.top) < rect.height / 2;
+                    el.classList.add(before ? 'drop-before' : 'drop-after');
+                    externalTarget = { index: parseInt(el.dataset.blockIndex, 10), group: el.dataset.blockGroup, before: before };
+                } else {
+                    externalTarget = null; // over empty canvas — appends at the end on drop
+                }
+            });
+            document.addEventListener('dragleave', function (e) {
+                // relatedTarget is null when the pointer leaves the document
+                // entirely (vs. just moving between two child elements).
+                if (e.relatedTarget === null) {
+                    clearDropMarkers();
+                    document.body.classList.remove('is-external-drag-over');
+                }
             });
             document.addEventListener('drop', function (e) {
-                var el = e.target.closest('[data-block-index]');
-                if (!el || !dragSrc || el === dragSrc || el.dataset.blockGroup !== dragSrc.dataset.blockGroup) return;
+                document.body.classList.remove('is-external-drag-over');
+                if (dragSrc) {
+                    var el = e.target.closest('[data-block-index]');
+                    if (!el || el === dragSrc || el.dataset.blockGroup !== dragSrc.dataset.blockGroup) return;
+                    e.preventDefault();
+                    var group = dragSrc.dataset.blockGroup;
+                    var nodes = Array.prototype.slice.call(
+                        document.querySelectorAll('[data-block-index][data-block-group="' + group + '"]')
+                    );
+                    var order = nodes.map(function (n) { return parseInt(n.dataset.blockIndex, 10); });
+                    var fromVal = parseInt(dragSrc.dataset.blockIndex, 10);
+                    var toVal = parseInt(el.dataset.blockIndex, 10);
+                    var rect = el.getBoundingClientRect();
+                    var before = (e.clientY - rect.top) < rect.height / 2;
+                    order.splice(order.indexOf(fromVal), 1);
+                    var insertAt = order.indexOf(toVal) + (before ? 0 : 1);
+                    order.splice(insertAt, 0, fromVal);
+                    clearDropMarkers();
+                    window.parent.postMessage({ source: 'page-preview', type: 'reorder-blocks', group: group, order: order }, '*');
+                    return;
+                }
+                if (!e.dataTransfer) return;
+                var raw = e.dataTransfer.getData('application/x-block-type') || e.dataTransfer.getData('text/plain');
+                if (!raw) return;
+                var payload;
+                try { payload = JSON.parse(raw); } catch (err) { return; }
+                if (!payload || !payload.type || !payload.group) return;
                 e.preventDefault();
-                var group = dragSrc.dataset.blockGroup;
-                var nodes = Array.prototype.slice.call(
-                    document.querySelectorAll('[data-block-index][data-block-group="' + group + '"]')
-                );
-                var order = nodes.map(function (n) { return parseInt(n.dataset.blockIndex, 10); });
-                var fromVal = parseInt(dragSrc.dataset.blockIndex, 10);
-                var toVal = parseInt(el.dataset.blockIndex, 10);
-                var rect = el.getBoundingClientRect();
-                var before = (e.clientY - rect.top) < rect.height / 2;
-                order.splice(order.indexOf(fromVal), 1);
-                var insertAt = order.indexOf(toVal) + (before ? 0 : 1);
-                order.splice(insertAt, 0, fromVal);
                 clearDropMarkers();
-                window.parent.postMessage({ source: 'page-preview', type: 'reorder-blocks', group: group, order: order }, '*');
+                // Only honor the hovered insertion point if it's the SAME
+                // group as what's being dropped (you can't insert a
+                // Sidebar-only block type among main content blocks, or vice
+                // versa) — otherwise fall back to appending at the end of
+                // the correct group, same as clicking the picker item would.
+                var useTarget = externalTarget && externalTarget.group === payload.group;
+                window.parent.postMessage({
+                    source: 'page-preview',
+                    type: 'add-block-at',
+                    group: payload.group,
+                    blockType: payload.type,
+                    index: useTarget ? externalTarget.index : null,
+                    before: useTarget ? externalTarget.before : null,
+                }, '*');
+                externalTarget = null;
             });
 
             // ── Right-click context menu: Copy Style / Paste Style / Delete ──
