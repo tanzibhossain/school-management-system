@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.admin-fullscreen')
 @section('title', __('Edit Page'))
 @section('content')
   @php
@@ -36,7 +36,7 @@
     // block type is single-content and only gets visibility toggles.
     $gridTypes = ['staff', 'notices', 'stats', 'gallery_photo', 'gallery_video'];
 
-    // Icons for the compact block-rail rows (Bootstrap Icons).
+    // Icons for the compact block-rail rows and the "Add Block" grid (Bootstrap Icons).
     $blockIcons = [
       'hero' => 'bi-image', 'heading' => 'bi-type-h1', 'richtext' => 'bi-file-text',
       'image' => 'bi-image', 'image_text' => 'bi-layout-text-sidebar-reverse', 'staff' => 'bi-people',
@@ -48,9 +48,38 @@
   @endphp
 
   <style>
-    /* Block rail — compact rows by default, one settings panel open at a time
-       (Elementor-style "layers" list). See Milestone 3 in
-       docs/modules/28-elementor-block-editor-plan.md. */
+    /* Fullscreen Elementor-style shell — topbar + resizable left sidebar +
+       full-width scrollable canvas, no admin chrome. See "Fullscreen editor
+       shell" in docs/modules/28-elementor-block-editor-plan.md. */
+    .editor-shell { display: flex; flex-direction: column; height: 100vh; }
+    .editor-topbar { flex: 0 0 auto; background: #fff; border-bottom: 1px solid var(--bs-border-color); }
+    .editor-body { flex: 1 1 auto; display: flex; min-height: 0; }
+
+    .editor-sidebar {
+      position: relative; flex: 0 0 auto; display: flex; flex-direction: column;
+      width: 10vw; min-width: 220px; max-width: 25vw;
+      background: #fff; border-right: 1px solid var(--bs-border-color); overflow: hidden;
+    }
+    .sidebar-resize-handle {
+      position: absolute; top: 0; right: -3px; width: 6px; height: 100%; cursor: col-resize; z-index: 5;
+    }
+    .sidebar-resize-handle:hover, .sidebar-resize-handle.is-dragging { background: rgba(79,70,229,.25); }
+    .sidebar-panel { display: none; flex: 1 1 auto; overflow-y: auto; padding: .85rem; }
+    .sidebar-panel.active { display: block; }
+
+    .editor-canvas {
+      flex: 1 1 auto; overflow: auto; background: var(--bs-tertiary-bg, #f1f3f5);
+      display: flex; justify-content: center; align-items: stretch;
+    }
+    #preview-frame { background: #fff; transition: width .2s ease; flex: 0 0 auto; }
+    .editor-canvas.vp-laptop { padding: 0; }
+    .editor-canvas.vp-laptop #preview-frame { width: 1200px; max-width: 100%; }
+    .editor-canvas.vp-tablet #preview-frame { width: 768px; max-width: 100%; box-shadow: 0 0 0 1px var(--bs-border-color); }
+    .editor-canvas.vp-mobile #preview-frame { width: 375px; max-width: 100%; border-radius: 14px; box-shadow: 0 0 0 1px var(--bs-border-color); }
+    .editor-canvas.vp-tablet, .editor-canvas.vp-mobile { padding: 1rem 0; }
+
+    /* Block rail — compact rows by default, one settings panel open at a
+       time (Elementor-style "layers" list). */
     .block-row { cursor: pointer; user-select: none; }
     .block-row:hover { background: var(--bs-tertiary-bg, #f8f9fa); }
     .block-card.is-open { border-color: var(--bs-primary); box-shadow: 0 0 0 .15rem rgba(13,110,253,.12); }
@@ -58,127 +87,164 @@
     .block-card.is-open .js-block-chevron { transform: rotate(180deg); }
     .js-drag-handle { cursor: grab; }
 
-    /* Responsive viewport toolbar — resizes the preview iframe to simulate a
-       breakpoint, so the Layout tab's per-breakpoint columns/visibility
-       controls are visibly testable. Widths mirror the Bootstrap infixes
-       BlockPresentation maps breakpoints onto (base/-md/-lg/-xl). */
-    #preview-viewport-wrap { background: var(--bs-tertiary-bg, #f1f3f5); transition: padding .15s ease; }
-    #preview-frame { background: #fff; transition: width .2s ease; }
-    #preview-viewport-wrap.vp-laptop { padding: 0; }
-    #preview-viewport-wrap.vp-laptop #preview-frame { width: 1200px; max-width: 100%; }
-    #preview-viewport-wrap.vp-tablet #preview-frame { width: 768px; max-width: 100%; box-shadow: 0 0 0 1px var(--bs-border-color); }
-    #preview-viewport-wrap.vp-mobile #preview-frame { width: 375px; max-width: 100%; border-radius: 14px; box-shadow: 0 0 0 1px var(--bs-border-color); }
-    #preview-viewport-wrap.vp-tablet, #preview-viewport-wrap.vp-mobile { padding: 1rem 0; }
+    .js-panel-btn.active { background: var(--bs-primary); color: #fff; border-color: var(--bs-primary); }
+    .js-add-block { text-align: left; }
   </style>
 
-  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <div>
-      <nav><ol class="breadcrumb small mb-1"><li class="breadcrumb-item">{{ __('Website') }}</li><li class="breadcrumb-item"><a href="{{ route('admin.pages.index') }}" class="text-decoration-none">{{ __('Pages') }}</a></li><li class="breadcrumb-item active">{{ $page->title }}</li></ol></nav>
-      <h1 class="h4 mb-0">{{ __('Edit Page') }}</h1>
+  <div class="editor-shell">
+    <div class="editor-topbar d-flex align-items-center justify-content-between px-2 py-2 gap-2 flex-wrap">
+      {{-- Section 1: navigation + structural actions --}}
+      <div class="d-flex align-items-center gap-1">
+        <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary btn-sm" title="{{ __('Back') }}"><i class="bi bi-arrow-left"></i></a>
+        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="add" title="{{ __('Add Block') }}"><i class="bi bi-plus-lg"></i></button>
+        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="settings" title="{{ __('Page Settings') }}"><i class="bi bi-gear"></i></button>
+        <div class="vr mx-1"></div>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-undo" title="{{ __('Undo (Ctrl+Z)') }}" disabled><i class="bi bi-arrow-counterclockwise"></i></button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-redo" title="{{ __('Redo (Ctrl+Y)') }}" disabled><i class="bi bi-arrow-clockwise"></i></button>
+        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="history" title="{{ __('History') }}"><i class="bi bi-clock-history"></i></button>
+      </div>
+
+      {{-- Section 2: page identity + viewport --}}
+      <div class="d-flex align-items-center gap-2">
+        <span class="fw-semibold small text-truncate" id="topbar-page-name" style="max-width:240px;">{{ $page->title }}</span>
+        <div class="btn-group btn-group-sm" role="group" aria-label="{{ __('Preview Viewport') }}" id="viewport-toolbar">
+          <button type="button" class="btn btn-outline-secondary active" data-viewport="desktop" title="{{ __('Desktop') }}"><i class="bi bi-display"></i></button>
+          <button type="button" class="btn btn-outline-secondary" data-viewport="laptop" title="{{ __('Laptop') }}"><i class="bi bi-laptop"></i></button>
+          <button type="button" class="btn btn-outline-secondary" data-viewport="tablet" title="{{ __('Tablet') }}"><i class="bi bi-tablet"></i></button>
+          <button type="button" class="btn btn-outline-secondary" data-viewport="mobile" title="{{ __('Mobile') }}"><i class="bi bi-phone"></i></button>
+        </div>
+        <span class="small text-muted" id="preview-status"></span>
+      </div>
+
+      {{-- Section 3: preview + publish --}}
+      <div class="d-flex align-items-center gap-2">
+        @if ($page->status === 'published')
+          <a class="btn btn-outline-secondary btn-sm" href="{{ url('/' . $page->slug) }}" target="_blank" title="{{ __('Preview') }}"><i class="bi bi-eye"></i></a>
+        @endif
+        <button type="submit" form="page-form" class="btn btn-primary btn-sm">
+          <i class="bi bi-cloud-upload"></i> {{ $page->status === 'published' ? __('Update') : __('Publish') }}
+        </button>
+      </div>
     </div>
-    <div class="d-flex gap-2">
-      <a class="btn btn-outline-secondary" href="{{ route('admin.pages.history', $page->id) }}"><i class="bi bi-clock-history"></i> {{ __('History') }}</a>
-      @if ($page->status === 'published')<a class="btn btn-outline-secondary" href="{{ url('/' . $page->slug) }}" target="_blank"><i class="bi bi-box-arrow-up-right"></i> {{ __('View Live') }}</a>@endif
+
+    <div class="editor-body">
+      <div class="editor-sidebar" id="editor-sidebar">
+        <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
+
+        <form method="POST" action="{{ route('admin.pages.save', $page->id) }}" id="page-form">
+          @csrf @method('PUT')
+
+          {{-- Panel: block layers (default) --}}
+          <div class="sidebar-panel active" data-panel="blocks">
+            <div id="main-col">
+              <h6 class="small text-muted text-uppercase mb-2">{{ __('Content Blocks') }}</h6>
+              <div id="blocks-list">
+                @foreach ($view['blocks'] as $i => $b)
+                  @include('admin.website.pages._card', ['prefix' => "blocks[$i]", 'type' => $b['type'], 'label' => $blocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$b['type']] ?? 'bi-square'])
+                @endforeach
+              </div>
+              <p class="text-muted small mb-0" id="blocks-empty" @if(count($view['blocks'])) style="display:none" @endif>{{ __('No Blocks Yet — Add One Above.') }}</p>
+            </div>
+
+            <div id="side-col" class="mt-3" @if($view['template'] !== 'sidebar') style="display:none" @endif>
+              <h6 class="small text-muted text-uppercase mb-2">{{ __('Sidebar Blocks') }}</h6>
+              <div id="sidebar-list">
+                @foreach ($view['sidebar'] as $i => $b)
+                  @include('admin.website.pages._card', ['prefix' => "sidebar[$i]", 'type' => $b['type'], 'label' => $sidebarBlocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$b['type']] ?? 'bi-square'])
+                @endforeach
+              </div>
+            </div>
+          </div>
+
+          {{-- Panel: add block --}}
+          <div class="sidebar-panel" data-panel="add">
+            <h6 class="small text-muted text-uppercase mb-2">{{ __('Content Blocks') }}</h6>
+            <div class="d-grid gap-1 mb-3">
+              @foreach ($blocks as $t => $l)
+                <button type="button" class="btn btn-outline-secondary btn-sm js-add-block" data-group="blocks" data-type="{{ $t }}">
+                  <i class="bi {{ $blockIcons[$t] ?? 'bi-square' }} me-1"></i> {{ $l }}
+                </button>
+              @endforeach
+            </div>
+            <div id="add-side-section" @if($view['template'] !== 'sidebar') style="display:none" @endif>
+              <h6 class="small text-muted text-uppercase mb-2">{{ __('Sidebar Blocks') }}</h6>
+              <div class="d-grid gap-1">
+                @foreach ($sidebarBlocks as $t => $l)
+                  <button type="button" class="btn btn-outline-secondary btn-sm js-add-block" data-group="sidebar" data-type="{{ $t }}">
+                    <i class="bi {{ $blockIcons[$t] ?? 'bi-square' }} me-1"></i> {{ $l }}
+                  </button>
+                @endforeach
+              </div>
+            </div>
+          </div>
+
+          {{-- Panel: page settings (Title / Slug / Status / Template) --}}
+          <div class="sidebar-panel" data-panel="settings">
+            <h6 class="small text-muted text-uppercase mb-3">{{ __('Page Settings') }}</h6>
+            <div class="mb-3">
+              <label class="form-label small">{{ __('Title') }} <span class="text-danger">*</span></label>
+              <input name="title" class="form-control form-control-sm" value="{{ old('title', $page->title) }}" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">{{ __('Slug') }}</label>
+              <div class="input-group input-group-sm">
+                <span class="input-group-text">/</span>
+                <input name="slug" class="form-control" value="{{ old('slug', $page->slug) }}">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">{{ __('Status') }}</label>
+              <select name="status" class="form-select form-select-sm">
+                <option value="published" @selected($page->status === 'published')>{{ __('Published') }}</option>
+                <option value="draft" @selected($page->status === 'draft')>{{ __('Draft') }}</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">{{ __('Template') }}</label>
+              <select name="template" id="tpl-select" class="form-select form-select-sm">
+                <option value="full" @selected($view['template'] === 'full')>{{ __('Full Width') }}</option>
+                <option value="sidebar" @selected($view['template'] === 'sidebar')>{{ __('With Sidebar') }}</option>
+              </select>
+            </div>
+          </div>
+        </form>
+
+        {{-- Panel: revision history — outside #page-form (has its own restore
+             forms; a <form> cannot nest inside another <form>). Uses
+             $page->layouts, eager-loaded with createdBy by PageController::edit(). --}}
+        <div class="sidebar-panel" data-panel="history">
+          <h6 class="small text-muted text-uppercase mb-3">{{ __('History') }}</h6>
+          <div class="list-group list-group-flush small">
+            @forelse ($page->layouts as $rev)
+              <div class="list-group-item px-0 py-2">
+                <div class="fw-semibold">{{ $rev->created_at?->format('M j, Y g:i A') }}</div>
+                <div class="text-muted mb-1">{{ $rev->createdBy?->name ?? __('Unknown') }}</div>
+                <div class="mb-1">
+                  @if($loop->first)<span class="badge bg-secondary">{{ __('Latest') }}</span>@endif
+                  @if($rev->is_published)<span class="badge bg-success">{{ __('Published') }}</span>@endif
+                </div>
+                @unless($loop->first)
+                  <form method="POST" action="{{ route('admin.pages.restore', [$page->id, $rev->id]) }}" onsubmit="return confirm('{{ __('Restore this revision as a new draft?') }}')">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-secondary btn-sm w-100">{{ __('Restore') }}</button>
+                  </form>
+                @endunless
+              </div>
+            @empty
+              <p class="text-muted small mb-0">{{ __('No revisions yet.') }}</p>
+            @endforelse
+          </div>
+        </div>
+      </div>
+
+      {{-- Canvas — same render pipeline as the public site, fed from the
+           form's current (unsaved) values. See
+           docs/modules/28-elementor-block-editor-plan.md. --}}
+      <div class="editor-canvas" id="preview-viewport-wrap">
+        <iframe id="preview-frame" title="{{ __('Live Preview') }}" sandbox="allow-same-origin allow-scripts" style="width:100%;height:100%;border:0;display:block;"></iframe>
+      </div>
     </div>
   </div>
-
-  <form method="POST" action="{{ route('admin.pages.save', $page->id) }}" id="page-form">
-    @csrf @method('PUT')
-
-    {{-- Page meta — its own full-width row so Title/Slug/Status/Template lay
-         out on one line instead of being squeezed inside the half-width
-         editor pane below. --}}
-    <div class="card mb-3"><div class="card-body">
-      <div class="row g-3">
-        <div class="col-md-4"><label class="form-label">{{ __('Title') }} <span class="text-danger">*</span></label>
-          <input name="title" class="form-control" value="{{ old('title', $page->title) }}" required></div>
-        <div class="col-md-4"><label class="form-label">{{ __('Slug') }}</label>
-          <div class="input-group"><span class="input-group-text">/</span>
-            <input name="slug" class="form-control" value="{{ old('slug', $page->slug) }}"></div></div>
-        <div class="col-md-2"><label class="form-label">{{ __('Status') }}</label>
-          <select name="status" class="form-select">
-            <option value="published" @selected($page->status === 'published')>{{ __('Published') }}</option>
-            <option value="draft" @selected($page->status === 'draft')>{{ __('Draft') }}</option>
-          </select></div>
-        <div class="col-md-2"><label class="form-label">{{ __('Template') }}</label>
-          <select name="template" id="tpl-select" class="form-select">
-            <option value="full" @selected($view['template'] === 'full')>{{ __('Full Width') }}</option>
-            <option value="sidebar" @selected($view['template'] === 'sidebar')>{{ __('With Sidebar') }}</option>
-          </select></div>
-      </div>
-    </div></div>
-
-    <div class="row g-3">
-      {{-- Editor pane --}}
-      <div class="col-lg-6">
-        {{-- Main column blocks --}}
-        <div id="main-col" class="mb-3">
-          <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
-            <span>{{ __('Content Blocks') }}</span>
-            <div class="input-group input-group-sm" style="width:auto;">
-              <select class="form-select" id="add-blocks-select">
-                @foreach ($blocks as $t => $l)<option value="{{ $t }}">{{ $l }}</option>@endforeach
-              </select>
-              <button type="button" class="btn btn-outline-primary" onclick="addBlock('blocks', document.getElementById('add-blocks-select').value)"><i class="bi bi-plus-lg"></i> {{ __('Add') }}</button>
-            </div>
-          </div><div class="card-body">
-            <div id="blocks-list">
-              @foreach ($view['blocks'] as $i => $b)
-                @include('admin.website.pages._card', ['prefix' => "blocks[$i]", 'type' => $b['type'], 'label' => $blocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$b['type']] ?? 'bi-square'])
-              @endforeach
-            </div>
-            <p class="text-muted small mb-0" id="blocks-empty" @if(count($view['blocks'])) style="display:none" @endif>{{ __('No Blocks Yet — Add One Above.') }}</p>
-          </div></div>
-        </div>
-
-        {{-- Sidebar column blocks --}}
-        <div id="side-col" @if($view['template'] !== 'sidebar') style="display:none" @endif>
-          <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
-            <span>{{ __('Sidebar Blocks') }}</span>
-            <div class="input-group input-group-sm" style="width:auto;">
-              <select class="form-select" id="add-sidebar-select">
-                @foreach ($sidebarBlocks as $t => $l)<option value="{{ $t }}">{{ $l }}</option>@endforeach
-              </select>
-              <button type="button" class="btn btn-outline-primary" onclick="addBlock('sidebar', document.getElementById('add-sidebar-select').value)"><i class="bi bi-plus-lg"></i> {{ __('Add') }}</button>
-            </div>
-          </div><div class="card-body">
-            <div id="sidebar-list">
-              @foreach ($view['sidebar'] as $i => $b)
-                @include('admin.website.pages._card', ['prefix' => "sidebar[$i]", 'type' => $b['type'], 'label' => $sidebarBlocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$b['type']] ?? 'bi-square'])
-              @endforeach
-            </div>
-          </div></div>
-        </div>
-
-        <div class="mt-3 mb-3">
-          <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save Page') }}</button>
-          <button type="button" class="btn btn-outline-secondary" id="btn-undo" title="{{ __('Undo (Ctrl+Z)') }}" disabled><i class="bi bi-arrow-counterclockwise"></i></button>
-          <button type="button" class="btn btn-outline-secondary" id="btn-redo" title="{{ __('Redo (Ctrl+Y)') }}" disabled><i class="bi bi-arrow-clockwise"></i></button>
-          <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary">{{ __('Back') }}</a>
-        </div>
-      </div>
-
-      {{-- Live preview pane — same render pipeline as the public site, fed from
-           this form's current (unsaved) values. See docs/modules/28-elementor-block-editor-plan.md. --}}
-      <div class="col-lg-6">
-        <div class="card sticky-top" style="top:1rem;">
-          <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <span><i class="bi bi-eye"></i> {{ __('Live Preview') }}</span>
-            <div class="btn-group btn-group-sm" role="group" aria-label="{{ __('Preview Viewport') }}" id="viewport-toolbar">
-              <button type="button" class="btn btn-outline-secondary active" data-viewport="desktop" title="{{ __('Desktop') }}"><i class="bi bi-display"></i></button>
-              <button type="button" class="btn btn-outline-secondary" data-viewport="laptop" title="{{ __('Laptop') }}"><i class="bi bi-laptop"></i></button>
-              <button type="button" class="btn btn-outline-secondary" data-viewport="tablet" title="{{ __('Tablet') }}"><i class="bi bi-tablet"></i></button>
-              <button type="button" class="btn btn-outline-secondary" data-viewport="mobile" title="{{ __('Mobile') }}"><i class="bi bi-phone"></i></button>
-            </div>
-            <span class="small text-muted" id="preview-status"></span>
-          </div>
-          <div class="card-body p-0 d-flex justify-content-center" id="preview-viewport-wrap">
-            <iframe id="preview-frame" title="{{ __('Live Preview') }}" sandbox="allow-same-origin allow-scripts" style="width:100%;height:82vh;border:0;display:block;"></iframe>
-          </div>
-        </div>
-      </div>
-    </div>
-  </form>
 
   {{-- Hidden block templates for the "Add" buttons (prefix placeholder __I__) --}}
   @foreach ($blocks as $t => $l)
@@ -191,6 +257,46 @@
   @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script>
+      // ── Sidebar panel switching ─────────────────────────────────────────
+      function showPanel(name) {
+        document.querySelectorAll('.sidebar-panel').forEach(function (p) {
+          p.classList.toggle('active', p.dataset.panel === name);
+        });
+        document.querySelectorAll('.js-panel-btn').forEach(function (b) {
+          b.classList.toggle('active', b.dataset.panel === name);
+        });
+      }
+      document.querySelectorAll('.js-panel-btn').forEach(function (b) {
+        b.addEventListener('click', function () { showPanel(b.dataset.panel); });
+      });
+
+      // ── Resizable sidebar (10vw default, 220px floor, 25vw ceiling) ─────
+      (function () {
+        var sidebar = document.getElementById('editor-sidebar');
+        var handle = document.getElementById('sidebar-resize-handle');
+        if (!sidebar || !handle) return;
+        var dragging = false;
+        handle.addEventListener('mousedown', function (e) {
+          dragging = true;
+          handle.classList.add('is-dragging');
+          document.body.style.cursor = 'col-resize';
+          e.preventDefault();
+        });
+        document.addEventListener('mousemove', function (e) {
+          if (!dragging) return;
+          var min = Math.max(220, window.innerWidth * 0.10);
+          var max = window.innerWidth * 0.25;
+          var w = Math.min(max, Math.max(min, e.clientX));
+          sidebar.style.width = w + 'px';
+        });
+        document.addEventListener('mouseup', function () {
+          if (!dragging) return;
+          dragging = false;
+          handle.classList.remove('is-dragging');
+          document.body.style.cursor = '';
+        });
+      })();
+
       var blockIdx = 1000;
       function addBlock(group, type) {
         var tpl = document.getElementById('tpl-' + group + '-' + type);
@@ -202,14 +308,19 @@
         // A style may already be copied from an earlier block — the new
         // block's Paste Style button starts disabled server-side, enable it too.
         if (copiedStyle) { document.querySelectorAll('.js-paste-style').forEach(function (b) { b.disabled = false; }); }
-        // Open the newly added block's settings immediately, like Elementor
-        // does when you drop a new widget — you're almost always about to
-        // configure it right away.
+        // Switch to the block layers panel and open the newly added block's
+        // settings immediately, like Elementor does when you drop a new
+        // widget — you're almost always about to configure it right away.
+        showPanel('blocks');
         var list = document.getElementById(group + '-list');
         openBlockCard(list.lastElementChild);
         schedulePreview();
         pushHistory();
       }
+      document.addEventListener('click', function (e) {
+        var addBtn = e.target.closest('.js-add-block');
+        if (addBtn) { addBlock(addBtn.dataset.group, addBtn.dataset.type); }
+      });
 
       // Rail: only one block's Content/Style/Layout panel open at a time,
       // per list (main blocks vs sidebar blocks are independent).
@@ -326,10 +437,14 @@
         document.querySelector('[name="status"]').value = snap.status;
         document.getElementById('tpl-select').value = snap.template;
         document.getElementById('side-col').style.display = snap.template === 'sidebar' ? '' : 'none';
+        var addSide = document.getElementById('add-side-section');
+        if (addSide) addSide.style.display = snap.template === 'sidebar' ? '' : 'none';
         restoreList('blocks-list', 'blocks', snap.blocks);
         restoreList('sidebar-list', 'sidebar', snap.sidebar);
         var empty = document.getElementById('blocks-empty');
         if (empty) empty.style.display = snap.blocks.length ? 'none' : '';
+        var nameEl = document.getElementById('topbar-page-name');
+        if (nameEl) nameEl.textContent = snap.title || @json(__('Untitled'));
         initQuillEditors();
         schedulePreview();
         updateUndoRedoButtons();
@@ -419,8 +534,16 @@
       document.getElementById('tpl-select').addEventListener('change', function () {
         var sidebar = this.value === 'sidebar';
         document.getElementById('side-col').style.display = sidebar ? '' : 'none';
+        var addSide = document.getElementById('add-side-section');
+        if (addSide) addSide.style.display = sidebar ? '' : 'none';
         schedulePreview();
         pushHistory();
+      });
+
+      // Topbar page-name label — mirrors the Title field live.
+      document.querySelector('[name="title"]').addEventListener('input', function () {
+        var el = document.getElementById('topbar-page-name');
+        if (el) el.textContent = this.value || @json(__('Untitled'));
       });
 
       // Responsive viewport toolbar — resizes the preview iframe only, no re-render needed.
@@ -428,9 +551,9 @@
         var btn = e.target.closest('[data-viewport]');
         if (!btn) return;
         this.querySelectorAll('[data-viewport]').forEach(function (b) { b.classList.toggle('active', b === btn); });
-        var wrap = document.getElementById('preview-viewport-wrap');
-        wrap.classList.remove('vp-laptop', 'vp-tablet', 'vp-mobile');
-        if (btn.dataset.viewport !== 'desktop') wrap.classList.add('vp-' + btn.dataset.viewport);
+        var canvas = document.getElementById('preview-viewport-wrap');
+        canvas.classList.remove('vp-laptop', 'vp-tablet', 'vp-mobile');
+        if (btn.dataset.viewport !== 'desktop') canvas.classList.add('vp-' + btn.dataset.viewport);
       });
 
       // Style tab: sync each color swatch <-> its hex text field, both ways.
@@ -451,7 +574,7 @@
       });
 
       // Rich text fields (richtext/image_text "html") use Quill — open
-      // source (BSD-3), loaded globally from CDN in layouts/admin.blade.php,
+      // source (BSD-3), loaded globally from CDN in layouts/admin-fullscreen.blade.php,
       // no API key or build step required. One shared init, idempotent
       // (guarded by data-quill-init) so it's safe to call again after a new
       // block is added — see the comment in _fields.blade.php for why a
@@ -624,11 +747,12 @@
 
       // ── Click-to-select bridge ───────────────────────────────────────────
       // The preview iframe (public/layout.blade.php) posts a message when the
-      // user clicks a rendered block on the canvas; open that block's
-      // settings panel in the rail. The rendered index is positional (the
-      // Nth block-card currently in the list), which lines up exactly with
-      // what the preview just rendered — the preview is built from this same
-      // form's current DOM order (see runPreview() above).
+      // user clicks a rendered block on the canvas; switch to the block
+      // layers panel and open that block's settings in the rail. The
+      // rendered index is positional (the Nth block-card currently in the
+      // list), which lines up exactly with what the preview just rendered —
+      // the preview is built from this same form's current DOM order (see
+      // runPreview() above).
       window.addEventListener('message', function (e) {
         if (e.origin !== window.location.origin) return;
         var msg = e.data;
@@ -636,6 +760,7 @@
         var list = document.getElementById(msg.group === 'sidebar' ? 'sidebar-list' : 'blocks-list');
         var card = list && list.children[parseInt(msg.index, 10)];
         if (card) {
+          showPanel('blocks');
           openBlockCard(card);
           card.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
