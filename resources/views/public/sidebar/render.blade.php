@@ -4,9 +4,10 @@
   $wrap = \App\Modules\Website\Support\BlockPresentation::wrapper($style, $layout);
   $wrapClass = trim($wrap['class'].' mb-3');
   $wrapStyleAttr = $wrap['style'] !== '' ? ' style="'.$wrap['style'].'"' : '';
-  // See public/blocks/render.blade.php — same click-to-select bridge attributes.
+  // See public/blocks/render.blade.php — same click-to-select/drag-reorder/
+  // context-menu bridge attributes.
   $editorAttrs = isset($index)
-    ? ' data-block-index="'.(int) $index.'" data-block-group="'.e($group ?? 'sidebar').'"'
+    ? ' data-block-index="'.(int) $index.'" data-block-group="'.e($group ?? 'sidebar').'" draggable="true"'
     : '';
 @endphp
 <div class="{{ $wrapClass }}"{!! $wrapStyleAttr !!}{!! $editorAttrs !!}>

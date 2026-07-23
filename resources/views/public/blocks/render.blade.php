@@ -9,10 +9,11 @@
   $layout = $layout ?? [];
 
   // Identifies this rendered block back to its editor row (blocks[$index]) —
-  // used only by the admin live-preview iframe's click-to-select bridge (see
-  // public/layout.blade.php); inert data attributes on the real public site.
+  // used only by the admin live-preview iframe's click-to-select/drag-reorder/
+  // context-menu bridge (see public/layout.blade.php); inert data attributes
+  // (and draggable is simply absent) on the real public site.
   $editorAttrs = isset($index)
-    ? ' data-block-index="'.(int) $index.'" data-block-group="'.e($group ?? 'blocks').'"'
+    ? ' data-block-index="'.(int) $index.'" data-block-group="'.e($group ?? 'blocks').'" draggable="true"'
     : '';
 
   // hero/admission_form manage their own spacing+background entirely — every
