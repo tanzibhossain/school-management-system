@@ -70,12 +70,68 @@
 
   @case('video')
     {!! $open !!}
+      @php
+        // Video Options panel — see docs/modules/28-elementor-block-editor-plan.md
+        // §7e. 'controls' defaults ON (matches _fields.blade.php's spec-level
+        // default for a freshly added block); the rest default OFF, same
+        // as an unset checkbox anywhere else in this app.
+        $vSource = in_array($d['source'] ?? null, ['youtube', 'vimeo', 'dailymotion', 'videopress', 'self_hosted'], true) ? $d['source'] : 'youtube';
+        $vStart = isset($d['start_time']) && $d['start_time'] !== '' ? max(0, (int) $d['start_time']) : null;
+        $vEnd = isset($d['end_time']) && $d['end_time'] !== '' ? max(0, (int) $d['end_time']) : null;
+        $vAutoplay = ! empty($d['autoplay']);
+        $vMute = ! empty($d['mute']);
+        $vLoop = ! empty($d['loop']);
+        $vControls = ($d['controls'] ?? '') !== '' ? ! empty($d['controls']) : true;
+        $vDownload = ! empty($d['download']);
+        $vPreload = in_array($d['preload'] ?? null, ['none', 'metadata', 'auto'], true) ? $d['preload'] : 'metadata';
+      @endphp
       @if(!empty($d['heading']))<h2 class="section-title h3 mb-3">{{ $d['heading'] }}</h2>@endif
-      @if(!empty($d['url']))
-        <div class="ratio ratio-16x9"><iframe src="{{ $d['url'] }}" allowfullscreen loading="lazy"></iframe></div>
-        @if(!empty($d['caption']))<p class="text-muted small mt-2 mb-0">{{ $d['caption'] }}</p>@endif
+      @if ($vSource === 'self_hosted')
+        @if(!empty($d['file_url']))
+          <video
+            class="w-100 rounded-3"
+            @if($vPreload !== 'none') preload="{{ $vPreload }}" @endif
+            @if(!empty($d['poster'])) poster="{{ $d['poster'] }}" @endif
+            @if($vControls) controls @endif
+            @if(!$vDownload) controlslist="nodownload" @endif
+            @if($vAutoplay) autoplay muted @elseif($vMute) muted @endif
+            @if($vLoop) loop @endif
+          ><source src="{{ $d['file_url'] }}{{ $vStart ? '#t='.$vStart.($vEnd ? ','.$vEnd : '') : '' }}"></video>
+          @if(!empty($d['caption']))<p class="text-muted small mt-2 mb-0">{{ $d['caption'] }}</p>@endif
+        @else
+          <p class="text-muted mb-0">{{ __('No Video File Set.') }}</p>
+        @endif
       @else
-        <p class="text-muted mb-0">{{ __('No Video URL Set.') }}</p>
+        @php
+          $embedUrl = trim((string) ($d['url'] ?? ''));
+          // Best-effort YouTube watch/short-link -> embed normalization +
+          // start/end/autoplay/mute/loop/controls as URL params. Other
+          // platforms (Vimeo/Dailymotion/VideoPress) are trusted to already
+          // be a pasted embeddable URL — no per-platform param mapping for
+          // those, to avoid guessing at APIs this app doesn't integrate with.
+          if ($vSource === 'youtube' && $embedUrl !== '') {
+            if (preg_match('/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]{6,})/', $embedUrl, $m)) {
+              $embedUrl = 'https://www.youtube.com/embed/'.$m[1];
+            }
+            $ytParams = array_filter([
+              $vAutoplay ? 'autoplay=1' : null,
+              $vMute ? 'mute=1' : null,
+              $vLoop ? 'loop=1' : null,
+              $vControls ? null : 'controls=0',
+              $vStart !== null ? 'start='.$vStart : null,
+              $vEnd !== null ? 'end='.$vEnd : null,
+            ]);
+            if ($ytParams) {
+              $embedUrl .= (str_contains($embedUrl, '?') ? '&' : '?').implode('&', $ytParams);
+            }
+          }
+        @endphp
+        @if($embedUrl !== '')
+          <div class="ratio ratio-16x9"><iframe src="{{ $embedUrl }}" allowfullscreen loading="lazy"@if($vAutoplay) allow="autoplay"@endif></iframe></div>
+          @if(!empty($d['caption']))<p class="text-muted small mt-2 mb-0">{{ $d['caption'] }}</p>@endif
+        @else
+          <p class="text-muted mb-0">{{ __('No Video URL Set.') }}</p>
+        @endif
       @endif
     {!! $close !!}
     @break

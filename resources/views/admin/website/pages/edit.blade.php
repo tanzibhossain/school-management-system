@@ -29,7 +29,22 @@
       'office_hours'  => [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'lines','label'=>'Rows (Label|Value per line)','input'=>'textarea']],
       'contact_info'  => [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'address','label'=>'Address','input'=>'text'],['key'=>'phone','label'=>'Phone','input'=>'text'],['key'=>'email','label'=>'Email','input'=>'text']],
       'recent_notices'=> [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'limit','label'=>'Max items','input'=>'number']],
-      'video'         => [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'url','label'=>'Embed URL','input'=>'text'],['key'=>'caption','label'=>'Caption','input'=>'text']],
+      'video'         => [
+        ['key'=>'heading','label'=>'Heading','input'=>'text'],
+        ['key'=>'source','label'=>'Source','input'=>'select','options'=>['youtube'=>'YouTube','vimeo'=>'Vimeo','dailymotion'=>'Dailymotion','videopress'=>'VideoPress','self_hosted'=>'Self Hosted']],
+        ['key'=>'url','label'=>'External URL','input'=>'text','placeholder'=>'https://youtube.com/watch?v=…','depends_on'=>['key'=>'source','values'=>['youtube','vimeo','dailymotion','videopress']]],
+        ['key'=>'file_url','label'=>'Video File URL','input'=>'text','placeholder'=>'https://example.com/video.mp4','depends_on'=>['key'=>'source','values'=>['self_hosted']]],
+        ['key'=>'start_time','label'=>'Start Time (seconds)','input'=>'number'],
+        ['key'=>'end_time','label'=>'End Time (seconds)','input'=>'number'],
+        ['key'=>'autoplay','label'=>'Autoplay','input'=>'switch'],
+        ['key'=>'mute','label'=>'Mute','input'=>'switch'],
+        ['key'=>'loop','label'=>'Loop','input'=>'switch'],
+        ['key'=>'controls','label'=>'Player Controls','input'=>'switch','default'=>true],
+        ['key'=>'download','label'=>'Download Button','input'=>'switch'],
+        ['key'=>'preload','label'=>'Preload','input'=>'select','options'=>['none'=>'None','metadata'=>'Metadata','auto'=>'Auto'], 'default_value'=>'metadata'],
+        ['key'=>'poster','label'=>'Poster Image URL','input'=>'text','placeholder'=>'https://…'],
+        ['key'=>'caption','label'=>'Caption','input'=>'text'],
+      ],
       'button'        => [['key'=>'text','label'=>'Button text','input'=>'text'],['key'=>'url','label'=>'Button URL','input'=>'text'],['key'=>'align','label'=>'Align','input'=>'select','options'=>['start'=>'Left','center'=>'Center','end'=>'Right']],['key'=>'open_new_tab','label'=>'Open in new tab','input'=>'checkbox']],
       'divider'       => [['key'=>'line_style','label'=>'Line style','input'=>'select','options'=>['solid'=>'Solid','dashed'=>'Dashed','dotted'=>'Dotted']],['key'=>'width_pct','label'=>'Width (%)','input'=>'number']],
       'spacer'        => [['key'=>'height','label'=>'Height (px)','input'=>'number']],
@@ -474,6 +489,7 @@
         // widget — you're almost always about to configure it right away.
         showPanel('blocks');
         openBlockCard(list.lastElementChild);
+        applyFieldDependencies(list.lastElementChild);
         schedulePreview();
         pushHistory();
       }
@@ -494,6 +510,7 @@
         initNestedSortables();
         if (copiedStyle) { document.querySelectorAll('.js-paste-style').forEach(function (b) { b.disabled = false; }); }
         openBlockCard(list.lastElementChild);
+        applyFieldDependencies(list.lastElementChild);
         schedulePreview();
         pushHistory();
       }
@@ -530,6 +547,36 @@
           openBlockCard(card);
         }
       }
+
+      // ── Conditional field visibility ─────────────────────────────────────
+      // A field with a `depends_on` in its $spec entry (see _fields.blade.php)
+      // gets a data-depends-on/data-depends-values wrapper; show/hide it
+      // based on the CURRENT value of the named control within the same
+      // card. Generic — works for any block type, not just video (the first
+      // user of it: External URL / Video File URL depending on Source).
+      // Limitation: looks up the control by [name$="[data][KEY]"], which for
+      // a checkbox/switch field matches its hidden(0) input first, not the
+      // checkbox — a boolean field as the *depended-on* control isn't
+      // supported by this lookup. Not needed by anything today (Source is a
+      // <select>), just noting it for whoever adds the next depends_on.
+      function applyFieldDependencies(card) {
+        if (!card) return;
+        card.querySelectorAll('[data-depends-on]').forEach(function (wrap) {
+          var depKey = wrap.dataset.dependsOn;
+          var allowed = (wrap.dataset.dependsValues || '').split(',');
+          var control = card.querySelector('[name$="[data][' + depKey + ']"]');
+          var current = control ? control.value : '';
+          wrap.style.display = allowed.indexOf(current) !== -1 ? '' : 'none';
+        });
+      }
+      function applyAllFieldDependencies() {
+        document.querySelectorAll('.block-card').forEach(applyFieldDependencies);
+      }
+      document.addEventListener('change', function (e) {
+        if (e.target.closest('.block-settings')) applyFieldDependencies(e.target.closest('.block-card'));
+      });
+      document.addEventListener('DOMContentLoaded', applyAllFieldDependencies);
+      if (document.readyState !== 'loading') applyAllFieldDependencies();
 
       // Drag-to-reorder via the grip handle — reordering is a structural
       // change (positions shift for every block after the moved one), so it
@@ -667,6 +714,7 @@
         if (nameEl) nameEl.textContent = snap.title || @json(__('Untitled'));
         initQuillEditors();
         initNestedSortables();
+        applyAllFieldDependencies();
         schedulePreview();
         updateUndoRedoButtons();
       }
