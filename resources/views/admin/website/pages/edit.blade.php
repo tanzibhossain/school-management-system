@@ -113,7 +113,13 @@
       flex: 1 1 auto; overflow: auto; background: var(--bs-tertiary-bg, #f1f3f5);
       display: flex; justify-content: center; align-items: stretch;
     }
-    #preview-frame { background: #fff; transition: width .2s ease; flex: 0 0 auto; }
+    /* width lives here (not inline on the <iframe>) so the viewport-specific
+       rules below — which only win via a higher-specificity selector, not
+       !important — can actually override it. An inline style="width:100%"
+       on the element would beat every one of these regardless of
+       specificity, which is exactly what silently broke the viewport
+       toolbar before this comment existed. */
+    #preview-frame { background: #fff; width: 100%; transition: width .2s ease; flex: 0 0 auto; }
     .editor-canvas.vp-laptop { padding: 0; }
     .editor-canvas.vp-laptop #preview-frame { width: 1200px; max-width: 100%; }
     .editor-canvas.vp-tablet #preview-frame { width: 768px; max-width: 100%; box-shadow: 0 0 0 1px var(--bs-border-color); }
@@ -332,7 +338,7 @@
            form's current (unsaved) values. See
            docs/modules/28-elementor-block-editor-plan.md. --}}
       <div class="editor-canvas" id="preview-viewport-wrap">
-        <iframe id="preview-frame" title="{{ __('Live Preview') }}" sandbox="allow-same-origin allow-scripts" style="width:100%;height:100%;border:0;display:block;"></iframe>
+        <iframe id="preview-frame" title="{{ __('Live Preview') }}" sandbox="allow-same-origin allow-scripts" style="height:100%;border:0;display:block;"></iframe>
       </div>
     </div>
   </div>
