@@ -61,6 +61,7 @@ use App\Http\Controllers\Admin\Setup\RoutineSetupController;
 use App\Http\Controllers\Admin\Setup\SchoolController;
 use App\Http\Controllers\Admin\Setup\SectionController;
 use App\Http\Controllers\Admin\Setup\SubjectController;
+use App\Http\Controllers\Admin\Website\MediaController;
 use App\Http\Controllers\Admin\Website\MenuController;
 use App\Http\Controllers\Admin\Website\PageController as WebsitePageController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
@@ -84,6 +85,11 @@ Route::post('/admission', [App\Http\Controllers\Public\AdmissionController::clas
 // Public contact-form submission (form rendered by the contact block).
 Route::post('/contact', [ContactController::class, 'submit'])
     ->middleware('throttle:10,1')->name('contact.submit');
+
+// Streams a Website media library file from the private "minio" bucket —
+// see App\Http\Controllers\Public\WebsiteMediaController's docblock.
+Route::get('/media/website/{id}', [App\Http\Controllers\Public\WebsiteMediaController::class, 'show'])
+    ->whereNumber('id')->name('website-media.show');
 
 Route::middleware('guest')->group(function (): void {
     // Family portal (student + guardian) — the default login.
@@ -308,6 +314,11 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::get('/pages/{id}/history', [WebsitePageController::class, 'history'])->whereNumber('id')->name('pages.history');
         Route::post('/pages/{id}/restore/{layoutId}', [WebsitePageController::class, 'restore'])->whereNumber(['id', 'layoutId'])->name('pages.restore');
         Route::delete('/pages/{id}', [WebsitePageController::class, 'destroy'])->whereNumber('id')->name('pages.destroy');
+
+        // Website media library (page editor's Media Library modal)
+        Route::get('/media', [MediaController::class, 'index'])->name('media.index');
+        Route::post('/media', [MediaController::class, 'store'])->name('media.store');
+        Route::delete('/media/{id}', [MediaController::class, 'destroy'])->whereNumber('id')->name('media.destroy');
 
         // Navigation menu editor
         Route::get('/menus', [MenuController::class, 'edit'])->name('menus.index');

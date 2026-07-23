@@ -560,6 +560,87 @@ nesting went — this was the one item from §7d's gap list that was closer to "
   add/remove/move actions, save, and reload the editor to confirm the saved `layout_json` round-trips through
   both the public page and the editor's own re-opened state.
 
+## 7h. MinIO disk fix + Website media library (upload + picker)
+
+Two related pieces of work from the same session, triggered by a real user question ("we're using MinIO but I've
+never configured a bucket — how does this work?").
+
+**The MinIO disk bug (fixed first, unblocks everything below):** `config/filesystems.php` only ever defined a
+disk key `'s3'`, but every `Storage::disk('minio')` call across the app (Certificate/IdCard/DataImport modules,
+and now this feature) was targeting a disk key that **never existed** — invisible in tests because
+`Storage::fake('minio')` auto-creates a fake disk for whatever name you pass it, regardless of real config, so
+the mismatch never surfaced there. Fixed by renaming the disk key itself from `'s3'` to `'minio'` (`driver`
+stays `'s3'` — MinIO speaks the S3 API), with `FILESYSTEM_DISK` defaulting to `minio` in `.env`/`.env.example`.
+Separately, MinIO starts with **zero buckets** and nothing previously created one — added a one-shot
+`minio-init` service to `docker-compose.yml` (image `minio/mc`, self-retrying `mc alias set` + `mc mb
+--ignore-existing`) that creates the `AWS_BUCKET` bucket the first time the stack comes up. The bucket is left
+**private** (no public policy) on purpose — see the proxy design below.
+
+**Website media library — new feature, built on scaffolding that already existed but had zero controller/route
+pointing at it:** `WebsiteMedia` model, `WebsiteMediaRepository` (cache-aside `forSchool()`), `WebsiteMediaObserver`
+(already registered, flushes the `'websitemedia'` cache tag), and `WebsiteMediaService::upload()/delete()` all
+predated this work — they were just never wired to anything reachable from the browser.
+
+- **Two new controllers, deliberately separate concerns.**
+  `App\Http\Controllers\Admin\Website\MediaController` (`index`/`store`/`destroy`, JSON, `role:admin`, routes
+  `admin.media.index|store|destroy`) is the picker's AJAX backend — school-scoped via
+  `WebsiteMedia::forSchool()`/`$repository->forSchool()`, same as every other admin resource. Reads
+  `app('current_school_id')` per-request, never trusts a client-supplied school id.
+  `App\Http\Controllers\Public\WebsiteMediaController::show(int $id)` (route `website-media.show`, `GET
+  /media/website/{id}`) is a public, unauthenticated **streaming proxy** — deliberately NOT school-scoped, since
+  it's just a content-addressed public asset URL (same trust model as any other public file URL) in this
+  single-school-per-deployment app (see CLAUDE.md).
+- **Why a proxy instead of exposing the bucket or using `temporaryUrl()`:** a public bucket policy would mean
+  `AWS_ENDPOINT=http://minio:9000` (Docker-internal-only hostname) leaking into public page HTML, which only
+  resolves inside the Docker network, never from a real browser — exposing the bucket publicly would need a
+  *second*, publicly-routable MinIO hostname kept in sync across dev/prod, purely to serve files the app is
+  already capable of streaming itself. `temporaryUrl()` (the pattern Certificate/IdCard already use for
+  ephemeral downloads) is the wrong fit here for the opposite reason: those URLs expire in ~30 minutes, but a
+  page's `hero.image`/`image.url`/etc. field stores this URL *permanently* in `layout_json` — it must still
+  resolve correctly months later. The proxy route streams via `Storage::disk('minio')->response($path,
+  $filename, [long immutable Cache-Control])`, so the bucket itself never needs a public policy, and the URL
+  never expires because it's not a signed URL at all — it's a Laravel route resolving the current file on every
+  request (cheap: MinIO is on the same Docker network, and the cache header means most requests never even reach
+  it after the first).
+- **Field wiring:** `_fields.blade.php` gained a `'media'` input type — the same plain text URL field as before
+  (typing/pasting a URL still works unchanged, e.g. an external CDN link) plus a "Browse" button
+  (`onclick="openMediaPicker(this)"`) that opens a shared Bootstrap modal. `$spec` (`edit.blade.php`) switched
+  `hero.image`, `image.url`, `image_text.image`, and `video.poster` from `'input'=>'text'` to `'input'=>'media'`
+  — the only four fields in the whole spec that hold an image URL destined for `<img src>`/CSS
+  `background-image` (video's own file/embed URLs stay plain `text`, since those are just as often an external
+  YouTube/Vimeo link as a self-hosted upload).
+- **The picker itself:** one modal (`#media-picker-modal`) shared by every field on the page, not per-field —
+  `openMediaPicker(btn)` resolves the *specific* input to fill via `btn.closest('.input-group')`, so the same
+  modal instance works regardless of which block/field opened it, including a field nested arbitrarily deep
+  (§7g). Selecting a thumbnail sets the target input's `.value` and dispatches a real `input` event —
+  deliberately, so none of the existing per-field preview/dirty-tracking/undo-history listeners needed any new
+  wiring; they already react to `input` on every text field. Because the "Browse" button's `onclick` is inline
+  markup (not an addEventListener registered once at page load), it works automatically on blocks added later via
+  "Add Block" or `tpl-child-*` cloning — no re-init step needed, unlike SortableJS elsewhere in this editor which
+  does need `initNestedSortables()` re-run after DOM changes.
+- **Upload/delete** are plain `fetch()` calls against the admin JSON endpoints (`X-CSRF-TOKEN` from the layout's
+  `<meta name="csrf-token">`, matching the pattern already used for cookie-session-authenticated AJAX elsewhere
+  in this file) — no new CSRF plumbing needed. Delete asks for confirmation and warns that any block still
+  referencing the file's URL will show a broken link (deleting a `WebsiteMedia` row does not search
+  `layout_json` for references — there is no reverse index from a media row to the pages that embed its URL).
+
+**What's still not built** (flag before extending further):
+- **No alt-text editing UI** — `WebsiteMedia.alt_text` is a real column with no field anywhere to set it; every
+  upload leaves it null.
+- **No pagination/search** in the picker grid — `MediaController::index()` returns the school's *entire* media
+  library in one response; fine at small scale, will need a limit + search param once a school has uploaded
+  hundreds of files.
+- **No drag-and-drop upload** — only the explicit "Upload" button + native file picker; no drop zone.
+- **No reverse-reference tracking** — deleting a media row that's still embedded in a saved page's `layout_json`
+  silently breaks that block's image (a 404 through the proxy route, not a hard error) rather than warning which
+  pages reference it.
+- **Verification gap, same as every prior §7x entry**: neither controller has run through Pint/PHPStan/PHPUnit,
+  and the modal/upload/picker flow has not run in a real browser (no PHP/Docker in this sandbox) — verified here
+  only via brace/paren-balance checks on the PHP files and a Blade-stripped `node --check` pass on the inline
+  JS. At minimum: confirm `docker compose up` brings up `minio-init` as `Exited (0)`, upload an image through
+  the picker, confirm it renders on the public page via the proxy URL, and confirm deleting it 404s that URL
+  rather than 500ing.
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1

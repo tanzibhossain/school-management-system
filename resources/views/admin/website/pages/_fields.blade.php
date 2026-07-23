@@ -49,6 +49,17 @@
         </select>
       @elseif ($f['input'] === 'number')
         <input type="number" name="{{ $name }}" value="{{ $val }}" class="form-control form-control-sm" @if(isset($f['placeholder'])) placeholder="{{ $f['placeholder'] }}" @endif>
+      @elseif ($f['input'] === 'media')
+        {{-- Plain URL text field (unchanged behavior — any absolute/relative
+             URL still works, e.g. a CDN link) plus a "Browse" button that
+             opens the Media Library modal (edit.blade.php) targeting this
+             input. openMediaPicker() fills the input's value and fires a
+             native 'input' event, so the existing preview/dirty-tracking
+             logic reacts exactly as if the user had typed the URL. --}}
+        <div class="input-group input-group-sm">
+          <input type="text" name="{{ $name }}" value="{{ $val }}" class="form-control form-control-sm media-field-input" @if(isset($f['placeholder'])) placeholder="{{ $f['placeholder'] }}" @endif>
+          <button type="button" class="btn btn-outline-secondary btn-sm" onclick="openMediaPicker(this)">{{ __('Browse') }}</button>
+        </div>
       @else
         <input type="text" name="{{ $name }}" value="{{ $val }}" class="form-control form-control-sm" @if(isset($f['placeholder'])) placeholder="{{ $f['placeholder'] }}" @endif>
       @endif
