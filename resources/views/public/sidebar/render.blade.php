@@ -4,8 +4,12 @@
   $wrap = \App\Modules\Website\Support\BlockPresentation::wrapper($style, $layout);
   $wrapClass = trim($wrap['class'].' mb-3');
   $wrapStyleAttr = $wrap['style'] !== '' ? ' style="'.$wrap['style'].'"' : '';
+  // See public/blocks/render.blade.php — same click-to-select bridge attributes.
+  $editorAttrs = isset($index)
+    ? ' data-block-index="'.(int) $index.'" data-block-group="'.e($group ?? 'sidebar').'"'
+    : '';
 @endphp
-<div class="{{ $wrapClass }}"{!! $wrapStyleAttr !!}>
+<div class="{{ $wrapClass }}"{!! $wrapStyleAttr !!}{!! $editorAttrs !!}>
 @switch($type)
   @case('quick_links')
     <div class="card"><div class="card-body">

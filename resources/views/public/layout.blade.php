@@ -158,6 +158,14 @@
         @if ($s?->custom_css ?? false)
             {!! $s->custom_css !!}
         @endif
+
+        /* Admin live-preview click-to-select — only active when this page is
+           rendered inside the editor's iframe (see the gated script below and
+           docs/modules/28-elementor-block-editor-plan.md Milestone 4). Inert
+           otherwise: no visual effect on the real public site. */
+        body.is-editor-preview [data-block-index] { cursor: pointer; }
+        body.is-editor-preview .is-block-hover { outline: 2px dashed #6c8fff; outline-offset: -2px; }
+        body.is-editor-preview .is-block-selected { outline: 2px solid var(--brand); outline-offset: -2px; }
     </style>
 </head>
 
@@ -215,6 +223,45 @@
                 });
             }, { threshold: .15, rootMargin: '0px 0px -10% 0px' });
             els.forEach(function (el) { io.observe(el); });
+        })();
+
+        // Editor click-to-select bridge — no-op unless this document is
+        // actually sitting inside the admin page-builder's preview iframe.
+        // See resources/views/admin/website/pages/edit.blade.php for the
+        // parent-side listener.
+        (function () {
+            if (window.self === window.top) return;
+            document.body.classList.add('is-editor-preview');
+
+            var selected = null;
+            document.addEventListener('mouseover', function (e) {
+                var el = e.target.closest('[data-block-index]');
+                document.querySelectorAll('.is-block-hover').forEach(function (n) {
+                    if (n !== el) n.classList.remove('is-block-hover');
+                });
+                if (el) el.classList.add('is-block-hover');
+            });
+            document.addEventListener('mouseout', function (e) {
+                var el = e.target.closest('[data-block-index]');
+                if (el) el.classList.remove('is-block-hover');
+            });
+            // Capture phase: intercept before a link/form inside the block
+            // gets to act — this is a preview, clicks should select, not navigate.
+            document.addEventListener('click', function (e) {
+                var el = e.target.closest('[data-block-index]');
+                if (!el) return;
+                e.preventDefault();
+                e.stopPropagation();
+                if (selected) selected.classList.remove('is-block-selected');
+                selected = el;
+                el.classList.add('is-block-selected');
+                window.parent.postMessage({
+                    source: 'page-preview',
+                    type: 'select-block',
+                    group: el.dataset.blockGroup,
+                    index: el.dataset.blockIndex,
+                }, window.location.origin);
+            }, true);
         })();
     </script>
 </body>

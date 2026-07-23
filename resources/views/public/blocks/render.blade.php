@@ -8,6 +8,13 @@
   $style = $style ?? [];
   $layout = $layout ?? [];
 
+  // Identifies this rendered block back to its editor row (blocks[$index]) —
+  // used only by the admin live-preview iframe's click-to-select bridge (see
+  // public/layout.blade.php); inert data attributes on the real public site.
+  $editorAttrs = isset($index)
+    ? ' data-block-index="'.(int) $index.'" data-block-group="'.e($group ?? 'blocks').'"'
+    : '';
+
   // hero/admission_form manage their own spacing+background entirely — every
   // other block type gets the standard section+container+default-padding
   // treatment, with the Style tab's overrides applied on the same wrapper
@@ -23,9 +30,9 @@
   $close = $contained || $selfContained ? '' : '</div>';
 @endphp
 @if ($contained)
-  <div class="{{ $wrapClass }}"{!! $wrapStyleAttr !!}>
+  <div class="{{ $wrapClass }}"{!! $wrapStyleAttr !!}{!! $editorAttrs !!}>
 @else
-  <section class="{{ $wrapClass }}"{!! $wrapStyleAttr !!}>
+  <section class="{{ $wrapClass }}"{!! $wrapStyleAttr !!}{!! $editorAttrs !!}>
 @endif
 @switch($type)
   @case('hero')

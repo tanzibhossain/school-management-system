@@ -323,6 +323,25 @@
         document.addEventListener('DOMContentLoaded', schedulePreview);
         if (document.readyState !== 'loading') schedulePreview();
       })();
+
+      // ── Click-to-select bridge ───────────────────────────────────────────
+      // The preview iframe (public/layout.blade.php) posts a message when the
+      // user clicks a rendered block on the canvas; open that block's
+      // settings panel in the rail. The rendered index is positional (the
+      // Nth block-card currently in the list), which lines up exactly with
+      // what the preview just rendered — the preview is built from this same
+      // form's current DOM order (see runPreview() above).
+      window.addEventListener('message', function (e) {
+        if (e.origin !== window.location.origin) return;
+        var msg = e.data;
+        if (!msg || msg.source !== 'page-preview' || msg.type !== 'select-block') return;
+        var list = document.getElementById(msg.group === 'sidebar' ? 'sidebar-list' : 'blocks-list');
+        var card = list && list.children[parseInt(msg.index, 10)];
+        if (card) {
+          openBlockCard(card);
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
     </script>
   @endpush
 @endsection
