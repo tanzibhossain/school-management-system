@@ -149,7 +149,13 @@ class PageRenderService
      * (see admin/website/pages/_nested_blocks.blade.php); single-level only,
      * so a nested child is never itself a container/grid.
      *
-     * @param  array<int, array{type: string, data: array, style?: array, layout?: array}>  $blocks
+     * $blocks is arbitrary decoded JSON from layout_json (not a statically
+     * guaranteed shape — a stored container's children could in principle
+     * be missing/malformed 'type' entries), so this stays loosely typed
+     * rather than the {type:string,...} shape buildViewFromBlocks() returns,
+     * to keep the is_string()/array_key_exists() guard below meaningful.
+     *
+     * @param  list<array<string, mixed>>  $blocks
      * @return array<int, array{type: string, d: array, style: array, layout: array}>
      */
     private function resolveNestedBlocks(int $schoolId, array $blocks): array
