@@ -1,7 +1,8 @@
 # Website Page Builder — Elementor-style Live Editor · Plan
 
-**Status:** ✅ **All 10 milestones done**, plus a follow-up **fullscreen Elementor-style shell rebuild** (§7b,
-done, pending user verification) · **Path:** `app/Modules/Website`, `app/Http/Controllers/Admin/Website`,
+**Status:** ✅ **All 10 milestones done**, plus a **fullscreen Elementor-style shell rebuild** (§7b) and a
+**sidebar UX pass** (§7c) — canvas drag/right-click, click-outside-to-close, Add Block as the default panel
+(all done, pending user verification) · **Path:** `app/Modules/Website`, `app/Http/Controllers/Admin/Website`,
 `resources/views/admin/website/pages`, `resources/views/public`, `resources/views/layouts/admin-fullscreen.blade.php`
 · **Depends on:** `20-website.md` §"Block Style & Layout" (✅ shipped — the Style/Layout tabs,
 `PageRenderService::sanitizeStyle/sanitizeLayout`, and `BlockPresentation` this plan builds on top of).
@@ -226,6 +227,47 @@ Add panel's sidebar-block-type visibility.
 "Preview", "Update", "Untitled", "Unknown", "No revisions yet.", "Restore this revision as a new draft?".
 
 **Not yet done:** user verification (Pint/PHPStan/PHPUnit + manual browser QA) — ask for this after committing.
+
+## 7c. Sidebar UX pass — default view, click-outside, in-canvas DnD + context menu
+
+Follow-up to §7b, requested once the fullscreen shell was in place: make the sidebar behave like Elementor's
+panel (a resting "Add Elements" state that temporary views collapse back to) and make the canvas itself
+directly editable (drag to reorder, right-click for quick actions), not just a read-only preview that opens
+the rail on click.
+
+- **Default panel is now `add`, not `blocks`.** `DEFAULT_PANEL = 'add'` in `edit.blade.php`. A new topbar icon
+  (`bi-stack`, `data-panel="blocks"`) was added between Add Block and Page Settings so the layers list (needed
+  for up/down/remove/drag-reorder-by-handle on blocks not currently visible/selectable in the canvas) is still
+  reachable on demand.
+- **Click-outside-sidebar / Escape → `resetSidebarToDefault()`**: a `document` click listener checks
+  `e.target.closest('#editor-sidebar')`; if the click landed outside, it calls `showPanel('add')` +
+  `closeBlockList()` on both rail lists. `.js-panel-btn` clicks call `e.stopPropagation()` so switching panels
+  via the topbar doesn't immediately trigger its own outside-click reset. The sidebar resize-drag handler sets
+  a one-shot `sidebarResizeJustEnded` flag on `mouseup` so the mouseup landing outside the sidebar (the whole
+  point of resizing) doesn't fire a spurious reset. Escape reuses the same `resetSidebarToDefault()` and blurs
+  the active element. The preview iframe now also posts a `{type:'deselect'}` message when the canvas
+  background (not a block) is clicked, so clicking "outside" inside the iframe has the same effect.
+- **Add Block panel is a 2-column grid** (`row row-cols-2 g-2`) of icon-over-label boxes
+  (`.js-add-block`, `min-height:72px`) instead of a single-column button list — same for the Sidebar Blocks
+  sub-section (shown/hidden with `#add-side-section`, already existing logic, unchanged).
+- **In-canvas drag-and-drop reordering**: `public/blocks/render.blade.php` and `public/sidebar/render.blade.php`
+  now add `draggable="true"` to `$editorAttrs` alongside the existing `data-block-index`/`data-block-group`
+  (editor-preview-only — absent on the real public site). `public/layout.blade.php`'s gated iframe script
+  implements plain HTML5 `dragstart`/`dragover`/`drop` (same-group only — main blocks and sidebar blocks are
+  separate arrays), shows a `drop-before`/`drop-after` insertion-line indicator, and on drop posts
+  `{type:'reorder-blocks', group, order}` (the full new sequence of original indices) to the parent. The parent
+  reorders the actual `#blocks-list`/`#sidebar-list` DOM (the source of truth) by re-appending each node per
+  `order`, then `schedulePreview()` + `pushHistory()` — the iframe never reorders its own DOM, it just tells the
+  parent what happened.
+- **Right-click context menu** (Copy Style / Paste Style / Remove) on canvas blocks: a small hand-rolled
+  fixed-position menu (Bootstrap's dropdown JS is trigger-element-based, not cursor-position-based, so not a
+  fit here) built in the iframe script, posting `{type:'context-action', action, group, index}`. The parent's
+  existing copy/paste-style and remove logic was extracted into three reusable functions —
+  `copyStyleFromCard()`, `pasteStyleToCard()`, `removeCard()` — used by both the sidebar's own buttons (the
+  original Milestone 9/3 entry points) and this new message handler, so there's exactly one implementation of
+  each action.
+- **No new translation keys** — the context menu reuses the existing "Copy Style"/"Paste Style"/"Remove"
+  strings already shown on the sidebar's per-block buttons.
 
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
