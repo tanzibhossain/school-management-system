@@ -85,29 +85,32 @@
   <form method="POST" action="{{ route('admin.pages.save', $page->id) }}" id="page-form">
     @csrf @method('PUT')
 
+    {{-- Page meta — its own full-width row so Title/Slug/Status/Template lay
+         out on one line instead of being squeezed inside the half-width
+         editor pane below. --}}
+    <div class="card mb-3"><div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4"><label class="form-label">{{ __('Title') }} <span class="text-danger">*</span></label>
+          <input name="title" class="form-control" value="{{ old('title', $page->title) }}" required></div>
+        <div class="col-md-4"><label class="form-label">{{ __('Slug') }}</label>
+          <div class="input-group"><span class="input-group-text">/</span>
+            <input name="slug" class="form-control" value="{{ old('slug', $page->slug) }}"></div></div>
+        <div class="col-md-2"><label class="form-label">{{ __('Status') }}</label>
+          <select name="status" class="form-select">
+            <option value="published" @selected($page->status === 'published')>{{ __('Published') }}</option>
+            <option value="draft" @selected($page->status === 'draft')>{{ __('Draft') }}</option>
+          </select></div>
+        <div class="col-md-2"><label class="form-label">{{ __('Template') }}</label>
+          <select name="template" id="tpl-select" class="form-select">
+            <option value="full" @selected($view['template'] === 'full')>{{ __('Full Width') }}</option>
+            <option value="sidebar" @selected($view['template'] === 'sidebar')>{{ __('With Sidebar') }}</option>
+          </select></div>
+      </div>
+    </div></div>
+
     <div class="row g-3">
       {{-- Editor pane --}}
       <div class="col-lg-6">
-        <div class="card mb-3"><div class="card-body">
-          <div class="row g-3">
-            <div class="col-md-5"><label class="form-label">{{ __('Title') }} <span class="text-danger">*</span></label>
-              <input name="title" class="form-control" value="{{ old('title', $page->title) }}" required></div>
-            <div class="col-md-4"><label class="form-label">{{ __('Slug') }}</label>
-              <div class="input-group"><span class="input-group-text">/</span>
-                <input name="slug" class="form-control" value="{{ old('slug', $page->slug) }}"></div></div>
-            <div class="col-md-3"><label class="form-label">{{ __('Status') }}</label>
-              <select name="status" class="form-select">
-                <option value="published" @selected($page->status === 'published')>{{ __('Published') }}</option>
-                <option value="draft" @selected($page->status === 'draft')>{{ __('Draft') }}</option>
-              </select></div>
-            <div class="col-md-3"><label class="form-label">{{ __('Template') }}</label>
-              <select name="template" id="tpl-select" class="form-select">
-                <option value="full" @selected($view['template'] === 'full')>{{ __('Full Width') }}</option>
-                <option value="sidebar" @selected($view['template'] === 'sidebar')>{{ __('With Sidebar') }}</option>
-              </select></div>
-          </div>
-        </div></div>
-
         {{-- Main column blocks --}}
         <div id="main-col" class="mb-3">
           <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
