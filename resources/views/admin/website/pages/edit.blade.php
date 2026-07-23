@@ -29,14 +29,26 @@
       'office_hours'  => [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'lines','label'=>'Rows (Label|Value per line)','input'=>'textarea']],
       'contact_info'  => [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'address','label'=>'Address','input'=>'text'],['key'=>'phone','label'=>'Phone','input'=>'text'],['key'=>'email','label'=>'Email','input'=>'text']],
       'recent_notices'=> [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'limit','label'=>'Max items','input'=>'number']],
+      'video'         => [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'url','label'=>'Embed URL','input'=>'text'],['key'=>'caption','label'=>'Caption','input'=>'text']],
+      'button'        => [['key'=>'text','label'=>'Button text','input'=>'text'],['key'=>'url','label'=>'Button URL','input'=>'text'],['key'=>'align','label'=>'Align','input'=>'select','options'=>['start'=>'Left','center'=>'Center','end'=>'Right']],['key'=>'open_new_tab','label'=>'Open in new tab','input'=>'checkbox']],
+      'divider'       => [['key'=>'line_style','label'=>'Line style','input'=>'select','options'=>['solid'=>'Solid','dashed'=>'Dashed','dotted'=>'Dotted']],['key'=>'width_pct','label'=>'Width (%)','input'=>'number']],
+      'spacer'        => [['key'=>'height','label'=>'Height (px)','input'=>'number']],
+      'google_maps'   => [['key'=>'embed_url','label'=>'Map embed URL','input'=>'text'],['key'=>'height','label'=>'Height (px)','input'=>'number']],
+      'icon'          => [['key'=>'icon','label'=>'Icon class','input'=>'text','placeholder'=>'bi-star'],['key'=>'size','label'=>'Size (px)','input'=>'number'],['key'=>'color','label'=>'Color (hex)','input'=>'text','placeholder'=>'#4f46e5'],['key'=>'url','label'=>'Link URL (optional)','input'=>'text'],['key'=>'align','label'=>'Align','input'=>'select','options'=>['start'=>'Left','center'=>'Center','end'=>'Right']]],
+      // 'grid' has no Content-tab fields of its own — its column count comes
+      // from the universal Layout tab (see $gridTypes below), same as
+      // staff/notices/stats; its "fields" are its nested children instead
+      // (see _nested_blocks.blade.php, included by _card.blade.php).
+      'grid'          => [],
+      'container'     => [['key'=>'direction','label'=>'Direction','input'=>'select','options'=>['column'=>'Stacked (column)','row'=>'Side by side (row)']],['key'=>'gap','label'=>'Gap (px)','input'=>'number']],
     ];
 
     // Block types whose content is a repeating grid of cards — these get the
     // Layout tab's per-breakpoint "columns per row" control; every other
     // block type is single-content and only gets visibility toggles.
-    $gridTypes = ['staff', 'notices', 'stats', 'gallery_photo', 'gallery_video'];
+    $gridTypes = ['staff', 'notices', 'stats', 'gallery_photo', 'gallery_video', 'grid'];
 
-    // Icons for the compact block-rail rows and the "Add Block" grid (Bootstrap Icons).
+    // Icons for the compact block-rail rows and the Add Block picker (Bootstrap Icons).
     $blockIcons = [
       'hero' => 'bi-image', 'heading' => 'bi-type-h1', 'richtext' => 'bi-file-text',
       'image' => 'bi-image', 'image_text' => 'bi-layout-text-sidebar-reverse', 'staff' => 'bi-people',
@@ -44,6 +56,21 @@
       'gallery_video' => 'bi-camera-video', 'admission_form' => 'bi-clipboard-check', 'contact' => 'bi-envelope',
       'quick_links' => 'bi-link-45deg', 'office_hours' => 'bi-clock', 'contact_info' => 'bi-telephone',
       'recent_notices' => 'bi-bell',
+      'video' => 'bi-play-btn', 'button' => 'bi-hand-index-thumb', 'divider' => 'bi-hr',
+      'spacer' => 'bi-arrows-expand', 'google_maps' => 'bi-geo-alt', 'icon' => 'bi-star',
+      'container' => 'bi-square', 'grid' => 'bi-grid-3x3-gap',
+    ];
+
+    // Add Block picker categories — mirrors PageRenderService::CATEGORIES;
+    // any BLOCKS type not explicitly placed in Layout/Basic falls into
+    // Advanced automatically (see docs/modules/28-elementor-block-editor-plan.md §7d).
+    $layoutTypes = \App\Modules\Website\Services\PageRenderService::CATEGORIES['layout'];
+    $basicTypes = \App\Modules\Website\Services\PageRenderService::CATEGORIES['basic'];
+    $advancedTypes = array_values(array_diff(array_keys($blocks), array_merge($layoutTypes, $basicTypes)));
+    $blockCategories = [
+      'layout' => ['label' => __('Layout'), 'types' => $layoutTypes],
+      'basic' => ['label' => __('Basic'), 'types' => $basicTypes],
+      'advanced' => ['label' => __('Advanced'), 'types' => $advancedTypes],
     ];
   @endphp
 
@@ -88,8 +115,31 @@
     .js-drag-handle { cursor: grab; }
 
     .js-panel-btn.active { background: var(--bs-primary); color: #fff; border-color: var(--bs-primary); }
-    /* Add Block panel — two-column grid of icon-over-label boxes. */
-    .js-add-block { min-height: 72px; }
+
+    /* Add Block panel — search + collapsible category groups, each a
+       two-column grid of icon-over-label boxes. */
+    .block-picker-header {
+      cursor: pointer; user-select: none; display: flex; align-items: center; gap: .4rem;
+      font-weight: 600; font-size: .72rem; text-transform: uppercase; letter-spacing: .02em;
+      color: #64748b; padding: .35rem 0;
+    }
+    .block-picker-chevron { transition: transform .15s ease; font-size: .7rem; }
+    .block-picker-category.is-collapsed .block-picker-chevron { transform: rotate(-90deg); }
+    .block-picker-category.is-collapsed .block-picker-grid { display: none; }
+    .block-picker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+    .block-picker-item {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .35rem;
+      border: 1px solid var(--bs-border-color, #e2e8f0); border-radius: .5rem; background: #fff;
+      padding: .85rem .4rem; min-height: 76px; cursor: pointer; text-align: center;
+    }
+    .block-picker-item:hover { border-color: var(--bs-primary); box-shadow: 0 1px 6px rgba(79,70,229,.15); }
+    .block-picker-item i { font-size: 1.3rem; color: #64748b; }
+    .block-picker-item span { font-size: .68rem; color: #475569; line-height: 1.15; }
+    .block-picker-item.is-hidden { display: none; }
+
+    /* Container/Grid nested-children mini rail (see _nested_blocks.blade.php). */
+    .nested-blocks-list:empty { display: none; }
+    .nested-blocks-list > .block-card { margin-left: .25rem; border-left: 2px solid var(--bs-border-color, #e2e8f0); }
   </style>
 
   <div class="editor-shell">
@@ -142,7 +192,7 @@
               <h6 class="small text-muted text-uppercase mb-2">{{ __('Content Blocks') }}</h6>
               <div id="blocks-list">
                 @foreach ($view['blocks'] as $i => $b)
-                  @include('admin.website.pages._card', ['prefix' => "blocks[$i]", 'type' => $b['type'], 'label' => $blocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$b['type']] ?? 'bi-square'])
+                  @include('admin.website.pages._card', ['prefix' => "blocks[$i]", 'type' => $b['type'], 'label' => $blocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$b['type']] ?? 'bi-square', 'blockIcons' => $blockIcons])
                 @endforeach
               </div>
               <p class="text-muted small mb-0" id="blocks-empty" @if(count($view['blocks'])) style="display:none" @endif>{{ __('No Blocks Yet — Add One Above.') }}</p>
@@ -152,38 +202,56 @@
               <h6 class="small text-muted text-uppercase mb-2">{{ __('Sidebar Blocks') }}</h6>
               <div id="sidebar-list">
                 @foreach ($view['sidebar'] as $i => $b)
-                  @include('admin.website.pages._card', ['prefix' => "sidebar[$i]", 'type' => $b['type'], 'label' => $sidebarBlocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$b['type']] ?? 'bi-square'])
+                  @include('admin.website.pages._card', ['prefix' => "sidebar[$i]", 'type' => $b['type'], 'label' => $sidebarBlocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$b['type']] ?? 'bi-square', 'blockIcons' => $blockIcons])
                 @endforeach
               </div>
             </div>
           </div>
 
-          {{-- Panel: add block (sidebar default view) --}}
+          {{-- Panel: add block (sidebar default view) — search + collapsible
+               Layout/Basic/Advanced category groups, matching the Elementor-
+               style widget picker. See docs/modules/28-elementor-block-editor-plan.md §7d. --}}
           <div class="sidebar-panel active" data-panel="add">
-            <h6 class="small text-muted text-uppercase mb-2">{{ __('Content Blocks') }}</h6>
-            <div class="row row-cols-2 g-2 mb-3">
-              @foreach ($blocks as $t => $l)
-                <div class="col">
-                  <button type="button" class="btn btn-outline-secondary btn-sm js-add-block w-100 h-100 d-flex flex-column align-items-center justify-content-center gap-1 py-2" data-group="blocks" data-type="{{ $t }}">
-                    <i class="bi {{ $blockIcons[$t] ?? 'bi-square' }} fs-5"></i>
-                    <span class="small text-center lh-sm">{{ $l }}</span>
-                  </button>
-                </div>
-              @endforeach
+            <div class="input-group input-group-sm mb-3">
+              <span class="input-group-text"><i class="bi bi-search"></i></span>
+              <input type="text" class="form-control" id="block-search" placeholder="{{ __('Search Blocks…') }}">
             </div>
-            <div id="add-side-section" @if($view['template'] !== 'sidebar') style="display:none" @endif>
-              <h6 class="small text-muted text-uppercase mb-2">{{ __('Sidebar Blocks') }}</h6>
-              <div class="row row-cols-2 g-2">
-                @foreach ($sidebarBlocks as $t => $l)
-                  <div class="col">
-                    <button type="button" class="btn btn-outline-secondary btn-sm js-add-block w-100 h-100 d-flex flex-column align-items-center justify-content-center gap-1 py-2" data-group="sidebar" data-type="{{ $t }}">
-                      <i class="bi {{ $blockIcons[$t] ?? 'bi-square' }} fs-5"></i>
-                      <span class="small text-center lh-sm">{{ $l }}</span>
-                    </button>
+
+            @foreach ($blockCategories as $catKey => $cat)
+              @if (count($cat['types']))
+                <div class="block-picker-category mb-3" data-category="{{ $catKey }}">
+                  <div class="block-picker-header js-category-toggle">
+                    <i class="bi bi-chevron-down block-picker-chevron"></i>
+                    <span>{{ $cat['label'] }}</span>
                   </div>
+                  <div class="block-picker-grid">
+                    @foreach ($cat['types'] as $t)
+                      <button type="button" class="block-picker-item js-add-block" data-group="blocks" data-type="{{ $t }}" data-label="{{ \Illuminate\Support\Str::lower($blocks[$t] ?? $t) }}">
+                        <i class="bi {{ $blockIcons[$t] ?? 'bi-square' }}"></i>
+                        <span>{{ $blocks[$t] ?? $t }}</span>
+                      </button>
+                    @endforeach
+                  </div>
+                </div>
+              @endif
+            @endforeach
+
+            <div class="block-picker-category mb-3" id="add-side-section" data-category="sidebar" @if($view['template'] !== 'sidebar') style="display:none" @endif>
+              <div class="block-picker-header js-category-toggle">
+                <i class="bi bi-chevron-down block-picker-chevron"></i>
+                <span>{{ __('Sidebar Blocks') }}</span>
+              </div>
+              <div class="block-picker-grid">
+                @foreach ($sidebarBlocks as $t => $l)
+                  <button type="button" class="block-picker-item js-add-block" data-group="sidebar" data-type="{{ $t }}" data-label="{{ \Illuminate\Support\Str::lower($l) }}">
+                    <i class="bi {{ $blockIcons[$t] ?? 'bi-square' }}"></i>
+                    <span>{{ $l }}</span>
+                  </button>
                 @endforeach
               </div>
             </div>
+
+            <p class="text-muted small text-center mb-0 js-no-results" style="display:none">{{ __('No blocks match your search.') }}</p>
           </div>
 
           {{-- Panel: page settings (Title / Slug / Status / Template) --}}
@@ -256,10 +324,20 @@
 
   {{-- Hidden block templates for the "Add" buttons (prefix placeholder __I__) --}}
   @foreach ($blocks as $t => $l)
-    <template id="tpl-blocks-{{ $t }}">@include('admin.website.pages._card', ['prefix' => 'blocks[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec, 'style' => [], 'layout' => [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$t] ?? 'bi-square'])</template>
+    <template id="tpl-blocks-{{ $t }}">@include('admin.website.pages._card', ['prefix' => 'blocks[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec, 'style' => [], 'layout' => [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$t] ?? 'bi-square', 'blockIcons' => $blockIcons])</template>
   @endforeach
   @foreach ($sidebarBlocks as $t => $l)
-    <template id="tpl-sidebar-{{ $t }}">@include('admin.website.pages._card', ['prefix' => 'sidebar[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec, 'style' => [], 'layout' => [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$t] ?? 'bi-square'])</template>
+    <template id="tpl-sidebar-{{ $t }}">@include('admin.website.pages._card', ['prefix' => 'sidebar[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec, 'style' => [], 'layout' => [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$t] ?? 'bi-square', 'blockIcons' => $blockIcons])</template>
+  @endforeach
+
+  {{-- Hidden templates for a Container/Grid's own nested children — leaf
+       types only (single-level nesting). Uses a __PREFIX__ token instead of
+       a literal "blocks"/"sidebar" root: addChildBlock() substitutes it with
+       the specific container's own data-prefix at insert time, since a
+       child's real prefix ("blocks[2][data][blocks][0]") depends on which
+       container it's being added to, not a fixed top-level list. --}}
+  @foreach (\App\Modules\Website\Services\PageRenderService::LEAF_BLOCKS as $t => $l)
+    <template id="tpl-child-{{ $t }}">@include('admin.website.pages._card', ['prefix' => '__PREFIX__[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec, 'style' => [], 'layout' => [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$t] ?? 'bi-square', 'blockIcons' => $blockIcons])</template>
   @endforeach
 
   @push('scripts')
@@ -345,13 +423,49 @@
       })();
 
       var blockIdx = 1000;
+      // Shared by the top-level "no blocks yet" message and a container/
+      // grid's own "no children yet" message — toggled after any add/remove
+      // so the message reappears if the last block/child is ever removed
+      // (a gap the original single-purpose inline toggle had for top-level
+      // blocks too, fixed here for both at once).
+      function updateEmptyState(list) {
+        if (!list) return;
+        var isEmpty = list.children.length === 0;
+        if (list.id === 'blocks-list') {
+          var empty = document.getElementById('blocks-empty');
+          if (empty) empty.style.display = isEmpty ? '' : 'none';
+        } else if (list.classList.contains('nested-blocks-list')) {
+          var wrap = list.closest('.nested-blocks-wrap');
+          var empty = wrap && wrap.querySelector('.js-nested-empty');
+          if (empty) empty.style.display = isEmpty ? '' : 'none';
+        }
+      }
+      // Sortable (drag-reorder via the grip handle) needs to be initialized
+      // per list element, including a container/grid's own nested-blocks-list
+      // — called after any structural change that could introduce a new one
+      // (idempotent via data-sortable-init, so calling it liberally is cheap).
+      function initNestedSortables() {
+        if (!window.Sortable) return;
+        document.querySelectorAll('.nested-blocks-list').forEach(function (list) {
+          if (list.dataset.sortableInit) return;
+          list.dataset.sortableInit = 'true';
+          new Sortable(list, {
+            handle: '.js-drag-handle',
+            animation: 150,
+            ghostClass: 'opacity-50',
+            onEnd: function () { schedulePreview(); pushHistory(); },
+          });
+        });
+      }
       function addBlock(group, type) {
         var tpl = document.getElementById('tpl-' + group + '-' + type);
         if (!tpl) return;
         var html = tpl.innerHTML.split('__I__').join(blockIdx++);
-        document.getElementById(group + '-list').insertAdjacentHTML('beforeend', html);
-        var empty = document.getElementById('blocks-empty'); if (empty) empty.style.display = 'none';
+        var list = document.getElementById(group + '-list');
+        list.insertAdjacentHTML('beforeend', html);
+        updateEmptyState(list);
         initQuillEditors();
+        initNestedSortables();
         // A style may already be copied from an earlier block — the new
         // block's Paste Style button starts disabled server-side, enable it too.
         if (copiedStyle) { document.querySelectorAll('.js-paste-style').forEach(function (b) { b.disabled = false; }); }
@@ -359,14 +473,40 @@
         // settings immediately, like Elementor does when you drop a new
         // widget — you're almost always about to configure it right away.
         showPanel('blocks');
-        var list = document.getElementById(group + '-list');
+        openBlockCard(list.lastElementChild);
+        schedulePreview();
+        pushHistory();
+      }
+      // A container/grid's own "Add" control (see _nested_blocks.blade.php)
+      // — same idea as addBlock() above, but the child's prefix is built
+      // from the specific container instance's own data-prefix rather than
+      // a fixed top-level "blocks"/"sidebar" root (see the hidden
+      // tpl-child-{type} templates' __PREFIX__ token, near the bottom of
+      // this file).
+      function addChildBlock(list, type) {
+        var tpl = document.getElementById('tpl-child-' + type);
+        if (!tpl || !list) return;
+        var prefixRoot = list.dataset.prefix + '[data][blocks]';
+        var html = tpl.innerHTML.split('__PREFIX__').join(prefixRoot).split('__I__').join(blockIdx++);
+        list.insertAdjacentHTML('beforeend', html);
+        updateEmptyState(list);
+        initQuillEditors();
+        initNestedSortables();
+        if (copiedStyle) { document.querySelectorAll('.js-paste-style').forEach(function (b) { b.disabled = false; }); }
         openBlockCard(list.lastElementChild);
         schedulePreview();
         pushHistory();
       }
       document.addEventListener('click', function (e) {
         var addBtn = e.target.closest('.js-add-block');
-        if (addBtn) { addBlock(addBtn.dataset.group, addBtn.dataset.type); }
+        if (addBtn) { addBlock(addBtn.dataset.group, addBtn.dataset.type); return; }
+        var addChildBtn = e.target.closest('.js-nested-add-btn');
+        if (addChildBtn) {
+          var wrap = addChildBtn.closest('.nested-blocks-wrap');
+          var select = wrap && wrap.querySelector('.js-nested-type');
+          var nestedList = wrap && wrap.querySelector('.nested-blocks-list');
+          if (select && nestedList) addChildBlock(nestedList, select.value);
+        }
       });
 
       // Rail: only one block's Content/Style/Layout panel open at a time,
@@ -406,6 +546,9 @@
           });
         });
       }
+      // Any container/grid blocks already on the page (existing content,
+      // server-rendered) get their own nested-blocks-list initialized too.
+      initNestedSortables();
 
       // Copy/paste block style — a single "clipboard" shared across every
       // block on the page, matching Elementor Pro's copy/paste-style
@@ -446,7 +589,9 @@
       }
       function removeCard(card) {
         if (!card) return;
+        var list = card.parentElement;
         card.remove();
+        updateEmptyState(list);
         schedulePreview();
         pushHistory();
       }
@@ -521,6 +666,7 @@
         var nameEl = document.getElementById('topbar-page-name');
         if (nameEl) nameEl.textContent = snap.title || @json(__('Untitled'));
         initQuillEditors();
+        initNestedSortables();
         schedulePreview();
         updateUndoRedoButtons();
       }
@@ -620,6 +766,42 @@
         var canvas = document.getElementById('preview-viewport-wrap');
         canvas.classList.remove('vp-laptop', 'vp-tablet', 'vp-mobile');
         if (btn.dataset.viewport !== 'desktop') canvas.classList.add('vp-' + btn.dataset.viewport);
+      });
+
+      // ── Add Block panel: search + collapsible categories ────────────────
+      var blockSearch = document.getElementById('block-search');
+      if (blockSearch) {
+        blockSearch.addEventListener('input', function () {
+          var q = this.value.trim().toLowerCase();
+          var anyVisible = false;
+          document.querySelectorAll('.block-picker-category').forEach(function (cat) {
+            var catMatch = false;
+            cat.querySelectorAll('.block-picker-item').forEach(function (item) {
+              var match = !q || (item.dataset.label || '').indexOf(q) !== -1;
+              item.classList.toggle('is-hidden', !match);
+              if (match) catMatch = true;
+            });
+            if (catMatch) anyVisible = true;
+            // Searching always shows a matching category's contents, ignoring
+            // any manual collapse; clearing the search restores normal (open) display.
+            cat.classList.remove('is-collapsed');
+            if (cat.id === 'add-side-section') {
+              // The Sidebar Blocks category has its own template-driven
+              // visibility (tpl-select change handler / restoreSnapshot())
+              // that this must not fight with once the search is cleared.
+              cat.style.display = q ? (catMatch ? '' : 'none') : (document.getElementById('tpl-select').value === 'sidebar' ? '' : 'none');
+            } else {
+              cat.style.display = (q && !catMatch) ? 'none' : '';
+            }
+          });
+          var noResults = document.querySelector('.js-no-results');
+          if (noResults) noResults.style.display = (q && !anyVisible) ? '' : 'none';
+        });
+      }
+      document.querySelectorAll('.js-category-toggle').forEach(function (h) {
+        h.addEventListener('click', function () {
+          h.closest('.block-picker-category').classList.toggle('is-collapsed');
+        });
       });
 
       // Style tab: sync each color swatch <-> its hex text field, both ways.
