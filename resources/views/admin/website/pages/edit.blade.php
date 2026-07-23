@@ -754,7 +754,14 @@
       // the preview is built from this same form's current DOM order (see
       // runPreview() above).
       window.addEventListener('message', function (e) {
-        if (e.origin !== window.location.origin) return;
+        // Verify by sender identity (e.source), not e.origin: the preview
+        // iframe is loaded via .srcdoc, whose origin serializes as the
+        // literal string "null" (a browser quirk), so an origin-string
+        // comparison would always fail here. (Looked up fresh rather than
+        // reusing the `frame` var from the live-preview IIFE above, which is
+        // out of scope here.)
+        var previewFrame = document.getElementById('preview-frame');
+        if (!previewFrame || e.source !== previewFrame.contentWindow) return;
         var msg = e.data;
         if (!msg || msg.source !== 'page-preview' || msg.type !== 'select-block') return;
         var list = document.getElementById(msg.group === 'sidebar' ? 'sidebar-list' : 'blocks-list');

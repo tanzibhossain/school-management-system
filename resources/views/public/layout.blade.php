@@ -255,12 +255,18 @@
                 if (selected) selected.classList.remove('is-block-selected');
                 selected = el;
                 el.classList.add('is-block-selected');
+                // Posted with '*': this document is loaded via iframe.srcdoc, so
+                // window.location.origin here serializes as the literal string
+                // "null" (a known browser quirk for srcdoc documents) — passing
+                // that as a targetOrigin throws "Invalid target origin 'null'".
+                // The parent verifies the sender by e.source (the iframe's
+                // contentWindow), not by origin, so this stays safe without it.
                 window.parent.postMessage({
                     source: 'page-preview',
                     type: 'select-block',
                     group: el.dataset.blockGroup,
                     index: el.dataset.blockIndex,
-                }, window.location.origin);
+                }, '*');
             }, true);
         })();
     </script>
