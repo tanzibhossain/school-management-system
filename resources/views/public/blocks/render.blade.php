@@ -1,7 +1,7 @@
 @php
   // Local alias so the (fairly long) FQCN does not have to be repeated at
   // every call site below — `use` imports are not valid inside a compiled
-  // Blade @php block (it compiles to PHP function-body code, not file-top-level).
+  // Blade php block (it compiles to PHP function-body code, not file-top-level).
   $bp = \App\Modules\Website\Support\BlockPresentation::class;
 
   $contained = $contained ?? false;
