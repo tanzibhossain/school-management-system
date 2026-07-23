@@ -99,7 +99,7 @@
 
     .editor-sidebar {
       position: relative; flex: 0 0 auto; display: flex; flex-direction: column;
-      width: 10vw; min-width: 220px; max-width: 25vw;
+      width: 15vw; min-width: 15vw; max-width: 25vw;
       background: #fff; border-right: 1px solid var(--bs-border-color); overflow: hidden;
     }
     .sidebar-resize-handle {
@@ -163,6 +163,21 @@
     /* Container/Grid nested-children mini rail (see _nested_blocks.blade.php). */
     .nested-blocks-list:empty { display: none; }
     .nested-blocks-list > .block-card { margin-left: .25rem; border-left: 2px solid var(--bs-border-color, #e2e8f0); }
+
+    /* Content/Style/Layout tabs inside an open block card — smaller than
+       Bootstrap's default nav-tabs, every item bordered (not just the
+       active one), inactive items plain white/black, active item filled
+       with the brand color instead of Bootstrap's default white-with-
+       colored-top-border treatment. */
+    .block-settings .nav-tabs { border-bottom: 1px solid var(--bs-border-color, #e2e8f0); }
+    .block-settings .nav-tabs .nav-link {
+      font-size: .72rem; padding: .3rem .55rem; border: 1px solid var(--bs-border-color, #e2e8f0);
+      border-radius: .35rem; color: #000; background: transparent; margin-right: .25rem;
+    }
+    .block-settings .nav-tabs .nav-link:hover { border-color: var(--bs-primary); }
+    .block-settings .nav-tabs .nav-link.active {
+      background: var(--bs-primary); border-color: var(--bs-primary); color: #fff;
+    }
   </style>
 
   <div class="editor-shell">
@@ -413,7 +428,7 @@
         if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       });
 
-      // ── Resizable sidebar (10vw default, 220px floor, 25vw ceiling) ─────
+      // ── Resizable sidebar (15vw floor, 25vw ceiling) ─────────────────────
       (function () {
         var sidebar = document.getElementById('editor-sidebar');
         var handle = document.getElementById('sidebar-resize-handle');
@@ -427,7 +442,7 @@
         });
         document.addEventListener('mousemove', function (e) {
           if (!dragging) return;
-          var min = Math.max(220, window.innerWidth * 0.10);
+          var min = window.innerWidth * 0.15;
           var max = window.innerWidth * 0.25;
           var w = Math.min(max, Math.max(min, e.clientX));
           sidebar.style.width = w + 'px';
