@@ -188,7 +188,7 @@
         var html = tpl.innerHTML.split('__I__').join(blockIdx++);
         document.getElementById(group + '-list').insertAdjacentHTML('beforeend', html);
         var empty = document.getElementById('blocks-empty'); if (empty) empty.style.display = 'none';
-        initRichTextEditors();
+        initQuillEditors();
         // Open the newly added block's settings immediately, like Elementor
         // does when you drop a new widget — you're almost always about to
         // configure it right away.
@@ -282,35 +282,41 @@
         }
       });
 
-      // Initialize TinyMCE for rich text editors
-      function initRichTextEditors() {
-        if (typeof tinymce === 'undefined') return;
-        document.querySelectorAll('textarea.rich-text-editor').forEach(function(el) {
-          if (!el.dataset.tinymceInit) {
-            el.dataset.tinymceInit = 'true';
-            tinymce.init({
-              target: el,
-              menubar: false,
-              plugins: 'link lists table',
-              toolbar: 'undo redo | bold italic underline strikethrough | alignleft aligncenter alignright | bullist numlist outdent indent | link table | removeformat',
-              content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; }',
-              height: 200,
-              promotion: false,
-              branding: false,
-              setup: function(editor) {
-                editor.on('change input undo redo', function() {
-                  editor.save();
-                  var card = editor.getElement().closest('.block-card');
-                  if (card && window.scheduleBlockPreview) { window.scheduleBlockPreview(card); } else { schedulePreview(); }
-                });
-              }
-            });
-          }
+      // Rich text fields (richtext/image_text "html") use Quill — open
+      // source (BSD-3), loaded globally from CDN in layouts/admin.blade.php,
+      // no API key or build step required. One shared init, idempotent
+      // (guarded by data-quill-init) so it's safe to call again after a new
+      // block is added — see the comment in _fields.blade.php for why a
+      // per-field inline script doesn't work for cloned blocks.
+      function initQuillEditors() {
+        if (typeof Quill === 'undefined') return;
+        document.querySelectorAll('.quill-editor').forEach(function (container) {
+          if (container.dataset.quillInit) return;
+          container.dataset.quillInit = 'true';
+          var hidden = container.nextElementSibling;
+          if (!hidden) return;
+          var quill = new Quill(container, {
+            theme: 'snow',
+            modules: {
+              toolbar: [
+                [{ header: [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ list: 'ordered' }, { list: 'bullet' }],
+                ['link', 'image'],
+                ['clean'],
+              ],
+            },
+            placeholder: @json(__('Enter Content…')),
+          });
+          quill.root.innerHTML = hidden.value;
+          quill.on('text-change', function () {
+            hidden.value = quill.root.innerHTML;
+            var card = container.closest('.block-card');
+            if (card && window.scheduleBlockPreview) { window.scheduleBlockPreview(card); } else { schedulePreview(); }
+          });
         });
       }
-
-      // Initialize on page load
-      document.addEventListener('DOMContentLoaded', initRichTextEditors);
+      document.addEventListener('DOMContentLoaded', initQuillEditors);
 
       // ── Live preview ──────────────────────────────────────────────────────
       // Debounced: serialize the whole form as it stands right now (including

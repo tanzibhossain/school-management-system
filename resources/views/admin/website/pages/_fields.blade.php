@@ -8,7 +8,9 @@
   @php
     $val = $data[$f['key']] ?? '';
     $name = $prefix . '[data][' . $f['key'] . ']';
-    $isRichText = $type === 'richtext' && $f['key'] === 'html';
+    // Both block types render this field as raw HTML on the public site
+    // (public/blocks/render.blade.php), so both get the Quill WYSIWYG.
+    $isRichText = in_array($type, ['richtext', 'image_text'], true) && $f['key'] === 'html';
   @endphp
   <div class="mb-2">
     <label class="form-label small text-muted mb-1">{{ $f['label'] }}</label>
@@ -28,31 +30,9 @@
     @endif
   </div>
 @endforeach
-@if ($isRichText ?? false)
-@push('scripts')
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var container = document.getElementById('quill-{{ $sanitizedPrefix }}-html');
-    if (container && window.Quill) {
-      var quill = new Quill(container, {
-        theme: 'snow',
-        modules: {
-          toolbar: [
-            [{ header: [1, 2, 3, false] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ list: 'ordered' }, { list: 'bullet' }],
-            ['link', 'image'],
-            ['clean']
-          ]
-        },
-        placeholder: 'Enter content...'
-      });
-      quill.root.innerHTML = {!! json_encode($val) !!};
-      quill.on('text-change', function() {
-        container.nextElementSibling.value = quill.root.innerHTML;
-      });
-    }
-  });
-</script>
-@endpush
-@endif
+{{-- Quill itself is initialized once, for every .quill-editor container on
+     the page (including ones cloned later via "Add block"), by
+     initQuillEditors() in edit.blade.php — not here. A per-field inline
+     script wouldn't run for blocks added after page load (scripts inserted
+     via innerHTML are inert), and initQuillEditors() is idempotent so it's
+     safe to call again whenever a block is added. --}}
