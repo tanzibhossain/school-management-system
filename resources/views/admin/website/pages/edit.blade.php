@@ -45,72 +45,89 @@
     @if ($page->status === 'published')<a class="btn btn-outline-secondary" href="{{ url('/' . $page->slug) }}" target="_blank"><i class="bi bi-box-arrow-up-right"></i> {{ __('View Live') }}</a>@endif
   </div>
 
-  <form method="POST" action="{{ route('admin.pages.save', $page->id) }}">
+  <form method="POST" action="{{ route('admin.pages.save', $page->id) }}" id="page-form">
     @csrf @method('PUT')
 
-    <div class="card mb-3"><div class="card-body">
-      <div class="row g-3">
-        <div class="col-md-5"><label class="form-label">{{ __('Title') }} <span class="text-danger">*</span></label>
-          <input name="title" class="form-control" value="{{ old('title', $page->title) }}" required></div>
-        <div class="col-md-4"><label class="form-label">{{ __('Slug') }}</label>
-          <div class="input-group"><span class="input-group-text">/</span>
-            <input name="slug" class="form-control" value="{{ old('slug', $page->slug) }}"></div></div>
-        <div class="col-md-3"><label class="form-label">{{ __('Status') }}</label>
-          <select name="status" class="form-select">
-            <option value="published" @selected($page->status === 'published')>{{ __('Published') }}</option>
-            <option value="draft" @selected($page->status === 'draft')>{{ __('Draft') }}</option>
-          </select></div>
-        <div class="col-md-3"><label class="form-label">{{ __('Template') }}</label>
-          <select name="template" id="tpl-select" class="form-select">
-            <option value="full" @selected($view['template'] === 'full')>{{ __('Full Width') }}</option>
-            <option value="sidebar" @selected($view['template'] === 'sidebar')>{{ __('With Sidebar') }}</option>
-          </select></div>
-      </div>
-    </div></div>
-
     <div class="row g-3">
-      {{-- Main column --}}
-      <div id="main-col" class="{{ $view['template'] === 'sidebar' ? 'col-lg-8' : 'col-12' }}">
-        <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
-          <span>{{ __('Content Blocks') }}</span>
-          <div class="input-group input-group-sm" style="width:auto;">
-            <select class="form-select" id="add-blocks-select">
-              @foreach ($blocks as $t => $l)<option value="{{ $t }}">{{ $l }}</option>@endforeach
-            </select>
-            <button type="button" class="btn btn-outline-primary" onclick="addBlock('blocks', document.getElementById('add-blocks-select').value)"><i class="bi bi-plus-lg"></i> {{ __('Add') }}</button>
+      {{-- Editor pane --}}
+      <div class="col-lg-6">
+        <div class="card mb-3"><div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-5"><label class="form-label">{{ __('Title') }} <span class="text-danger">*</span></label>
+              <input name="title" class="form-control" value="{{ old('title', $page->title) }}" required></div>
+            <div class="col-md-4"><label class="form-label">{{ __('Slug') }}</label>
+              <div class="input-group"><span class="input-group-text">/</span>
+                <input name="slug" class="form-control" value="{{ old('slug', $page->slug) }}"></div></div>
+            <div class="col-md-3"><label class="form-label">{{ __('Status') }}</label>
+              <select name="status" class="form-select">
+                <option value="published" @selected($page->status === 'published')>{{ __('Published') }}</option>
+                <option value="draft" @selected($page->status === 'draft')>{{ __('Draft') }}</option>
+              </select></div>
+            <div class="col-md-3"><label class="form-label">{{ __('Template') }}</label>
+              <select name="template" id="tpl-select" class="form-select">
+                <option value="full" @selected($view['template'] === 'full')>{{ __('Full Width') }}</option>
+                <option value="sidebar" @selected($view['template'] === 'sidebar')>{{ __('With Sidebar') }}</option>
+              </select></div>
           </div>
-        </div><div class="card-body">
-          <div id="blocks-list">
-            @foreach ($view['blocks'] as $i => $b)
-              @include('admin.website.pages._card', ['prefix' => "blocks[$i]", 'type' => $b['type'], 'label' => $blocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes])
-            @endforeach
-          </div>
-          <p class="text-muted small mb-0" id="blocks-empty" @if(count($view['blocks'])) style="display:none" @endif>{{ __('No Blocks Yet — Add One Above.') }}</p>
         </div></div>
+
+        {{-- Main column blocks --}}
+        <div id="main-col" class="mb-3">
+          <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
+            <span>{{ __('Content Blocks') }}</span>
+            <div class="input-group input-group-sm" style="width:auto;">
+              <select class="form-select" id="add-blocks-select">
+                @foreach ($blocks as $t => $l)<option value="{{ $t }}">{{ $l }}</option>@endforeach
+              </select>
+              <button type="button" class="btn btn-outline-primary" onclick="addBlock('blocks', document.getElementById('add-blocks-select').value)"><i class="bi bi-plus-lg"></i> {{ __('Add') }}</button>
+            </div>
+          </div><div class="card-body">
+            <div id="blocks-list">
+              @foreach ($view['blocks'] as $i => $b)
+                @include('admin.website.pages._card', ['prefix' => "blocks[$i]", 'type' => $b['type'], 'label' => $blocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes])
+              @endforeach
+            </div>
+            <p class="text-muted small mb-0" id="blocks-empty" @if(count($view['blocks'])) style="display:none" @endif>{{ __('No Blocks Yet — Add One Above.') }}</p>
+          </div></div>
+        </div>
+
+        {{-- Sidebar column blocks --}}
+        <div id="side-col" @if($view['template'] !== 'sidebar') style="display:none" @endif>
+          <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
+            <span>{{ __('Sidebar Blocks') }}</span>
+            <div class="input-group input-group-sm" style="width:auto;">
+              <select class="form-select" id="add-sidebar-select">
+                @foreach ($sidebarBlocks as $t => $l)<option value="{{ $t }}">{{ $l }}</option>@endforeach
+              </select>
+              <button type="button" class="btn btn-outline-primary" onclick="addBlock('sidebar', document.getElementById('add-sidebar-select').value)"><i class="bi bi-plus-lg"></i> {{ __('Add') }}</button>
+            </div>
+          </div><div class="card-body">
+            <div id="sidebar-list">
+              @foreach ($view['sidebar'] as $i => $b)
+                @include('admin.website.pages._card', ['prefix' => "sidebar[$i]", 'type' => $b['type'], 'label' => $sidebarBlocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes])
+              @endforeach
+            </div>
+          </div></div>
+        </div>
+
+        <div class="mt-3 mb-3"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save Page') }}</button>
+          <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary">{{ __('Back') }}</a></div>
       </div>
 
-      {{-- Sidebar column --}}
-      <div id="side-col" class="col-lg-4" @if($view['template'] !== 'sidebar') style="display:none" @endif>
-        <div class="card"><div class="card-header d-flex justify-content-between align-items-center">
-          <span>{{ __('Sidebar Blocks') }}</span>
-          <div class="input-group input-group-sm" style="width:auto;">
-            <select class="form-select" id="add-sidebar-select">
-              @foreach ($sidebarBlocks as $t => $l)<option value="{{ $t }}">{{ $l }}</option>@endforeach
-            </select>
-            <button type="button" class="btn btn-outline-primary" onclick="addBlock('sidebar', document.getElementById('add-sidebar-select').value)"><i class="bi bi-plus-lg"></i> {{ __('Add') }}</button>
+      {{-- Live preview pane — same render pipeline as the public site, fed from
+           this form's current (unsaved) values. See docs/modules/28-elementor-block-editor-plan.md. --}}
+      <div class="col-lg-6">
+        <div class="card sticky-top" style="top:1rem;">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-eye"></i> {{ __('Live Preview') }}</span>
+            <span class="small text-muted" id="preview-status"></span>
           </div>
-        </div><div class="card-body">
-          <div id="sidebar-list">
-            @foreach ($view['sidebar'] as $i => $b)
-              @include('admin.website.pages._card', ['prefix' => "sidebar[$i]", 'type' => $b['type'], 'label' => $sidebarBlocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes])
-            @endforeach
+          <div class="card-body p-0">
+            <iframe id="preview-frame" title="{{ __('Live Preview') }}" sandbox="allow-same-origin allow-scripts" style="width:100%;height:82vh;border:0;display:block;"></iframe>
           </div>
-        </div></div>
+        </div>
       </div>
     </div>
-
-    <div class="mt-3"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save Page') }}</button>
-      <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary">{{ __('Back') }}</a></div>
   </form>
 
   {{-- Hidden block templates for the "Add" buttons (prefix placeholder __I__) --}}
@@ -131,17 +148,18 @@
         document.getElementById(group + '-list').insertAdjacentHTML('beforeend', html);
         var empty = document.getElementById('blocks-empty'); if (empty) empty.style.display = 'none';
         initRichTextEditors();
+        schedulePreview();
       }
       document.addEventListener('click', function (e) {
         var up = e.target.closest('.js-up'), down = e.target.closest('.js-down'), rm = e.target.closest('.js-remove');
-        if (up) { var c = up.closest('.block-card'); if (c.previousElementSibling) c.parentNode.insertBefore(c, c.previousElementSibling); }
-        if (down) { var c = down.closest('.block-card'); if (c.nextElementSibling) c.parentNode.insertBefore(c.nextElementSibling, c); }
-        if (rm) { rm.closest('.block-card').remove(); }
+        if (up) { var c = up.closest('.block-card'); if (c.previousElementSibling) c.parentNode.insertBefore(c, c.previousElementSibling); schedulePreview(); }
+        if (down) { var c = down.closest('.block-card'); if (c.nextElementSibling) c.parentNode.insertBefore(c.nextElementSibling, c); schedulePreview(); }
+        if (rm) { rm.closest('.block-card').remove(); schedulePreview(); }
       });
       document.getElementById('tpl-select').addEventListener('change', function () {
         var sidebar = this.value === 'sidebar';
         document.getElementById('side-col').style.display = sidebar ? '' : 'none';
-        document.getElementById('main-col').className = sidebar ? 'col-lg-8' : 'col-12';
+        schedulePreview();
       });
 
       // Style tab: sync each color swatch <-> its hex text field, both ways.
@@ -177,8 +195,9 @@
               promotion: false,
               branding: false,
               setup: function(editor) {
-                editor.on('change', function() {
+                editor.on('change input undo redo', function() {
                   editor.save();
+                  schedulePreview();
                 });
               }
             });
@@ -188,6 +207,64 @@
 
       // Initialize on page load
       document.addEventListener('DOMContentLoaded', initRichTextEditors);
+
+      // ── Live preview ──────────────────────────────────────────────────────
+      // Debounced: serialize the whole form as it stands right now (including
+      // unsaved edits) and POST it to the preview endpoint, which renders it
+      // through the exact same Blade views as the real public page (see
+      // PageController::preview()) — so what you see here is what publishing
+      // would actually produce, not a re-implementation that could drift.
+      (function () {
+        var form = document.getElementById('page-form');
+        var frame = document.getElementById('preview-frame');
+        var statusEl = document.getElementById('preview-status');
+        var previewUrl = @json(route('admin.pages.preview', $page->id));
+        var timer = null;
+        var inFlight = null;
+
+        function setStatus(text) { if (statusEl) statusEl.textContent = text; }
+
+        window.schedulePreview = function () {
+          setStatus(@json(__('Editing…')));
+          clearTimeout(timer);
+          timer = setTimeout(runPreview, 350);
+        };
+
+        function runPreview() {
+          var fd = new FormData(form);
+          fd.delete('_method'); // this must stay a real POST, not spoofed to PUT
+          setStatus(@json(__('Updating…')));
+
+          var controller = new AbortController();
+          if (inFlight) inFlight.abort();
+          inFlight = controller;
+
+          fetch(previewUrl, {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            signal: controller.signal,
+          }).then(function (res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.text();
+          }).then(function (html) {
+            frame.srcdoc = html;
+            setStatus(@json(__('Up To Date')));
+          }).catch(function (err) {
+            if (err.name === 'AbortError') return;
+            setStatus(@json(__('Preview Failed')));
+          });
+        }
+
+        // Any change anywhere in the form (text/select/textarea/checkbox/
+        // range/color) schedules a re-render. Delegated so it also covers
+        // block cards added/cloned after page load.
+        form.addEventListener('input', schedulePreview);
+        form.addEventListener('change', schedulePreview);
+
+        document.addEventListener('DOMContentLoaded', schedulePreview);
+        if (document.readyState !== 'loading') schedulePreview();
+      })();
     </script>
   @endpush
 @endsection
