@@ -147,8 +147,12 @@
           </div></div>
         </div>
 
-        <div class="mt-3 mb-3"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save Page') }}</button>
-          <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary">{{ __('Back') }}</a></div>
+        <div class="mt-3 mb-3">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> {{ __('Save Page') }}</button>
+          <button type="button" class="btn btn-outline-secondary" id="btn-undo" title="{{ __('Undo (Ctrl+Z)') }}" disabled><i class="bi bi-arrow-counterclockwise"></i></button>
+          <button type="button" class="btn btn-outline-secondary" id="btn-redo" title="{{ __('Redo (Ctrl+Y)') }}" disabled><i class="bi bi-arrow-clockwise"></i></button>
+          <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary">{{ __('Back') }}</a>
+        </div>
       </div>
 
       {{-- Live preview pane — same render pipeline as the public site, fed from
@@ -201,6 +205,7 @@
         var list = document.getElementById(group + '-list');
         openBlockCard(list.lastElementChild);
         schedulePreview();
+        pushHistory();
       }
 
       // Rail: only one block's Content/Style/Layout panel open at a time,
@@ -236,7 +241,7 @@
             handle: '.js-drag-handle',
             animation: 150,
             ghostClass: 'opacity-50',
-            onEnd: function () { schedulePreview(); },
+            onEnd: function () { schedulePreview(); pushHistory(); },
           });
         });
       }
@@ -257,13 +262,128 @@
         return out;
       }
 
+      // ── Undo / redo ──────────────────────────────────────────────────────
+      // A history array + pointer (not separate undo/redo stacks) — the
+      // classic pattern: history[historyIndex] is always what's on screen.
+      // Snapshots are DATA (block type + each field's value), never raw DOM —
+      // restoring rebuilds each block by cloning its <template> (exactly what
+      // "Add block" already does) and filling in the captured values, so a
+      // restored Quill field gets a fresh, working editor instead of Quill's
+      // internal DOM baked into a dead HTML string. Session-only, never sent
+      // to the server or persisted (see docs/modules/28-elementor-block-editor-plan.md).
+      var history_ = [];
+      var historyIndex = -1;
+      var pushHistoryTimer = null;
+      var HISTORY_LIMIT = 50;
+
+      function captureCardFields(card) {
+        return Array.prototype.map.call(card.querySelectorAll('.block-settings [name]'), function (el) {
+          return (el.type === 'checkbox' || el.type === 'radio') ? { checked: el.checked } : { value: el.value };
+        });
+      }
+      function applyCardFields(card, captured) {
+        var els = card.querySelectorAll('.block-settings [name]');
+        captured.forEach(function (c, i) {
+          var el = els[i];
+          if (!el) return;
+          if (el.type === 'checkbox' || el.type === 'radio') { el.checked = !!c.checked; } else { el.value = c.value; }
+        });
+      }
+      function captureList(listId) {
+        var list = document.getElementById(listId);
+        return Array.prototype.map.call(list.children, function (card) {
+          var typeInput = card.querySelector('[name$="[type]"]');
+          return { type: typeInput ? typeInput.value : '', fields: captureCardFields(card) };
+        });
+      }
+      function snapshotState() {
+        return {
+          title: document.querySelector('[name="title"]').value,
+          slug: document.querySelector('[name="slug"]').value,
+          status: document.querySelector('[name="status"]').value,
+          template: document.getElementById('tpl-select').value,
+          blocks: captureList('blocks-list'),
+          sidebar: captureList('sidebar-list'),
+        };
+      }
+      function restoreList(listId, group, snapshotBlocks) {
+        var list = document.getElementById(listId);
+        list.innerHTML = '';
+        snapshotBlocks.forEach(function (b) {
+          var tpl = document.getElementById('tpl-' + group + '-' + b.type);
+          if (!tpl) return;
+          var html = tpl.innerHTML.split('__I__').join(blockIdx++);
+          list.insertAdjacentHTML('beforeend', html);
+          applyCardFields(list.lastElementChild, b.fields);
+        });
+      }
+      function restoreSnapshot(snap) {
+        document.querySelector('[name="title"]').value = snap.title;
+        document.querySelector('[name="slug"]').value = snap.slug;
+        document.querySelector('[name="status"]').value = snap.status;
+        document.getElementById('tpl-select').value = snap.template;
+        document.getElementById('side-col').style.display = snap.template === 'sidebar' ? '' : 'none';
+        restoreList('blocks-list', 'blocks', snap.blocks);
+        restoreList('sidebar-list', 'sidebar', snap.sidebar);
+        var empty = document.getElementById('blocks-empty');
+        if (empty) empty.style.display = snap.blocks.length ? 'none' : '';
+        initQuillEditors();
+        schedulePreview();
+        updateUndoRedoButtons();
+      }
+      function pushHistory() {
+        var snap = snapshotState();
+        history_ = history_.slice(0, historyIndex + 1);
+        history_.push(snap);
+        if (history_.length > HISTORY_LIMIT) history_.shift();
+        historyIndex = history_.length - 1;
+        updateUndoRedoButtons();
+      }
+      function schedulePushHistory() {
+        clearTimeout(pushHistoryTimer);
+        pushHistoryTimer = setTimeout(pushHistory, 1200);
+      }
+      function undo() {
+        if (historyIndex <= 0) return;
+        historyIndex--;
+        restoreSnapshot(history_[historyIndex]);
+      }
+      function redo() {
+        if (historyIndex >= history_.length - 1) return;
+        historyIndex++;
+        restoreSnapshot(history_[historyIndex]);
+      }
+      function updateUndoRedoButtons() {
+        var undoBtn = document.getElementById('btn-undo'), redoBtn = document.getElementById('btn-redo');
+        if (undoBtn) undoBtn.disabled = historyIndex <= 0;
+        if (redoBtn) redoBtn.disabled = historyIndex >= history_.length - 1;
+      }
+      document.getElementById('btn-undo').addEventListener('click', undo);
+      document.getElementById('btn-redo').addEventListener('click', redo);
+      // Ctrl/Cmd+Z / Ctrl+Y — but only when focus isn't in an editable field,
+      // so the browser's own per-field undo (fixing a typo) isn't hijacked.
+      document.addEventListener('keydown', function (e) {
+        var mod = e.ctrlKey || e.metaKey;
+        var key = e.key.toLowerCase();
+        if (!mod || (key !== 'z' && key !== 'y')) return;
+        var active = document.activeElement;
+        var inEditable = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT' || active.isContentEditable);
+        if (inEditable) return;
+        e.preventDefault();
+        if (key === 'y' || e.shiftKey) { redo(); } else { undo(); }
+      });
+      // Seed the history with the page's initial state once everything (incl.
+      // Quill) has settled, so the very first edit has something to undo to.
+      document.addEventListener('DOMContentLoaded', function () { pushHistory(); });
+      if (document.readyState !== 'loading') pushHistory();
+
       document.addEventListener('click', function (e) {
         var up = e.target.closest('.js-up'), down = e.target.closest('.js-down'), rm = e.target.closest('.js-remove');
         var toggle = e.target.closest('.js-block-toggle');
         var copyStyle = e.target.closest('.js-copy-style'), pasteStyle = e.target.closest('.js-paste-style');
-        if (up) { var c = up.closest('.block-card'); if (c.previousElementSibling) c.parentNode.insertBefore(c, c.previousElementSibling); schedulePreview(); return; }
-        if (down) { var c = down.closest('.block-card'); if (c.nextElementSibling) c.parentNode.insertBefore(c.nextElementSibling, c); schedulePreview(); return; }
-        if (rm) { rm.closest('.block-card').remove(); schedulePreview(); return; }
+        if (up) { var c = up.closest('.block-card'); if (c.previousElementSibling) c.parentNode.insertBefore(c, c.previousElementSibling); schedulePreview(); pushHistory(); return; }
+        if (down) { var c = down.closest('.block-card'); if (c.nextElementSibling) c.parentNode.insertBefore(c.nextElementSibling, c); schedulePreview(); pushHistory(); return; }
+        if (rm) { rm.closest('.block-card').remove(); schedulePreview(); pushHistory(); return; }
         if (toggle) { toggleBlockCard(toggle.closest('.block-card')); return; }
         if (copyStyle) {
           copiedStyle = styleFieldsIn(copyStyle.closest('.block-card'));
@@ -284,6 +404,7 @@
           });
           pasteStyle.classList.replace('btn-outline-secondary', 'btn-success');
           setTimeout(function () { pasteStyle.classList.replace('btn-success', 'btn-outline-secondary'); }, 700);
+          pushHistory();
         }
       });
       document.addEventListener('keydown', function (e) {
@@ -296,6 +417,7 @@
         var sidebar = this.value === 'sidebar';
         document.getElementById('side-col').style.display = sidebar ? '' : 'none';
         schedulePreview();
+        pushHistory();
       });
 
       // Responsive viewport toolbar — resizes the preview iframe only, no re-render needed.
@@ -356,6 +478,7 @@
             hidden.value = quill.root.innerHTML;
             var card = container.closest('.block-card');
             if (card && window.scheduleBlockPreview) { window.scheduleBlockPreview(card); } else { schedulePreview(); }
+            schedulePushHistory();
           });
         });
       }
@@ -487,6 +610,7 @@
           } else {
             schedulePreview();
           }
+          schedulePushHistory();
         }
         form.addEventListener('input', handleFormChange);
         form.addEventListener('change', handleFormChange);
