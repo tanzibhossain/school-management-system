@@ -88,7 +88,8 @@
     .js-drag-handle { cursor: grab; }
 
     .js-panel-btn.active { background: var(--bs-primary); color: #fff; border-color: var(--bs-primary); }
-    .js-add-block { text-align: left; }
+    /* Add Block panel — two-column grid of icon-over-label boxes. */
+    .js-add-block { min-height: 72px; }
   </style>
 
   <div class="editor-shell">
@@ -97,6 +98,7 @@
       <div class="d-flex align-items-center gap-1">
         <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary btn-sm" title="{{ __('Back') }}"><i class="bi bi-arrow-left"></i></a>
         <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="add" title="{{ __('Add Block') }}"><i class="bi bi-plus-lg"></i></button>
+        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="blocks" title="{{ __('Content Blocks') }}"><i class="bi bi-stack"></i></button>
         <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="settings" title="{{ __('Page Settings') }}"><i class="bi bi-gear"></i></button>
         <div class="vr mx-1"></div>
         <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-undo" title="{{ __('Undo (Ctrl+Z)') }}" disabled><i class="bi bi-arrow-counterclockwise"></i></button>
@@ -134,8 +136,8 @@
         <form method="POST" action="{{ route('admin.pages.save', $page->id) }}" id="page-form">
           @csrf @method('PUT')
 
-          {{-- Panel: block layers (default) --}}
-          <div class="sidebar-panel active" data-panel="blocks">
+          {{-- Panel: block layers --}}
+          <div class="sidebar-panel" data-panel="blocks">
             <div id="main-col">
               <h6 class="small text-muted text-uppercase mb-2">{{ __('Content Blocks') }}</h6>
               <div id="blocks-list">
@@ -156,23 +158,29 @@
             </div>
           </div>
 
-          {{-- Panel: add block --}}
-          <div class="sidebar-panel" data-panel="add">
+          {{-- Panel: add block (sidebar default view) --}}
+          <div class="sidebar-panel active" data-panel="add">
             <h6 class="small text-muted text-uppercase mb-2">{{ __('Content Blocks') }}</h6>
-            <div class="d-grid gap-1 mb-3">
+            <div class="row row-cols-2 g-2 mb-3">
               @foreach ($blocks as $t => $l)
-                <button type="button" class="btn btn-outline-secondary btn-sm js-add-block" data-group="blocks" data-type="{{ $t }}">
-                  <i class="bi {{ $blockIcons[$t] ?? 'bi-square' }} me-1"></i> {{ $l }}
-                </button>
+                <div class="col">
+                  <button type="button" class="btn btn-outline-secondary btn-sm js-add-block w-100 h-100 d-flex flex-column align-items-center justify-content-center gap-1 py-2" data-group="blocks" data-type="{{ $t }}">
+                    <i class="bi {{ $blockIcons[$t] ?? 'bi-square' }} fs-5"></i>
+                    <span class="small text-center lh-sm">{{ $l }}</span>
+                  </button>
+                </div>
               @endforeach
             </div>
             <div id="add-side-section" @if($view['template'] !== 'sidebar') style="display:none" @endif>
               <h6 class="small text-muted text-uppercase mb-2">{{ __('Sidebar Blocks') }}</h6>
-              <div class="d-grid gap-1">
+              <div class="row row-cols-2 g-2">
                 @foreach ($sidebarBlocks as $t => $l)
-                  <button type="button" class="btn btn-outline-secondary btn-sm js-add-block" data-group="sidebar" data-type="{{ $t }}">
-                    <i class="bi {{ $blockIcons[$t] ?? 'bi-square' }} me-1"></i> {{ $l }}
-                  </button>
+                  <div class="col">
+                    <button type="button" class="btn btn-outline-secondary btn-sm js-add-block w-100 h-100 d-flex flex-column align-items-center justify-content-center gap-1 py-2" data-group="sidebar" data-type="{{ $t }}">
+                      <i class="bi {{ $blockIcons[$t] ?? 'bi-square' }} fs-5"></i>
+                      <span class="small text-center lh-sm">{{ $l }}</span>
+                    </button>
+                  </div>
                 @endforeach
               </div>
             </div>
@@ -258,6 +266,12 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script>
       // ── Sidebar panel switching ─────────────────────────────────────────
+      // "add" (Add Block) is the sidebar's default/resting view, matching
+      // Elementor's default left panel. "blocks" (the layers list),
+      // "settings", and "history" are all considered a temporary "active
+      // box" — clicking outside the sidebar or pressing Escape collapses
+      // back to "add" and closes any open block-settings card.
+      var DEFAULT_PANEL = 'add';
       function showPanel(name) {
         document.querySelectorAll('.sidebar-panel').forEach(function (p) {
           p.classList.toggle('active', p.dataset.panel === name);
@@ -266,8 +280,36 @@
           b.classList.toggle('active', b.dataset.panel === name);
         });
       }
+      function resetSidebarToDefault() {
+        showPanel(DEFAULT_PANEL);
+        var blocksList = document.getElementById('blocks-list');
+        var sidebarList = document.getElementById('sidebar-list');
+        if (blocksList) closeBlockList(blocksList);
+        if (sidebarList) closeBlockList(sidebarList);
+      }
       document.querySelectorAll('.js-panel-btn').forEach(function (b) {
-        b.addEventListener('click', function () { showPanel(b.dataset.panel); });
+        b.addEventListener('click', function (e) {
+          e.stopPropagation(); // don't let the click-outside handler below immediately undo this
+          showPanel(b.dataset.panel);
+        });
+      });
+      // Click anywhere outside the sidebar (canvas background, topbar,
+      // wherever) collapses it back to the default Add Block panel. Set by
+      // the resize-drag handler below to swallow the single spurious click
+      // a mouseup outside the sidebar would otherwise fire after a resize.
+      var sidebarResizeJustEnded = false;
+      document.addEventListener('click', function (e) {
+        if (sidebarResizeJustEnded) { sidebarResizeJustEnded = false; return; }
+        if (e.target.closest('#editor-sidebar')) return;
+        resetSidebarToDefault();
+      });
+      // Escape always returns the sidebar to its default state, from
+      // anywhere in the editor chrome (not inside the preview iframe, which
+      // has its own Escape handling for its right-click menu).
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        resetSidebarToDefault();
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
       });
 
       // ── Resizable sidebar (10vw default, 220px floor, 25vw ceiling) ─────
@@ -294,6 +336,11 @@
           dragging = false;
           handle.classList.remove('is-dragging');
           document.body.style.cursor = '';
+          // The mouseup can land outside #editor-sidebar (that's the whole
+          // point of dragging the divider) — without this, the click-outside
+          // handler above would immediately reset the sidebar right after
+          // every resize.
+          sidebarResizeJustEnded = true;
         });
       })();
 
@@ -374,6 +421,34 @@
           if (m) out[m[1]] = el.value;
         });
         return out;
+      }
+      // Shared by both the sidebar's Copy/Paste Style buttons and the
+      // preview canvas's right-click context menu (see the message handler
+      // below) — one implementation, two entry points.
+      function copyStyleFromCard(card) {
+        copiedStyle = styleFieldsIn(card);
+        document.querySelectorAll('.js-paste-style').forEach(function (b) { b.disabled = false; });
+      }
+      function pasteStyleToCard(card) {
+        if (!copiedStyle) return;
+        Object.keys(copiedStyle).forEach(function (key) {
+          var input = card.querySelector('[name$="[style][' + key + ']"]');
+          if (!input) return;
+          input.value = copiedStyle[key];
+          // Dispatched (not assigned) so the delegated swatch-sync and
+          // live-preview/history listeners already on these fields pick the
+          // change up exactly as if the user had typed it — see
+          // handleFormChange() in the live-preview IIFE below.
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+        pushHistory();
+      }
+      function removeCard(card) {
+        if (!card) return;
+        card.remove();
+        schedulePreview();
+        pushHistory();
       }
 
       // ── Undo / redo ──────────────────────────────────────────────────────
@@ -501,28 +576,19 @@
         var copyStyle = e.target.closest('.js-copy-style'), pasteStyle = e.target.closest('.js-paste-style');
         if (up) { var c = up.closest('.block-card'); if (c.previousElementSibling) c.parentNode.insertBefore(c, c.previousElementSibling); schedulePreview(); pushHistory(); return; }
         if (down) { var c = down.closest('.block-card'); if (c.nextElementSibling) c.parentNode.insertBefore(c.nextElementSibling, c); schedulePreview(); pushHistory(); return; }
-        if (rm) { rm.closest('.block-card').remove(); schedulePreview(); pushHistory(); return; }
+        if (rm) { removeCard(rm.closest('.block-card')); return; }
         if (toggle) { toggleBlockCard(toggle.closest('.block-card')); return; }
         if (copyStyle) {
-          copiedStyle = styleFieldsIn(copyStyle.closest('.block-card'));
-          document.querySelectorAll('.js-paste-style').forEach(function (b) { b.disabled = false; });
+          copyStyleFromCard(copyStyle.closest('.block-card'));
           copyStyle.classList.replace('btn-outline-secondary', 'btn-success');
           setTimeout(function () { copyStyle.classList.replace('btn-success', 'btn-outline-secondary'); }, 700);
           return;
         }
         if (pasteStyle) {
           if (!copiedStyle) return;
-          var card = pasteStyle.closest('.block-card');
-          Object.keys(copiedStyle).forEach(function (key) {
-            var input = card.querySelector('[name$="[style][' + key + ']"]');
-            if (!input) return;
-            input.value = copiedStyle[key];
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            input.dispatchEvent(new Event('change', { bubbles: true }));
-          });
+          pasteStyleToCard(pasteStyle.closest('.block-card'));
           pasteStyle.classList.replace('btn-outline-secondary', 'btn-success');
           setTimeout(function () { pasteStyle.classList.replace('btn-success', 'btn-outline-secondary'); }, 700);
-          pushHistory();
         }
       });
       document.addEventListener('keydown', function (e) {
@@ -745,14 +811,15 @@
         if (document.readyState !== 'loading') schedulePreview();
       })();
 
-      // ── Click-to-select bridge ───────────────────────────────────────────
-      // The preview iframe (public/layout.blade.php) posts a message when the
-      // user clicks a rendered block on the canvas; switch to the block
-      // layers panel and open that block's settings in the rail. The
-      // rendered index is positional (the Nth block-card currently in the
-      // list), which lines up exactly with what the preview just rendered —
-      // the preview is built from this same form's current DOM order (see
-      // runPreview() above).
+      // ── Preview canvas bridge ────────────────────────────────────────────
+      // The preview iframe (public/layout.blade.php) posts messages for
+      // everything that happens directly on the canvas: click-to-select,
+      // clicking the background (deselect), drag-reorder, and the
+      // right-click Copy/Paste/Delete menu. The rendered index is
+      // positional (the Nth block-card currently in the list), which lines
+      // up exactly with what the preview just rendered — the preview is
+      // built from this same form's current DOM order (see runPreview()
+      // above).
       window.addEventListener('message', function (e) {
         // Verify by sender identity (e.source), not e.origin: the preview
         // iframe is loaded via .srcdoc, whose origin serializes as the
@@ -763,13 +830,50 @@
         var previewFrame = document.getElementById('preview-frame');
         if (!previewFrame || e.source !== previewFrame.contentWindow) return;
         var msg = e.data;
-        if (!msg || msg.source !== 'page-preview' || msg.type !== 'select-block') return;
-        var list = document.getElementById(msg.group === 'sidebar' ? 'sidebar-list' : 'blocks-list');
-        var card = list && list.children[parseInt(msg.index, 10)];
-        if (card) {
-          showPanel('blocks');
-          openBlockCard(card);
-          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (!msg || msg.source !== 'page-preview') return;
+
+        if (msg.type === 'select-block') {
+          var list = document.getElementById(msg.group === 'sidebar' ? 'sidebar-list' : 'blocks-list');
+          var card = list && list.children[parseInt(msg.index, 10)];
+          if (card) {
+            showPanel('blocks');
+            openBlockCard(card);
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          return;
+        }
+
+        if (msg.type === 'deselect') {
+          // Clicked the canvas background — same as any other click outside
+          // the sidebar's active box.
+          resetSidebarToDefault();
+          return;
+        }
+
+        if (msg.type === 'reorder-blocks') {
+          var list = document.getElementById(msg.group === 'sidebar' ? 'sidebar-list' : 'blocks-list');
+          if (!list || !Array.isArray(msg.order)) return;
+          var children = Array.prototype.slice.call(list.children);
+          // msg.order is the full new sequence of ORIGINAL indices (into
+          // `children`, which is still in the pre-drag order at this point)
+          // — re-appending each in turn reorders the list to match.
+          msg.order.forEach(function (origIndex) {
+            var node = children[origIndex];
+            if (node) list.appendChild(node);
+          });
+          schedulePreview();
+          pushHistory();
+          return;
+        }
+
+        if (msg.type === 'context-action') {
+          var list = document.getElementById(msg.group === 'sidebar' ? 'sidebar-list' : 'blocks-list');
+          var card = list && list.children[parseInt(msg.index, 10)];
+          if (!card) return;
+          if (msg.action === 'copy') { copyStyleFromCard(card); }
+          else if (msg.action === 'paste') { pasteStyleToCard(card); }
+          else if (msg.action === 'delete') { removeCard(card); }
+          return;
         }
       });
     </script>
