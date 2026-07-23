@@ -35,7 +35,29 @@
     // Layout tab's per-breakpoint "columns per row" control; every other
     // block type is single-content and only gets visibility toggles.
     $gridTypes = ['staff', 'notices', 'stats', 'gallery_photo', 'gallery_video'];
+
+    // Icons for the compact block-rail rows (Bootstrap Icons).
+    $blockIcons = [
+      'hero' => 'bi-image', 'heading' => 'bi-type-h1', 'richtext' => 'bi-file-text',
+      'image' => 'bi-image', 'image_text' => 'bi-layout-text-sidebar-reverse', 'staff' => 'bi-people',
+      'notices' => 'bi-megaphone', 'stats' => 'bi-bar-chart', 'gallery_photo' => 'bi-images',
+      'gallery_video' => 'bi-camera-video', 'admission_form' => 'bi-clipboard-check', 'contact' => 'bi-envelope',
+      'quick_links' => 'bi-link-45deg', 'office_hours' => 'bi-clock', 'contact_info' => 'bi-telephone',
+      'recent_notices' => 'bi-bell',
+    ];
   @endphp
+
+  <style>
+    /* Block rail — compact rows by default, one settings panel open at a time
+       (Elementor-style "layers" list). See Milestone 3 in
+       docs/modules/28-elementor-block-editor-plan.md. */
+    .block-row { cursor: pointer; user-select: none; }
+    .block-row:hover { background: var(--bs-tertiary-bg, #f8f9fa); }
+    .block-card.is-open { border-color: var(--bs-primary); box-shadow: 0 0 0 .15rem rgba(13,110,253,.12); }
+    .js-block-chevron { transition: transform .15s ease; }
+    .block-card.is-open .js-block-chevron { transform: rotate(180deg); }
+    .js-drag-handle { cursor: grab; }
+  </style>
 
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div>
@@ -84,7 +106,7 @@
           </div><div class="card-body">
             <div id="blocks-list">
               @foreach ($view['blocks'] as $i => $b)
-                @include('admin.website.pages._card', ['prefix' => "blocks[$i]", 'type' => $b['type'], 'label' => $blocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes])
+                @include('admin.website.pages._card', ['prefix' => "blocks[$i]", 'type' => $b['type'], 'label' => $blocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$b['type']] ?? 'bi-square'])
               @endforeach
             </div>
             <p class="text-muted small mb-0" id="blocks-empty" @if(count($view['blocks'])) style="display:none" @endif>{{ __('No Blocks Yet — Add One Above.') }}</p>
@@ -104,7 +126,7 @@
           </div><div class="card-body">
             <div id="sidebar-list">
               @foreach ($view['sidebar'] as $i => $b)
-                @include('admin.website.pages._card', ['prefix' => "sidebar[$i]", 'type' => $b['type'], 'label' => $sidebarBlocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes])
+                @include('admin.website.pages._card', ['prefix' => "sidebar[$i]", 'type' => $b['type'], 'label' => $sidebarBlocks[$b['type']] ?? $b['type'], 'data' => $b['data'], 'spec' => $spec, 'style' => $b['style'] ?? [], 'layout' => $b['layout'] ?? [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$b['type']] ?? 'bi-square'])
               @endforeach
             </div>
           </div></div>
@@ -132,10 +154,10 @@
 
   {{-- Hidden block templates for the "Add" buttons (prefix placeholder __I__) --}}
   @foreach ($blocks as $t => $l)
-    <template id="tpl-blocks-{{ $t }}">@include('admin.website.pages._card', ['prefix' => 'blocks[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec, 'style' => [], 'layout' => [], 'gridTypes' => $gridTypes])</template>
+    <template id="tpl-blocks-{{ $t }}">@include('admin.website.pages._card', ['prefix' => 'blocks[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec, 'style' => [], 'layout' => [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$t] ?? 'bi-square'])</template>
   @endforeach
   @foreach ($sidebarBlocks as $t => $l)
-    <template id="tpl-sidebar-{{ $t }}">@include('admin.website.pages._card', ['prefix' => 'sidebar[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec, 'style' => [], 'layout' => [], 'gridTypes' => $gridTypes])</template>
+    <template id="tpl-sidebar-{{ $t }}">@include('admin.website.pages._card', ['prefix' => 'sidebar[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec, 'style' => [], 'layout' => [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$t] ?? 'bi-square'])</template>
   @endforeach
 
   @push('scripts')
@@ -148,13 +170,49 @@
         document.getElementById(group + '-list').insertAdjacentHTML('beforeend', html);
         var empty = document.getElementById('blocks-empty'); if (empty) empty.style.display = 'none';
         initRichTextEditors();
+        // Open the newly added block's settings immediately, like Elementor
+        // does when you drop a new widget — you're almost always about to
+        // configure it right away.
+        var list = document.getElementById(group + '-list');
+        openBlockCard(list.lastElementChild);
         schedulePreview();
       }
+
+      // Rail: only one block's Content/Style/Layout panel open at a time,
+      // per list (main blocks vs sidebar blocks are independent).
+      function closeBlockList(list) {
+        list.querySelectorAll(':scope > .block-card').forEach(function (c) {
+          c.classList.remove('is-open');
+          c.querySelector('.block-settings').style.display = 'none';
+        });
+      }
+      function openBlockCard(card) {
+        if (!card) return;
+        closeBlockList(card.parentElement);
+        card.classList.add('is-open');
+        card.querySelector('.block-settings').style.display = '';
+      }
+      function toggleBlockCard(card) {
+        if (card.classList.contains('is-open')) {
+          closeBlockList(card.parentElement);
+        } else {
+          openBlockCard(card);
+        }
+      }
+
       document.addEventListener('click', function (e) {
         var up = e.target.closest('.js-up'), down = e.target.closest('.js-down'), rm = e.target.closest('.js-remove');
-        if (up) { var c = up.closest('.block-card'); if (c.previousElementSibling) c.parentNode.insertBefore(c, c.previousElementSibling); schedulePreview(); }
-        if (down) { var c = down.closest('.block-card'); if (c.nextElementSibling) c.parentNode.insertBefore(c.nextElementSibling, c); schedulePreview(); }
-        if (rm) { rm.closest('.block-card').remove(); schedulePreview(); }
+        var toggle = e.target.closest('.js-block-toggle');
+        if (up) { var c = up.closest('.block-card'); if (c.previousElementSibling) c.parentNode.insertBefore(c, c.previousElementSibling); schedulePreview(); return; }
+        if (down) { var c = down.closest('.block-card'); if (c.nextElementSibling) c.parentNode.insertBefore(c.nextElementSibling, c); schedulePreview(); return; }
+        if (rm) { rm.closest('.block-card').remove(); schedulePreview(); return; }
+        if (toggle) { toggleBlockCard(toggle.closest('.block-card')); }
+      });
+      document.addEventListener('keydown', function (e) {
+        if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.js-block-toggle')) {
+          e.preventDefault();
+          toggleBlockCard(e.target.closest('.block-card'));
+        }
       });
       document.getElementById('tpl-select').addEventListener('change', function () {
         var sidebar = this.value === 'sidebar';
