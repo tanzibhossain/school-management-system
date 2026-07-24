@@ -99,7 +99,14 @@
 
     .editor-sidebar {
       position: relative; flex: 0 0 auto; display: flex; flex-direction: column;
-      width: 12.5vw; min-width: 12.5vw; max-width: 25vw;
+      /* min-width is a fixed 250px, not vw-relative — 12.5vw only clears
+         250px above ~2000px viewport width, so on a real 1366px laptop
+         screen it was still shrinking to ~171px (narrower than the very
+         problem this vw switch was meant to fix, see "Fullscreen editor
+         shell" in docs/modules/28-elementor-block-editor-plan.md). The
+         resize-drag handler below clamps to this same 250px floor in px,
+         not vw, so dragging can't undercut it either. */
+      width: 12.5vw; min-width: 250px; max-width: 25vw;
       background: #fff; border-right: 1px solid var(--bs-border-color);
     }
     .sidebar-resize-handle {
@@ -608,9 +615,15 @@
         var sidebar = document.getElementById('editor-sidebar');
         var handle = document.getElementById('sidebar-resize-handle');
         if (!sidebar || !handle) return;
-        var MIN_PCT = 12.5, MAX_PCT = 25;
+        var MIN_PX = 250, MAX_PCT = 25;
         var STORAGE_KEY = 'website-editor-sidebar-width-pct';
-        function clampPct(pct) { return Math.min(MAX_PCT, Math.max(MIN_PCT, pct)); }
+        // Floor expressed in vw for the CURRENT window width, not a fixed
+        // vw constant — keeps the drag handle's felt position in sync with
+        // the CSS min-width:250px floor on .editor-sidebar (a fixed vw
+        // percentage would under- or overshoot 250px depending on screen
+        // size, same problem this whole 250px floor was added to fix).
+        function minPct() { return (MIN_PX / window.innerWidth) * 100; }
+        function clampPct(pct) { return Math.min(MAX_PCT, Math.max(minPct(), pct)); }
         var storedPct = parseFloat(localStorage.getItem(STORAGE_KEY));
         if (!isNaN(storedPct)) sidebar.style.width = clampPct(storedPct) + 'vw';
 
