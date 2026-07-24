@@ -763,6 +763,62 @@ request, even though most published pages change rarely.
   a repeat request to a published page and checking `docker compose exec app php artisan tinker` shows the
   `pageview:layout:{id}` key actually landing in Redis.
 
+## 7m. Autosave + concurrent-edit warning
+
+Before this, closing a browser tab mid-edit lost everything back to the last real Save, and two admins editing
+the same page at once would silently overwrite one another with no warning — the second Save just won, full
+stop.
+
+**Autosave (crash/tab-close recovery) — client-side only, deliberately never touches the server:**
+`edit.blade.php` piggybacks on the existing `pushHistory()` debounce (already fires ~1.2s after the last edit,
+for undo/redo) — a thin wrapper around it now also writes `{savedAt, snapshot}` to
+`localStorage['website-editor-autosave-{pageId}']`. On load, `checkAutosaveRecovery()` compares that draft
+against `initialSnapshotJson` (the state the editor just rendered); if they differ, a dismissible banner offers
+Restore (calls the existing `restoreSnapshot()` — the same function undo/redo already uses) or Discard. The
+draft is cleared on a real form submit (`#page-form`'s `submit` listener) since the server now has that state
+(or newer). Wrapped in `try/catch` throughout — a full or disabled localStorage degrades to "no autosave,"
+never to a broken editor. This is **client-side only, no new `PageLayout` revisions are created by typing** —
+unlike a server-side autosave, it can't flood the History panel, but it also only protects the admin who typed
+it, in their own browser; it does nothing for the concurrent-edit case below, which is a genuinely different
+failure mode.
+
+**Concurrent-edit warning — real optimistic concurrency, server-side:** `PageController::edit()` now passes
+`knownLayoutId` (the page's current latest `PageLayout` id at the moment the editor loads) into a new hidden
+`known_layout_id` field. `save()` compares that value against whatever the latest revision actually is BY THE
+TIME the save request arrives — a mismatch means someone else saved in between. Because this app's layouts are
+already append-only/versioned (`PageService`/`CLAUDE.md` — every save is a new row, never an update), the
+safest response to a real conflict was judged to be: **never block or discard either admin's work.** A
+conflicting save still creates its own new `PageLayout` revision (nothing is ever lost), it just skips the
+auto-`publish()` step and redirects back with a `warning` flash instead of the normal `status` flash, telling
+the admin to check History and manually decide which revision should actually be published. This sidesteps a
+much harder problem a real "block and force-reload" flow would have hit: this app is a full-page POST form
+editor (not an SPA/AJAX submit), so rejecting the save outright and reloading the page would have thrown away
+whatever the admin had just tried to save — worse than the silent-overwrite bug being fixed.
+`layouts/admin-fullscreen.blade.php` (the shell this editor uses) had **never rendered any flash message at
+all** before this — `redirect()->with('status', ...)` was already being set on every save and simply never
+shown; fixed as a byproduct (`edit.blade.php` now renders both `status`/`warning` as floating dismissible
+alerts, `status` auto-fading after 4s via `bootstrap.Alert`, `warning` staying until dismissed).
+
+**Regression tests**: `PageBuilderTest::test_concurrent_save_keeps_both_revisions_and_warns_instead_of_overwriting()`
+— two saves against the same stale `known_layout_id`, asserts both revisions exist, the originally-published
+one is still published (never silently swapped), and the second response carries the warning flash instead of
+the success one.
+
+**What's still not built:**
+- **Undo/redo doesn't re-autosave.** `pushHistory()` is only called on actual edits, not by `undo()`/`redo()`
+  themselves — closing the tab immediately after an undo would offer to "restore" the state from before that
+  undo, not the undone-to state. Low-stakes (the recovery banner is opt-in, never auto-applied), flagged rather
+  than fixed given how narrow the window is.
+- **No live "someone else is editing this page right now" indicator** — the warning only surfaces AFTER a
+  conflicting save already happened, not proactively (no presence/locking system, no polling). A full
+  editor-locking feature (like Google Docs' "X is editing") was judged out of scope for this pass.
+- **No UI shortcut to diff/merge the two conflicting revisions** — History already lets an admin restore any
+  old revision as a new draft, but there's no side-by-side diff between "my draft" and "the one that got
+  published instead," so resolving a real conflict still means re-doing the comparison by eye.
+- **Verification gap, same as every change in this session:** not run in a real browser (no PHP/Docker in this
+  sandbox) — confirm by opening the same page in two tabs, saving in one, then saving in the other, and
+  checking the warning banner + History panel show both revisions correctly.
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1
