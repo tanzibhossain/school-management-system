@@ -16,18 +16,32 @@
         // the site-wide defaults from Website > Settings — never both at once.
         $metaDesc = trim((string) $__env->yieldContent('meta_description', $s->meta_description ?? '')) ?: null;
         $ogUrl = \App\Support\Media::url(trim((string) $__env->yieldContent('og_image', '')) ?: ($s->og_image ?? null));
+        // Computed once and reused for <title>/og:title/twitter:title so all three
+        // can never drift from each other (yieldContent is idempotent, but a single
+        // source of truth is clearer than three identical @yield calls).
+        $pageTitle = trim((string) $__env->yieldContent('title', ($s->meta_title ?? null) ?: $siteName)) ?: $siteName;
       @endphp
-    <title>@yield('title', ($s->meta_title ?? null) ?: $siteName)</title>
+    <title>{{ $pageTitle }}</title>
     @if ($metaDesc)
     <meta name="description" content="{{ $metaDesc }}">@endif
     {{-- Falls back to the generic placeholder favicon until a school uploads its own. --}}
     <link rel="icon" href="{{ $faviconUrl ?: asset('favicon.ico') }}">
-    <meta property="og:title" content="@yield('title', ($s->meta_title ?? null) ?: $siteName)">
+    <meta property="og:title" content="{{ $pageTitle }}">
     @if ($metaDesc)
     <meta property="og:description" content="{{ $metaDesc }}">@endif
     @if ($ogUrl)
     <meta property="og:image" content="{{ $ogUrl }}">@endif
     <meta property="og:type" content="website">
+    {{-- Twitter Card — same per-page/site-wide precedence as the Open Graph tags
+         above, reusing the same computed values so both platforms always agree.
+         summary_large_image only makes sense once there's an actual image; a
+         plain "summary" card degrades gracefully when a page has no og image. --}}
+    <meta name="twitter:card" content="{{ $ogUrl ? 'summary_large_image' : 'summary' }}">
+    <meta name="twitter:title" content="{{ $pageTitle }}">
+    @if ($metaDesc)
+    <meta name="twitter:description" content="{{ $metaDesc }}">@endif
+    @if ($ogUrl)
+    <meta name="twitter:image" content="{{ $ogUrl }}">@endif
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>

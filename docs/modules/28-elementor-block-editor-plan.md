@@ -1060,6 +1060,40 @@ editor's own "Start From" list on the next new-page screen, then delete it and c
 from it are untouched (deleting a `PageTemplate` row must never cascade to `Page`/`PageLayout` rows — there's
 no FK relationship between them, `layout_json` is copied by value at creation time, not referenced).
 
+## 7t. SEO: Twitter Card meta tags
+
+`public/layout.blade.php` only ever emitted Open Graph tags (`og:title`/`og:description`/`og:image`/`og:type`)
+— pages shared on X/Twitter fell back to Twitter's own generic link-preview scraping instead of a proper
+Card, since Twitter/X reads `twitter:*` meta tags first and only falls back to `og:*` inconsistently. Added
+the matching `twitter:card`/`twitter:title`/`twitter:description`/`twitter:image` tags, reusing the exact same
+per-page-overrides-site-wide-default precedence the Open Graph tags already established (`$metaDesc`/`$ogUrl`,
+computed once in the `@php` block from `$__env->yieldContent('meta_description'|'og_image', ...)` — a page's
+own `meta_desc`/`og_image` win over the site-wide Website > Settings default, never both at once).
+
+- **`twitter:card` is conditional on `$ogUrl`**: `summary_large_image` when there's an image, plain `summary`
+  otherwise — `summary_large_image` with no image is a degraded/broken card on Twitter's own validator, so this
+  isn't just cosmetic.
+- **New `$pageTitle` variable, computed once** (`trim((string) $__env->yieldContent('title', ...)) ?: $siteName`)
+  and reused for `<title>`, `og:title`, and `twitter:title` — previously `@yield('title', ...)` was called
+  twice (once for `<title>`, again for `og:title`), which worked but meant three independent call sites could
+  in principle drift; one variable removes that possibility.
+- **Real bug fixed as a side effect, not the original goal**: `@yield` compiles to an *unescaped* echo
+  (`{!! ... !!}`), so `<title>`/`og:title` were previously emitting the page title raw — a title containing a
+  literal `"` or `<` (e.g. `Rules & "Regulations"`) would have broken the `content="..."` attribute or, in a
+  worse case, injected markup into the `<head>`. Both `page.blade.php` and `home.blade.php` only ever pass
+  plain concatenated strings into `@section('title', ...)` (verified — no HTML-bearing title exists anywhere
+  in this app), so switching to `{{ $pageTitle }}` (Blade's escaped echo) for all three tags is a strict
+  correctness fix with no behavior change for any currently-existing page.
+- **No new translation keys** — these are HTML attribute values built from already-translated/free-text model
+  fields (`page.title`/`meta_desc`), not new UI copy.
+
+**Verification gap**: `tests/Feature/Public/PageSeoMetaTagsTest.php` (new) covers the image/no-image Card-type
+branch, per-page overrides rendering into both `og:*` and `twitter:*` tags, and the escaping fix (a title with
+`&`/`"` renders correctly-escaped in `<title>`, `og:title`, and `twitter:title` alike). Not run in this sandbox
+(no PHP available) — same caveat as every prior change this session; also worth a real pass through Twitter's
+own Card Validator (or the generic Meta Tags debugger) once deployed, since some scrapers cache aggressively
+and a stale cached card can look "wrong" even after the HTML itself is correct.
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1
