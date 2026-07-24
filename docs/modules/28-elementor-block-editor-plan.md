@@ -703,6 +703,33 @@ same "built but unreachable" pattern as the media library scaffolding in §7h.
   empty until someone seeds `school_id => null` rows). Not verified in a real browser (no PHP/Docker in this
   sandbox).
 
+## 7k. Tests: Style/Layout tabs + Container/Grid nesting
+
+Zero coverage existed for either before this — `PageBuilderTest.php` only ever posted plain `type`/`data`
+blocks, never a `style`/`layout` key or a `container`/`grid` type. New file:
+`tests/Feature/Admin/PageBuilderStyleLayoutNestingTest.php`, same fixture setup as `PageBuilderTest.php`
+(school + admin user + `RoleSeeder`), asserting through the real `POST /admin/pages` → `PUT /admin/pages/{id}`
+→ `GET /{slug}` round trip (never calling `PageRenderService`/`BlockPresentation` directly) so a regression in
+the actual HTTP boundary is what gets caught, not just the service methods in isolation.
+
+Covers: `sanitizeStyle()` clamping/dropping invalid values (bad hex color, out-of-range padding, an
+unrecognized shadow/animation keyword) and the resulting inline `style="…"` / `reveal-*` class actually
+appearing in the rendered public page; `sanitizeLayout()`'s per-breakpoint `hide`/`columns` clamping and the
+`d-*`/`row-cols-*` Bootstrap utility classes `BlockPresentation` derives from them; a Container holding two
+leaf children and rendering both; a Container nested inside a Container (2 levels); an unknown block type
+being dropped at both the top level AND inside a nested container in the same request; nesting deliberately
+pushed past `MAX_NESTING_DEPTH` (asserts the stored tree never exceeds the cap and the request never
+errors — the actual termination guarantee §7g's docs describe, not just "it has a constant"); a nested child's
+own `style`/`layout` surviving the save → reload round trip, including the editor's own edit screen re-rendering
+without error afterward.
+
+**Verification gap, same as every other change in this session:** none of this has actually run — no
+PHP/PHPUnit in this sandbox. Run `docker compose exec app php artisan test
+tests/Feature/Admin/PageBuilderStyleLayoutNestingTest.php --no-coverage` before trusting it; written carefully
+against the real `sanitizeStyle()`/`sanitizeLayout()`/`normalizeBlocks()`/`BlockPresentation` source (traced by
+hand, including the exact depth arithmetic for the past-cap test), but "traced by hand" is not "observed
+passing."
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1
