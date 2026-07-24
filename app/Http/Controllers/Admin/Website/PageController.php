@@ -73,8 +73,13 @@ class PageController extends Controller
         // page" form's own full/sidebar Template select is only a fallback
         // for the blank-page path, so it seeds the defaults array merge()
         // draws from, never overrides a chosen starter template's own value.
+        // where()->first() rather than find() — find() is typed to accept
+        // (and return a Collection for) an array of ids too, which left its
+        // return type an ambiguous PageTemplate|Collection union here even
+        // though $data['page_template_id'] is always a single int; first()
+        // has no such overload and keeps $starter a clean ?PageTemplate.
         $starter = ! empty($data['page_template_id'])
-            ? PageTemplate::availableTo($schoolId)->find($data['page_template_id'])
+            ? PageTemplate::availableTo($schoolId)->where('id', (int) $data['page_template_id'])->first()
             : null;
 
         $layout = array_merge(

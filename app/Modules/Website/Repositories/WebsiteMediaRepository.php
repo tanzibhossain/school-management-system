@@ -14,6 +14,7 @@ class WebsiteMediaRepository extends BaseRepository
         parent::__construct(WebsiteMedia::class, $cache);
     }
 
+    /** @return Collection<int, WebsiteMedia> */
     public function forSchool(int $schoolId): Collection
     {
         return $this->remember(

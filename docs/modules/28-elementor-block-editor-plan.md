@@ -912,6 +912,50 @@ failing test's exact sequence through the new ordering by hand and confirming Ad
 PHPUnit in this sandbox (still no PHP available) — the user's next `php artisan test` run is what actually
 confirms it; flagging that explicitly rather than claiming a false "all green."
 
+## 7p. Real PHPStan run: 14 errors, fixed and baselined
+
+The user ran the actual static analyzer for the first time this session
+(`docker compose exec app vendor/bin/phpstan analyse --memory-limit=2G`, level 5, 821 files) — 14 errors, split
+between two genuinely different categories.
+
+**Actually fixed (not baselined):**
+- `WebsiteMediaRepository::forSchool()` and `PageTemplateRepository::availableTo()` were missing a
+  `@return Collection<int, X>` PHPDoc — every OTHER repository in this codebase has one (e.g.
+  `AcademicRepository::getYears(): Collection` → `/** @return Collection<int, AcademicYear> */`), this was
+  simply missed when these two were written this session. Its absence is what caused
+  `MediaController::index()`'s `->map(fn (WebsiteMedia $m) => ...)` to fail type-checking — PHPStan couldn't
+  narrow the collection's item type to `WebsiteMedia`, so a closure parameter-typed to it looked contravariant
+  against the generic `Collection<Model>` base. Added both docblocks — same fix, same root cause both places.
+- `PageController::store()` used `PageTemplate::availableTo($schoolId)->find($data['page_template_id'])`.
+  `find()` is overloaded (a single id → a Model or null; an array of ids → a Collection), and since
+  `$data['page_template_id']` isn't statically provable as a scalar from a Laravel `validate()` return array,
+  PHPStan kept the full ambiguous union. Switched to `->where('id', (int) $id)->first()`, which has no such
+  overload — a clean `?PageTemplate`.
+
+**Baselined (genuine false positives, not real bugs):** every model in this entire codebase (116 of them, zero
+exceptions — checked) relies on PHPStan's baseline to suppress "undefined property" on Eloquent's
+`$fillable`/magic properties rather than `@property` PHPDoc annotations; `phpstan-baseline.neon` already had
+thousands of these entries for every other module. Added the same kind for this session's new code:
+`WebsiteMedia::$filename/$width_px/$height_px/$mime_type` (`MediaController.php`), `WebsiteMedia::$path`
+(count 2) `/$filename` (`WebsiteMediaController.php`), `PageTemplate::$layout_json` (`PageController.php`, the
+`$starter?->layout_json` line), and `Page::$school_id`/`PageLayout::$layout_json` (`PageRenderService.php` —
+the new `renderPage()` method, §7l).
+
+**Also removed two now-stale entries**: `HomeController.php`/public `PageController.php` both had a baselined
+`PageLayout::$layout_json` entry from before this session — since §7l moved that exact property access out of
+both controllers and into `PageRenderService::renderPage()`, those two entries became unmatched, which is
+itself a hard PHPStan error under `reportUnmatchedIgnoredErrors` (the user's output showed this explicitly:
+"Ignored error pattern ... was not matched in reported errors"). Removed both; the property access they used to
+cover is now the new `PageRenderService.php` entry above instead.
+
+**Verification gap, honestly stated**: baseline entries were hand-written to match the exact regex/count/path
+format of ~9,000 existing entries (verified structurally identical via `cat -A` — tabs, blank-line separators,
+key order — since `.neon` is Nette's format, not real YAML, so a YAML parser can't validate it; PyYAML rejects
+the file's tabs outright, which is expected and not a sign of a problem). The `PageTemplate::$layout_json`
+entry in particular is a best-effort prediction of what the analyzer will report post-fix, not something
+confirmed against real output — the next `phpstan analyse` run is what actually confirms all of this, the same
+loop that just caught and fixed the `Page::layouts()` bug in §7o.
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1
