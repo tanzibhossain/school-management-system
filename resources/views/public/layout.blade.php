@@ -10,9 +10,12 @@
         $accent = $s->accent_color ?? '#f59e0b';
         $heading = $s->heading_color ?? '#0f172a';
         $siteName = $s->site_name ?? ($school->name ?? 'Our School');
-        $metaDesc = $s->meta_description ?? null;
         $faviconUrl = \App\Support\Media::url($s->favicon ?? null);
-        $ogUrl = \App\Support\Media::url($s->og_image ?? null);
+        // Per-page SEO overrides (page.blade.php's 'meta_description'/'og_image'
+        // sections, only defined when the page has its own value set) win over
+        // the site-wide defaults from Website > Settings — never both at once.
+        $metaDesc = trim((string) $__env->yieldContent('meta_description', $s->meta_description ?? '')) ?: null;
+        $ogUrl = \App\Support\Media::url(trim((string) $__env->yieldContent('og_image', '')) ?: ($s->og_image ?? null));
       @endphp
     <title>@yield('title', ($s->meta_title ?? null) ?: $siteName)</title>
     @if ($metaDesc)

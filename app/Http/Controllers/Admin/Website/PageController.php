@@ -90,12 +90,18 @@ class PageController extends Controller
             'template' => ['required', 'in:full,sidebar'],
             'blocks' => ['nullable', 'array'],
             'sidebar' => ['nullable', 'array'],
+            'meta_title' => ['nullable', 'string', 'max:255'],
+            'meta_desc' => ['nullable', 'string', 'max:500'],
+            'og_image' => ['nullable', 'string', 'max:2048'],
         ]);
 
         $this->pages->update($page, [
             'title' => $data['title'],
             'slug' => $data['slug'] ?? $page->slug,
             'status' => $data['status'],
+            'meta_title' => $data['meta_title'] ?? null,
+            'meta_desc' => $data['meta_desc'] ?? null,
+            'og_image' => $data['og_image'] ?? null,
         ]);
 
         $layout = [

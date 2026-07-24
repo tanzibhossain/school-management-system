@@ -330,6 +330,25 @@
                 <option value="sidebar" @selected($view['template'] === 'sidebar')>{{ __('With Sidebar') }}</option>
               </select>
             </div>
+
+            <hr class="my-3">
+            <h6 class="small text-muted text-uppercase mb-3">{{ __('SEO') }}</h6>
+            <div class="mb-3">
+              <label class="form-label small">{{ __('Meta Title') }}</label>
+              <input name="meta_title" class="form-control form-control-sm" maxlength="255" value="{{ old('meta_title', $page->meta_title) }}" placeholder="{{ $page->title }}">
+              <div class="form-text small">{{ __('Falls back to the page title when left blank.') }}</div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">{{ __('Meta Description') }}</label>
+              <textarea name="meta_desc" rows="3" class="form-control form-control-sm" maxlength="500">{{ old('meta_desc', $page->meta_desc) }}</textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">{{ __('Social Share Image (og:image)') }}</label>
+              <div class="input-group input-group-sm">
+                <input type="text" name="og_image" class="form-control form-control-sm media-field-input" value="{{ old('og_image', $page->og_image) }}" placeholder="https://…">
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="openMediaPicker(this)">{{ __('Browse') }}</button>
+              </div>
+            </div>
           </div>
         </form>
 
@@ -922,6 +941,9 @@
           slug: document.querySelector('[name="slug"]').value,
           status: document.querySelector('[name="status"]').value,
           template: document.getElementById('tpl-select').value,
+          metaTitle: document.querySelector('[name="meta_title"]').value,
+          metaDesc: document.querySelector('[name="meta_desc"]').value,
+          ogImage: document.querySelector('[name="og_image"]').value,
           blocks: captureList('blocks-list'),
           sidebar: captureList('sidebar-list'),
         };
@@ -964,6 +986,9 @@
         document.querySelector('[name="slug"]').value = snap.slug;
         document.querySelector('[name="status"]').value = snap.status;
         document.getElementById('tpl-select').value = snap.template;
+        document.querySelector('[name="meta_title"]').value = snap.metaTitle || '';
+        document.querySelector('[name="meta_desc"]').value = snap.metaDesc || '';
+        document.querySelector('[name="og_image"]').value = snap.ogImage || '';
         document.getElementById('side-col').style.display = snap.template === 'sidebar' ? '' : 'none';
         var addSide = document.getElementById('add-side-section');
         if (addSide) addSide.style.display = snap.template === 'sidebar' ? '' : 'none';
