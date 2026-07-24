@@ -18,4 +18,16 @@ class PageTemplateService
             'layout_json' => $latest?->layout_json ?? [],
         ]);
     }
+
+    public function rename(PageTemplate $template, string $name): PageTemplate
+    {
+        $template->update(['name' => $name]);
+
+        return $template;
+    }
+
+    public function delete(PageTemplate $template): void
+    {
+        $template->delete();
+    }
 }
