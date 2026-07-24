@@ -125,6 +125,143 @@ class PageBuilderStyleLayoutNestingTest extends TestCase
             ->assertSee('margin-right:35px', false);
     }
 
+    // ── Advanced tab: width, border, radius (§7aa) ──────────────────────────
+
+    public function test_width_full_mode_renders_100_percent(): void
+    {
+        $this->actingAs($this->admin);
+        $page = $this->publish([[
+            'type' => 'heading', 'data' => ['text' => 'Full Width'],
+            'style' => ['width_mode' => 'full'],
+        ]]);
+        $this->get('/'.$page->slug)->assertOk()->assertSee('width:100%', false);
+    }
+
+    public function test_width_inline_mode_renders_auto_and_inline_block(): void
+    {
+        $this->actingAs($this->admin);
+        $page = $this->publish([[
+            'type' => 'heading', 'data' => ['text' => 'Inline'],
+            'style' => ['width_mode' => 'inline'],
+        ]]);
+        $this->get('/'.$page->slug)->assertOk()
+            ->assertSee('display:inline-block', false)
+            ->assertSee('width:auto', false);
+    }
+
+    public function test_custom_width_requires_a_value_and_defaults_to_percent(): void
+    {
+        $this->actingAs($this->admin);
+        $page = $this->publish([[
+            'type' => 'heading', 'data' => ['text' => 'Custom Width'],
+            'style' => ['width_mode' => 'custom', 'width_value' => '75'],
+        ]]);
+
+        $style = PageLayout::where('page_id', $page->id)->where('is_published', true)
+            ->latest('id')->first()->layout_json['blocks'][0]['style'];
+        $this->assertSame('custom', $style['width_mode']);
+        $this->assertSame(75.0, $style['width_value']);
+        $this->assertSame('%', $style['width_unit']); // default unit when none given
+
+        $this->get('/'.$page->slug)->assertOk()->assertSee('width:75%', false);
+    }
+
+    public function test_custom_width_with_no_value_stores_no_width_at_all(): void
+    {
+        // width_mode=custom with a blank value is not a valid "give it some
+        // width" instruction — nothing should render, not "width:0px".
+        $this->actingAs($this->admin);
+        $page = $this->publish([[
+            'type' => 'heading', 'data' => ['text' => 'Custom, Unset'],
+            'style' => ['width_mode' => 'custom', 'width_value' => ''],
+        ]]);
+
+        $style = PageLayout::where('page_id', $page->id)->where('is_published', true)
+            ->latest('id')->first()->layout_json['blocks'][0]['style'];
+        $this->assertArrayNotHasKey('width_value', $style);
+
+        $this->get('/'.$page->slug)->assertOk()->assertDontSee('width:', false);
+    }
+
+    public function test_border_is_only_rendered_when_a_real_style_is_set(): void
+    {
+        // A border-width with no border-style is invisible per the CSS spec
+        // (default style is 'none') — sanitizeStyle() drops width/color
+        // entirely whenever style is missing or explicitly 'none', so this
+        // can never produce a "half-configured", invisible border.
+        $this->actingAs($this->admin);
+        $page = $this->publish([[
+            'type' => 'heading', 'data' => ['text' => 'No Border'],
+            'style' => [
+                'border_style' => 'none',
+                'border_width_top' => '5', 'border_color' => '#ff0000',
+            ],
+        ]]);
+
+        $style = PageLayout::where('page_id', $page->id)->where('is_published', true)
+            ->latest('id')->first()->layout_json['blocks'][0]['style'];
+        $this->assertArrayNotHasKey('border_width_top', $style);
+        $this->assertArrayNotHasKey('border_color', $style);
+
+        $this->get('/'.$page->slug)->assertOk()->assertDontSee('border-style:', false);
+    }
+
+    public function test_border_with_a_real_style_renders_width_and_color_per_side(): void
+    {
+        $this->actingAs($this->admin);
+        $page = $this->publish([[
+            'type' => 'heading', 'data' => ['text' => 'Bordered'],
+            'style' => [
+                'border_style' => 'dashed',
+                'border_width_top' => '2', 'border_width_bottom' => '999', // clamped to 50
+                'border_color' => '#00ff00',
+            ],
+        ]]);
+
+        $style = PageLayout::where('page_id', $page->id)->where('is_published', true)
+            ->latest('id')->first()->layout_json['blocks'][0]['style'];
+        $this->assertSame('dashed', $style['border_style']);
+        $this->assertSame(2, $style['border_width_top']);
+        $this->assertSame(50, $style['border_width_bottom']); // clamped — 50, not 400 like padding
+
+        $this->get('/'.$page->slug)->assertOk()
+            ->assertSee('border-style:dashed', false)
+            ->assertSee('border-top-width:2px', false)
+            ->assertSee('border-bottom-width:50px', false)
+            ->assertSee('border-color:#00ff00', false);
+    }
+
+    public function test_per_side_radius_wins_over_legacy_single_radius(): void
+    {
+        // A page saved before §7aa (single 'radius') still renders correctly
+        // via BlockPresentation's fallback (see
+        // test_style_values_are_sanitized_and_rendered above, which already
+        // covers that legacy-only case) — this test covers the NEW per-side
+        // case taking priority once any one side is actually set.
+        $this->actingAs($this->admin);
+        $page = $this->publish([[
+            'type' => 'heading', 'data' => ['text' => 'Rounded'],
+            'style' => ['radius' => '12', 'radius_top' => '30'],
+        ]]);
+
+        $response = $this->get('/'.$page->slug);
+        $response->assertOk();
+        $response->assertSee('border-top-radius:30px', false);
+        $response->assertDontSee('border-radius:12px', false);
+    }
+
+    public function test_editor_shows_the_advanced_tab_with_its_four_sections(): void
+    {
+        $this->actingAs($this->admin);
+        $page = $this->publish([['type' => 'heading', 'data' => ['text' => 'X']]]);
+
+        $this->get("/admin/pages/{$page->id}/edit")->assertOk()
+            ->assertSee('Advanced')
+            ->assertSee('Border')
+            ->assertSee('Background')
+            ->assertSee('Responsive');
+    }
+
     public function test_invalid_shadow_and_animation_values_are_dropped(): void
     {
         $this->actingAs($this->admin);
