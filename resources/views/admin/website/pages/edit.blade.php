@@ -269,6 +269,14 @@
       </div>
     </div>
 
+    {{-- Screen-reader-only live region for block actions that have no other
+         visible confirmation (add/remove/reorder/move-into-container all
+         happen silently on screen — the rail/canvas just changes shape).
+         aria-atomic so the whole message is re-announced even when only part
+         of the text content actually differs between two consecutive
+         announcements. See docs/modules/28-elementor-block-editor-plan.md §7u. --}}
+    <div id="a11y-status" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+
     <div class="editor-body">
       <div class="editor-sidebar" id="editor-sidebar">
         <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
@@ -607,6 +615,42 @@
       })();
 
       var blockIdx = 1000;
+      // ── Accessibility: block-action announcements ───────────────────────
+      // Add/remove/reorder/move-into-container all happen silently on screen
+      // (the rail/canvas just changes shape) — a screen-reader user gets no
+      // feedback at all without this. Templates use Laravel's :placeholder
+      // convention (:label/:container) rather than JS string concatenation
+      // so translators can reorder words freely per language.
+      var a11yStatusEl = document.getElementById('a11y-status');
+      var MSG_BLOCK_ADDED = @json(__('Block added: :label'));
+      var MSG_BLOCK_REMOVED = @json(__('Block removed: :label'));
+      var MSG_MOVED_UP = @json(__('Moved :label up'));
+      var MSG_MOVED_DOWN = @json(__('Moved :label down'));
+      var MSG_REORDERED = @json(__('Reordered :label'));
+      var MSG_MOVED_INTO = @json(__('Moved :label into :container'));
+      var MSG_MOVED_TOP = @json(__('Moved :label to the top level'));
+      function announce(template, vars) {
+        if (!a11yStatusEl) return;
+        var msg = template;
+        Object.keys(vars || {}).forEach(function (key) { msg = msg.split(':' + key).join(vars[key]); });
+        // Clear first, then set on the next frame — an aria-live region only
+        // fires for an actual text-content CHANGE, so two consecutive
+        // identical announcements (e.g. removing two same-type blocks in a
+        // row) would otherwise silently not announce the second one.
+        a11yStatusEl.textContent = '';
+        requestAnimationFrame(function () { a11yStatusEl.textContent = msg; });
+      }
+      // A block's own visible name — the same string already used for its
+      // rail row's aria-label (_card.blade.php), read back off the DOM
+      // rather than tracked separately so it can never drift from what's
+      // actually on screen. `.block-row` is always this card's OWN direct
+      // child (rendered before any nested `.block-settings`/children in
+      // document order), so a plain querySelector can't accidentally match a
+      // nested child's row instead.
+      function cardLabel(card) {
+        var row = card && card.querySelector('.block-row');
+        return (row && row.getAttribute('aria-label')) || @json(__('Block'));
+      }
       // Shared by the top-level "no blocks yet" message and a container/
       // grid's own "no children yet" message — toggled after any add/remove
       // so the message reappears if the last block/child is ever removed
@@ -637,7 +681,7 @@
             handle: '.js-drag-handle',
             animation: 150,
             ghostClass: 'opacity-50',
-            onEnd: function () { schedulePreview(); pushHistory(); },
+            onEnd: function (evt) { announce(MSG_REORDERED, { label: cardLabel(evt.item) }); schedulePreview(); pushHistory(); },
           });
         });
       }
@@ -669,6 +713,7 @@
         showPanel('blocks');
         openBlockCard(card);
         applyFieldDependencies(card);
+        announce(MSG_BLOCK_ADDED, { label: cardLabel(card) });
         schedulePreview();
         pushHistory();
       }
@@ -782,6 +827,7 @@
         if (copiedStyle) { document.querySelectorAll('.js-paste-style').forEach(function (b) { b.disabled = false; }); }
         openBlockCard(list.lastElementChild);
         applyFieldDependencies(list.lastElementChild);
+        announce(MSG_BLOCK_ADDED, { label: cardLabel(list.lastElementChild) });
         schedulePreview();
         pushHistory();
       }
@@ -889,7 +935,7 @@
             handle: '.js-drag-handle',
             animation: 150,
             ghostClass: 'opacity-50',
-            onEnd: function () { schedulePreview(); pushHistory(); },
+            onEnd: function (evt) { announce(MSG_REORDERED, { label: cardLabel(evt.item) }); schedulePreview(); pushHistory(); },
           });
         });
       }
@@ -937,8 +983,10 @@
       function removeCard(card) {
         if (!card) return;
         var list = card.parentElement;
+        var label = cardLabel(card); // read before removal — the row won't exist to read from after
         card.remove();
         updateEmptyState(list);
+        announce(MSG_BLOCK_REMOVED, { label: label });
         schedulePreview();
         pushHistory();
       }
@@ -1210,8 +1258,8 @@
         var up = e.target.closest('.js-up'), down = e.target.closest('.js-down'), rm = e.target.closest('.js-remove');
         var toggle = e.target.closest('.js-block-toggle');
         var copyStyle = e.target.closest('.js-copy-style'), pasteStyle = e.target.closest('.js-paste-style');
-        if (up) { var c = up.closest('.block-card'); if (c.previousElementSibling) c.parentNode.insertBefore(c, c.previousElementSibling); schedulePreview(); pushHistory(); return; }
-        if (down) { var c = down.closest('.block-card'); if (c.nextElementSibling) c.parentNode.insertBefore(c.nextElementSibling, c); schedulePreview(); pushHistory(); return; }
+        if (up) { var c = up.closest('.block-card'); if (c.previousElementSibling) { c.parentNode.insertBefore(c, c.previousElementSibling); announce(MSG_MOVED_UP, { label: cardLabel(c) }); schedulePreview(); pushHistory(); } return; }
+        if (down) { var c = down.closest('.block-card'); if (c.nextElementSibling) { c.parentNode.insertBefore(c.nextElementSibling, c); announce(MSG_MOVED_DOWN, { label: cardLabel(c) }); schedulePreview(); pushHistory(); } return; }
         if (rm) { removeCard(rm.closest('.block-card')); return; }
         if (toggle) { toggleBlockCard(toggle.closest('.block-card')); return; }
         if (copyStyle) {
@@ -1557,10 +1605,22 @@
           var refNode = (msg.toIndex !== null && msg.toIndex !== undefined) ? (destList.children[msg.toIndex] || null) : null;
           if (refNode === card) return; // dropped on itself — no-op
           var srcList = card.parentElement;
+          var label = cardLabel(card); // read before the move — cheap, and avoids any doubt about DOM-order timing
           destList.insertBefore(card, refNode);
           updateEmptyState(srcList);
           updateEmptyState(destList);
           initNestedSortables();
+          if (destList === srcList) {
+            announce(MSG_REORDERED, { label: label });
+          } else {
+            var destIsRoot = destList.id === 'blocks-list' || destList.id === 'sidebar-list';
+            if (destIsRoot) {
+              announce(MSG_MOVED_TOP, { label: label });
+            } else {
+              var containerCard = destList.closest('.block-card');
+              announce(MSG_MOVED_INTO, { label: label, container: cardLabel(containerCard) });
+            }
+          }
           schedulePreview();
           pushHistory();
           return;

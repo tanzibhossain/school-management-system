@@ -1094,6 +1094,72 @@ branch, per-page overrides rendering into both `og:*` and `twitter:*` tags, and 
 own Card Validator (or the generic Meta Tags debugger) once deployed, since some scrapers cache aggressively
 and a stale cached card can look "wrong" even after the HTML itself is correct.
 
+## 7u. Accessibility: block-action live-region announcements + context-menu focus restore
+
+Two related gaps left over from §7c's original accessibility pass (aria-labels on the drag handle, context
+menu, and canvas): every structural block action happened silently on screen — add/remove/reorder/move all
+just changed the shape of the rail or canvas with no feedback a screen-reader user could perceive — and the
+right-click context menu, once closed, dropped focus into the void rather than back to wherever it came from.
+
+**Live-region announcements** (`edit.blade.php`): a single `<div id="a11y-status" class="visually-hidden"
+aria-live="polite" aria-atomic="true">` was added right after the topbar. A shared `announce(template, vars)`
+helper does simple `:placeholder` substitution (Laravel's own convention, e.g. `announce(MSG_BLOCK_ADDED, {
+label: 'Hero Banner' })` → "Block added: Hero Banner") and clears-then-sets the region's `textContent` on the
+next animation frame — clearing first matters because an `aria-live` region only fires for an actual text
+change, so two consecutive identical announcements (removing two Heading blocks back to back, say) would
+otherwise silently only announce the first one. A `cardLabel(card)` helper reads a block's own name straight
+off its already-rendered `.block-row[aria-label]` (the same string §7c already put there) rather than tracking
+it separately, so an announcement can never say something different from what's actually on screen.
+
+Wired into every history-pushing structural action:
+- **Add** — `finishBlockInsert()` (shared by `addBlock()`/`addBlockAt()`) and `addChildBlock()`.
+- **Remove** — `removeCard()`; the label is captured *before* `card.remove()`, since the row it reads from
+  won't exist afterward.
+- **Reorder** — the Move Up/Down buttons (only when the move actually happens — a Move Up on the first block
+  is a no-op and correctly announces nothing) and both SortableJS `onEnd` handlers (top-level rail drag and
+  `initNestedSortables()`'s per-container drag), via `evt.item`.
+- **Move-into-container** — the canvas's `move-block` message handler (§7g) now distinguishes three outcomes
+  by comparing source/destination list identity: same list → "Reordered", destination is a top-level
+  `blocks-list`/`sidebar-list` → "Moved to the top level", otherwise → "Moved into `<container's own
+  cardLabel()>`" — so pulling a block back out of a container announces differently from nesting it deeper,
+  which a purely visual DOM-move gives no other signal for at all.
+
+All seven message templates (`Block added: :label`, `Block removed: :label`, `Moved :label up/down`,
+`Reordered :label`, `Moved :label into :container`, `Moved :label to the top level`) are wrapped in `__()`
+with `:placeholder` tokens rather than JS string concatenation — consistent with treating this as new UI
+chrome (§7d's own convention: block/field *labels* stay unwrapped, but editor UI text gets translated) — and
+added to `bn.json`.
+
+**Context-menu focus restore** (`public/layout.blade.php`): `closeContextMenu()` gained a `restoreFocus`
+boolean and a `lastFocusedBeforeMenu` variable capturing `document.activeElement` at the moment the menu
+opens. Restoration only happens on two of the four ways the menu can close:
+- **Escape** — always restores, matching the WAI-ARIA APG menu-button pattern ("focus is typically returned
+  to the element that had focus before the menu opened") and every other Escape handler already in this app.
+- **Choosing a menu item** (Copy/Paste Style/Remove) — also restores, once its action has been dispatched to
+  the parent.
+
+Deliberately **not** restored on the other two closers — a plain outside click or a scroll:
+- **Outside click**: the click may have landed on a genuinely focusable element inside a block (a contact
+  form's input, a button block's link) — the browser already moves focus there as part of handling the click,
+  and forcibly restoring focus to the pre-menu element a moment later would yank it right back out from under
+  whatever the user just clicked. There is no way to distinguish "clicked empty canvas space" from "clicked a
+  focusable element" generically enough to make restoring safe here.
+- **Scroll**: not a focus-relevant gesture at all; restoring would be surprising, not helpful.
+
+A pre-existing, harmless duplicate `keydown`/Escape listener (two separate `document.addEventListener`
+registrations doing the identical check-and-close, evidently left over from an earlier edit) was consolidated
+into the one Escape listener now carrying the `restoreFocus` flag, rather than left duplicated alongside new
+logic.
+
+**Verification gap**: no PHP available in this sandbox, so `edit.blade.php` and `public/layout.blade.php` were
+checked via the brace/paren-balance script (both balanced — `edit.blade.php`'s pre-existing `[`/`]` mismatch,
+289 vs. 287 on `dev` before this change, is untouched by this diff, confirmed by running the same check against
+this session's own added lines in isolation: 1/1, balanced) and `node --check` on both files' extracted inline
+`<script>` (both passed). None of this has run through Pint/PHPStan/PHPUnit or a real screen reader — at
+minimum, verify with VoiceOver/NVDA that adding, removing, reordering, and dragging a block into a container
+each announce something sensible exactly once (not zero times, not twice), and that opening the context menu
+with Shift+F10 on a focused block, then pressing Escape, visibly returns focus to that same block.
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1
