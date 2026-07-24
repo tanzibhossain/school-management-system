@@ -69,6 +69,7 @@ use App\Http\Controllers\Payment\WebhookController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\PageController as PublicPageController;
+use App\Http\Controllers\Public\WebsiteMediaController;
 use App\Http\Controllers\Staff\ClockController;
 use App\Http\Controllers\Staff\LeaveController;
 use App\Http\Controllers\Staff\MarkController;
@@ -88,7 +89,7 @@ Route::post('/contact', [ContactController::class, 'submit'])
 
 // Streams a Website media library file from the private "minio" bucket —
 // see App\Http\Controllers\Public\WebsiteMediaController's docblock.
-Route::get('/media/website/{id}', [App\Http\Controllers\Public\WebsiteMediaController::class, 'show'])
+Route::get('/media/website/{id}', [WebsiteMediaController::class, 'show'])
     ->whereNumber('id')->name('website-media.show');
 
 Route::middleware('guest')->group(function (): void {
