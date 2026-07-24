@@ -819,6 +819,63 @@ the success one.
   sandbox) — confirm by opening the same page in two tabs, saving in one, then saving in the other, and
   checking the warning banner + History panel show both revisions correctly.
 
+## 7n. Accessibility: drag handle / context menu / canvas
+
+Before this, the editor's icon-only controls relied entirely on `title` (unreliable with screen readers, hover-
+only — no help for keyboard-only or touch users), the canvas's selectable blocks weren't part of the
+accessibility tree or keyboard tab order at all, and the right-click context menu was a set of unlabeled plain
+buttons with no menu semantics.
+
+- **Sidebar rail (`_card.blade.php`)**: every icon-only button (Move Up/Down, Remove) gets a real `aria-label`
+  (kept alongside the existing `title`, not replacing it — `title` still gives sighted mouse users a hover
+  tooltip). Purely decorative icons (`text-brand` type icon, chevron, and the drag-handle icon itself) get
+  `aria-hidden="true"` so a screen reader doesn't announce a meaningless glyph name next to the real label. The
+  drag handle specifically is left **out** of the interactive tree (no `tabindex`/`role`) rather than faked into
+  looking keyboard-operable — native HTML5 drag-and-drop isn't keyboard-accessible by construction, and the
+  Move Up/Down buttons already ARE the real keyboard-operable equivalent for reordering, so labeling the handle
+  as a button would promise an interaction it can't deliver. The block-row toggle (`role="button"` already
+  present) gained `aria-expanded`/`aria-controls`, kept in sync by `openBlockCard()`/`closeBlockList()`
+  (`edit.blade.php`), plus an explicit `aria-label` — needed because without one, a `role="button"` wrapping
+  several already-labeled nested buttons would have its accessible name computed by concatenating ALL of their
+  labels together into one confusing string.
+- **Canvas (`public/layout.blade.php`'s gated preview bridge)**: every `[data-block-path]` element now gets
+  `tabindex="0"`, `role="button"`, and an `aria-label` — done via a `MutationObserver` + one-time initial pass
+  (`labelAllBlocks()`/`labelBlock()`), not a single pass at load, because blocks appear/move through three
+  different paths (a full iframe reload, the per-block fast-preview patch, and canvas drag-and-drop) and one
+  self-maintaining observer covers all three instead of re-running labeling by hand after each. A new
+  `keydown` handler makes Enter/Space activate a focused block exactly like a click (required — an interactive
+  `role="button"` with no keyboard handler is worse than not labeling it at all), by synthesizing a `.click()`
+  rather than duplicating the selection logic. **Scoped to the editor only**: this whole bridge script already
+  returns immediately (`if (window.self === window.top) return;`) on the real public site, so none of this
+  touches what an actual site visitor's screen reader announces — `path`/`data-block-*` attributes render
+  unconditionally in the underlying Blade partials for both contexts, but the ARIA labeling only ever runs
+  inside the admin iframe.
+- **Right-click context menu**: gained `role="menu"` on the container and `role="menuitem"` on each action,
+  `aria-label` on the menu itself, an `Escape`-to-close handler, and its icons marked `aria-hidden="true"`
+  (each item's visible text label is already the accessible name). Focus moves to the first item when the menu
+  opens. Not claimed as fully keyboard-operable end to end — there's no keyboard-triggered equivalent to
+  right-click added here — but everything this menu can do (Copy/Paste Style, Remove) already has a real,
+  independently keyboard-accessible path via the sidebar (Style tab's Copy/Paste Style buttons,
+  `_style_fields.blade.php`; the rail's Remove button), so this menu is a mouse shortcut to already-accessible
+  functionality, not the only way to reach it.
+- **Topbar + media picker**: every remaining icon-only button across the topbar (Back, Add Block, Content
+  Blocks, Page Settings, Undo, Redo, History, viewport toolbar, Preview link) and the Media Library modal's
+  per-item Delete button gained matching `aria-label`s (the Delete button's includes the filename, so multiple
+  items in the grid remain distinguishable by screen reader).
+
+**What's still not built:**
+- **No live-region announcement** when a block is added/removed/reordered/moved into a container — a screen
+  reader user gets no confirmation beyond whatever they can infer from focus landing somewhere; a proper fix
+  would add an `aria-live="polite"` status region announcing e.g. "Heading block removed."
+- **No focus trap or restore-focus-on-close** for the context menu — Escape closes it, but focus isn't
+  explicitly returned to whatever was focused before it opened.
+- **The rest of the admin app** (page list, settings screens outside this one editor) wasn't audited — this
+  pass was scoped to exactly what was flagged: the page builder's drag handle, context menu, and canvas.
+- **Verification gap, same as every change in this session:** not run through an actual screen reader or
+  automated accessibility checker (no browser in this sandbox) — confirm with axe DevTools or VoiceOver/NVDA
+  on the live editor: tab through a page with nested containers, confirm each block announces sensibly, confirm
+  Enter/Space selects a focused block, confirm the sidebar rail's buttons read distinctly from each other.
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1
