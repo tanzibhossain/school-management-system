@@ -160,7 +160,13 @@ class PageBuilderStyleLayoutNestingTest extends TestCase
         $style = PageLayout::where('page_id', $page->id)->where('is_published', true)
             ->latest('id')->first()->layout_json['blocks'][0]['style'];
         $this->assertSame('custom', $style['width_mode']);
-        $this->assertSame(75.0, $style['width_value']);
+        // assertEquals (not assertSame): sanitizeStyle() casts width_value
+        // through (float) so 33.5% etc. survive, but MySQL's native JSON
+        // column type normalizes a whole-number double back to a bare
+        // integer on round-trip — 75.0 in, 75 (int) out — so the numeric
+        // TYPE isn't part of this contract, only the value. The rendered
+        // CSS ('width:75%', asserted below) is identical either way.
+        $this->assertEquals(75.0, $style['width_value']);
         $this->assertSame('%', $style['width_unit']); // default unit when none given
 
         $this->get('/'.$page->slug)->assertOk()->assertSee('width:75%', false);
@@ -180,7 +186,15 @@ class PageBuilderStyleLayoutNestingTest extends TestCase
             ->latest('id')->first()->layout_json['blocks'][0]['style'];
         $this->assertArrayNotHasKey('width_value', $style);
 
-        $this->get('/'.$page->slug)->assertOk()->assertDontSee('width:', false);
+        // Not assertDontSee('width:') — the page's own editor-preview bridge
+        // script unconditionally embeds "min-width:170px" (the right-click
+        // context menu's inline style, see public/blocks/render.blade.php's
+        // gated script), which contains "width:" as a substring and would
+        // make a plain assertDontSee false-positive-fail on every page,
+        // regardless of this block's own CSS. A negative-lookbehind regex
+        // targets only a real width/min-width/max-width CSS declaration.
+        $html = $this->get('/'.$page->slug)->assertOk()->getContent();
+        $this->assertDoesNotMatchRegularExpression('/(?<!min-)(?<!max-)width:/', $html);
     }
 
     public function test_border_is_only_rendered_when_a_real_style_is_set(): void
