@@ -1014,6 +1014,52 @@ client-side file-type/size pre-check before the request round-trips (the existin
 `MediaController::store()` — 10MB, image/mp4/webm mimes — is still the only enforcement, same as before this
 change).
 
+## 7s. Page templates: rename/delete management UI
+
+`PageTemplateService::saveAsTemplate()` (§7j, the editor's "Save as Template" action) has always been a
+one-way door — once saved, a template had no screen anywhere to see the list, rename a typo'd name, or delete
+one that's no longer wanted. This closes that gap with a small dedicated management screen, not a change to
+the editor itself.
+
+- **New route group** (`admin.page-templates.index|update|destroy`, `routes/web.php`) and
+  `App\Http\Controllers\Admin\Website\PageTemplateController` — `index()` lists, `update()` renames (PUT,
+  `name` required|string|max:150), `destroy()` deletes. All three scope to `PageTemplate::where('school_id',
+  $schoolId)` — deliberately excludes global/seeded starter templates (`school_id` null, shared across every
+  school) from this screen entirely; those stay read-only/pick-only from the editor's own "Start From" picker,
+  never editable or deletable from a single school's admin. `PageTemplateService` gained matching
+  `rename()`/`delete()` methods (both trivial — no cache, no observer needed beyond what already exists on the
+  model).
+- **New view** `resources/views/admin/website/page-templates/index.blade.php` — a plain table (name / saved-at
+  / actions), Rename and Delete as small `<form>`+icon-button pairs per row, matching this admin's existing
+  row-action convention elsewhere (icon buttons, not a dropdown menu). Rename reuses the exact same
+  `window.prompt()`-then-submit pattern the editor's own `fillTemplateName()` (§7j) already uses for
+  "Save as Template," rather than introducing a second UI convention (a modal) for the same kind of
+  single-field-string interaction. Delete uses the same native `confirm()` pattern already used everywhere
+  else in this admin for irreversible actions (Users, Menus, etc.) — no new confirmation-modal component was
+  introduced.
+- **Navigation**: added under Website → Page Templates in the sidebar (`components/sidebar.blade.php`,
+  between Pages and Menus) and as a ⌘K command-palette entry (`components/command-palette.blade.php`, `g w`
+  shortcut, Setup section, matching the Website Pages entry immediately above it) — both existing findability
+  mechanisms this app already has for every other admin resource, so a newly-saved template doesn't become
+  effectively invisible outside the editor's own "Start From" list.
+
+**Deliberately out of scope for this pass**: global/seeded starter templates still have no management UI at
+all, not even read-only, from this screen — they're only ever visible inside the editor's own "Start From"
+picker when creating a page. If the user later wants to curate/retire seeded starter templates without a DB
+console, that's a separate, larger change (would need a superadmin-only screen, since a single school's admin
+has no business editing a template shared across every school). Also out of scope: no preview thumbnail on
+this list (the `PageTemplate.thumbnail` column has been unused since it was added — still true after this
+change; the table shows name and saved-at only, no visual preview of what the template's blocks look like).
+
+**Verification gap**: no PHP available in this sandbox, so `PageTemplateController.php`,
+`PageTemplateService.php`, and `routes/web.php` were checked only via a brace/paren-balance script (all
+balanced); the new view's inline `<script>` (the `fillNewName()` function) was checked via `node --check`
+after stripping `@json(...)`/`{{...}}` (passed). None of this has run through Pint/PHPStan/PHPUnit or a real
+browser — at minimum, save a template from the editor, rename it here, confirm the new name shows up in the
+editor's own "Start From" list on the next new-page screen, then delete it and confirm pages already created
+from it are untouched (deleting a `PageTemplate` row must never cascade to `Page`/`PageLayout` rows — there's
+no FK relationship between them, `layout_json` is copied by value at creation time, not referenced).
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1

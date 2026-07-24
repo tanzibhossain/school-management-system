@@ -64,6 +64,7 @@ use App\Http\Controllers\Admin\Setup\SubjectController;
 use App\Http\Controllers\Admin\Website\MediaController;
 use App\Http\Controllers\Admin\Website\MenuController;
 use App\Http\Controllers\Admin\Website\PageController as WebsitePageController;
+use App\Http\Controllers\Admin\Website\PageTemplateController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Payment\WebhookController;
 use App\Http\Controllers\Public\ContactController;
@@ -323,6 +324,11 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::post('/media', [MediaController::class, 'store'])->name('media.store');
         Route::put('/media/{id}', [MediaController::class, 'update'])->whereNumber('id')->name('media.update');
         Route::delete('/media/{id}', [MediaController::class, 'destroy'])->whereNumber('id')->name('media.destroy');
+
+        // Page templates (rename/delete this school's own saved templates)
+        Route::get('/page-templates', [PageTemplateController::class, 'index'])->name('page-templates.index');
+        Route::put('/page-templates/{id}', [PageTemplateController::class, 'update'])->whereNumber('id')->name('page-templates.update');
+        Route::delete('/page-templates/{id}', [PageTemplateController::class, 'destroy'])->whereNumber('id')->name('page-templates.destroy');
 
         // Navigation menu editor
         Route::get('/menus', [MenuController::class, 'edit'])->name('menus.index');
