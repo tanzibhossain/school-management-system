@@ -13,11 +13,11 @@
     ];
 
     $spec = [
-      'hero'          => [['key'=>'title','label'=>'Title','input'=>'text'],['key'=>'subtitle','label'=>'Subtitle','input'=>'text'],['key'=>'image','label'=>'Background image URL','input'=>'text'],['key'=>'button_text','label'=>'Button text','input'=>'text'],['key'=>'button_url','label'=>'Button URL','input'=>'text']],
+      'hero'          => [['key'=>'title','label'=>'Title','input'=>'text'],['key'=>'subtitle','label'=>'Subtitle','input'=>'text'],['key'=>'image','label'=>'Background image URL','input'=>'media'],['key'=>'button_text','label'=>'Button text','input'=>'text'],['key'=>'button_url','label'=>'Button URL','input'=>'text']],
       'heading'       => [['key'=>'text','label'=>'Text','input'=>'text'],['key'=>'align','label'=>'Align','input'=>'select','options'=>['start'=>'Left','center'=>'Center','end'=>'Right']]],
       'richtext'      => [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'html','label'=>'Content (HTML allowed)','input'=>'textarea']],
-      'image'         => [['key'=>'url','label'=>'Image URL','input'=>'text'],['key'=>'caption','label'=>'Caption','input'=>'text']],
-      'image_text'    => [['key'=>'image','label'=>'Image URL','input'=>'text'],['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'html','label'=>'Content','input'=>'textarea'],['key'=>'image_side','label'=>'Image side','input'=>'select','options'=>['left'=>'Left','right'=>'Right']]],
+      'image'         => [['key'=>'url','label'=>'Image URL','input'=>'media'],['key'=>'caption','label'=>'Caption','input'=>'text']],
+      'image_text'    => [['key'=>'image','label'=>'Image URL','input'=>'media'],['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'html','label'=>'Content','input'=>'textarea'],['key'=>'image_side','label'=>'Image side','input'=>'select','options'=>['left'=>'Left','right'=>'Right']]],
       'staff'         => [['key'=>'heading','label'=>'Heading','input'=>'text']],
       'notices'       => [['key'=>'heading','label'=>'Heading','input'=>'text'],['key'=>'limit','label'=>'Max items','input'=>'number']],
       'stats'         => [['key'=>'heading','label'=>'Heading','input'=>'text']],
@@ -42,7 +42,7 @@
         ['key'=>'controls','label'=>'Player Controls','input'=>'switch','default'=>true],
         ['key'=>'download','label'=>'Download Button','input'=>'switch'],
         ['key'=>'preload','label'=>'Preload','input'=>'select','options'=>['none'=>'None','metadata'=>'Metadata','auto'=>'Auto'], 'default_value'=>'metadata'],
-        ['key'=>'poster','label'=>'Poster Image URL','input'=>'text','placeholder'=>'https://…'],
+        ['key'=>'poster','label'=>'Poster Image URL','input'=>'media','placeholder'=>'https://…'],
         ['key'=>'caption','label'=>'Caption','input'=>'text'],
       ],
       'button'        => [['key'=>'text','label'=>'Button text','input'=>'text'],['key'=>'url','label'=>'Button URL','input'=>'text'],['key'=>'align','label'=>'Align','input'=>'select','options'=>['start'=>'Left','center'=>'Center','end'=>'Right']],['key'=>'open_new_tab','label'=>'Open in new tab','input'=>'checkbox']],
@@ -99,7 +99,14 @@
 
     .editor-sidebar {
       position: relative; flex: 0 0 auto; display: flex; flex-direction: column;
-      width: 12.5vw; min-width: 12.5vw; max-width: 25vw;
+      /* min-width is a fixed 250px, not vw-relative — 12.5vw only clears
+         250px above ~2000px viewport width, so on a real 1366px laptop
+         screen it was still shrinking to ~171px (narrower than the very
+         problem this vw switch was meant to fix, see "Fullscreen editor
+         shell" in docs/modules/28-elementor-block-editor-plan.md). The
+         resize-drag handler below clamps to this same 250px floor in px,
+         not vw, so dragging can't undercut it either. */
+      width: 12.5vw; min-width: 250px; max-width: 25vw;
       background: #fff; border-right: 1px solid var(--bs-border-color);
     }
     .sidebar-resize-handle {
@@ -184,30 +191,101 @@
     .block-settings .nav-tabs .nav-link.active {
       background: var(--bs-primary); border-color: var(--bs-primary); color: #fff;
     }
+    /* Media Library drag-and-drop — toggled by dragenter/dragleave (see the
+       Autosave/Media Library script section below), a dashed highlight is
+       the standard "drop here" affordance without needing a separate
+       overlay element. */
+    #media-picker-modal .modal-body.media-drop-active {
+      outline: 2px dashed var(--bs-primary); outline-offset: -4px; background: rgba(79, 70, 229, .04);
+    }
+    /* The Browse button next to every media/URL field (_fields.blade.php's
+       'media' input, and this page's own og:image field) sits inside an
+       .input-group beside a plain .form-control — Bootstrap already merges
+       the two into one continuous bar (shared corner radius, overlapping
+       1px borders), but .btn-outline-secondary's border color is Bootstrap's
+       darker --bs-secondary, not the much lighter --bs-border-color a
+       .form-control actually uses, so the shared edge showed a visible
+       two-tone seam instead of looking like one control. Match the input's
+       own border color/weight instead of Bootstrap's default outline color. */
+    .input-group > .btn-outline-secondary {
+      border-color: var(--bs-border-color, #dee2e6);
+      color: var(--bs-secondary-color, #6c757d);
+    }
+    .input-group > .btn-outline-secondary:hover,
+    .input-group > .btn-outline-secondary:focus {
+      background-color: var(--bs-tertiary-bg, #f8f9fa);
+      border-color: var(--bs-border-color, #dee2e6);
+      color: var(--bs-body-color, #212529);
+    }
+    /* Advanced tab's 4 independently-collapsible sections (Layout/Border/
+       Background/Responsive, _layout_fields.blade.php) — Bootstrap's own
+       collapse plugin already toggles aria-expanded on the trigger button,
+       this just mirrors that into a chevron rotation so the open/closed
+       state has a visual affordance beyond the section's own content
+       appearing/disappearing. */
+    .js-adv-section-toggle .bi-chevron-down { transition: transform .15s ease; }
+    .js-adv-section-toggle[aria-expanded="true"] .bi-chevron-down { transform: rotate(180deg); }
+    .js-adv-section-toggle { color: var(--bs-body-color, #212529); }
+    .js-adv-section-toggle:hover { color: var(--bs-primary); }
   </style>
 
   <div class="editor-shell">
+    {{-- Flash messages (Page Saved / concurrent-edit warning) — this
+         fullscreen shell has no admin sidebar/topbar chrome to show them in
+         (see layouts/admin-fullscreen.blade.php), so they render here,
+         floating over the canvas, auto-dismissing after a few seconds
+         except the concurrent-edit warning (needs a deliberate read). --}}
+    @if (session('status') || session('warning'))
+      <div class="position-fixed top-0 start-50 translate-middle-x mt-2" style="z-index:2000;max-width:90vw;">
+        @if (session('status'))
+          <div class="alert alert-success alert-dismissible shadow-sm py-2 px-3 mb-2" id="flash-status" role="alert">
+            {{ session('status') }}
+            <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="{{ __('Close') }}"></button>
+          </div>
+        @endif
+        @if (session('warning'))
+          <div class="alert alert-warning alert-dismissible shadow-sm py-2 px-3 mb-2" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> {{ session('warning') }}
+            <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="{{ __('Close') }}"></button>
+          </div>
+        @endif
+      </div>
+    @endif
+
+    {{-- Autosave-recovery banner — hidden by default, shown by
+         checkAutosaveRecovery() (see the Autosave section of the script
+         below) only when localStorage holds a draft newer than what the
+         server rendered. --}}
+    <div class="position-fixed top-0 start-50 translate-middle-x mt-2 d-none" id="autosave-banner" style="z-index:2000;max-width:90vw;">
+      <div class="alert alert-info shadow-sm py-2 px-3 mb-2 d-flex align-items-center gap-2" role="alert">
+        <i class="bi bi-clock-history"></i>
+        <span id="autosave-banner-text">{{ __('An unsaved draft from your last session was found.') }}</span>
+        <button type="button" class="btn btn-sm btn-primary" id="autosave-restore-btn">{{ __('Restore') }}</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="autosave-discard-btn">{{ __('Discard') }}</button>
+      </div>
+    </div>
+
     <div class="editor-topbar d-flex align-items-center justify-content-between px-2 py-2 gap-2 flex-wrap">
       {{-- Section 1: navigation + structural actions --}}
       <div class="d-flex align-items-center gap-1">
-        <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary btn-sm" title="{{ __('Back') }}"><i class="bi bi-arrow-left"></i></a>
-        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="add" title="{{ __('Add Block') }}"><i class="bi bi-plus-lg"></i></button>
-        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="blocks" title="{{ __('Content Blocks') }}"><i class="bi bi-stack"></i></button>
-        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="settings" title="{{ __('Page Settings') }}"><i class="bi bi-gear"></i></button>
+        <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary btn-sm" title="{{ __('Back') }}" aria-label="{{ __('Back') }}"><i class="bi bi-arrow-left" aria-hidden="true"></i></a>
+        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="add" title="{{ __('Add Block') }}" aria-label="{{ __('Add Block') }}"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="blocks" title="{{ __('Content Blocks') }}" aria-label="{{ __('Content Blocks') }}"><i class="bi bi-stack" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="settings" title="{{ __('Page Settings') }}" aria-label="{{ __('Page Settings') }}"><i class="bi bi-gear" aria-hidden="true"></i></button>
         <div class="vr mx-1"></div>
-        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-undo" title="{{ __('Undo (Ctrl+Z)') }}" disabled><i class="bi bi-arrow-counterclockwise"></i></button>
-        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-redo" title="{{ __('Redo (Ctrl+Y)') }}" disabled><i class="bi bi-arrow-clockwise"></i></button>
-        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="history" title="{{ __('History') }}"><i class="bi bi-clock-history"></i></button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-undo" title="{{ __('Undo (Ctrl+Z)') }}" aria-label="{{ __('Undo') }}" disabled><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-redo" title="{{ __('Redo (Ctrl+Y)') }}" aria-label="{{ __('Redo') }}" disabled><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="history" title="{{ __('History') }}" aria-label="{{ __('History') }}"><i class="bi bi-clock-history" aria-hidden="true"></i></button>
       </div>
 
       {{-- Section 2: page identity + viewport --}}
       <div class="d-flex align-items-center gap-2">
         <span class="fw-semibold small text-truncate" id="topbar-page-name" style="max-width:240px;">{{ $page->title }}</span>
         <div class="btn-group btn-group-sm" role="group" aria-label="{{ __('Preview Viewport') }}" id="viewport-toolbar">
-          <button type="button" class="btn btn-outline-secondary active" data-viewport="desktop" title="{{ __('Desktop') }}"><i class="bi bi-display"></i></button>
-          <button type="button" class="btn btn-outline-secondary" data-viewport="laptop" title="{{ __('Laptop') }}"><i class="bi bi-laptop"></i></button>
-          <button type="button" class="btn btn-outline-secondary" data-viewport="tablet" title="{{ __('Tablet') }}"><i class="bi bi-tablet"></i></button>
-          <button type="button" class="btn btn-outline-secondary" data-viewport="mobile" title="{{ __('Mobile') }}"><i class="bi bi-phone"></i></button>
+          <button type="button" class="btn btn-outline-secondary active" data-viewport="desktop" title="{{ __('Desktop') }}" aria-label="{{ __('Desktop') }}"><i class="bi bi-display" aria-hidden="true"></i></button>
+          <button type="button" class="btn btn-outline-secondary" data-viewport="laptop" title="{{ __('Laptop') }}" aria-label="{{ __('Laptop') }}"><i class="bi bi-laptop" aria-hidden="true"></i></button>
+          <button type="button" class="btn btn-outline-secondary" data-viewport="tablet" title="{{ __('Tablet') }}" aria-label="{{ __('Tablet') }}"><i class="bi bi-tablet" aria-hidden="true"></i></button>
+          <button type="button" class="btn btn-outline-secondary" data-viewport="mobile" title="{{ __('Mobile') }}" aria-label="{{ __('Mobile') }}"><i class="bi bi-phone" aria-hidden="true"></i></button>
         </div>
         <span class="small text-muted" id="preview-status"></span>
       </div>
@@ -215,7 +293,7 @@
       {{-- Section 3: preview + publish --}}
       <div class="d-flex align-items-center gap-2">
         @if ($page->status === 'published')
-          <a class="btn btn-outline-secondary btn-sm" href="{{ url('/' . $page->slug) }}" target="_blank" title="{{ __('Preview') }}"><i class="bi bi-eye"></i></a>
+          <a class="btn btn-outline-secondary btn-sm" href="{{ url('/' . $page->slug) }}" target="_blank" title="{{ __('Preview') }}" aria-label="{{ __('Preview') }}"><i class="bi bi-eye" aria-hidden="true"></i></a>
         @endif
         {{-- Starts disabled — updateSaveButtonState() (see the undo/redo
              history section below) enables it the moment the form actually
@@ -227,12 +305,26 @@
       </div>
     </div>
 
+    {{-- Screen-reader-only live region for block actions that have no other
+         visible confirmation (add/remove/reorder/move-into-container all
+         happen silently on screen — the rail/canvas just changes shape).
+         aria-atomic so the whole message is re-announced even when only part
+         of the text content actually differs between two consecutive
+         announcements. See docs/modules/28-elementor-block-editor-plan.md §7u. --}}
+    <div id="a11y-status" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+
     <div class="editor-body">
       <div class="editor-sidebar" id="editor-sidebar">
         <div class="sidebar-resize-handle" id="sidebar-resize-handle"></div>
 
         <form method="POST" action="{{ route('admin.pages.save', $page->id) }}" id="page-form">
           @csrf @method('PUT')
+          {{-- The latest revision's id as of THIS page load — save()'s
+               optimistic concurrency check compares it against whatever the
+               latest revision actually is by the time the save arrives, to
+               detect a second admin having saved in between (see §7m in
+               docs/modules/28-elementor-block-editor-plan.md). --}}
+          <input type="hidden" name="known_layout_id" value="{{ $knownLayoutId }}">
 
           {{-- Panel: block layers --}}
           <div class="sidebar-panel" data-panel="blocks">
@@ -330,8 +422,45 @@
                 <option value="sidebar" @selected($view['template'] === 'sidebar')>{{ __('With Sidebar') }}</option>
               </select>
             </div>
+
+            <hr class="my-3">
+            <h6 class="small text-muted text-uppercase mb-3">{{ __('SEO') }}</h6>
+            <div class="mb-3">
+              <label class="form-label small">{{ __('Meta Title') }}</label>
+              <input name="meta_title" class="form-control form-control-sm" maxlength="255" value="{{ old('meta_title', $page->meta_title) }}" placeholder="{{ $page->title }}">
+              <div class="form-text small">{{ __('Falls back to the page title when left blank.') }}</div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">{{ __('Meta Description') }}</label>
+              <textarea name="meta_desc" rows="3" class="form-control form-control-sm" maxlength="500">{{ old('meta_desc', $page->meta_desc) }}</textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">{{ __('Social Share Image (og:image)') }}</label>
+              <div class="input-group input-group-sm">
+                <input type="text" name="og_image" class="form-control form-control-sm media-field-input" value="{{ old('og_image', $page->og_image) }}" placeholder="https://…">
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="openMediaPicker(this)">{{ __('Browse') }}</button>
+              </div>
+            </div>
           </div>
         </form>
+
+        {{-- Continuation of the settings panel (shares data-panel="settings"
+             with the form above — showPanel() toggles every element with a
+             matching data-panel, not just one), kept OUTSIDE #page-form
+             since it posts to a different route and a <form> cannot nest
+             inside another <form>. --}}
+        <div class="sidebar-panel" data-panel="settings">
+          <hr class="my-3">
+          <h6 class="small text-muted text-uppercase mb-3">{{ __('Reuse') }}</h6>
+          <form method="POST" action="{{ route('admin.pages.save-as-template', $page->id) }}" onsubmit="return fillTemplateName(this)">
+            @csrf
+            <input type="hidden" name="name">
+            <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
+              <i class="bi bi-bookmark-plus"></i> {{ __('Save as Template') }}
+            </button>
+            <div class="form-text small">{{ __('Saves the current layout of this page so future new pages can start from it.') }}</div>
+          </form>
+        </div>
 
         {{-- Panel: revision history — outside #page-form (has its own restore
              forms; a <form> cannot nest inside another <form>). Uses
@@ -393,6 +522,30 @@
     <template id="tpl-child-{{ $t }}">@include('admin.website.pages._card', ['prefix' => '__PREFIX__[__I__]', 'type' => $t, 'label' => $l, 'data' => [], 'spec' => $spec, 'style' => [], 'layout' => [], 'gridTypes' => $gridTypes, 'icon' => $blockIcons[$t] ?? 'bi-square', 'blockIcons' => $blockIcons])</template>
   @endforeach
 
+  {{-- Media Library modal — opened by any field's "Browse" button (see
+       _fields.blade.php's 'media' input, openMediaPicker() below). One
+       shared modal/grid for the whole editor; mediaPickerTargetInput tracks
+       which text field a click on a thumbnail should fill. --}}
+  <div class="modal fade" id="media-picker-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h6 class="modal-title mb-0">{{ __('Media Library') }}</h6>
+          <button type="button" class="btn btn-primary btn-sm ms-auto me-2" onclick="document.getElementById('media-upload-input').click()">
+            <i class="bi bi-upload"></i> {{ __('Upload') }}
+          </button>
+          <input type="file" id="media-upload-input" class="d-none" accept="image/*,video/mp4,video/webm">
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
+        </div>
+        <div class="modal-body">
+          <div id="media-picker-status" class="small text-muted mb-1"></div>
+          <p class="small text-muted mb-2">{{ __('Or drag and drop files anywhere in this window to upload.') }}</p>
+          <div id="media-picker-grid" class="row row-cols-3 row-cols-md-4 g-2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script>
@@ -402,6 +555,16 @@
       // "settings", and "history" are all considered a temporary "active
       // box" — clicking outside the sidebar or pressing Escape collapses
       // back to "add" and closes any open block-settings card.
+      // "Save as Template" (Page Settings panel) — a plain confirm-and-submit
+      // prompt, consistent with the Restore confirm() in the History panel
+      // below, rather than a full modal for a single free-text field.
+      window.fillTemplateName = function (form) {
+        var name = window.prompt(@json(__('Name this template:')));
+        if (!name) return false;
+        form.querySelector('[name="name"]').value = name;
+        return true;
+      };
+
       var DEFAULT_PANEL = 'add';
       function showPanel(name) {
         document.querySelectorAll('.sidebar-panel').forEach(function (p) {
@@ -452,9 +615,15 @@
         var sidebar = document.getElementById('editor-sidebar');
         var handle = document.getElementById('sidebar-resize-handle');
         if (!sidebar || !handle) return;
-        var MIN_PCT = 12.5, MAX_PCT = 25;
+        var MIN_PX = 250, MAX_PCT = 25;
         var STORAGE_KEY = 'website-editor-sidebar-width-pct';
-        function clampPct(pct) { return Math.min(MAX_PCT, Math.max(MIN_PCT, pct)); }
+        // Floor expressed in vw for the CURRENT window width, not a fixed
+        // vw constant — keeps the drag handle's felt position in sync with
+        // the CSS min-width:250px floor on .editor-sidebar (a fixed vw
+        // percentage would under- or overshoot 250px depending on screen
+        // size, same problem this whole 250px floor was added to fix).
+        function minPct() { return (MIN_PX / window.innerWidth) * 100; }
+        function clampPct(pct) { return Math.min(MAX_PCT, Math.max(minPct(), pct)); }
         var storedPct = parseFloat(localStorage.getItem(STORAGE_KEY));
         if (!isNaN(storedPct)) sidebar.style.width = clampPct(storedPct) + 'vw';
 
@@ -488,6 +657,40 @@
       })();
 
       var blockIdx = 1000;
+      // ── Accessibility: block-action announcements ───────────────────────
+      // Add/remove/reorder/move-into-container all happen silently on screen
+      // (the rail/canvas just changes shape) — a screen-reader user gets no
+      // feedback at all without this. Templates use Laravel's :placeholder
+      // convention (:label/:container) rather than JS string concatenation
+      // so translators can reorder words freely per language.
+      var a11yStatusEl = document.getElementById('a11y-status');
+      var MSG_BLOCK_ADDED = @json(__('Block added: :label'));
+      var MSG_BLOCK_REMOVED = @json(__('Block removed: :label'));
+      var MSG_REORDERED = @json(__('Reordered :label'));
+      var MSG_MOVED_INTO = @json(__('Moved :label into :container'));
+      var MSG_MOVED_TOP = @json(__('Moved :label to the top level'));
+      function announce(template, vars) {
+        if (!a11yStatusEl) return;
+        var msg = template;
+        Object.keys(vars || {}).forEach(function (key) { msg = msg.split(':' + key).join(vars[key]); });
+        // Clear first, then set on the next frame — an aria-live region only
+        // fires for an actual text-content CHANGE, so two consecutive
+        // identical announcements (e.g. removing two same-type blocks in a
+        // row) would otherwise silently not announce the second one.
+        a11yStatusEl.textContent = '';
+        requestAnimationFrame(function () { a11yStatusEl.textContent = msg; });
+      }
+      // A block's own visible name — the same string already used for its
+      // rail row's aria-label (_card.blade.php), read back off the DOM
+      // rather than tracked separately so it can never drift from what's
+      // actually on screen. `.block-row` is always this card's OWN direct
+      // child (rendered before any nested `.block-settings`/children in
+      // document order), so a plain querySelector can't accidentally match a
+      // nested child's row instead.
+      function cardLabel(card) {
+        var row = card && card.querySelector('.block-row');
+        return (row && row.getAttribute('aria-label')) || @json(__('Block'));
+      }
       // Shared by the top-level "no blocks yet" message and a container/
       // grid's own "no children yet" message — toggled after any add/remove
       // so the message reappears if the last block/child is ever removed
@@ -518,7 +721,7 @@
             handle: '.js-drag-handle',
             animation: 150,
             ghostClass: 'opacity-50',
-            onEnd: function () { schedulePreview(); pushHistory(); },
+            onEnd: function (evt) { announce(MSG_REORDERED, { label: cardLabel(evt.item) }); schedulePreview(); pushHistory(); },
           });
         });
       }
@@ -550,6 +753,7 @@
         showPanel('blocks');
         openBlockCard(card);
         applyFieldDependencies(card);
+        announce(MSG_BLOCK_ADDED, { label: cardLabel(card) });
         schedulePreview();
         pushHistory();
       }
@@ -663,6 +867,7 @@
         if (copiedStyle) { document.querySelectorAll('.js-paste-style').forEach(function (b) { b.disabled = false; }); }
         openBlockCard(list.lastElementChild);
         applyFieldDependencies(list.lastElementChild);
+        announce(MSG_BLOCK_ADDED, { label: cardLabel(list.lastElementChild) });
         schedulePreview();
         pushHistory();
       }
@@ -709,6 +914,8 @@
         list.querySelectorAll(':scope > .block-card').forEach(function (c) {
           c.classList.remove('is-open');
           c.querySelector('.block-settings').style.display = 'none';
+          var toggle = c.querySelector('.js-block-toggle');
+          if (toggle) toggle.setAttribute('aria-expanded', 'false');
         });
       }
       function openBlockCard(card) {
@@ -716,6 +923,8 @@
         closeBlockList(card.parentElement);
         card.classList.add('is-open');
         card.querySelector('.block-settings').style.display = '';
+        var toggle = card.querySelector('.js-block-toggle');
+        if (toggle) toggle.setAttribute('aria-expanded', 'true');
       }
       function toggleBlockCard(card) {
         if (card.classList.contains('is-open')) {
@@ -739,9 +948,17 @@
       function applyFieldDependencies(card) {
         if (!card) return;
         card.querySelectorAll('[data-depends-on]').forEach(function (wrap) {
-          var depKey = wrap.dataset.dependsOn;
+          // "key" (no dot) means [data][key] — the original, still most
+          // common case (e.g. video's Source select). "group.key" (e.g.
+          // "style.width_mode", the Advanced tab's Width/Border Type
+          // dropdowns) targets [style][key]/[layout][key] instead — added
+          // for §7aa without changing any existing depends_on caller.
+          var depPath = wrap.dataset.dependsOn;
           var allowed = (wrap.dataset.dependsValues || '').split(',');
-          var control = card.querySelector('[name$="[data][' + depKey + ']"]');
+          var dot = depPath.indexOf('.');
+          var group = dot !== -1 ? depPath.slice(0, dot) : 'data';
+          var depKey = dot !== -1 ? depPath.slice(dot + 1) : depPath;
+          var control = card.querySelector('[name$="[' + group + '][' + depKey + ']"]');
           var current = control ? control.value : '';
           wrap.style.display = allowed.indexOf(current) !== -1 ? '' : 'none';
         });
@@ -755,6 +972,29 @@
       document.addEventListener('DOMContentLoaded', applyAllFieldDependencies);
       if (document.readyState !== 'loading') applyAllFieldDependencies();
 
+      // Thumbnail preview under every 'media' field (_fields.blade.php) —
+      // one delegated listener rather than a per-field script, so it stays
+      // in sync no matter how the value changed: typing, Browse-picker
+      // selection (openMediaPicker() already dispatches a real 'input'
+      // event), Paste Style, or undo/redo restoring a field (all of those
+      // already re-dispatch 'input' on the control, which bubbles up here).
+      // No-ops for a media-field-input with no .media-field-preview sibling
+      // (e.g. the Page Settings og:image field, which doesn't have one).
+      document.addEventListener('input', function (e) {
+        if (!e.target.classList.contains('media-field-input')) return;
+        var group = e.target.closest('.input-group');
+        var preview = group && group.nextElementSibling;
+        if (!preview || !preview.classList.contains('media-field-preview')) return;
+        var img = preview.querySelector('img');
+        var val = e.target.value.trim();
+        if (val) {
+          img.src = val;
+        } else {
+          img.removeAttribute('src');
+          preview.style.display = 'none';
+        }
+      });
+
       // Drag-to-reorder via the grip handle — reordering is a structural
       // change (positions shift for every block after the moved one), so it
       // always triggers a full preview reload, same as the up/down buttons.
@@ -766,7 +1006,7 @@
             handle: '.js-drag-handle',
             animation: 150,
             ghostClass: 'opacity-50',
-            onEnd: function () { schedulePreview(); pushHistory(); },
+            onEnd: function (evt) { announce(MSG_REORDERED, { label: cardLabel(evt.item) }); schedulePreview(); pushHistory(); },
           });
         });
       }
@@ -814,8 +1054,10 @@
       function removeCard(card) {
         if (!card) return;
         var list = card.parentElement;
+        var label = cardLabel(card); // read before removal — the row won't exist to read from after
         card.remove();
         updateEmptyState(list);
+        announce(MSG_BLOCK_REMOVED, { label: label });
         schedulePreview();
         pushHistory();
       }
@@ -827,8 +1069,11 @@
       // restoring rebuilds each block by cloning its <template> (exactly what
       // "Add block" already does) and filling in the captured values, so a
       // restored Quill field gets a fresh, working editor instead of Quill's
-      // internal DOM baked into a dead HTML string. Session-only, never sent
-      // to the server or persisted (see docs/modules/28-elementor-block-editor-plan.md).
+      // internal DOM baked into a dead HTML string. The history stack itself
+      // is session-only (never sent to the server) — but every push also
+      // feeds the Autosave section further down, which DOES persist the
+      // latest snapshot to localStorage for crash/tab-close recovery (see
+      // §7m in docs/modules/28-elementor-block-editor-plan.md).
       var history_ = [];
       var historyIndex = -1;
       var pushHistoryTimer = null;
@@ -899,6 +1144,9 @@
           slug: document.querySelector('[name="slug"]').value,
           status: document.querySelector('[name="status"]').value,
           template: document.getElementById('tpl-select').value,
+          metaTitle: document.querySelector('[name="meta_title"]').value,
+          metaDesc: document.querySelector('[name="meta_desc"]').value,
+          ogImage: document.querySelector('[name="og_image"]').value,
           blocks: captureList('blocks-list'),
           sidebar: captureList('sidebar-list'),
         };
@@ -941,6 +1189,9 @@
         document.querySelector('[name="slug"]').value = snap.slug;
         document.querySelector('[name="status"]').value = snap.status;
         document.getElementById('tpl-select').value = snap.template;
+        document.querySelector('[name="meta_title"]').value = snap.metaTitle || '';
+        document.querySelector('[name="meta_desc"]').value = snap.metaDesc || '';
+        document.querySelector('[name="og_image"]').value = snap.ogImage || '';
         document.getElementById('side-col').style.display = snap.template === 'sidebar' ? '' : 'none';
         var addSide = document.getElementById('add-side-section');
         if (addSide) addSide.style.display = snap.template === 'sidebar' ? '' : 'none';
@@ -1005,12 +1256,79 @@
       document.addEventListener('DOMContentLoaded', function () { pushHistory(); });
       if (document.readyState !== 'loading') pushHistory();
 
+      // ── Autosave (crash/tab-close recovery) ─────────────────────────────
+      // Purely client-side, localStorage only — never sent to the server (no
+      // extra PageLayout revisions created just from typing). Piggybacks on
+      // the existing pushHistory() debounce (already fires ~1.2s after the
+      // last edit) rather than its own timer, so it can't fire more often
+      // than the app already recomputes snapshotState() for anyway.
+      //
+      // This is deliberately separate from the concurrent-edit warning
+      // below: autosave protects ONE admin's own unsaved work in their OWN
+      // browser; the concurrent-edit check protects against TWO admins
+      // editing the same page — the two failure modes don't overlap.
+      var AUTOSAVE_KEY = 'website-editor-autosave-' + @json($page->id);
+      function autosaveNow() {
+        try {
+          localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ savedAt: Date.now(), snapshot: snapshotState() }));
+        } catch (e) { /* storage full/disabled — autosave is a nicety, never block editing over it */ }
+      }
+      function clearAutosave() {
+        try { localStorage.removeItem(AUTOSAVE_KEY); } catch (e) { /* ignore */ }
+      }
+      var _origPushHistory = pushHistory;
+      pushHistory = function () { _origPushHistory(); autosaveNow(); };
+      // A real save/publish makes the autosave redundant — the server now
+      // has this state (or newer, if a conflict warning applies), so keep
+      // localStorage from offering to "restore" something already saved.
+      document.getElementById('page-form').addEventListener('submit', clearAutosave);
+
+      function checkAutosaveRecovery() {
+        var raw;
+        try { raw = localStorage.getItem(AUTOSAVE_KEY); } catch (e) { return; }
+        if (!raw) return;
+        var draft;
+        try { draft = JSON.parse(raw); } catch (e) { clearAutosave(); return; }
+        // Only offer it when it actually differs from what the server just
+        // rendered — a stale-but-identical draft left over from a normal
+        // save isn't worth interrupting the admin about.
+        if (!draft || !draft.snapshot || JSON.stringify(draft.snapshot) === initialSnapshotJson) {
+          clearAutosave();
+          return;
+        }
+        var banner = document.getElementById('autosave-banner');
+        var textEl = document.getElementById('autosave-banner-text');
+        if (!banner || !textEl) return;
+        var when = new Date(draft.savedAt).toLocaleString();
+        textEl.textContent = @json(__('An unsaved draft from')) + ' ' + when + ' ' + @json(__('was found.'));
+        banner.classList.remove('d-none');
+        document.getElementById('autosave-restore-btn').addEventListener('click', function () {
+          restoreSnapshot(draft.snapshot);
+          pushHistory(); // the restored state becomes a real history entry, undo-able like any edit
+          banner.classList.add('d-none');
+        });
+        document.getElementById('autosave-discard-btn').addEventListener('click', function () {
+          clearAutosave();
+          banner.classList.add('d-none');
+        });
+      }
+      // Runs after the initial pushHistory() above has set initialSnapshotJson.
+      document.addEventListener('DOMContentLoaded', checkAutosaveRecovery);
+      if (document.readyState !== 'loading') checkAutosaveRecovery();
+
+      // Auto-dismiss the "Page Saved" success flash after a few seconds —
+      // the concurrent-edit warning (session('warning')) deliberately stays
+      // until the admin dismisses it themselves.
+      (function () {
+        var el = document.getElementById('flash-status');
+        if (!el) return;
+        setTimeout(function () { bootstrap.Alert.getOrCreateInstance(el).close(); }, 4000);
+      })();
+
       document.addEventListener('click', function (e) {
-        var up = e.target.closest('.js-up'), down = e.target.closest('.js-down'), rm = e.target.closest('.js-remove');
+        var rm = e.target.closest('.js-remove');
         var toggle = e.target.closest('.js-block-toggle');
         var copyStyle = e.target.closest('.js-copy-style'), pasteStyle = e.target.closest('.js-paste-style');
-        if (up) { var c = up.closest('.block-card'); if (c.previousElementSibling) c.parentNode.insertBefore(c, c.previousElementSibling); schedulePreview(); pushHistory(); return; }
-        if (down) { var c = down.closest('.block-card'); if (c.nextElementSibling) c.parentNode.insertBefore(c.nextElementSibling, c); schedulePreview(); pushHistory(); return; }
         if (rm) { removeCard(rm.closest('.block-card')); return; }
         if (toggle) { toggleBlockCard(toggle.closest('.block-card')); return; }
         if (copyStyle) {
@@ -1356,10 +1674,22 @@
           var refNode = (msg.toIndex !== null && msg.toIndex !== undefined) ? (destList.children[msg.toIndex] || null) : null;
           if (refNode === card) return; // dropped on itself — no-op
           var srcList = card.parentElement;
+          var label = cardLabel(card); // read before the move — cheap, and avoids any doubt about DOM-order timing
           destList.insertBefore(card, refNode);
           updateEmptyState(srcList);
           updateEmptyState(destList);
           initNestedSortables();
+          if (destList === srcList) {
+            announce(MSG_REORDERED, { label: label });
+          } else {
+            var destIsRoot = destList.id === 'blocks-list' || destList.id === 'sidebar-list';
+            if (destIsRoot) {
+              announce(MSG_MOVED_TOP, { label: label });
+            } else {
+              var containerCard = destList.closest('.block-card');
+              announce(MSG_MOVED_INTO, { label: label, container: cardLabel(containerCard) });
+            }
+          }
           schedulePreview();
           pushHistory();
           return;
@@ -1383,6 +1713,173 @@
           return;
         }
       });
+
+      // ── Media Library (upload + picker) ─────────────────────────────────
+      // Shared modal opened from any 'media' field's "Browse" button
+      // (_fields.blade.php). One flow: list -> click Upload -> re-list ->
+      // click a thumbnail to fill whichever input opened the modal.
+      (function () {
+        var modalEl = document.getElementById('media-picker-modal');
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        var grid = document.getElementById('media-picker-grid');
+        var status = document.getElementById('media-picker-status');
+        var uploadInput = document.getElementById('media-upload-input');
+        var csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        var targetInput = null;
+        var items = null; // cached list — refetched lazily, not on every open
+
+        window.openMediaPicker = function (btn) {
+          // The Browse button sits right after the text input inside the
+          // same .input-group (_fields.blade.php's 'media' markup).
+          targetInput = btn.closest('.input-group').querySelector('.media-field-input');
+          modal.show();
+          if (!items) loadMediaLibrary();
+        };
+
+        function loadMediaLibrary() {
+          status.textContent = @json(__('Loading…'));
+          fetch(@json(route('admin.media.index')), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+            .then(function (data) { items = data; renderGrid(); })
+            .catch(function () { status.textContent = @json(__('Failed to load media library.')); });
+        }
+
+        function renderGrid() {
+          grid.innerHTML = '';
+          status.textContent = items.length ? '' : @json(__('No media uploaded yet.'));
+          items.forEach(function (item) {
+            var col = document.createElement('div');
+            col.className = 'col';
+            var thumbInner = item.is_image
+              ? '<img src="' + item.url + '" class="w-100" style="height:90px;object-fit:cover;" alt="' + (item.alt_text || '') + '">'
+              : '<div class="w-100 d-flex align-items-center justify-content-center bg-body-secondary" style="height:90px;"><i class="bi bi-file-play fs-3"></i></div>';
+            // Alt text only makes sense for images — video/other files skip
+            // the field entirely rather than showing a meaningless input.
+            var altInput = item.is_image
+              ? '<input type="text" class="form-control form-control-sm media-picker-alt mt-1" value="' + (item.alt_text || '').replace(/"/g, '&quot;') + '" placeholder="' + @json(__('Alt text')) + '">'
+              : '';
+            col.innerHTML =
+              '<div class="border rounded position-relative media-picker-item" style="cursor:pointer;">' +
+                thumbInner +
+                '<button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 py-0 px-1 media-picker-delete" title="' + @json(__('Delete')) + '" aria-label="' + @json(__('Delete')) + ' ' + item.filename + '"><i class="bi bi-trash" aria-hidden="true"></i></button>' +
+                '<div class="small text-truncate px-1 pt-1" title="' + item.filename + '">' + item.filename + '</div>' +
+                (altInput ? '<div class="px-1 pb-1">' + altInput + '</div>' : '') +
+              '</div>';
+            col.querySelector('.media-picker-item').addEventListener('click', function (e) {
+              if (e.target.closest('.media-picker-delete') || e.target.closest('.media-picker-alt')) return;
+              selectMedia(item);
+            });
+            col.querySelector('.media-picker-delete').addEventListener('click', function (e) {
+              e.stopPropagation();
+              deleteMedia(item);
+            });
+            var altEl = col.querySelector('.media-picker-alt');
+            if (altEl) {
+              altEl.addEventListener('click', function (e) { e.stopPropagation(); });
+              altEl.addEventListener('change', function () { saveAltText(item, altEl.value); });
+            }
+            grid.appendChild(col);
+          });
+        }
+
+        function selectMedia(item) {
+          if (!targetInput) { modal.hide(); return; }
+          targetInput.value = item.url;
+          // Same event the field would fire if typed by hand — the existing
+          // per-block preview/dirty-tracking/history listeners already
+          // react to 'input' on every text field, nothing new to wire up.
+          targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+          modal.hide();
+        }
+
+        function saveAltText(item, value) {
+          item.alt_text = value; // optimistic — reflected immediately if the modal reopens before the request lands
+          fetch(@json(url('/admin/media')) + '/' + item.id, {
+            method: 'PUT',
+            body: JSON.stringify({ alt_text: value }),
+            headers: {
+              'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest',
+              'Content-Type': 'application/json', 'Accept': 'application/json',
+            },
+          }).catch(function () { /* best-effort — a failed alt-text save isn't worth interrupting the editor over */ });
+        }
+
+        function deleteMedia(item) {
+          if (!confirm(@json(__('Delete this file? Any block still referencing its URL will show a broken link.')))) return;
+          fetch(@json(url('/admin/media')) + '/' + item.id, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+          }).then(function (res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            items = null;
+            loadMediaLibrary();
+          }).catch(function () { alert(@json(__('Delete failed.'))); });
+        }
+
+        // Shared by both the "Upload" button's file input AND the drop zone
+        // below — one upload path, two ways to trigger it.
+        function uploadFile(file) {
+          var fd = new FormData();
+          fd.append('file', file);
+          status.textContent = @json(__('Uploading…'));
+          return fetch(@json(route('admin.media.store')), {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
+          }).then(function (res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+          }).then(function (created) {
+            items = items ? [created].concat(items) : [created];
+            renderGrid();
+          }).catch(function () {
+            status.textContent = @json(__('Upload failed.'));
+          });
+        }
+
+        uploadInput.addEventListener('change', function () {
+          var file = uploadInput.files[0];
+          if (!file) return;
+          uploadFile(file).then(function () { uploadInput.value = ''; });
+        });
+
+        // ── Drag-and-drop upload ─────────────────────────────────────────
+        // The whole modal body is the drop zone (simplest target — no need
+        // for a separate visually-distinct box when the grid itself already
+        // fills the space) — dragenter/dragover must both preventDefault()
+        // or the browser's default "reject the drop" behavior wins.
+        // dragleave fires on every child boundary crossing too, not just
+        // when truly leaving the zone, so it tracks a counter rather than
+        // toggling on/off directly (the standard fix for that quirk).
+        var dropZone = document.querySelector('#media-picker-modal .modal-body');
+        var dragDepth = 0;
+        if (dropZone) {
+          dropZone.addEventListener('dragenter', function (e) {
+            e.preventDefault();
+            dragDepth++;
+            dropZone.classList.add('media-drop-active');
+          });
+          dropZone.addEventListener('dragover', function (e) { e.preventDefault(); });
+          dropZone.addEventListener('dragleave', function () {
+            dragDepth = Math.max(0, dragDepth - 1);
+            if (dragDepth === 0) dropZone.classList.remove('media-drop-active');
+          });
+          dropZone.addEventListener('drop', function (e) {
+            e.preventDefault();
+            dragDepth = 0;
+            dropZone.classList.remove('media-drop-active');
+            var files = Array.prototype.slice.call((e.dataTransfer && e.dataTransfer.files) || []);
+            if (!files.length) return;
+            // Sequential, not Promise.all — keeps the "Uploading…" status
+            // text meaningful (one file's failure message isn't clobbered
+            // by another's success) and avoids hammering the endpoint with
+            // a burst of simultaneous requests for a multi-file drop.
+            files.reduce(function (chain, file) {
+              return chain.then(function () { return uploadFile(file); });
+            }, Promise.resolve());
+          });
+        }
+      })();
     </script>
   @endpush
 @endsection

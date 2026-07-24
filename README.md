@@ -119,7 +119,10 @@ docker compose up -d --build
 docker compose ps
 ```
 
-Expected services: `app`, `nginx`, `db` (MySQL 8), `redis`, `minio`, `horizon`, `scheduler`
+Expected services: `app`, `nginx`, `db` (MySQL 8), `redis`, `minio`, `horizon`, `scheduler`. You'll also see
+`minio-init` — a one-shot container that creates MinIO's `school-files` bucket on first boot, then exits
+(`docker compose ps` showing it as `Exited (0)` is expected, not a failure — MinIO starts with no buckets and
+nothing else creates one, so every file upload in the app would fail without this step).
 
 ### 3. Initialize Application
 

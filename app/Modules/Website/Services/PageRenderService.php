@@ -8,6 +8,7 @@ use App\Modules\School\Models\School;
 use App\Modules\Staff\Models\Staff;
 use App\Modules\Website\Models\Page;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Turns a page's stored layout_json (an ordered list of typed blocks + a
@@ -266,19 +267,58 @@ class PageRenderService
     public static function sanitizeStyle(array $style): array
     {
         $px = fn ($v) => $v === null || $v === '' ? null : max(0, min(400, (int) $v));
+        // Border widths use a tighter cap than padding/margin/radius — a
+        // 400px border is never a real design intent, just a fat-fingered
+        // padding value landing in the wrong field.
+        $borderPx = fn ($v) => $v === null || $v === '' ? null : max(0, min(50, (int) $v));
         $hex = fn ($v) => is_string($v) && preg_match('/^#[0-9a-fA-F]{3,8}$/', trim($v)) ? trim($v) : null;
         $url = fn ($v) => is_string($v) && trim($v) !== '' ? trim($v) : null;
+
+        // Width: mode drives whether value/unit are even meaningful —
+        // 'custom' needs both, 'default'/'full'/'inline' need neither (a
+        // stale leftover value/unit from a previous 'custom' selection is
+        // simply ignored by BlockPresentation, not stored as garbage here).
+        $widthMode = in_array($style['width_mode'] ?? null, ['default', 'full', 'inline', 'custom'], true)
+            ? $style['width_mode'] : null;
+        $widthUnit = in_array($style['width_unit'] ?? null, ['%', 'px', 'em', 'rem'], true)
+            ? $style['width_unit'] : '%';
+        $widthValueRaw = $style['width_value'] ?? null;
+        $widthValue = ($widthValueRaw === null || $widthValueRaw === '') ? null : max(0, min(1000, (float) $widthValueRaw));
+
+        $borderStyle = in_array($style['border_style'] ?? null, ['none', 'solid', 'dashed', 'dotted', 'double'], true)
+            ? $style['border_style'] : null;
 
         return array_filter([
             'padding_top' => $px($style['padding_top'] ?? null),
             'padding_bottom' => $px($style['padding_bottom'] ?? null),
+            'padding_left' => $px($style['padding_left'] ?? null),
+            'padding_right' => $px($style['padding_right'] ?? null),
             'margin_top' => $px($style['margin_top'] ?? null),
             'margin_bottom' => $px($style['margin_bottom'] ?? null),
+            'margin_left' => $px($style['margin_left'] ?? null),
+            'margin_right' => $px($style['margin_right'] ?? null),
+            'width_mode' => $widthMode,
+            'width_value' => $widthMode === 'custom' ? $widthValue : null,
+            'width_unit' => $widthMode === 'custom' ? $widthUnit : null,
             'bg_color' => $hex($style['bg_color'] ?? null),
             'bg_image' => $url($style['bg_image'] ?? null),
             'bg_overlay' => max(0, min(100, (int) ($style['bg_overlay'] ?? 0))),
             'text_color' => $hex($style['text_color'] ?? null),
+            // Legacy single 'radius' (pre-§7aa) — still sanitized and stored
+            // so an already-saved page keeps rendering exactly as before
+            // until its next edit; BlockPresentation prefers the four
+            // per-side keys when any are present, only falling back to this.
             'radius' => $px($style['radius'] ?? null),
+            'radius_top' => $px($style['radius_top'] ?? null),
+            'radius_bottom' => $px($style['radius_bottom'] ?? null),
+            'radius_left' => $px($style['radius_left'] ?? null),
+            'radius_right' => $px($style['radius_right'] ?? null),
+            'border_style' => $borderStyle,
+            'border_width_top' => $borderStyle && $borderStyle !== 'none' ? $borderPx($style['border_width_top'] ?? null) : null,
+            'border_width_bottom' => $borderStyle && $borderStyle !== 'none' ? $borderPx($style['border_width_bottom'] ?? null) : null,
+            'border_width_left' => $borderStyle && $borderStyle !== 'none' ? $borderPx($style['border_width_left'] ?? null) : null,
+            'border_width_right' => $borderStyle && $borderStyle !== 'none' ? $borderPx($style['border_width_right'] ?? null) : null,
+            'border_color' => $borderStyle && $borderStyle !== 'none' ? $hex($style['border_color'] ?? null) : null,
             'shadow' => in_array($style['shadow'] ?? null, ['sm', 'md', 'lg'], true) ? $style['shadow'] : null,
             'animation' => in_array($style['animation'] ?? null, ['fade', 'up'], true) ? $style['animation'] : null,
         ], fn ($v) => $v !== null);
@@ -414,6 +454,46 @@ class PageRenderService
     {
         return Page::forSchool($schoolId)->published()->where('is_homepage', true)
             ->with('publishedLayout')->first();
+    }
+
+    /** How long a rendered page's live-resolved block data (notices/stats/staff) may lag reality. */
+    private const CACHE_TTL = 300;
+
+    /**
+     * Cached counterpart to buildView() for a REAL published page — used by
+     * the public PageController::show() and HomeController::index(), never
+     * by the admin live-preview endpoints (preview()/previewBlock() call
+     * buildView()/buildViewFromBlocks() directly, always uncached, since
+     * they must reflect the editor's current unsaved form state exactly).
+     *
+     * Returns null when the page has no published layout yet — callers
+     * decide what that means for them (PageController::show() still renders
+     * an empty page; HomeController falls back to the default landing page).
+     *
+     * Deliberately keyed by the published PageLayout's own id, not the page
+     * id: every publish() creates a brand-new PageLayout row (layouts are
+     * versioned, see PageService/CLAUDE.md), so a fresh publish is
+     * automatically a fresh cache key — no explicit flush-on-save wiring
+     * needed, unlike the tag-flushing Observer pattern most other Repository
+     * caches in this codebase use. The one staleness window this can't close
+     * is a dynamic block's live data (notices/stats/staff counts) changing
+     * without a new publish — bounded by CACHE_TTL rather than making
+     * Announcement/Staff/etc. aware this cache exists.
+     *
+     * @return array{template: string, blocks: array, sidebar: array}|null
+     */
+    public function renderPage(Page $page): ?array
+    {
+        $layout = $page->publishedLayout->first();
+        if (! $layout) {
+            return null;
+        }
+
+        return Cache::tags(['pageview'])->remember(
+            "pageview:layout:{$layout->id}",
+            self::CACHE_TTL,
+            fn () => $this->buildView($page->school_id, $layout->layout_json),
+        );
     }
 
     /**

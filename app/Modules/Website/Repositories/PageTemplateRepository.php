@@ -14,7 +14,11 @@ class PageTemplateRepository extends BaseRepository
         parent::__construct(PageTemplate::class, $cache);
     }
 
-    /** Global starter templates + this school's own saved ones. */
+    /**
+     * Global starter templates + this school's own saved ones.
+     *
+     * @return Collection<int, PageTemplate>
+     */
     public function availableTo(int $schoolId): Collection
     {
         return $this->remember(

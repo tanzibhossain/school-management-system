@@ -17,7 +17,30 @@
           <select name="template" class="form-select" required>
             <option value="full">{{ __('Full Width (No Sidebar)') }}</option>
             <option value="sidebar">{{ __('With Sidebar') }}</option>
-          </select></div>
+          </select>
+          <div class="form-text">{{ __('Ignored when starting from a saved template below — it already has its own.') }}</div>
+        </div>
+        @if ($templates->isNotEmpty())
+          <div class="mb-3"><label class="form-label">{{ __('Start From') }}</label>
+            <select name="page_template_id" class="form-select">
+              <option value="">{{ __('Blank Page') }}</option>
+              @if ($templates->whereNull('school_id')->isNotEmpty())
+                <optgroup label="{{ __('Starter Templates') }}">
+                  @foreach ($templates->whereNull('school_id') as $t)
+                    <option value="{{ $t->id }}">{{ $t->name }}</option>
+                  @endforeach
+                </optgroup>
+              @endif
+              @if ($templates->whereNotNull('school_id')->isNotEmpty())
+                <optgroup label="{{ __('My Templates') }}">
+                  @foreach ($templates->whereNotNull('school_id') as $t)
+                    <option value="{{ $t->id }}">{{ $t->name }}</option>
+                  @endforeach
+                </optgroup>
+              @endif
+            </select>
+          </div>
+        @endif
         <button class="btn btn-primary">Create &amp; edit</button>
         <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary">{{ __('Cancel') }}</a>
       </form>

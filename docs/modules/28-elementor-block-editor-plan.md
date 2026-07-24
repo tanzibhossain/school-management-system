@@ -560,6 +560,846 @@ nesting went — this was the one item from §7d's gap list that was closer to "
   add/remove/move actions, save, and reload the editor to confirm the saved `layout_json` round-trips through
   both the public page and the editor's own re-opened state.
 
+## 7h. MinIO disk fix + Website media library (upload + picker)
+
+Two related pieces of work from the same session, triggered by a real user question ("we're using MinIO but I've
+never configured a bucket — how does this work?").
+
+**The MinIO disk bug (fixed first, unblocks everything below):** `config/filesystems.php` only ever defined a
+disk key `'s3'`, but every `Storage::disk('minio')` call across the app (Certificate/IdCard/DataImport modules,
+and now this feature) was targeting a disk key that **never existed** — invisible in tests because
+`Storage::fake('minio')` auto-creates a fake disk for whatever name you pass it, regardless of real config, so
+the mismatch never surfaced there. Fixed by renaming the disk key itself from `'s3'` to `'minio'` (`driver`
+stays `'s3'` — MinIO speaks the S3 API), with `FILESYSTEM_DISK` defaulting to `minio` in `.env`/`.env.example`.
+Separately, MinIO starts with **zero buckets** and nothing previously created one — added a one-shot
+`minio-init` service to `docker-compose.yml` (image `minio/mc`, self-retrying `mc alias set` + `mc mb
+--ignore-existing`) that creates the `AWS_BUCKET` bucket the first time the stack comes up. The bucket is left
+**private** (no public policy) on purpose — see the proxy design below.
+
+**Website media library — new feature, built on scaffolding that already existed but had zero controller/route
+pointing at it:** `WebsiteMedia` model, `WebsiteMediaRepository` (cache-aside `forSchool()`), `WebsiteMediaObserver`
+(already registered, flushes the `'websitemedia'` cache tag), and `WebsiteMediaService::upload()/delete()` all
+predated this work — they were just never wired to anything reachable from the browser.
+
+- **Two new controllers, deliberately separate concerns.**
+  `App\Http\Controllers\Admin\Website\MediaController` (`index`/`store`/`destroy`, JSON, `role:admin`, routes
+  `admin.media.index|store|destroy`) is the picker's AJAX backend — school-scoped via
+  `WebsiteMedia::forSchool()`/`$repository->forSchool()`, same as every other admin resource. Reads
+  `app('current_school_id')` per-request, never trusts a client-supplied school id.
+  `App\Http\Controllers\Public\WebsiteMediaController::show(int $id)` (route `website-media.show`, `GET
+  /media/website/{id}`) is a public, unauthenticated **streaming proxy** — deliberately NOT school-scoped, since
+  it's just a content-addressed public asset URL (same trust model as any other public file URL) in this
+  single-school-per-deployment app (see CLAUDE.md).
+- **Why a proxy instead of exposing the bucket or using `temporaryUrl()`:** a public bucket policy would mean
+  `AWS_ENDPOINT=http://minio:9000` (Docker-internal-only hostname) leaking into public page HTML, which only
+  resolves inside the Docker network, never from a real browser — exposing the bucket publicly would need a
+  *second*, publicly-routable MinIO hostname kept in sync across dev/prod, purely to serve files the app is
+  already capable of streaming itself. `temporaryUrl()` (the pattern Certificate/IdCard already use for
+  ephemeral downloads) is the wrong fit here for the opposite reason: those URLs expire in ~30 minutes, but a
+  page's `hero.image`/`image.url`/etc. field stores this URL *permanently* in `layout_json` — it must still
+  resolve correctly months later. The proxy route streams via `Storage::disk('minio')->response($path,
+  $filename, [long immutable Cache-Control])`, so the bucket itself never needs a public policy, and the URL
+  never expires because it's not a signed URL at all — it's a Laravel route resolving the current file on every
+  request (cheap: MinIO is on the same Docker network, and the cache header means most requests never even reach
+  it after the first).
+- **Field wiring:** `_fields.blade.php` gained a `'media'` input type — the same plain text URL field as before
+  (typing/pasting a URL still works unchanged, e.g. an external CDN link) plus a "Browse" button
+  (`onclick="openMediaPicker(this)"`) that opens a shared Bootstrap modal. `$spec` (`edit.blade.php`) switched
+  `hero.image`, `image.url`, `image_text.image`, and `video.poster` from `'input'=>'text'` to `'input'=>'media'`
+  — the only four fields in the whole spec that hold an image URL destined for `<img src>`/CSS
+  `background-image` (video's own file/embed URLs stay plain `text`, since those are just as often an external
+  YouTube/Vimeo link as a self-hosted upload).
+- **The picker itself:** one modal (`#media-picker-modal`) shared by every field on the page, not per-field —
+  `openMediaPicker(btn)` resolves the *specific* input to fill via `btn.closest('.input-group')`, so the same
+  modal instance works regardless of which block/field opened it, including a field nested arbitrarily deep
+  (§7g). Selecting a thumbnail sets the target input's `.value` and dispatches a real `input` event —
+  deliberately, so none of the existing per-field preview/dirty-tracking/undo-history listeners needed any new
+  wiring; they already react to `input` on every text field. Because the "Browse" button's `onclick` is inline
+  markup (not an addEventListener registered once at page load), it works automatically on blocks added later via
+  "Add Block" or `tpl-child-*` cloning — no re-init step needed, unlike SortableJS elsewhere in this editor which
+  does need `initNestedSortables()` re-run after DOM changes.
+- **Upload/delete** are plain `fetch()` calls against the admin JSON endpoints (`X-CSRF-TOKEN` from the layout's
+  `<meta name="csrf-token">`, matching the pattern already used for cookie-session-authenticated AJAX elsewhere
+  in this file) — no new CSRF plumbing needed. Delete asks for confirmation and warns that any block still
+  referencing the file's URL will show a broken link (deleting a `WebsiteMedia` row does not search
+  `layout_json` for references — there is no reverse index from a media row to the pages that embed its URL).
+
+**What's still not built** (flag before extending further):
+- **No alt-text editing UI** — `WebsiteMedia.alt_text` is a real column with no field anywhere to set it; every
+  upload leaves it null.
+- **No pagination/search** in the picker grid — `MediaController::index()` returns the school's *entire* media
+  library in one response; fine at small scale, will need a limit + search param once a school has uploaded
+  hundreds of files.
+- **No drag-and-drop upload** — only the explicit "Upload" button + native file picker; no drop zone.
+- **No reverse-reference tracking** — deleting a media row that's still embedded in a saved page's `layout_json`
+  silently breaks that block's image (a 404 through the proxy route, not a hard error) rather than warning which
+  pages reference it.
+- **Verification gap, same as every prior §7x entry**: neither controller has run through Pint/PHPStan/PHPUnit,
+  and the modal/upload/picker flow has not run in a real browser (no PHP/Docker in this sandbox) — verified here
+  only via brace/paren-balance checks on the PHP files and a Blade-stripped `node --check` pass on the inline
+  JS. At minimum: confirm `docker compose up` brings up `minio-init` as `Exited (0)`, upload an image through
+  the picker, confirm it renders on the public page via the proxy URL, and confirm deleting it 404s that URL
+  rather than 500ing.
+
+## 7i. Per-page SEO fields (meta_title / meta_desc / og_image)
+
+`Page` already had all three columns and `PageService::duplicate()` already copied them, but nothing else in
+the stack actually read or wrote them — no form field, no validation rule, and the public renderer only ever
+used the site-wide `SiteSetting` values.
+
+- **Admin:** the Page Settings sidebar panel (`edit.blade.php`, `data-panel="settings"`) gained a "SEO" section
+  — Meta Title (placeholder shows the page title, since that's the actual fallback), Meta Description
+  (textarea), and Social Share Image (the same 'media' picker field as the block-level image fields, §7h).
+  `PageController::save()`'s validate() now accepts all three (`meta_title` ≤255, `meta_desc` ≤500, `og_image`
+  ≤2048 — a URL, not a stored path, so it needs more room than a typical filename column) and passes them
+  through to `PageService::update()`, which already accepted an arbitrary `$data` array — no service change
+  needed there.
+- **Dirty-tracking/undo-redo:** `snapshotState()`/`restoreSnapshot()` (the undo/redo + Update-button-disabled-
+  until-changed machinery, §7 base milestones) explicitly enumerate the fields they capture — they were missed
+  when SEO fields were added and needed the same three fields added explicitly. The generic `form.addEventListener('input'/'change', handleFormChange)` delegate (already
+  form-wide) needed no change — it already fires for any field inside `#page-form`, SEO fields included.
+- **Public rendering:** `page.blade.php` already had `@section('title', $page->meta_title ?: $page->title)`;
+  extended with conditional `@section('meta_description', ...)`/`@section('og_image', ...)`, only defined when
+  the page actually has a value set. `public/layout.blade.php` (the shared `<head>`) switched from reading
+  `SiteSetting` directly to `$__env->yieldContent('meta_description'|'og_image', $siteWideDefault)` — the same
+  technique `@yield('title', ...)` already used one line above, just applied programmatically since these two
+  needed to feed both a `<meta>` tag AND an `og:` tag from one resolved value. A page's own value always wins;
+  the site-wide `SiteSetting` default only applies when the page hasn't set one. `og_image` still passes through
+  `App\Support\Media::url()` (already used for the site-wide value) so either an absolute picker URL or a bare
+  storage path resolves correctly.
+- **What's still not built:** no character-count/preview widget for meta title/description (just plain
+  inputs — no "here's how this looks in Google" preview); no per-page Twitter Card tags (`twitter:*` — the site
+  only emits Open Graph); not verified in a real browser (no PHP/Docker in this sandbox) — confirm by setting a
+  page's SEO fields, saving, and viewing the rendered `<head>` (and the homepage specifically, since it renders
+  through this same `public.page` view when a homepage Page exists — see `HomeController::index()`).
+
+## 7j. Duplicate Page + Save as Template
+
+`PageService::duplicate()` and `PageTemplateService::saveAsTemplate()` (plus the whole `PageTemplate` model/
+repository/observer stack) already existed, fully correct, with zero routes or UI pointing at either — the
+same "built but unreachable" pattern as the media library scaffolding in §7h.
+
+- **Duplicate:** `POST /admin/pages/{id}/duplicate` (`admin.pages.duplicate`) — a one-button action on the
+  pages index list (next to Set-as-Homepage/Delete), no confirmation prompt needed since it's non-destructive.
+  Redirects straight into the editor for the new copy (draft, `-copy` slug, `(Copy)` title, latest layout only
+  — never the published-only revision, so any in-progress draft edits carry over exactly as
+  `PageService::duplicate()` already documented).
+- **Save as Template:** a small form in the editor's Page Settings panel (second `.sidebar-panel[data-panel=
+  "settings"]` block, placed after `</form>` since it posts to a different route and can't nest inside
+  `#page-form`) — `window.fillTemplateName()` prompts for a name, fills a hidden input, then submits normally.
+  Saves the page's current *latest* layout (draft or published, whichever was saved most recently) as a new
+  `PageTemplate` row scoped to the current school.
+- **Actually using a saved template:** the "New page" form (`create.blade.php`) gained a "Start From" select —
+  Blank Page (default) plus every template `PageTemplateRepository::availableTo()` returns, grouped into
+  "Starter Templates" (`school_id IS NULL`, seeded global ones) and "My Templates" (this school's own saved
+  ones). `PageController::store()` accepts an optional `page_template_id`; when present, the new page's seed
+  layout is `array_merge($blankDefaults, $template->layout_json)` — the template's own stored `template`/
+  `blocks`/`sidebar` win over the create form's own Template (full/sidebar) select, which only matters for the
+  blank-page path now. Without this half, "Save as Template" would have been a write-only dead end — nothing
+  before this exposed the templates a user just saved anywhere they could be picked back up.
+- **What's still not built:** no template management UI at all — can't rename, preview, or delete a saved
+  template once created (only a raw DB row); no thumbnail generation despite the model having a `thumbnail`
+  column; no global/seeded starter templates actually exist yet (the "Starter Templates" optgroup will just be
+  empty until someone seeds `school_id => null` rows). Not verified in a real browser (no PHP/Docker in this
+  sandbox).
+
+## 7k. Tests: Style/Layout tabs + Container/Grid nesting
+
+Zero coverage existed for either before this — `PageBuilderTest.php` only ever posted plain `type`/`data`
+blocks, never a `style`/`layout` key or a `container`/`grid` type. New file:
+`tests/Feature/Admin/PageBuilderStyleLayoutNestingTest.php`, same fixture setup as `PageBuilderTest.php`
+(school + admin user + `RoleSeeder`), asserting through the real `POST /admin/pages` → `PUT /admin/pages/{id}`
+→ `GET /{slug}` round trip (never calling `PageRenderService`/`BlockPresentation` directly) so a regression in
+the actual HTTP boundary is what gets caught, not just the service methods in isolation.
+
+Covers: `sanitizeStyle()` clamping/dropping invalid values (bad hex color, out-of-range padding, an
+unrecognized shadow/animation keyword) and the resulting inline `style="…"` / `reveal-*` class actually
+appearing in the rendered public page; `sanitizeLayout()`'s per-breakpoint `hide`/`columns` clamping and the
+`d-*`/`row-cols-*` Bootstrap utility classes `BlockPresentation` derives from them; a Container holding two
+leaf children and rendering both; a Container nested inside a Container (2 levels); an unknown block type
+being dropped at both the top level AND inside a nested container in the same request; nesting deliberately
+pushed past `MAX_NESTING_DEPTH` (asserts the stored tree never exceeds the cap and the request never
+errors — the actual termination guarantee §7g's docs describe, not just "it has a constant"); a nested child's
+own `style`/`layout` surviving the save → reload round trip, including the editor's own edit screen re-rendering
+without error afterward.
+
+**Verification gap, same as every other change in this session:** none of this has actually run — no
+PHP/PHPUnit in this sandbox. Run `docker compose exec app php artisan test
+tests/Feature/Admin/PageBuilderStyleLayoutNestingTest.php --no-coverage` before trusting it; written carefully
+against the real `sanitizeStyle()`/`sanitizeLayout()`/`normalizeBlocks()`/`BlockPresentation` source (traced by
+hand, including the exact depth arithmetic for the past-cap test), but "traced by hand" is not "observed
+passing."
+
+## 7l. Public page render caching
+
+`PageRenderService`/the public `PageController` never called `Cache::` at all before this — every visit to a
+published page re-resolved every block's live data (notices/stats/staff queries) from scratch, on every
+request, even though most published pages change rarely.
+
+- **New `PageRenderService::renderPage(Page $page): ?array`** — the cached counterpart to `buildView()`,
+  called by `Public\PageController::show()` and `HomeController::index()` (both previously called
+  `buildView($schoolId, $layout?->layout_json)` directly). The **admin live-preview endpoints
+  (`preview()`/`previewBlock()`) still call `buildView()`/`buildViewFromBlocks()` directly, untouched and
+  uncached** — they render the editor's current unsaved form state, which must never come from a cache.
+- **Cache key is the published `PageLayout` row's own id, not the page id.** Every `PageService::publish()`
+  creates a brand-new `PageLayout` row (layouts are versioned — see `CLAUDE.md`/§"the actual save
+  model"), so a fresh publish is automatically a fresh cache key with zero explicit invalidation code needed —
+  deliberately different from the tag-flushing Observer pattern (`Cache::tags([...])->flush()` on
+  `saved`/`deleted`) every other Repository cache in this codebase uses. `Cache::tags(['pageview'])` is still
+  applied (for ops visibility / bulk-flush capability), but nothing in this change ever calls
+  `Cache::tags(['pageview'])->flush()` itself.
+- **The one staleness window this can't close by construction**: a "dynamic" block's live data (notices count,
+  staff list, stats) changing without the page itself being re-published. Bounded by a flat 5-minute TTL
+  (`CACHE_TTL`) rather than making Announcement/Staff/etc. aware this cache exists — deliberately, to avoid
+  coupling unrelated modules to the Website module's rendering internals just to keep a cache fresh.
+- **Regression test**: `PageBuilderTest::test_republishing_does_not_serve_a_stale_cached_render()` — publishes
+  a page, republishes it with different content (a new `PageLayout` row/id), and asserts the second render
+  shows the new content, not the first render's cached HTML. This is the one behavior that would silently break
+  if the cache key were ever changed to something coarser (e.g. page id instead of layout id).
+- **What's still not built**: no caching for the admin pages list/history screens (not requested, and those are
+  already scoped to a handful of DB rows per school — not the same "resolve live module data on every request"
+  cost the public render has); no cache warming (first visitor after a publish pays the uncached cost, same as
+  before this change); not verified in a real browser/Redis (no PHP/Docker in this sandbox) — confirm by timing
+  a repeat request to a published page and checking `docker compose exec app php artisan tinker` shows the
+  `pageview:layout:{id}` key actually landing in Redis.
+
+## 7m. Autosave + concurrent-edit warning
+
+Before this, closing a browser tab mid-edit lost everything back to the last real Save, and two admins editing
+the same page at once would silently overwrite one another with no warning — the second Save just won, full
+stop.
+
+**Autosave (crash/tab-close recovery) — client-side only, deliberately never touches the server:**
+`edit.blade.php` piggybacks on the existing `pushHistory()` debounce (already fires ~1.2s after the last edit,
+for undo/redo) — a thin wrapper around it now also writes `{savedAt, snapshot}` to
+`localStorage['website-editor-autosave-{pageId}']`. On load, `checkAutosaveRecovery()` compares that draft
+against `initialSnapshotJson` (the state the editor just rendered); if they differ, a dismissible banner offers
+Restore (calls the existing `restoreSnapshot()` — the same function undo/redo already uses) or Discard. The
+draft is cleared on a real form submit (`#page-form`'s `submit` listener) since the server now has that state
+(or newer). Wrapped in `try/catch` throughout — a full or disabled localStorage degrades to "no autosave,"
+never to a broken editor. This is **client-side only, no new `PageLayout` revisions are created by typing** —
+unlike a server-side autosave, it can't flood the History panel, but it also only protects the admin who typed
+it, in their own browser; it does nothing for the concurrent-edit case below, which is a genuinely different
+failure mode.
+
+**Concurrent-edit warning — real optimistic concurrency, server-side:** `PageController::edit()` now passes
+`knownLayoutId` (the page's current latest `PageLayout` id at the moment the editor loads) into a new hidden
+`known_layout_id` field. `save()` compares that value against whatever the latest revision actually is BY THE
+TIME the save request arrives — a mismatch means someone else saved in between. Because this app's layouts are
+already append-only/versioned (`PageService`/`CLAUDE.md` — every save is a new row, never an update), the
+safest response to a real conflict was judged to be: **never block or discard either admin's work.** A
+conflicting save still creates its own new `PageLayout` revision (nothing is ever lost), it just skips the
+auto-`publish()` step and redirects back with a `warning` flash instead of the normal `status` flash, telling
+the admin to check History and manually decide which revision should actually be published. This sidesteps a
+much harder problem a real "block and force-reload" flow would have hit: this app is a full-page POST form
+editor (not an SPA/AJAX submit), so rejecting the save outright and reloading the page would have thrown away
+whatever the admin had just tried to save — worse than the silent-overwrite bug being fixed.
+`layouts/admin-fullscreen.blade.php` (the shell this editor uses) had **never rendered any flash message at
+all** before this — `redirect()->with('status', ...)` was already being set on every save and simply never
+shown; fixed as a byproduct (`edit.blade.php` now renders both `status`/`warning` as floating dismissible
+alerts, `status` auto-fading after 4s via `bootstrap.Alert`, `warning` staying until dismissed).
+
+**Regression tests**: `PageBuilderTest::test_concurrent_save_keeps_both_revisions_and_warns_instead_of_overwriting()`
+— two saves against the same stale `known_layout_id`, asserts both revisions exist, the originally-published
+one is still published (never silently swapped), and the second response carries the warning flash instead of
+the success one.
+
+**What's still not built:**
+- **Undo/redo doesn't re-autosave.** `pushHistory()` is only called on actual edits, not by `undo()`/`redo()`
+  themselves — closing the tab immediately after an undo would offer to "restore" the state from before that
+  undo, not the undone-to state. Low-stakes (the recovery banner is opt-in, never auto-applied), flagged rather
+  than fixed given how narrow the window is.
+- **No live "someone else is editing this page right now" indicator** — the warning only surfaces AFTER a
+  conflicting save already happened, not proactively (no presence/locking system, no polling). A full
+  editor-locking feature (like Google Docs' "X is editing") was judged out of scope for this pass.
+- **No UI shortcut to diff/merge the two conflicting revisions** — History already lets an admin restore any
+  old revision as a new draft, but there's no side-by-side diff between "my draft" and "the one that got
+  published instead," so resolving a real conflict still means re-doing the comparison by eye.
+- **Verification gap, same as every change in this session:** not run in a real browser (no PHP/Docker in this
+  sandbox) — confirm by opening the same page in two tabs, saving in one, then saving in the other, and
+  checking the warning banner + History panel show both revisions correctly.
+
+## 7n. Accessibility: drag handle / context menu / canvas
+
+Before this, the editor's icon-only controls relied entirely on `title` (unreliable with screen readers, hover-
+only — no help for keyboard-only or touch users), the canvas's selectable blocks weren't part of the
+accessibility tree or keyboard tab order at all, and the right-click context menu was a set of unlabeled plain
+buttons with no menu semantics.
+
+- **Sidebar rail (`_card.blade.php`)**: every icon-only button (Move Up/Down, Remove) gets a real `aria-label`
+  (kept alongside the existing `title`, not replacing it — `title` still gives sighted mouse users a hover
+  tooltip). Purely decorative icons (`text-brand` type icon, chevron, and the drag-handle icon itself) get
+  `aria-hidden="true"` so a screen reader doesn't announce a meaningless glyph name next to the real label. The
+  drag handle specifically is left **out** of the interactive tree (no `tabindex`/`role`) rather than faked into
+  looking keyboard-operable — native HTML5 drag-and-drop isn't keyboard-accessible by construction, and the
+  Move Up/Down buttons already ARE the real keyboard-operable equivalent for reordering, so labeling the handle
+  as a button would promise an interaction it can't deliver. The block-row toggle (`role="button"` already
+  present) gained `aria-expanded`/`aria-controls`, kept in sync by `openBlockCard()`/`closeBlockList()`
+  (`edit.blade.php`), plus an explicit `aria-label` — needed because without one, a `role="button"` wrapping
+  several already-labeled nested buttons would have its accessible name computed by concatenating ALL of their
+  labels together into one confusing string.
+- **Canvas (`public/layout.blade.php`'s gated preview bridge)**: every `[data-block-path]` element now gets
+  `tabindex="0"`, `role="button"`, and an `aria-label` — done via a `MutationObserver` + one-time initial pass
+  (`labelAllBlocks()`/`labelBlock()`), not a single pass at load, because blocks appear/move through three
+  different paths (a full iframe reload, the per-block fast-preview patch, and canvas drag-and-drop) and one
+  self-maintaining observer covers all three instead of re-running labeling by hand after each. A new
+  `keydown` handler makes Enter/Space activate a focused block exactly like a click (required — an interactive
+  `role="button"` with no keyboard handler is worse than not labeling it at all), by synthesizing a `.click()`
+  rather than duplicating the selection logic. **Scoped to the editor only**: this whole bridge script already
+  returns immediately (`if (window.self === window.top) return;`) on the real public site, so none of this
+  touches what an actual site visitor's screen reader announces — `path`/`data-block-*` attributes render
+  unconditionally in the underlying Blade partials for both contexts, but the ARIA labeling only ever runs
+  inside the admin iframe.
+- **Right-click context menu**: gained `role="menu"` on the container and `role="menuitem"` on each action,
+  `aria-label` on the menu itself, an `Escape`-to-close handler, and its icons marked `aria-hidden="true"`
+  (each item's visible text label is already the accessible name). Focus moves to the first item when the menu
+  opens. Not claimed as fully keyboard-operable end to end — there's no keyboard-triggered equivalent to
+  right-click added here — but everything this menu can do (Copy/Paste Style, Remove) already has a real,
+  independently keyboard-accessible path via the sidebar (Style tab's Copy/Paste Style buttons,
+  `_style_fields.blade.php`; the rail's Remove button), so this menu is a mouse shortcut to already-accessible
+  functionality, not the only way to reach it.
+- **Topbar + media picker**: every remaining icon-only button across the topbar (Back, Add Block, Content
+  Blocks, Page Settings, Undo, Redo, History, viewport toolbar, Preview link) and the Media Library modal's
+  per-item Delete button gained matching `aria-label`s (the Delete button's includes the filename, so multiple
+  items in the grid remain distinguishable by screen reader).
+
+**What's still not built:**
+- **No live-region announcement** when a block is added/removed/reordered/moved into a container — a screen
+  reader user gets no confirmation beyond whatever they can infer from focus landing somewhere; a proper fix
+  would add an `aria-live="polite"` status region announcing e.g. "Heading block removed."
+- **No focus trap or restore-focus-on-close** for the context menu — Escape closes it, but focus isn't
+  explicitly returned to whatever was focused before it opened.
+- **The rest of the admin app** (page list, settings screens outside this one editor) wasn't audited — this
+  pass was scoped to exactly what was flagged: the page builder's drag handle, context menu, and canvas.
+- **Verification gap, same as every change in this session:** not run through an actual screen reader or
+  automated accessibility checker (no browser in this sandbox) — confirm with axe DevTools or VoiceOver/NVDA
+  on the live editor: tab through a page with nested containers, confirm each block announces sensibly, confirm
+  Enter/Space selects a focused block, confirm the sidebar rail's buttons read distinctly from each other.
+
+## 7o. Real bug found by the real test suite: `Page::layouts()` tie ordering
+
+The user ran the actual PHPUnit suite for the first time this session (589 tests, no PHP/Docker available in
+this sandbox until then) — 588 passed, 1 failed:
+`PageBuilderTest::test_concurrent_save_keeps_both_revisions_and_warns_instead_of_overwriting` (§7m). The
+concurrent-edit warning wasn't firing — `session('warning')` was missing.
+
+**Root cause**: `Page::layouts()` ordered only by `created_at` — a plain `TIMESTAMP` column (second precision,
+see the `page_layouts` migration), never `orderByDesc('id')` as a tiebreak. Two saves inside the same
+wall-clock second (trivial in a fast test, and not impossible in real usage under normal editing) tie on
+`created_at`, and MySQL doesn't guarantee any particular order among tied rows for an otherwise-unspecified
+sort — `->first()` could return either row. In the failing test, Admin A's save (creating a newer revision)
+landed in the same second as the seed layout, and `->first()` happened to keep returning the OLDER seed
+layout as "latest" — so Admin B's save, whose `known_layout_id` genuinely matched that (wrong) "latest" id,
+was never flagged as a conflict.
+
+**This was a real, pre-existing latent bug, not something the concurrency feature introduced** — every caller
+that ever relied on `$page->layouts()->first()` meaning "the actual latest revision" had the same exposure:
+`PageController::edit()`'s `$layout = $page->layouts->first();  // latest revision` (which row the editor
+loads/displays), and now `save()`'s `known_layout_id` computation and conflict check (§7m). It simply never
+surfaced before because no prior test exercised two saves against the same page within the same test method
+closely enough in time to hit the tie, and `save()`'s own published-layout lookups already used explicit
+`where('is_published', true)` filters that sidestepped the ambiguity.
+
+**Fix**: `Page::layouts()` → `orderByDesc('created_at')->orderByDesc('id')`. `id` is a strictly increasing
+auto-increment primary key on an append-only table (every save is a new row, never updated — see
+`PageService`), so it's an unambiguous, always-correct tiebreak for "most recently created," independent of
+timestamp column precision. One-line fix, but the accompanying comment on the relation explains why the
+tiebreak is required so a future edit doesn't quietly drop it.
+
+**Confirmed the actual fix, not just reasoned about it**: this doc entry itself was written by working the
+failing test's exact sequence through the new ordering by hand and confirming Admin B's `known_layout_id`
+(pinned to the seed layout) now correctly loses to Admin A's newer revision's real `id`. Not re-run through
+PHPUnit in this sandbox (still no PHP available) — the user's next `php artisan test` run is what actually
+confirms it; flagging that explicitly rather than claiming a false "all green."
+
+## 7p. Real PHPStan run: 14 errors, fixed and baselined
+
+The user ran the actual static analyzer for the first time this session
+(`docker compose exec app vendor/bin/phpstan analyse --memory-limit=2G`, level 5, 821 files) — 14 errors, split
+between two genuinely different categories.
+
+**Actually fixed (not baselined):**
+- `WebsiteMediaRepository::forSchool()` and `PageTemplateRepository::availableTo()` were missing a
+  `@return Collection<int, X>` PHPDoc — every OTHER repository in this codebase has one (e.g.
+  `AcademicRepository::getYears(): Collection` → `/** @return Collection<int, AcademicYear> */`), this was
+  simply missed when these two were written this session. Its absence is what caused
+  `MediaController::index()`'s `->map(fn (WebsiteMedia $m) => ...)` to fail type-checking — PHPStan couldn't
+  narrow the collection's item type to `WebsiteMedia`, so a closure parameter-typed to it looked contravariant
+  against the generic `Collection<Model>` base. Added both docblocks — same fix, same root cause both places.
+- `PageController::store()` used `PageTemplate::availableTo($schoolId)->find($data['page_template_id'])`.
+  `find()` is overloaded (a single id → a Model or null; an array of ids → a Collection), and since
+  `$data['page_template_id']` isn't statically provable as a scalar from a Laravel `validate()` return array,
+  PHPStan kept the full ambiguous union. Switched to `->where('id', (int) $id)->first()`, which has no such
+  overload — a clean `?PageTemplate`.
+
+**Baselined (genuine false positives, not real bugs):** every model in this entire codebase (116 of them, zero
+exceptions — checked) relies on PHPStan's baseline to suppress "undefined property" on Eloquent's
+`$fillable`/magic properties rather than `@property` PHPDoc annotations; `phpstan-baseline.neon` already had
+thousands of these entries for every other module. Added the same kind for this session's new code:
+`WebsiteMedia::$filename/$width_px/$height_px/$mime_type` (`MediaController.php`), `WebsiteMedia::$path`
+(count 2) `/$filename` (`WebsiteMediaController.php`), `PageTemplate::$layout_json` (`PageController.php`, the
+`$starter?->layout_json` line), and `Page::$school_id`/`PageLayout::$layout_json` (`PageRenderService.php` —
+the new `renderPage()` method, §7l).
+
+**Also removed two now-stale entries**: `HomeController.php`/public `PageController.php` both had a baselined
+`PageLayout::$layout_json` entry from before this session — since §7l moved that exact property access out of
+both controllers and into `PageRenderService::renderPage()`, those two entries became unmatched, which is
+itself a hard PHPStan error under `reportUnmatchedIgnoredErrors` (the user's output showed this explicitly:
+"Ignored error pattern ... was not matched in reported errors"). Removed both; the property access they used to
+cover is now the new `PageRenderService.php` entry above instead.
+
+**Verification gap, honestly stated**: baseline entries were hand-written to match the exact regex/count/path
+format of ~9,000 existing entries (verified structurally identical via `cat -A` — tabs, blank-line separators,
+key order — since `.neon` is Nette's format, not real YAML, so a YAML parser can't validate it; PyYAML rejects
+the file's tabs outright, which is expected and not a sign of a problem). The `PageTemplate::$layout_json`
+entry in particular is a best-effort prediction of what the analyzer will report post-fix, not something
+confirmed against real output — the next `phpstan analyse` run is what actually confirms all of this, the same
+loop that just caught and fixed the `Page::layouts()` bug in §7o.
+
+## 7q. Media library: alt-text editing
+
+`WebsiteMedia.alt_text` was a real column with nothing anywhere ever setting it (§7h's own "what's still not
+built" list flagged this). Rather than a prompt at upload time (friction on every single upload, and doesn't
+help the images already uploaded before this), each grid item in the Media Library modal now has its own
+inline text input, saved on `change` (blur/Enter) via a new `PUT /admin/media/{id}` endpoint
+(`MediaController::update()` → `WebsiteMediaService::updateAltText()`) — one mechanism that covers both new and
+already-uploaded files. The request is fire-and-forget (best-effort, no error UI) — deliberately: losing an
+alt-text edit is low-stakes compared to interrupting the editor over it, unlike a real save/publish.
+`present()` now includes `alt_text` in the JSON payload so the picker shows the current value on reopen, and
+selected thumbnails render with it as their own `alt` attribute in the grid itself (not blank).
+
+**Deliberately out of scope for this pass**: the alt text captured here isn't wired into any BLOCK's own
+rendered `<img>` yet — `image` block's public render already uses its own `caption` field as alt text (a
+separate, pre-existing field), and `hero`'s image is a CSS `background-image` (no `<img>` tag exists to put
+`alt` on, which is correct — decorative backgrounds don't need alt text). `image_text.image` is the one real
+gap (it renders a genuine `<img alt="">`, always blank) — auto-filling it from the picked media's `alt_text`
+when selected is a reasonable follow-up, not done here to keep this change scoped to the media library itself
+rather than also touching the block-field spec/picker-selection JS.
+
+**Verification gap**: `tests/Feature/Admin/WebsiteMediaLibraryTest.php` (new — media had zero test coverage
+before this) covers upload/list/delete and the new alt-text update, including school-scoping (a different
+school's media 404s, never leaks into another school's list). Not run in this sandbox (no PHP available) —
+same caveat as everything else this session; the user's own `php artisan test` run is what actually confirms
+it.
+
+## 7r. Media library: drag-and-drop upload
+
+The Media Library modal only had the explicit "Upload" button + native file picker before this — the whole
+modal body (not a separate drop-zone box; the grid already fills the space) is now a drop target too.
+`uploadFile(file)` was factored out of the file-input's `change` handler so both paths (button-triggered
+picker, drag-and-drop) share one upload call, with the input-triggered path unchanged (still resets
+`uploadInput.value` afterward; the drop path has no input to reset).
+
+- **`dragenter`/`dragover` must both call `preventDefault()`** — the browser's default behavior for a drop
+  target that never opts in is to reject the drop outright, opening the dragged file in a new tab/navigating
+  away from the editor.
+- **`dragleave` fires on every child-element boundary crossing, not just when truly leaving the zone** — a
+  known DOM quirk (the modal body's children, e.g. the grid's own thumbnail cards, each fire their own
+  enter/leave pair as the cursor crosses them). Tracked via a depth counter (increment on `dragenter`,
+  decrement on `dragleave`, only clear the "drop here" highlight at depth 0) rather than the naive "toggle a
+  boolean per event" approach, which flickers the highlight on/off constantly while dragging over any nested
+  element.
+- **Multiple dropped files upload sequentially, not via `Promise.all`** — deliberately: `status.textContent`
+  is shared, single-line, best-effort feedback ("Uploading…" / "Upload failed."); a parallel burst would let a
+  later file's status message stomp an earlier one's failure before the admin ever saw it, and a multi-file
+  drop hammering the endpoint with N simultaneous requests has no real upside over one-at-a-time for what this
+  modal is (a small admin tool, not a bulk-import feature).
+- Visual affordance is a CSS outline (`.media-drop-active`, toggled by the same dragenter/dragleave handlers)
+  rather than a separate overlay element — simpler, no extra DOM to keep positioned/sized as the grid's own
+  content grows.
+
+**Not covered by this pass**: no upload progress indicator (a single "Uploading…" status line, same as the
+button-triggered path already had — multi-file drops just don't show which file is currently in flight); no
+client-side file-type/size pre-check before the request round-trips (the existing server-side validation in
+`MediaController::store()` — 10MB, image/mp4/webm mimes — is still the only enforcement, same as before this
+change).
+
+## 7s. Page templates: rename/delete management UI
+
+`PageTemplateService::saveAsTemplate()` (§7j, the editor's "Save as Template" action) has always been a
+one-way door — once saved, a template had no screen anywhere to see the list, rename a typo'd name, or delete
+one that's no longer wanted. This closes that gap with a small dedicated management screen, not a change to
+the editor itself.
+
+- **New route group** (`admin.page-templates.index|update|destroy`, `routes/web.php`) and
+  `App\Http\Controllers\Admin\Website\PageTemplateController` — `index()` lists, `update()` renames (PUT,
+  `name` required|string|max:150), `destroy()` deletes. All three scope to `PageTemplate::where('school_id',
+  $schoolId)` — deliberately excludes global/seeded starter templates (`school_id` null, shared across every
+  school) from this screen entirely; those stay read-only/pick-only from the editor's own "Start From" picker,
+  never editable or deletable from a single school's admin. `PageTemplateService` gained matching
+  `rename()`/`delete()` methods (both trivial — no cache, no observer needed beyond what already exists on the
+  model).
+- **New view** `resources/views/admin/website/page-templates/index.blade.php` — a plain table (name / saved-at
+  / actions), Rename and Delete as small `<form>`+icon-button pairs per row, matching this admin's existing
+  row-action convention elsewhere (icon buttons, not a dropdown menu). Rename reuses the exact same
+  `window.prompt()`-then-submit pattern the editor's own `fillTemplateName()` (§7j) already uses for
+  "Save as Template," rather than introducing a second UI convention (a modal) for the same kind of
+  single-field-string interaction. Delete uses the same native `confirm()` pattern already used everywhere
+  else in this admin for irreversible actions (Users, Menus, etc.) — no new confirmation-modal component was
+  introduced.
+- **Navigation**: added under Website → Page Templates in the sidebar (`components/sidebar.blade.php`,
+  between Pages and Menus) and as a ⌘K command-palette entry (`components/command-palette.blade.php`, `g w`
+  shortcut, Setup section, matching the Website Pages entry immediately above it) — both existing findability
+  mechanisms this app already has for every other admin resource, so a newly-saved template doesn't become
+  effectively invisible outside the editor's own "Start From" list.
+
+**Deliberately out of scope for this pass**: global/seeded starter templates still have no management UI at
+all, not even read-only, from this screen — they're only ever visible inside the editor's own "Start From"
+picker when creating a page. If the user later wants to curate/retire seeded starter templates without a DB
+console, that's a separate, larger change (would need a superadmin-only screen, since a single school's admin
+has no business editing a template shared across every school). Also out of scope: no preview thumbnail on
+this list (the `PageTemplate.thumbnail` column has been unused since it was added — still true after this
+change; the table shows name and saved-at only, no visual preview of what the template's blocks look like).
+
+**Verification gap**: no PHP available in this sandbox, so `PageTemplateController.php`,
+`PageTemplateService.php`, and `routes/web.php` were checked only via a brace/paren-balance script (all
+balanced); the new view's inline `<script>` (the `fillNewName()` function) was checked via `node --check`
+after stripping `@json(...)`/`{{...}}` (passed). None of this has run through Pint/PHPStan/PHPUnit or a real
+browser — at minimum, save a template from the editor, rename it here, confirm the new name shows up in the
+editor's own "Start From" list on the next new-page screen, then delete it and confirm pages already created
+from it are untouched (deleting a `PageTemplate` row must never cascade to `Page`/`PageLayout` rows — there's
+no FK relationship between them, `layout_json` is copied by value at creation time, not referenced).
+
+## 7t. SEO: Twitter Card meta tags
+
+`public/layout.blade.php` only ever emitted Open Graph tags (`og:title`/`og:description`/`og:image`/`og:type`)
+— pages shared on X/Twitter fell back to Twitter's own generic link-preview scraping instead of a proper
+Card, since Twitter/X reads `twitter:*` meta tags first and only falls back to `og:*` inconsistently. Added
+the matching `twitter:card`/`twitter:title`/`twitter:description`/`twitter:image` tags, reusing the exact same
+per-page-overrides-site-wide-default precedence the Open Graph tags already established (`$metaDesc`/`$ogUrl`,
+computed once in the `@php` block from `$__env->yieldContent('meta_description'|'og_image', ...)` — a page's
+own `meta_desc`/`og_image` win over the site-wide Website > Settings default, never both at once).
+
+- **`twitter:card` is conditional on `$ogUrl`**: `summary_large_image` when there's an image, plain `summary`
+  otherwise — `summary_large_image` with no image is a degraded/broken card on Twitter's own validator, so this
+  isn't just cosmetic.
+- **New `$pageTitle` variable, computed once** (`trim((string) $__env->yieldContent('title', ...)) ?: $siteName`)
+  and reused for `<title>`, `og:title`, and `twitter:title` — previously `@yield('title', ...)` was called
+  twice (once for `<title>`, again for `og:title`), which worked but meant three independent call sites could
+  in principle drift; one variable removes that possibility.
+- **Real bug fixed as a side effect, not the original goal**: `@yield` compiles to an *unescaped* echo
+  (`{!! ... !!}`), so `<title>`/`og:title` were previously emitting the page title raw — a title containing a
+  literal `"` or `<` (e.g. `Rules & "Regulations"`) would have broken the `content="..."` attribute or, in a
+  worse case, injected markup into the `<head>`. Both `page.blade.php` and `home.blade.php` only ever pass
+  plain concatenated strings into `@section('title', ...)` (verified — no HTML-bearing title exists anywhere
+  in this app), so switching to `{{ $pageTitle }}` (Blade's escaped echo) for all three tags is a strict
+  correctness fix with no behavior change for any currently-existing page.
+- **No new translation keys** — these are HTML attribute values built from already-translated/free-text model
+  fields (`page.title`/`meta_desc`), not new UI copy.
+
+**Verification gap**: `tests/Feature/Public/PageSeoMetaTagsTest.php` (new) covers the image/no-image Card-type
+branch, per-page overrides rendering into both `og:*` and `twitter:*` tags, and the escaping fix (a title with
+`&`/`"` renders correctly-escaped in `<title>`, `og:title`, and `twitter:title` alike). Not run in this sandbox
+(no PHP available) — same caveat as every prior change this session; also worth a real pass through Twitter's
+own Card Validator (or the generic Meta Tags debugger) once deployed, since some scrapers cache aggressively
+and a stale cached card can look "wrong" even after the HTML itself is correct.
+
+## 7u. Accessibility: block-action live-region announcements + context-menu focus restore
+
+Two related gaps left over from §7c's original accessibility pass (aria-labels on the drag handle, context
+menu, and canvas): every structural block action happened silently on screen — add/remove/reorder/move all
+just changed the shape of the rail or canvas with no feedback a screen-reader user could perceive — and the
+right-click context menu, once closed, dropped focus into the void rather than back to wherever it came from.
+
+**Live-region announcements** (`edit.blade.php`): a single `<div id="a11y-status" class="visually-hidden"
+aria-live="polite" aria-atomic="true">` was added right after the topbar. A shared `announce(template, vars)`
+helper does simple `:placeholder` substitution (Laravel's own convention, e.g. `announce(MSG_BLOCK_ADDED, {
+label: 'Hero Banner' })` → "Block added: Hero Banner") and clears-then-sets the region's `textContent` on the
+next animation frame — clearing first matters because an `aria-live` region only fires for an actual text
+change, so two consecutive identical announcements (removing two Heading blocks back to back, say) would
+otherwise silently only announce the first one. A `cardLabel(card)` helper reads a block's own name straight
+off its already-rendered `.block-row[aria-label]` (the same string §7c already put there) rather than tracking
+it separately, so an announcement can never say something different from what's actually on screen.
+
+Wired into every history-pushing structural action:
+- **Add** — `finishBlockInsert()` (shared by `addBlock()`/`addBlockAt()`) and `addChildBlock()`.
+- **Remove** — `removeCard()`; the label is captured *before* `card.remove()`, since the row it reads from
+  won't exist afterward.
+- **Reorder** — the Move Up/Down buttons (only when the move actually happens — a Move Up on the first block
+  is a no-op and correctly announces nothing) and both SortableJS `onEnd` handlers (top-level rail drag and
+  `initNestedSortables()`'s per-container drag), via `evt.item`.
+- **Move-into-container** — the canvas's `move-block` message handler (§7g) now distinguishes three outcomes
+  by comparing source/destination list identity: same list → "Reordered", destination is a top-level
+  `blocks-list`/`sidebar-list` → "Moved to the top level", otherwise → "Moved into `<container's own
+  cardLabel()>`" — so pulling a block back out of a container announces differently from nesting it deeper,
+  which a purely visual DOM-move gives no other signal for at all.
+
+All seven message templates (`Block added: :label`, `Block removed: :label`, `Moved :label up/down`,
+`Reordered :label`, `Moved :label into :container`, `Moved :label to the top level`) are wrapped in `__()`
+with `:placeholder` tokens rather than JS string concatenation — consistent with treating this as new UI
+chrome (§7d's own convention: block/field *labels* stay unwrapped, but editor UI text gets translated) — and
+added to `bn.json`.
+
+**Context-menu focus restore** (`public/layout.blade.php`): `closeContextMenu()` gained a `restoreFocus`
+boolean and a `lastFocusedBeforeMenu` variable capturing `document.activeElement` at the moment the menu
+opens. Restoration only happens on two of the four ways the menu can close:
+- **Escape** — always restores, matching the WAI-ARIA APG menu-button pattern ("focus is typically returned
+  to the element that had focus before the menu opened") and every other Escape handler already in this app.
+- **Choosing a menu item** (Copy/Paste Style/Remove) — also restores, once its action has been dispatched to
+  the parent.
+
+Deliberately **not** restored on the other two closers — a plain outside click or a scroll:
+- **Outside click**: the click may have landed on a genuinely focusable element inside a block (a contact
+  form's input, a button block's link) — the browser already moves focus there as part of handling the click,
+  and forcibly restoring focus to the pre-menu element a moment later would yank it right back out from under
+  whatever the user just clicked. There is no way to distinguish "clicked empty canvas space" from "clicked a
+  focusable element" generically enough to make restoring safe here.
+- **Scroll**: not a focus-relevant gesture at all; restoring would be surprising, not helpful.
+
+A pre-existing, harmless duplicate `keydown`/Escape listener (two separate `document.addEventListener`
+registrations doing the identical check-and-close, evidently left over from an earlier edit) was consolidated
+into the one Escape listener now carrying the `restoreFocus` flag, rather than left duplicated alongside new
+logic.
+
+**Verification gap**: no PHP available in this sandbox, so `edit.blade.php` and `public/layout.blade.php` were
+checked via the brace/paren-balance script (both balanced — `edit.blade.php`'s pre-existing `[`/`]` mismatch,
+289 vs. 287 on `dev` before this change, is untouched by this diff, confirmed by running the same check against
+this session's own added lines in isolation: 1/1, balanced) and `node --check` on both files' extracted inline
+`<script>` (both passed). None of this has run through Pint/PHPStan/PHPUnit or a real screen reader — at
+minimum, verify with VoiceOver/NVDA that adding, removing, reordering, and dragging a block into a container
+each announce something sensible exactly once (not zero times, not twice), and that opening the context menu
+with Shift+F10 on a focused block, then pressing Escape, visibly returns focus to that same block.
+
+## 7v. Fix: Media Library modal invisible inside the fullscreen editor
+
+Reported directly by the user: clicking "Browse" on an Image block's URL field (or any `'media'` field —
+hero, image_text, video poster) did nothing visible — no modal appeared.
+
+**Root cause**: `public/css/admin-design-tokens.css`'s `.modal`/`.modal-backdrop` rules were written for a
+native `<dialog>` element toggled via the `[open]` *attribute* (`visibility:hidden; opacity:0` by default,
+only visible under `.modal[open]`) — but Bootstrap 5's modal JS toggles a `.show` *class*, never that
+attribute. `layouts/admin.blade.php` (the layout every other admin screen uses) already carries a fix for
+exactly this clash — a `.modal`/`.modal.show`/`.modal-backdrop` override restoring Bootstrap's actual
+positioning/visibility behavior (see its own inline comment, added well before this session). `layouts/
+admin-fullscreen.blade.php` (the page editor's own minimal shell, §7b) never got a copy of that fix — it
+predates the Media Library being the first real Bootstrap modal ever opened inside it (§7h), so the gap went
+unnoticed until now. `bootstrap.Modal.getOrCreateInstance(modalEl).show()` (`edit.blade.php`) was working
+correctly the entire time — the modal really was opening in the DOM, just invisible.
+
+**Fix**: copied the identical CSS block from `layouts/admin.blade.php` into `layouts/admin-fullscreen.blade.php`'s
+`<style>` tag — same rules, same values, no divergence between the two layouts' modal behavior. Any *future*
+Bootstrap modal added inside the fullscreen editor is now covered too, not just this one.
+
+**Verification gap**: no PHP/browser in this sandbox — checked only via a brace/paren-balance script (balanced).
+Please confirm in the browser: open a page in the editor, add or expand an Image block, click Browse, and
+confirm the Media Library modal now actually appears (not just that no console error is thrown).
+
+## 7w. Removed the Move Up/Down buttons — drag-only reordering
+
+Requested directly by the user: the per-block Move Up/Down buttons (`.js-up`/`.js-down` in `_card.blade.php`)
+are gone from the rail row's button group, leaving only Remove. Reordering is now exclusively via the existing
+drag handle (SortableJS, Milestone 7/§7c) — dragging a block by its grip icon (or the row itself) up or down
+its list.
+
+- **`_card.blade.php`**: removed both buttons; the row's `btn-group` now holds only Remove.
+- **`edit.blade.php`**: removed the `.js-up`/`.js-down` branches from the delegated click handler, and the
+  now-unused `MSG_MOVED_UP`/`MSG_MOVED_DOWN` announcement templates (§7u) — the drag path's own `MSG_REORDERED`
+  announcement already covers this action, so nothing else needed to change there.
+- **No backend change** — reordering was always a pure client-side DOM operation (`insertBefore()`/SortableJS),
+  submitted as part of the whole form on Save like any other field; nothing about *how* the client got the
+  blocks into their final order was ever visible to the server.
+- **No new translation keys removed either** — `bn.json`'s `"Move Up"`/`"Move Down"`/`"Moved :label up"`/
+  `"Moved :label down"` entries were left in place rather than deleted, since removing translation keys that
+  might still be referenced elsewhere (or reintroduced later) is lower-value than the risk of a stale
+  `translations:scan` diff; they're simply unused now.
+
+**Real accessibility regression, worth flagging plainly rather than glossing over**: §7u's own comment in
+`_card.blade.php` explicitly called out that "Move Up/Down... are the keyboard-operable equivalent for
+reordering" — removing them removes the *only* keyboard-operable way to reorder a block. SortableJS's
+drag-and-drop has no built-in keyboard fallback, and this change doesn't add one. A keyboard-only admin (or a
+screen-reader user) can now add, remove, and edit blocks, but cannot reorder them at all — not "harder,"
+genuinely impossible through this UI. This was an explicit, informed trade-off the user asked for (drag-only,
+buttons removed), not an oversight — but if keyboard reordering ever needs to come back, SortableJS has no
+built-in keyboard-sensor equivalent, so the cleanest path would be either restoring the buttons in some less
+prominent form (e.g. only in the right-click context menu) or hand-rolling arrow-key handling on a focused
+block-row.
+
+**Verification gap**: no PHP/browser in this sandbox. `_card.blade.php`/`edit.blade.php` checked via
+brace/paren-balance script (this diff's own added/removed lines are self-balanced; the file's pre-existing
+`[`/`]` gap, documented in §7u, is untouched) and `node --check` on the extracted inline `<script>` (passed).
+Please confirm in-browser that drag-reordering still works for both top-level lists and nested containers, and
+that the rail row no longer shows Up/Down icons.
+
+## 7x. Padding/margin moved to the Layout tab, as a 4-box (top/bottom/left/right) control
+
+Requested by the user: padding and margin belong on the Layout tab, not Style — and every block previously
+only had top/bottom control (no left/right at all), shown as two separate `(px)` number fields rather than one
+connected "box model" strip.
+
+**Data model — unchanged, deliberately.** Padding/margin are still `[style][padding_*]`/`[style][margin_*]`
+keys (`PageRenderService::sanitizeStyle()`), not moved to `[layout][...]`. Renaming the storage key would mean
+migrating every existing page's `layout_json`, splitting `sanitizeStyle()`/`sanitizeLayout()` in a way that no
+longer matches which *tab* a value visually belongs to, and complicating Copy/Paste Style (which already reads
+every `[style][...]`-named field on a card regardless of which tab-pane it's rendered in — see
+`styleFieldsIn()`, unchanged by this move and still correctly picking up the relocated fields for free). Moving
+the *markup* from `_style_fields.blade.php` to `_layout_fields.blade.php` (which now also receives `$style`,
+passed through from `_card.blade.php`'s existing `@include`) achieves the requested UI reorganization with zero
+backend risk.
+
+**New sides**: `padding_left`/`padding_right`/`margin_left`/`margin_right` added to `sanitizeStyle()` (same
+`$px` clamp — 0 to 400) and `BlockPresentation::inlineStyle()` (matching `padding-left`/`padding-right`/
+`margin-left`/`margin-right` CSS rules) — previously left/right spacing wasn't controllable through the editor
+at all, only top/bottom.
+
+**The "4 continuous boxes in one field" control**: a single Bootstrap `.input-group` per property (Padding,
+Margin), each holding 4 `input-group-text` letter labels (T/B/L/R, in the requested top/bottom/left/right
+order — not CSS shorthand order) immediately followed by their own number input. Bootstrap's `.input-group`
+already merges adjacent borders/corners for free (the same mechanism the existing color-swatch pair and media
+Browse-button fields already rely on) — no bespoke CSS needed to make 4 separate inputs read as one connected
+strip. The T/B/L/R letters themselves are deliberately left untranslated (a compact, universal abbreviation —
+same convention as the "(px)" unit suffix already used throughout this file), while the full word (Top/Bottom/
+Left/Right) is still translated and exposed via `title`/`aria-label` on each box, so a screen reader or anyone
+unsure what a bare letter means still gets the real word.
+
+**Verification gap**: no PHP/browser in this sandbox. Backend + view changes checked via brace/paren-balance
+script (all balanced) and `node --check` on `edit.blade.php`'s extracted inline `<script>` (unaffected by this
+change, still passed). New test `test_all_four_padding_and_margin_sides_are_sanitized_and_rendered` (added to
+`PageBuilderStyleLayoutNestingTest.php`) covers all 8 values including the same padding clamp-to-400 behavior
+the pre-existing `padding_top` test already covered. Please confirm in-browser that the Layout tab now shows
+the two 4-box spacing strips, and that saving/reloading a page with left/right spacing set round-trips
+correctly.
+
+## 7y. Media fields: Browse button border match + live thumbnail preview
+
+Two related polish requests on the same "media" field (`_fields.blade.php`, used by hero's background image,
+the Image block's URL, image_text's image, and video's poster — plus the Page Settings og:image field).
+
+**Browse button border color.** The button (`.btn.btn-outline-secondary`) sits inside a Bootstrap
+`.input-group` beside the `.form-control` text input — Bootstrap already merges the two into one continuous
+bar (shared corner radius, overlapping 1px borders), but `.btn-outline-secondary`'s border color is Bootstrap's
+darker `--bs-secondary`, not the much lighter `--bs-border-color` a `.form-control` actually uses, so the
+shared edge showed a visible two-tone seam rather than looking like a single control. Fixed with a scoped
+`.input-group > .btn-outline-secondary` override in `edit.blade.php`'s own `<style>` block, matching the
+input's actual border color/weight (and a matching hover/focus state) — scoped by the `.input-group >` parent
+selector, so it only affects outline-secondary buttons that are direct children of an input-group (this
+Browse button and the og:image one), not every outline-secondary button in the admin.
+
+**Live thumbnail preview ("inside block").** Every `'media'` field now renders a `<div class="media-field-preview">`
+right after its input-group — an `<img>` that starts with no `src` attribute at all (never `src=""`, which is a
+real browser quirk: some browsers resolve an empty src as a request for the *current page URL* rather than
+erroring) and stays hidden until it successfully loads. One delegated `input` listener in `edit.blade.php`
+(not a per-field script) keeps every preview in sync: it finds the `.media-field-preview` immediately following
+whichever `.media-field-input`'s `input` event just fired, and sets/clears the thumbnail's `src`. Because this
+listens for the bubbling `input` event rather than being wired to a specific action, it transparently covers
+every way a field's value can change — typing, picking from the Media Library modal (`openMediaPicker()`
+already dispatches a real `input` event, unchanged), Paste Style, and undo/redo restoring a snapshot (both of
+those also already re-dispatch `input` on the field they touch) — no new wiring was needed for any of those
+paths. The listener no-ops for a `.media-field-input` with no `.media-field-preview` sibling (the Page
+Settings og:image field intentionally wasn't given one, since "inside block" scoped this to block content
+fields).
+
+**Verification gap**: no PHP/browser in this sandbox. `_fields.blade.php`/`edit.blade.php` checked via
+brace/paren-balance script (balanced) and `node --check` on the extracted inline `<script>` (passed). Please
+confirm in-browser: the Browse button's border now visually matches the input beside it, and picking/typing an
+image URL into any block's media field shows a live thumbnail beneath it within the block's own Content tab.
+
+## 7z. Image/video blocks: empty-state placeholders (public renderer + live preview)
+
+Closes a real, previously-unnoticed bug alongside the requested UX improvement: `image`/`image_text` blocks
+with no URL set yet rendered a bare `<img src="">` — a genuinely broken-image icon, not just an empty space —
+both on the real public site (if ever published half-configured) and in the live editor preview (which renders
+through this exact same Blade partial, per this whole project's core "preview and reality can never drift"
+guarantee, §2). `video` already had a text-only fallback ("No Video File Set."/"No Video URL Set.") but nothing
+visually matching the other blocks' presence in the layout.
+
+All three empty states (`image`, `image_text`, both of `video`'s two source branches) now render the same
+boxed icon-and-text placeholder — `bi-image`/`bi-camera-video` at `fs-1` inside a
+`bg-body-secondary rounded-3 py-5` box, `aria-hidden` (decorative; the visible text label inside it, `__('No
+image selected')` etc., is what a screen reader actually announces) — so an admin can tell "there's an Image
+block here, it just has nothing in it yet" at a glance from the live preview, without a broken-image icon or
+unstyled fallback text. Video's two prior message strings ("No Video File Set."/"No Video URL Set.") were
+replaced with new, differently-worded ones ("No video file selected"/"No video URL selected") to match the new
+box style consistently — the old `bn.json` entries for the retired strings were left in place (unused) rather
+than deleted, per this project's established convention; three new keys ("No image selected", "No video file
+selected", "No video URL selected") were added instead.
+
+**Verification gap**: no PHP/browser in this sandbox. `public/blocks/render.blade.php` checked via
+brace/paren-balance script (balanced). New tests in `tests/Feature/Public/PageRenderTest.php`:
+`test_empty_image_and_video_blocks_show_a_placeholder_instead_of_a_broken_element` (asserts no bare
+`<img src="">` and all three placeholder strings appear) and
+`test_image_block_with_a_url_renders_the_real_img_tag_not_the_placeholder` (confirms the placeholder doesn't
+leak into the normal, filled-in case). `bn.json` validated via `json.load`. Please confirm in-browser: add a
+fresh Image and Video block with nothing filled in yet, and confirm both show a neutral placeholder box in the
+live preview rather than a broken image icon or plain unstyled text.
+
+## 7aa. Style tab split: "Advanced" tab with collapsible Layout/Border/Background/Responsive sections
+
+Requested against real Elementor screenshots (Layout, Border ×2 variants, Responsive, Background panels) as a
+follow-up to §7x's padding/margin move: rather than the Layout tab holding just spacing, it becomes the
+catch-all "Advanced" tab Elementor itself uses — spacing, sizing, border, background, and responsive-visibility
+all live there, leaving the Style tab with only the two things that are genuinely about a block's own
+typographic look (text color, entrance animation).
+
+**What changed:**
+
+- **Tab rename, same internals.** `_card.blade.php`'s nav-link label changed from "Layout" to "Advanced"
+  (icon: `bi-sliders`). The tab pane's id (`tab-layout-{tabId}`), the partial's filename
+  (`_layout_fields.blade.php`), and every `[layout][...]`/`[style][...]` field name are unchanged — this is a
+  UI-only rename, not a data-model or route change, so no migration and no JS beyond the label/icon swap.
+- **Four independently-collapsible sections**, not a strict one-at-a-time accordion — deliberately plain
+  Bootstrap `.collapse` triggers with no `data-bs-parent`, so opening Border doesn't close Layout, matching
+  Elementor's own panel behavior. Each section header is a `button[data-bs-toggle=collapse]` with a
+  `js-adv-section-toggle` class driving a CSS-only chevron-rotation on `aria-expanded` (no extra JS — Bootstrap's
+  collapse data-api is delegated on `document`, so it works automatically for blocks added later via JS
+  templates, same pattern relied on throughout this file).
+  - **Layout** (open by default): the existing grid-columns control stays always-visible above the accordion,
+    unchanged, for Container/Grid blocks only. Then Margin and Padding (§7x's 4-box T/B/L/R control, reused via
+    the same `$boxGroup` closure), then a Width dropdown (Default / Full Width / Inline (Auto) / Custom) with a
+    conditional Custom Width row (number input + unit dropdown: %, px, em, rem) shown only when Width = Custom,
+    via `applyFieldDependencies()`.
+  - **Border** (collapsed by default): Border Type dropdown (None/Solid/Dashed/Dotted/Double), then a
+    conditionally-shown group (hidden when type is None) holding Border Width (4-box T/B/L/R) and a single
+    Border Color picker. Border Radius (4-box, converted from §7x-era single `radius`) sits below, **not**
+    gated by border type — a block can have rounded corners with no visible border line. Shadow (sm/md/lg),
+    previously on the Style tab, moved down here too, since it's a border-adjacent "box treatment" concern in
+    Elementor's own grouping.
+  - **Background** (collapsed by default): Background Color, Background Image URL, and Overlay Darkness — all
+    three moved verbatim from the old Style tab, no behavior change, just relocated.
+  - **Responsive** (collapsed by default): the four existing Hide-on-{Desktop,Laptop,Tablet,Mobile} controls,
+    restyled from plain checkboxes to Bootstrap `.form-switch` toggles to match Elementor's own switch styling
+    for this exact panel — no change to the underlying `[layout][hide][...]` field names or backend handling.
+- **`applyFieldDependencies()` generalized** (`edit.blade.php`) to accept a dotted `"group.key"` path (e.g.
+  `"style.width_mode"`, `"style.border_style"`) for a `data-depends-on` attribute, defaulting to the original
+  `group = 'data'` when no dot is present — this keeps the pre-existing single-key callers (e.g. the video
+  block's Source-driven URL/file field visibility) working unchanged while letting the new Custom Width and
+  Border sub-fields depend on `[style][...]` keys instead of `[data][...]`.
+- **Backend border-safety rule** (`PageRenderService::sanitizeStyle()`, §7-prior): a border width or color with
+  no real `border_style` set (missing or `'none'`) is meaningless per the CSS spec (`border-width` alone
+  renders nothing), so the sanitizer drops `border_width_*`/`border_color` entirely whenever `border_style` is
+  absent or `'none'` — it is structurally impossible to save a half-configured invisible border. Verified by
+  `test_border_is_only_rendered_when_a_real_style_is_set`.
+- **Legacy-radius fallback preserved.** `BlockPresentation::inlineStyle()` prefers the new per-side
+  `radius_top/bottom/left/right` keys when any are set, and falls back to the old single `radius` key
+  otherwise — pages saved before this change keep rendering identically with zero migration.
+  `test_per_side_radius_wins_over_legacy_single_radius` covers the precedence when both are present.
+
+**Explicit scope decisions (not implemented, on purpose):**
+
+- **No "chain link" linked-values toggle.** Elementor's Border Width / Radius controls have a small link icon
+  that, when active, types one value into all four sides at once. This app's 4-box control (§7x) always accepts
+  four independent values with no linking affordance — simpler to build and reason about, and the four boxes
+  are already fast to fill in for the common "same value everywhere" case (tab between them). Flagged here
+  explicitly as a deliberate cut, not an oversight, in case it's requested later.
+- **Border color is one value for all four sides**, not per-side like width/radius — Elementor itself defaults
+  to this in its "non-per-side" border mode, and a 4-independent-color border is a rare enough real-world case
+  that it wasn't worth the extra picker rows.
+
+**Verification gap, same as every prior §7x-series entry**: no PHP/browser in this sandbox. Verified via: the
+brace/paren/bracket balance script on every touched file (`PageRenderService.php`, `BlockPresentation.php`,
+`_style_fields.blade.php`, `_layout_fields.blade.php`, `_card.blade.php`, `edit.blade.php`), a
+Blade-directive-stripping pipeline feeding `node --check` on `edit.blade.php`'s inline `<script>` (the
+`applyFieldDependencies()` change), and `python3 -c "import json; json.load(...)"` on `bn.json` after inserting
+the new Advanced-tab strings (Border/Border Color/Border Radius (px)/Border Type/Border Width (px)/Custom/
+Custom Width/Dashed/Dotted/Double/Inline (Auto)/Responsive/Solid/Width — no duplicate keys, checked with an
+`object_pairs_hook` counter). New/extended coverage in
+`tests/Feature/Admin/PageBuilderStyleLayoutNestingTest.php`: width mode rendering (full/inline/custom, including
+the no-value-stores-no-width-at-all edge case), the border-safety rule, per-side-radius-wins-over-legacy, and an
+editor-page assertion that all four Advanced-tab section labels ("Advanced"/"Border"/"Background"/"Responsive")
+render. Please confirm in-browser: open a block's Advanced tab, verify Layout is expanded by default and the
+other three are collapsed, open each independently (confirm they don't close each other), set a Custom width
+and a Solid/Dashed border and confirm both the live preview and the saved public page match, and toggle a
+Responsive hide-switch to confirm it still behaves like the old checkbox did.
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1

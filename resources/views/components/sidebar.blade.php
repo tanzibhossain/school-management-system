@@ -76,6 +76,7 @@
         ]];
         $navTree[] = ['label' => __('Website'), 'key' => 'website', 'icon' => 'bi-window', 'children' => [
             ['label' => __('Pages'), 'href' => route('admin.pages.index'), 'active' => request()->routeIs('admin.pages.*')],
+            ['label' => __('Page Templates'), 'href' => route('admin.page-templates.index'), 'active' => request()->routeIs('admin.page-templates.*')],
             ['label' => __('Menus'), 'href' => route('admin.menus.index'), 'active' => request()->routeIs('admin.menus.*')],
         ]];
     }

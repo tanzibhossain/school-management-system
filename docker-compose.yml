@@ -99,6 +99,36 @@ services:
         volumes:
             - minio_data:/data
 
+    # One-shot: creates the AWS_BUCKET bucket (default "school-files", see
+    # .env's AWS_BUCKET) the first time the stack comes up, then exits.
+    # MinIO starts with ZERO buckets — nothing else creates one, and every
+    # Storage::disk('minio') upload in the app fails with "NoSuchBucket"
+    # until this runs at least once. The bucket stays PRIVATE (no public
+    # policy is set here on purpose): files are served either via
+    # Storage::disk('minio')->temporaryUrl() (existing pattern, e.g.
+    # certificates/ID cards) or through a Laravel proxy route for anything
+    # that needs to be publicly viewable (e.g. Website media) — never by
+    # exposing the bucket directly, so this step never has to be re-run or
+    # kept in sync with which paths should be public.
+    # The script retries the alias step itself (plain image/minio doesn't
+    # reliably support a "mc ready" healthcheck across versions, so this
+    # doesn't depend on one) until the MinIO API answers, instead of relying
+    # on container start order alone.
+    # MINIO_ROOT_USER/PASSWORD and the bucket name below must match .env's
+    # AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY/AWS_BUCKET — same "kept in
+    # sync manually" trade-off already used for the minio service above.
+    minio-init:
+        image: minio/mc
+        container_name: school_minio_init
+        depends_on:
+            - minio
+        entrypoint: >
+            /bin/sh -c "
+            until mc alias set local http://minio:9000 minioadmin minioadmin; do echo 'waiting for minio...'; sleep 2; done &&
+            mc mb --ignore-existing local/school-files
+            "
+        restart: "no"
+
 volumes:
     db_data:
     redis_data:

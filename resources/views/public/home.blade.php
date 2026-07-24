@@ -1,5 +1,12 @@
 @extends('public.layout')
-@section('title', ($settings->site_name ?? $school?->name ?? 'Our School'))
+{{-- Block form + raw {!! !!}, not the inline @section('name', $value) form —
+     see page.blade.php's comment for why: the inline form silently escapes
+     $value via Laravel's own e(), and layout.blade.php's {{ $pageTitle }}
+     escapes it again, so a site name containing &, ", <, or > would render
+     double-escaped. --}}
+@section('title')
+{!! $settings->site_name ?? $school?->name ?? 'Our School' !!}
+@endsection
 @section('content')
     <header class="hero py-5">
         <div class="container py-4 py-lg-5">

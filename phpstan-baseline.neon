@@ -331,6 +331,36 @@ parameters:
 			path: app/Http/Controllers/Admin/Setup/RoutineController.php
 
 		-
+			message: '#^Access to an undefined property App\\Modules\\Website\\Models\\WebsiteMedia\:\:\$filename\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/Website/MediaController.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Website\\Models\\WebsiteMedia\:\:\$width_px\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/Website/MediaController.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Website\\Models\\WebsiteMedia\:\:\$height_px\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/Website/MediaController.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Website\\Models\\WebsiteMedia\:\:\$mime_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/Website/MediaController.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Website\\Models\\WebsiteMedia\:\:\$alt_text\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/Website/MediaController.php
+
+		-
 			message: '#^Access to an undefined property App\\Modules\\Website\\Models\\Page\:\:\$slug\.$#'
 			identifier: property.notFound
 			count: 1
@@ -345,6 +375,18 @@ parameters:
 		-
 			message: '#^Access to an undefined property App\\Modules\\Website\\Models\\PageLayout\:\:\$layout_json\.$#'
 			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/Website/PageController.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Website\\Models\\PageTemplate\:\:\$layout_json\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/Website/PageController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>layout_json" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Http/Controllers/Admin/Website/PageController.php
 
@@ -403,22 +445,22 @@ parameters:
 			path: app/Http/Controllers/Public/ContactController.php
 
 		-
-			message: '#^Access to an undefined property App\\Modules\\Website\\Models\\PageLayout\:\:\$layout_json\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Public/HomeController.php
-
-		-
-			message: '#^Access to an undefined property App\\Modules\\Website\\Models\\PageLayout\:\:\$layout_json\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Public/PageController.php
-
-		-
 			message: '#^Parameter \#1 \$boolean of function abort_unless expects bool, App\\Modules\\School\\Models\\School\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: app/Http/Controllers/Public/PageController.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Website\\Models\\WebsiteMedia\:\:\$path\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/Public/WebsiteMediaController.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Website\\Models\\WebsiteMedia\:\:\$filename\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Public/WebsiteMediaController.php
 
 		-
 			message: '#^Access to an undefined property App\\Modules\\Academic\\Models\\Section\:\:\$class_id\.$#'
@@ -9017,6 +9059,18 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: app/Modules/Website/Services/MenuService.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Website\\Models\\Page\:\:\$school_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Website/Services/PageRenderService.php
+
+		-
+			message: '#^Access to an undefined property App\\Modules\\Website\\Models\\PageLayout\:\:\$layout_json\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Modules/Website/Services/PageRenderService.php
 
 		-
 			message: '#^Call to function is_array\(\) with null will always evaluate to false\.$#'

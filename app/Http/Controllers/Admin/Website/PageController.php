@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Admin\Website;
 
 use App\Modules\School\Models\School;
 use App\Modules\Website\Models\Page;
+use App\Modules\Website\Models\PageTemplate;
 use App\Modules\Website\Models\SiteSetting;
+use App\Modules\Website\Repositories\PageTemplateRepository;
 use App\Modules\Website\Services\PageRenderService;
 use App\Modules\Website\Services\PageService;
+use App\Modules\Website\Services\PageTemplateService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -24,6 +27,8 @@ class PageController extends Controller
     public function __construct(
         private readonly PageService $pages,
         private readonly PageRenderService $render,
+        private readonly PageTemplateService $templates,
+        private readonly PageTemplateRepository $templateRepository,
     ) {}
 
     public function index(): View
@@ -37,7 +42,14 @@ class PageController extends Controller
 
     public function create(): View
     {
-        return view('admin.website.pages.create');
+        $schoolId = app('current_school_id');
+
+        return view('admin.website.pages.create', [
+            // Global starter templates (school_id null, seeded) + this
+            // school's own saved-as-template pages — see saveAsTemplate()
+            // below, the only place that creates the latter.
+            'templates' => $this->templateRepository->availableTo($schoolId),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -47,6 +59,7 @@ class PageController extends Controller
             'title' => ['required', 'string', 'max:150'],
             'slug' => ['nullable', 'string', 'max:150'],
             'template' => ['required', 'in:full,sidebar'],
+            'page_template_id' => ['nullable', 'integer'],
         ]);
 
         $page = $this->pages->create($schoolId, [
@@ -55,10 +68,50 @@ class PageController extends Controller
             'status' => 'draft',
         ]);
 
-        // Seed an empty layout with the chosen template.
-        $this->pages->saveLayout($page, ['template' => $data['template'], 'blocks' => [], 'sidebar' => []], $request->user());
+        // Starting from a saved PageTemplate replaces the blank layout with
+        // its own (already-complete) template/blocks/sidebar — the "New
+        // page" form's own full/sidebar Template select is only a fallback
+        // for the blank-page path, so it seeds the defaults array merge()
+        // draws from, never overrides a chosen starter template's own value.
+        // where()->first() rather than find() — find() is typed to accept
+        // (and return a Collection for) an array of ids too, which left its
+        // return type an ambiguous PageTemplate|Collection union here even
+        // though $data['page_template_id'] is always a single int; first()
+        // has no such overload and keeps $starter a clean ?PageTemplate.
+        $starter = ! empty($data['page_template_id'])
+            ? PageTemplate::availableTo($schoolId)->where('id', (int) $data['page_template_id'])->first()
+            : null;
+
+        $layout = array_merge(
+            ['template' => $data['template'], 'blocks' => [], 'sidebar' => []],
+            $starter?->layout_json ?? [],
+        );
+
+        $this->pages->saveLayout($page, $layout, $request->user());
 
         return redirect()->route('admin.pages.edit', $page->id)->with('status', __('Page Created — Add Your Content.'));
+    }
+
+    /** Clone this page (new slug, "(Copy)" title, same latest layout) as a fresh draft. */
+    public function duplicate(int $id): RedirectResponse
+    {
+        $schoolId = app('current_school_id');
+        $page = Page::forSchool($schoolId)->findOrFail($id);
+        $copy = $this->pages->duplicate($page);
+
+        return redirect()->route('admin.pages.edit', $copy->id)->with('status', __('Page duplicated — this is a new draft.'));
+    }
+
+    /** Save this page's current (latest) layout as a reusable starter template for future new pages. */
+    public function saveAsTemplate(Request $request, int $id): RedirectResponse
+    {
+        $schoolId = app('current_school_id');
+        $page = Page::forSchool($schoolId)->findOrFail($id);
+        $data = $request->validate(['name' => ['required', 'string', 'max:150']]);
+
+        $this->templates->saveAsTemplate($page, $data['name']);
+
+        return back()->with('status', __('Saved as a reusable template — pick it from "Start from" the next time you create a page.'));
     }
 
     public function edit(int $id): View
@@ -74,6 +127,11 @@ class PageController extends Controller
             'view' => $this->layoutForEditor($layout?->layout_json),
             'blocks' => PageRenderService::BLOCKS,
             'sidebarBlocks' => PageRenderService::SIDEBAR_BLOCKS,
+            // Stashed into a hidden form field — save()'s optimistic
+            // concurrency check compares this against whatever the latest
+            // revision actually is BY THE TIME the save arrives, to detect
+            // a second admin having saved in between.
+            'knownLayoutId' => $layout?->id,
         ]);
     }
 
@@ -90,12 +148,19 @@ class PageController extends Controller
             'template' => ['required', 'in:full,sidebar'],
             'blocks' => ['nullable', 'array'],
             'sidebar' => ['nullable', 'array'],
+            'meta_title' => ['nullable', 'string', 'max:255'],
+            'meta_desc' => ['nullable', 'string', 'max:500'],
+            'og_image' => ['nullable', 'string', 'max:2048'],
+            'known_layout_id' => ['nullable', 'integer'],
         ]);
 
         $this->pages->update($page, [
             'title' => $data['title'],
             'slug' => $data['slug'] ?? $page->slug,
             'status' => $data['status'],
+            'meta_title' => $data['meta_title'] ?? null,
+            'meta_desc' => $data['meta_desc'] ?? null,
+            'og_image' => $data['og_image'] ?? null,
         ]);
 
         $layout = [
@@ -106,10 +171,29 @@ class PageController extends Controller
                 : [],
         ];
 
+        // Optimistic concurrency check: has someone ELSE saved a newer
+        // revision since this editor session loaded (edit()'s
+        // $knownLayoutId, round-tripped through a hidden field)? Layouts are
+        // already append-only/versioned (see PageService/CLAUDE.md) — the
+        // safest response to a real conflict is never to block or discard
+        // either admin's work, just to keep BOTH revisions and let a human
+        // sort it out in History, rather than risk silently overwriting one
+        // admin's edits with the other's.
+        $priorLatest = $page->layouts()->first();
+        $conflict = $request->filled('known_layout_id')
+            && $priorLatest
+            && (int) $data['known_layout_id'] !== $priorLatest->id;
+
         $revision = $this->pages->saveLayout($page->fresh(), $layout, $request->user());
 
-        if ($data['status'] === 'published') {
+        if ($data['status'] === 'published' && ! $conflict) {
             $this->pages->publish($page->fresh(), $revision->id);
+        }
+
+        if ($conflict) {
+            return redirect()->route('admin.pages.edit', $page->id)->with('warning', __(
+                'Someone else saved changes to this page while you were editing. Your changes were saved as a new draft (not published) — open History to compare revisions and publish the right one.'
+            ));
         }
 
         return redirect()->route('admin.pages.edit', $page->id)->with('status', __('Page Saved.'));

@@ -61,13 +61,16 @@ use App\Http\Controllers\Admin\Setup\RoutineSetupController;
 use App\Http\Controllers\Admin\Setup\SchoolController;
 use App\Http\Controllers\Admin\Setup\SectionController;
 use App\Http\Controllers\Admin\Setup\SubjectController;
+use App\Http\Controllers\Admin\Website\MediaController;
 use App\Http\Controllers\Admin\Website\MenuController;
 use App\Http\Controllers\Admin\Website\PageController as WebsitePageController;
+use App\Http\Controllers\Admin\Website\PageTemplateController;
 use App\Http\Controllers\Auth\TwoFactorChallengeController;
 use App\Http\Controllers\Payment\WebhookController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\PageController as PublicPageController;
+use App\Http\Controllers\Public\WebsiteMediaController;
 use App\Http\Controllers\Staff\ClockController;
 use App\Http\Controllers\Staff\LeaveController;
 use App\Http\Controllers\Staff\MarkController;
@@ -84,6 +87,11 @@ Route::post('/admission', [App\Http\Controllers\Public\AdmissionController::clas
 // Public contact-form submission (form rendered by the contact block).
 Route::post('/contact', [ContactController::class, 'submit'])
     ->middleware('throttle:10,1')->name('contact.submit');
+
+// Streams a Website media library file from the private "minio" bucket —
+// see App\Http\Controllers\Public\WebsiteMediaController's docblock.
+Route::get('/media/website/{id}', [WebsiteMediaController::class, 'show'])
+    ->whereNumber('id')->name('website-media.show');
 
 Route::middleware('guest')->group(function (): void {
     // Family portal (student + guardian) — the default login.
@@ -305,9 +313,22 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::post('/pages/{id}/preview', [WebsitePageController::class, 'preview'])->whereNumber('id')->name('pages.preview');
         Route::post('/pages/{id}/preview-block', [WebsitePageController::class, 'previewBlock'])->whereNumber('id')->name('pages.preview-block');
         Route::post('/pages/{id}/homepage', [WebsitePageController::class, 'setHomepage'])->whereNumber('id')->name('pages.homepage');
+        Route::post('/pages/{id}/duplicate', [WebsitePageController::class, 'duplicate'])->whereNumber('id')->name('pages.duplicate');
+        Route::post('/pages/{id}/save-as-template', [WebsitePageController::class, 'saveAsTemplate'])->whereNumber('id')->name('pages.save-as-template');
         Route::get('/pages/{id}/history', [WebsitePageController::class, 'history'])->whereNumber('id')->name('pages.history');
         Route::post('/pages/{id}/restore/{layoutId}', [WebsitePageController::class, 'restore'])->whereNumber(['id', 'layoutId'])->name('pages.restore');
         Route::delete('/pages/{id}', [WebsitePageController::class, 'destroy'])->whereNumber('id')->name('pages.destroy');
+
+        // Website media library (page editor's Media Library modal)
+        Route::get('/media', [MediaController::class, 'index'])->name('media.index');
+        Route::post('/media', [MediaController::class, 'store'])->name('media.store');
+        Route::put('/media/{id}', [MediaController::class, 'update'])->whereNumber('id')->name('media.update');
+        Route::delete('/media/{id}', [MediaController::class, 'destroy'])->whereNumber('id')->name('media.destroy');
+
+        // Page templates (rename/delete this school's own saved templates)
+        Route::get('/page-templates', [PageTemplateController::class, 'index'])->name('page-templates.index');
+        Route::put('/page-templates/{id}', [PageTemplateController::class, 'update'])->whereNumber('id')->name('page-templates.update');
+        Route::delete('/page-templates/{id}', [PageTemplateController::class, 'destroy'])->whereNumber('id')->name('page-templates.destroy');
 
         // Navigation menu editor
         Route::get('/menus', [MenuController::class, 'edit'])->name('menus.index');

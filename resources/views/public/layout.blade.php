@@ -10,21 +10,38 @@
         $accent = $s->accent_color ?? '#f59e0b';
         $heading = $s->heading_color ?? '#0f172a';
         $siteName = $s->site_name ?? ($school->name ?? 'Our School');
-        $metaDesc = $s->meta_description ?? null;
         $faviconUrl = \App\Support\Media::url($s->favicon ?? null);
-        $ogUrl = \App\Support\Media::url($s->og_image ?? null);
+        // Per-page SEO overrides (page.blade.php's 'meta_description'/'og_image'
+        // sections, only defined when the page has its own value set) win over
+        // the site-wide defaults from Website > Settings — never both at once.
+        $metaDesc = trim((string) $__env->yieldContent('meta_description', $s->meta_description ?? '')) ?: null;
+        $ogUrl = \App\Support\Media::url(trim((string) $__env->yieldContent('og_image', '')) ?: ($s->og_image ?? null));
+        // Computed once and reused for <title>/og:title/twitter:title so all three
+        // can never drift from each other (yieldContent is idempotent, but a single
+        // source of truth is clearer than three identical @yield calls).
+        $pageTitle = trim((string) $__env->yieldContent('title', ($s->meta_title ?? null) ?: $siteName)) ?: $siteName;
       @endphp
-    <title>@yield('title', ($s->meta_title ?? null) ?: $siteName)</title>
+    <title>{{ $pageTitle }}</title>
     @if ($metaDesc)
     <meta name="description" content="{{ $metaDesc }}">@endif
     {{-- Falls back to the generic placeholder favicon until a school uploads its own. --}}
     <link rel="icon" href="{{ $faviconUrl ?: asset('favicon.ico') }}">
-    <meta property="og:title" content="@yield('title', ($s->meta_title ?? null) ?: $siteName)">
+    <meta property="og:title" content="{{ $pageTitle }}">
     @if ($metaDesc)
     <meta property="og:description" content="{{ $metaDesc }}">@endif
     @if ($ogUrl)
     <meta property="og:image" content="{{ $ogUrl }}">@endif
     <meta property="og:type" content="website">
+    {{-- Twitter Card — same per-page/site-wide precedence as the Open Graph tags
+         above, reusing the same computed values so both platforms always agree.
+         summary_large_image only makes sense once there's an actual image; a
+         plain "summary" card degrades gracefully when a page has no og image. --}}
+    <meta name="twitter:card" content="{{ $ogUrl ? 'summary_large_image' : 'summary' }}">
+    <meta name="twitter:title" content="{{ $pageTitle }}">
+    @if ($metaDesc)
+    <meta name="twitter:description" content="{{ $metaDesc }}">@endif
+    @if ($ogUrl)
+    <meta name="twitter:image" content="{{ $ogUrl }}">@endif
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
@@ -268,6 +285,48 @@
                 return true;
             }
 
+            // ── Accessibility: every selectable block gets a real role/label ──
+            // Editor-only (this whole bridge already returns early on the
+            // real public site — see the guard at the top of this IIFE) — a
+            // screen-reader or keyboard-only admin could otherwise only tell
+            // blocks apart by the (also editor-only, purely visual) hover
+            // outline, which isn't announced at all, and couldn't reach a
+            // block without a mouse. A MutationObserver rather than a
+            // one-time pass at load: blocks appear/move via a full iframe
+            // reload, the per-block fast-preview patch (runBlockPreview(),
+            // edit.blade.php), AND canvas drag-and-drop — one self-maintaining
+            // observer covers all three instead of re-running labeling by
+            // hand after every one of them.
+            function labelBlock(el) {
+                if (el.hasAttribute('tabindex')) return; // already labeled
+                el.setAttribute('tabindex', '0');
+                el.setAttribute('role', 'button');
+                el.setAttribute('aria-label', @json(__('Select block')) + ': ' + (el.dataset.blockType || 'block'));
+            }
+            function labelAllBlocks(root) {
+                if (root.nodeType !== 1) return;
+                if (root.matches('[data-block-path]')) labelBlock(root);
+                root.querySelectorAll('[data-block-path]').forEach(labelBlock);
+            }
+            labelAllBlocks(document.body);
+            new MutationObserver(function (mutations) {
+                mutations.forEach(function (m) {
+                    m.addedNodes.forEach(labelAllBlocks);
+                });
+            }).observe(document.body, { childList: true, subtree: true });
+            // Enter/Space activates a focused block exactly like a click —
+            // required once a role="button" is added above (an interactive
+            // role with no keyboard handler is worse than not labeling it at
+            // all). Reuses the click handler's own selection logic via a
+            // synthetic .click() rather than duplicating it.
+            document.addEventListener('keydown', function (e) {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                var el = e.target.closest && e.target.closest('[data-block-path]');
+                if (!el || el !== document.activeElement) return;
+                e.preventDefault();
+                el.click();
+            });
+
             var selected = null;
             document.addEventListener('mouseover', function (e) {
                 var el = e.target.closest('[data-block-path]');
@@ -471,18 +530,53 @@
             // arbitrary cursor position, so a plain absolutely-positioned menu
             // is simpler here). Actions are dispatched to the parent, which
             // already owns the copy/paste-style clipboard and block removal.
-            function closeContextMenu() {
+            // Element that had focus just before the menu opened — restored
+            // when the menu closes via an explicit action (Escape, or
+            // choosing a menu item), matching the WAI-ARIA APG menu-button
+            // pattern ("focus is typically returned to the element that had
+            // focus before the menu opened"). Deliberately NOT restored on a
+            // plain outside click/scroll dismissal: a click may have landed
+            // on a genuinely focusable element inside a block (a contact
+            // form field, a button block's link), and forcing focus back to
+            // the pre-menu element in that case would steal it right back
+            // out from under whatever the user just clicked.
+            var lastFocusedBeforeMenu = null;
+            function closeContextMenu(restoreFocus) {
                 var m = document.getElementById('editor-context-menu');
-                if (m) m.remove();
+                if (!m) return;
+                m.remove();
+                if (restoreFocus && lastFocusedBeforeMenu && document.body.contains(lastFocusedBeforeMenu)
+                    && typeof lastFocusedBeforeMenu.focus === 'function') {
+                    lastFocusedBeforeMenu.focus();
+                }
+                lastFocusedBeforeMenu = null;
             }
+            // ARIA menu semantics + Escape-to-close: everything this menu can
+            // do (Copy/Paste Style, Remove) also has a real keyboard-operable
+            // equivalent in the sidebar (Style tab's Copy/Paste Style
+            // buttons, the rail's Remove button — see _card.blade.php/
+            // _style_fields.blade.php), so this right-click shortcut isn't
+            // the only way to reach these actions; it's still given proper
+            // menu/menuitem roles and an Escape handler so a screen reader
+            // that DOES land on it (e.g. via the OS/browser's own
+            // Shift+F10-style context-menu key) announces and can dismiss it
+            // correctly, rather than reading it as unlabeled plain buttons.
             document.addEventListener('contextmenu', function (e) {
                 var el = e.target.closest('[data-block-path]');
-                closeContextMenu();
+                // Captured BEFORE closing any already-open menu, so a
+                // right-click that lands on a new block still remembers
+                // whatever had focus prior to the FIRST menu opening (not
+                // a button inside that menu, which is about to be removed).
+                var active = document.activeElement;
+                closeContextMenu(false);
                 if (!el) return;
                 e.preventDefault();
+                lastFocusedBeforeMenu = (active && active !== document.body) ? active : null;
                 var menu = document.createElement('div');
                 menu.id = 'editor-context-menu';
                 menu.className = 'shadow-sm';
+                menu.setAttribute('role', 'menu');
+                menu.setAttribute('aria-label', @json(__('Block actions')));
                 menu.style.cssText = 'position:fixed;z-index:99999;background:#fff;border:1px solid rgba(0,0,0,.15);'
                     + 'border-radius:.375rem;min-width:170px;padding:.25rem 0;font-family:system-ui,-apple-system,sans-serif;font-size:.875rem;';
                 [
@@ -492,15 +586,16 @@
                 ].forEach(function (a) {
                     var item = document.createElement('button');
                     item.type = 'button';
+                    item.setAttribute('role', 'menuitem');
                     item.className = 'btn btn-sm w-100 text-start border-0 rounded-0 d-flex align-items-center gap-2 px-3 py-1' + (a.danger ? ' text-danger' : '');
-                    item.innerHTML = '<i class="bi ' + a.icon + '"></i> ' + a.label;
+                    item.innerHTML = '<i class="bi ' + a.icon + '" aria-hidden="true"></i> ' + a.label;
                     item.addEventListener('click', function (ev) {
                         ev.stopPropagation();
                         window.parent.postMessage({
                             source: 'page-preview', type: 'context-action', action: a.action,
                             group: el.dataset.blockGroup, path: parsePath(el.dataset.blockPath),
                         }, '*');
-                        closeContextMenu();
+                        closeContextMenu(true);
                     });
                     menu.appendChild(item);
                 });
@@ -511,10 +606,17 @@
                 if (top + rect.height > window.innerHeight) top = window.innerHeight - rect.height - 8;
                 menu.style.left = Math.max(4, left) + 'px';
                 menu.style.top = Math.max(4, top) + 'px';
+                var firstItem = menu.querySelector('button');
+                if (firstItem) firstItem.focus();
             }, true);
-            document.addEventListener('click', closeContextMenu);
-            document.addEventListener('scroll', closeContextMenu, true);
-            document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeContextMenu(); });
+            document.addEventListener('click', function () { closeContextMenu(false); });
+            document.addEventListener('scroll', function () { closeContextMenu(false); }, true);
+            // Escape is the one dismissal that always restores focus — the
+            // standard keyboard "back out" gesture, matching every other
+            // Escape handler already in this app (sidebar panels, modals).
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeContextMenu(true);
+            });
         })();
     </script>
 </body>
