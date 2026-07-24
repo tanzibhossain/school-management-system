@@ -8,6 +8,7 @@ use App\Modules\School\Models\School;
 use App\Modules\Staff\Models\Staff;
 use App\Modules\Website\Models\Page;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Turns a page's stored layout_json (an ordered list of typed blocks + a
@@ -414,6 +415,46 @@ class PageRenderService
     {
         return Page::forSchool($schoolId)->published()->where('is_homepage', true)
             ->with('publishedLayout')->first();
+    }
+
+    /** How long a rendered page's live-resolved block data (notices/stats/staff) may lag reality. */
+    private const CACHE_TTL = 300;
+
+    /**
+     * Cached counterpart to buildView() for a REAL published page — used by
+     * the public PageController::show() and HomeController::index(), never
+     * by the admin live-preview endpoints (preview()/previewBlock() call
+     * buildView()/buildViewFromBlocks() directly, always uncached, since
+     * they must reflect the editor's current unsaved form state exactly).
+     *
+     * Returns null when the page has no published layout yet — callers
+     * decide what that means for them (PageController::show() still renders
+     * an empty page; HomeController falls back to the default landing page).
+     *
+     * Deliberately keyed by the published PageLayout's own id, not the page
+     * id: every publish() creates a brand-new PageLayout row (layouts are
+     * versioned, see PageService/CLAUDE.md), so a fresh publish is
+     * automatically a fresh cache key — no explicit flush-on-save wiring
+     * needed, unlike the tag-flushing Observer pattern most other Repository
+     * caches in this codebase use. The one staleness window this can't close
+     * is a dynamic block's live data (notices/stats/staff counts) changing
+     * without a new publish — bounded by CACHE_TTL rather than making
+     * Announcement/Staff/etc. aware this cache exists.
+     *
+     * @return array{template: string, blocks: array, sidebar: array}|null
+     */
+    public function renderPage(Page $page): ?array
+    {
+        $layout = $page->publishedLayout->first();
+        if (! $layout) {
+            return null;
+        }
+
+        return Cache::tags(['pageview'])->remember(
+            "pageview:layout:{$layout->id}",
+            self::CACHE_TTL,
+            fn () => $this->buildView($page->school_id, $layout->layout_json),
+        );
     }
 
     /**
