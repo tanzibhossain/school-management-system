@@ -641,6 +641,38 @@ predated this work — they were just never wired to anything reachable from the
   the picker, confirm it renders on the public page via the proxy URL, and confirm deleting it 404s that URL
   rather than 500ing.
 
+## 7i. Per-page SEO fields (meta_title / meta_desc / og_image)
+
+`Page` already had all three columns and `PageService::duplicate()` already copied them, but nothing else in
+the stack actually read or wrote them — no form field, no validation rule, and the public renderer only ever
+used the site-wide `SiteSetting` values.
+
+- **Admin:** the Page Settings sidebar panel (`edit.blade.php`, `data-panel="settings"`) gained a "SEO" section
+  — Meta Title (placeholder shows the page title, since that's the actual fallback), Meta Description
+  (textarea), and Social Share Image (the same 'media' picker field as the block-level image fields, §7h).
+  `PageController::save()`'s validate() now accepts all three (`meta_title` ≤255, `meta_desc` ≤500, `og_image`
+  ≤2048 — a URL, not a stored path, so it needs more room than a typical filename column) and passes them
+  through to `PageService::update()`, which already accepted an arbitrary `$data` array — no service change
+  needed there.
+- **Dirty-tracking/undo-redo:** `snapshotState()`/`restoreSnapshot()` (the undo/redo + Update-button-disabled-
+  until-changed machinery, §7 base milestones) explicitly enumerate the fields they capture — they were missed
+  when SEO fields were added and needed the same three fields added explicitly. The generic `form.addEventListener('input'/'change', handleFormChange)` delegate (already
+  form-wide) needed no change — it already fires for any field inside `#page-form`, SEO fields included.
+- **Public rendering:** `page.blade.php` already had `@section('title', $page->meta_title ?: $page->title)`;
+  extended with conditional `@section('meta_description', ...)`/`@section('og_image', ...)`, only defined when
+  the page actually has a value set. `public/layout.blade.php` (the shared `<head>`) switched from reading
+  `SiteSetting` directly to `$__env->yieldContent('meta_description'|'og_image', $siteWideDefault)` — the same
+  technique `@yield('title', ...)` already used one line above, just applied programmatically since these two
+  needed to feed both a `<meta>` tag AND an `og:` tag from one resolved value. A page's own value always wins;
+  the site-wide `SiteSetting` default only applies when the page hasn't set one. `og_image` still passes through
+  `App\Support\Media::url()` (already used for the site-wide value) so either an absolute picker URL or a bare
+  storage path resolves correctly.
+- **What's still not built:** no character-count/preview widget for meta title/description (just plain
+  inputs — no "here's how this looks in Google" preview); no per-page Twitter Card tags (`twitter:*` — the site
+  only emits Open Graph); not verified in a real browser (no PHP/Docker in this sandbox) — confirm by setting a
+  page's SEO fields, saving, and viewing the rendered `<head>` (and the homepage specifically, since it renders
+  through this same `public.page` view when a homepage Page exists — see `HomeController::index()`).
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1
