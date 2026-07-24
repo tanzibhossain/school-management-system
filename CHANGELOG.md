@@ -6,6 +6,79 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-07-24
+
+### Added
+- Per-page **SEO fields** in the page editor — meta title, meta description, and Open Graph image, wired
+  through to the public site's `<title>`, `og:*`, and (newly) **Twitter Card** meta tags, with a page's own
+  value winning over the site-wide Website > Settings default.
+- **Duplicate Page** and **Save as Template** actions in the page editor, plus a management screen for
+  renaming/deleting saved page templates.
+- **Media library**: a real upload + picker wired into every image/poster block field (previously scaffolded
+  but unreachable), drag-and-drop upload, and per-image alt-text editing.
+- **Autosave** — the editor now saves a local crash-recovery snapshot as you work, and warns if it detects the
+  page was published elsewhere since you started editing (concurrent-edit protection).
+- Public page rendering is now **cached** (keyed by the published layout's id), invalidated automatically on
+  publish.
+- The block editor's **Advanced tab** (formerly "Layout") is restructured into four independently-collapsible
+  sections matching Elementor's own panel: **Layout** (grid columns, margin/padding 4-box T/B/L/R controls, a
+  Width mode dropdown — Default/Full Width/Inline (Auto)/Custom with a %/px/em/rem unit picker), **Border**
+  (type, 4-box width, single color, 4-box radius, shadow), **Background** (color/image/overlay, moved from the
+  Style tab), and **Responsive** (per-breakpoint hide switches). A block's own Style tab is now just text color
+  and entrance animation.
+- Accessibility: live-region announcements for every block add/remove/reorder/move action, focus restored to
+  the triggering element when the canvas right-click context menu closes, and aria-labels on the drag handle,
+  context menu, and every canvas-selectable block (including nested ones).
+- Test coverage for the Style/Layout(Advanced) tabs and Container/Grid nesting (width modes, border
+  safety rule, per-side-radius-over-legacy precedence, and the editor's own rendered markup).
+
+### Changed
+- Padding/margin moved off the Style tab onto the Advanced tab as a 4-box (Top/Bottom/Left/Right) control, in
+  the same pass that split Advanced into its four collapsible sections above.
+- Removed the Move Up/Down buttons from block rows — reordering is drag-only now (the drag handle was already
+  the primary way most people reordered blocks; this is a real accessibility trade-off, noted below).
+- Media fields show a live thumbnail preview as soon as a URL is set, both in the editor and inside the block
+  itself; image/image-text/video blocks show a neutral icon-and-text placeholder instead of a broken-image icon
+  or plain text when nothing is set yet.
+- Page editor sidebar's minimum width is now a fixed 250px (was 12.5% of viewport width, which still shrank
+  to ~171px on a real 1366px laptop screen — too narrow for its own form controls).
+
+### Fixed
+- A missing `'minio'` filesystem disk definition meant the Website media library couldn't actually store
+  anything until the disk (and its bucket) existed — now registered and auto-created.
+- `Page::layouts()` could tie-break incorrectly on `created_at` alone when two layout rows shared a timestamp;
+  now tie-breaks on `id` as well.
+- 14 real PHPStan (level 5) errors resolved, plus one intentionally baselined nullsafe false-positive.
+- Status badges were clipping tall-script glyphs — added top/bottom padding.
+- The Media Library modal was invisible when opened from inside the fullscreen page editor (a CSS rule written
+  for native `<dialog>` semantics, not Bootstrap 5's `.show`-class toggle, was missing from the editor's own
+  layout shell).
+- **Public page `<title>`, `og:title`, `twitter:title`, meta description, and `og:image` were all
+  double-HTML-escaped** — a title or description containing `&`, `"`, `<`, or `>` rendered with doubled
+  entities (`&amp;amp;` instead of `&amp;`). Caused by Blade's inline `@section('name', $value)` form silently
+  escaping `$value` itself, on top of the layout's own `{{ }}` escaping it again on output.
+- A PHP parse error in `PageSeoMetaTagsTest.php`'s own docblock (a literal `*/` inside the comment text closed
+  it early) had been silently preventing that entire test file from running at all — fixing it surfaced the
+  double-escaping bug above, which a real `docker compose exec app php artisan test --parallel` run had never
+  actually exercised until now.
+- Two real assertion bugs in the new width tests, caught by that same full parallel run: a strict
+  `assertSame(75.0, ...)` that didn't account for MySQL's JSON column normalizing a whole-number float back to
+  an int on round-trip, and an `assertDontSee('width:')` that false-positive-failed against the editor-preview
+  bridge script's own always-present `min-width:170px` context-menu style.
+
+### Notes
+- **Accessibility regression, noted plainly rather than glossed over**: removing the Move Up/Down buttons
+  (see Changed, above) removes the only keyboard-operable way to reorder a block — dragging has no keyboard
+  equivalent. Flagged as a known, deliberate trade-off at the user's explicit request, not an oversight.
+- Most of this cycle's admin/editor-facing changes (Advanced tab redesign, media library wiring, autosave,
+  SEO fields, a11y passes) were built and verified via brace/paren/bracket balance checks, `node --check` on
+  extracted inline scripts, and `json.load` validation of `bn.json` — no PHP/browser was available in the
+  environment they were built in. Two real `docker compose exec app php artisan test --parallel` runs (611
+  tests) did happen this cycle, though, and caught three genuine bugs above (the double-escape, the parse
+  error, and the two width-test assertion bugs) that no amount of static checking would have found — a good
+  argument for running the full suite again before relying on anything in this release, especially the newer
+  Advanced tab controls and the media library upload/drag-and-drop paths.
+
 ## [1.2.0] — 2026-07-24
 
 ### Added
