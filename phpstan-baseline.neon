@@ -379,6 +379,12 @@ parameters:
 			path: app/Http/Controllers/Admin/Website/PageController.php
 
 		-
+			message: '#^Using nullsafe property access "\?\-\>layout_json" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/Admin/Website/PageController.php
+
+		-
 			message: '#^Access to an undefined property App\\Modules\\Payment\\Models\\Invoice\:\:\$school_id\.$#'
 			identifier: property.notFound
 			count: 2
