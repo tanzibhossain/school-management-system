@@ -87,6 +87,44 @@ class PageBuilderStyleLayoutNestingTest extends TestCase
             ->assertSee('reveal-up', false);
     }
 
+    public function test_all_four_padding_and_margin_sides_are_sanitized_and_rendered(): void
+    {
+        // Padding/margin moved to the Layout tab's 4-box spacing control
+        // (top/bottom/left/right) — still [style][*] keys underneath, see
+        // §7x in docs/modules/28-elementor-block-editor-plan.md.
+        $this->actingAs($this->admin);
+        $page = $this->publish([[
+            'type' => 'heading',
+            'data' => ['text' => 'Spaced Heading'],
+            'style' => [
+                'padding_top' => '10', 'padding_bottom' => '20', 'padding_left' => '30', 'padding_right' => '9999',
+                'margin_top' => '5', 'margin_bottom' => '15', 'margin_left' => '25', 'margin_right' => '35',
+            ],
+        ]]);
+
+        $style = PageLayout::where('page_id', $page->id)->where('is_published', true)
+            ->latest('id')->first()->layout_json['blocks'][0]['style'];
+
+        $this->assertSame(10, $style['padding_top']);
+        $this->assertSame(20, $style['padding_bottom']);
+        $this->assertSame(30, $style['padding_left']);
+        $this->assertSame(400, $style['padding_right']); // clamped, same as padding_top elsewhere
+        $this->assertSame(5, $style['margin_top']);
+        $this->assertSame(15, $style['margin_bottom']);
+        $this->assertSame(25, $style['margin_left']);
+        $this->assertSame(35, $style['margin_right']);
+
+        $this->get('/'.$page->slug)->assertOk()
+            ->assertSee('padding-top:10px', false)
+            ->assertSee('padding-bottom:20px', false)
+            ->assertSee('padding-left:30px', false)
+            ->assertSee('padding-right:400px', false)
+            ->assertSee('margin-top:5px', false)
+            ->assertSee('margin-bottom:15px', false)
+            ->assertSee('margin-left:25px', false)
+            ->assertSee('margin-right:35px', false);
+    }
+
     public function test_invalid_shadow_and_animation_values_are_dropped(): void
     {
         $this->actingAs($this->admin);

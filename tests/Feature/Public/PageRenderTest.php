@@ -124,6 +124,44 @@ class PageRenderTest extends TestCase
         $this->get('/does-not-exist')->assertNotFound();
     }
 
+    public function test_empty_image_and_video_blocks_show_a_placeholder_instead_of_a_broken_element(): void
+    {
+        // §7y in docs/modules/28-elementor-block-editor-plan.md — a bare
+        // <img src=""> (or <video> with no source) rendered visibly broken;
+        // an empty media field now shows a neutral "No X selected" box.
+        $this->publishPage('empty-media', 'Empty Media', [
+            'template' => 'full',
+            'blocks' => [
+                ['type' => 'image', 'data' => []],
+                ['type' => 'image_text', 'data' => ['heading' => 'No Photo Yet']],
+                ['type' => 'video', 'data' => ['source' => 'youtube']],
+                ['type' => 'video', 'data' => ['source' => 'self_hosted']],
+            ],
+        ]);
+
+        $response = $this->get('/empty-media');
+        $response->assertOk();
+        $response->assertDontSee('<img src=""', false);
+        $response->assertSee('No image selected');
+        $response->assertSee('No video URL selected');
+        $response->assertSee('No video file selected');
+    }
+
+    public function test_image_block_with_a_url_renders_the_real_img_tag_not_the_placeholder(): void
+    {
+        $this->publishPage('real-image', 'Real Image', [
+            'template' => 'full',
+            'blocks' => [
+                ['type' => 'image', 'data' => ['url' => 'https://example.com/photo.jpg', 'caption' => 'A photo']],
+            ],
+        ]);
+
+        $response = $this->get('/real-image');
+        $response->assertOk();
+        $response->assertSee('src="https://example.com/photo.jpg"', false);
+        $response->assertDontSee('No image selected');
+    }
+
     public function test_unknown_block_type_is_ignored(): void
     {
         $this->publishPage('mixed', 'Mixed', [

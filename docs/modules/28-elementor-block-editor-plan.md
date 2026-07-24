@@ -1220,6 +1220,108 @@ brace/paren-balance script (this diff's own added/removed lines are self-balance
 Please confirm in-browser that drag-reordering still works for both top-level lists and nested containers, and
 that the rail row no longer shows Up/Down icons.
 
+## 7x. Padding/margin moved to the Layout tab, as a 4-box (top/bottom/left/right) control
+
+Requested by the user: padding and margin belong on the Layout tab, not Style — and every block previously
+only had top/bottom control (no left/right at all), shown as two separate `(px)` number fields rather than one
+connected "box model" strip.
+
+**Data model — unchanged, deliberately.** Padding/margin are still `[style][padding_*]`/`[style][margin_*]`
+keys (`PageRenderService::sanitizeStyle()`), not moved to `[layout][...]`. Renaming the storage key would mean
+migrating every existing page's `layout_json`, splitting `sanitizeStyle()`/`sanitizeLayout()` in a way that no
+longer matches which *tab* a value visually belongs to, and complicating Copy/Paste Style (which already reads
+every `[style][...]`-named field on a card regardless of which tab-pane it's rendered in — see
+`styleFieldsIn()`, unchanged by this move and still correctly picking up the relocated fields for free). Moving
+the *markup* from `_style_fields.blade.php` to `_layout_fields.blade.php` (which now also receives `$style`,
+passed through from `_card.blade.php`'s existing `@include`) achieves the requested UI reorganization with zero
+backend risk.
+
+**New sides**: `padding_left`/`padding_right`/`margin_left`/`margin_right` added to `sanitizeStyle()` (same
+`$px` clamp — 0 to 400) and `BlockPresentation::inlineStyle()` (matching `padding-left`/`padding-right`/
+`margin-left`/`margin-right` CSS rules) — previously left/right spacing wasn't controllable through the editor
+at all, only top/bottom.
+
+**The "4 continuous boxes in one field" control**: a single Bootstrap `.input-group` per property (Padding,
+Margin), each holding 4 `input-group-text` letter labels (T/B/L/R, in the requested top/bottom/left/right
+order — not CSS shorthand order) immediately followed by their own number input. Bootstrap's `.input-group`
+already merges adjacent borders/corners for free (the same mechanism the existing color-swatch pair and media
+Browse-button fields already rely on) — no bespoke CSS needed to make 4 separate inputs read as one connected
+strip. The T/B/L/R letters themselves are deliberately left untranslated (a compact, universal abbreviation —
+same convention as the "(px)" unit suffix already used throughout this file), while the full word (Top/Bottom/
+Left/Right) is still translated and exposed via `title`/`aria-label` on each box, so a screen reader or anyone
+unsure what a bare letter means still gets the real word.
+
+**Verification gap**: no PHP/browser in this sandbox. Backend + view changes checked via brace/paren-balance
+script (all balanced) and `node --check` on `edit.blade.php`'s extracted inline `<script>` (unaffected by this
+change, still passed). New test `test_all_four_padding_and_margin_sides_are_sanitized_and_rendered` (added to
+`PageBuilderStyleLayoutNestingTest.php`) covers all 8 values including the same padding clamp-to-400 behavior
+the pre-existing `padding_top` test already covered. Please confirm in-browser that the Layout tab now shows
+the two 4-box spacing strips, and that saving/reloading a page with left/right spacing set round-trips
+correctly.
+
+## 7y. Media fields: Browse button border match + live thumbnail preview
+
+Two related polish requests on the same "media" field (`_fields.blade.php`, used by hero's background image,
+the Image block's URL, image_text's image, and video's poster — plus the Page Settings og:image field).
+
+**Browse button border color.** The button (`.btn.btn-outline-secondary`) sits inside a Bootstrap
+`.input-group` beside the `.form-control` text input — Bootstrap already merges the two into one continuous
+bar (shared corner radius, overlapping 1px borders), but `.btn-outline-secondary`'s border color is Bootstrap's
+darker `--bs-secondary`, not the much lighter `--bs-border-color` a `.form-control` actually uses, so the
+shared edge showed a visible two-tone seam rather than looking like a single control. Fixed with a scoped
+`.input-group > .btn-outline-secondary` override in `edit.blade.php`'s own `<style>` block, matching the
+input's actual border color/weight (and a matching hover/focus state) — scoped by the `.input-group >` parent
+selector, so it only affects outline-secondary buttons that are direct children of an input-group (this
+Browse button and the og:image one), not every outline-secondary button in the admin.
+
+**Live thumbnail preview ("inside block").** Every `'media'` field now renders a `<div class="media-field-preview">`
+right after its input-group — an `<img>` that starts with no `src` attribute at all (never `src=""`, which is a
+real browser quirk: some browsers resolve an empty src as a request for the *current page URL* rather than
+erroring) and stays hidden until it successfully loads. One delegated `input` listener in `edit.blade.php`
+(not a per-field script) keeps every preview in sync: it finds the `.media-field-preview` immediately following
+whichever `.media-field-input`'s `input` event just fired, and sets/clears the thumbnail's `src`. Because this
+listens for the bubbling `input` event rather than being wired to a specific action, it transparently covers
+every way a field's value can change — typing, picking from the Media Library modal (`openMediaPicker()`
+already dispatches a real `input` event, unchanged), Paste Style, and undo/redo restoring a snapshot (both of
+those also already re-dispatch `input` on the field they touch) — no new wiring was needed for any of those
+paths. The listener no-ops for a `.media-field-input` with no `.media-field-preview` sibling (the Page
+Settings og:image field intentionally wasn't given one, since "inside block" scoped this to block content
+fields).
+
+**Verification gap**: no PHP/browser in this sandbox. `_fields.blade.php`/`edit.blade.php` checked via
+brace/paren-balance script (balanced) and `node --check` on the extracted inline `<script>` (passed). Please
+confirm in-browser: the Browse button's border now visually matches the input beside it, and picking/typing an
+image URL into any block's media field shows a live thumbnail beneath it within the block's own Content tab.
+
+## 7z. Image/video blocks: empty-state placeholders (public renderer + live preview)
+
+Closes a real, previously-unnoticed bug alongside the requested UX improvement: `image`/`image_text` blocks
+with no URL set yet rendered a bare `<img src="">` — a genuinely broken-image icon, not just an empty space —
+both on the real public site (if ever published half-configured) and in the live editor preview (which renders
+through this exact same Blade partial, per this whole project's core "preview and reality can never drift"
+guarantee, §2). `video` already had a text-only fallback ("No Video File Set."/"No Video URL Set.") but nothing
+visually matching the other blocks' presence in the layout.
+
+All three empty states (`image`, `image_text`, both of `video`'s two source branches) now render the same
+boxed icon-and-text placeholder — `bi-image`/`bi-camera-video` at `fs-1` inside a
+`bg-body-secondary rounded-3 py-5` box, `aria-hidden` (decorative; the visible text label inside it, `__('No
+image selected')` etc., is what a screen reader actually announces) — so an admin can tell "there's an Image
+block here, it just has nothing in it yet" at a glance from the live preview, without a broken-image icon or
+unstyled fallback text. Video's two prior message strings ("No Video File Set."/"No Video URL Set.") were
+replaced with new, differently-worded ones ("No video file selected"/"No video URL selected") to match the new
+box style consistently — the old `bn.json` entries for the retired strings were left in place (unused) rather
+than deleted, per this project's established convention; three new keys ("No image selected", "No video file
+selected", "No video URL selected") were added instead.
+
+**Verification gap**: no PHP/browser in this sandbox. `public/blocks/render.blade.php` checked via
+brace/paren-balance script (balanced). New tests in `tests/Feature/Public/PageRenderTest.php`:
+`test_empty_image_and_video_blocks_show_a_placeholder_instead_of_a_broken_element` (asserts no bare
+`<img src="">` and all three placeholder strings appear) and
+`test_image_block_with_a_url_renders_the_real_img_tag_not_the_placeholder` (confirms the placeholder doesn't
+leak into the normal, filled-in case). `bn.json` validated via `json.load`. Please confirm in-browser: add a
+fresh Image and Video block with nothing filled in yet, and confirm both show a neutral placeholder box in the
+live preview rather than a broken image icon or plain unstyled text.
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1

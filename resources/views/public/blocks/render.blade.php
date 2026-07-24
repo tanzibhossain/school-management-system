@@ -66,7 +66,18 @@
   @case('image')
     {!! $open !!}
       <figure class="text-center mb-0">
-        <img src="{{ $d['url'] ?? '' }}" class="img-fluid rounded-3" alt="{{ $d['caption'] ?? '' }}">
+        @if(!empty($d['url']))
+          <img src="{{ $d['url'] }}" class="img-fluid rounded-3" alt="{{ $d['caption'] ?? '' }}">
+        @else
+          {{-- A bare <img src=""> would render as a broken-image icon —
+               real bug, not just cosmetic: before this fix a freshly-added
+               Image block with no URL yet looked broken in the live editor
+               preview, not merely empty. --}}
+          <div class="d-flex flex-column align-items-center justify-content-center text-muted bg-body-secondary rounded-3 py-5" aria-hidden="true">
+            <i class="bi bi-image fs-1 mb-2"></i>
+            <span class="small">{{ __('No image selected') }}</span>
+          </div>
+        @endif
         @if(!empty($d['caption']))<figcaption class="text-muted small mt-2">{{ $d['caption'] }}</figcaption>@endif
       </figure>
     {!! $close !!}
@@ -103,7 +114,10 @@
           ><source src="{{ $d['file_url'] }}{{ $vStart ? '#t='.$vStart.($vEnd ? ','.$vEnd : '') : '' }}"></video>
           @if(!empty($d['caption']))<p class="text-muted small mt-2 mb-0">{{ $d['caption'] }}</p>@endif
         @else
-          <p class="text-muted mb-0">{{ __('No Video File Set.') }}</p>
+          <div class="d-flex flex-column align-items-center justify-content-center text-muted bg-body-secondary rounded-3 py-5" aria-hidden="true">
+            <i class="bi bi-camera-video fs-1 mb-2"></i>
+            <span class="small">{{ __('No video file selected') }}</span>
+          </div>
         @endif
       @else
         @php
@@ -134,7 +148,10 @@
           <div class="ratio ratio-16x9"><iframe src="{{ $embedUrl }}" allowfullscreen loading="lazy"@if($vAutoplay) allow="autoplay"@endif></iframe></div>
           @if(!empty($d['caption']))<p class="text-muted small mt-2 mb-0">{{ $d['caption'] }}</p>@endif
         @else
-          <p class="text-muted mb-0">{{ __('No Video URL Set.') }}</p>
+          <div class="d-flex flex-column align-items-center justify-content-center text-muted bg-body-secondary rounded-3 py-5" aria-hidden="true">
+            <i class="bi bi-camera-video fs-1 mb-2"></i>
+            <span class="small">{{ __('No video URL selected') }}</span>
+          </div>
         @endif
       @endif
     {!! $close !!}
@@ -186,7 +203,16 @@
   @case('image_text')
     {!! $open !!}
       <div class="row g-4 align-items-center {{ ($d['image_side'] ?? 'left') === 'right' ? 'flex-row-reverse' : '' }}">
-        <div class="col-md-5"><img src="{{ $d['image'] ?? '' }}" class="img-fluid rounded-3" alt=""></div>
+        <div class="col-md-5">
+          @if(!empty($d['image']))
+            <img src="{{ $d['image'] }}" class="img-fluid rounded-3" alt="">
+          @else
+            <div class="d-flex flex-column align-items-center justify-content-center text-muted bg-body-secondary rounded-3 py-5" aria-hidden="true">
+              <i class="bi bi-image fs-1 mb-2"></i>
+              <span class="small">{{ __('No image selected') }}</span>
+            </div>
+          @endif
+        </div>
         <div class="col-md-7">
           @if(!empty($d['heading']))<h2 class="section-title h4 mb-3">{{ $d['heading'] }}</h2>@endif
           <div class="lh-lg">{!! $d['html'] ?? '' !!}</div>

@@ -191,6 +191,25 @@
     #media-picker-modal .modal-body.media-drop-active {
       outline: 2px dashed var(--bs-primary); outline-offset: -4px; background: rgba(79, 70, 229, .04);
     }
+    /* The Browse button next to every media/URL field (_fields.blade.php's
+       'media' input, and this page's own og:image field) sits inside an
+       .input-group beside a plain .form-control — Bootstrap already merges
+       the two into one continuous bar (shared corner radius, overlapping
+       1px borders), but .btn-outline-secondary's border color is Bootstrap's
+       darker --bs-secondary, not the much lighter --bs-border-color a
+       .form-control actually uses, so the shared edge showed a visible
+       two-tone seam instead of looking like one control. Match the input's
+       own border color/weight instead of Bootstrap's default outline color. */
+    .input-group > .btn-outline-secondary {
+      border-color: var(--bs-border-color, #dee2e6);
+      color: var(--bs-secondary-color, #6c757d);
+    }
+    .input-group > .btn-outline-secondary:hover,
+    .input-group > .btn-outline-secondary:focus {
+      background-color: var(--bs-tertiary-bg, #f8f9fa);
+      border-color: var(--bs-border-color, #dee2e6);
+      color: var(--bs-body-color, #212529);
+    }
   </style>
 
   <div class="editor-shell">
@@ -921,6 +940,29 @@
       });
       document.addEventListener('DOMContentLoaded', applyAllFieldDependencies);
       if (document.readyState !== 'loading') applyAllFieldDependencies();
+
+      // Thumbnail preview under every 'media' field (_fields.blade.php) —
+      // one delegated listener rather than a per-field script, so it stays
+      // in sync no matter how the value changed: typing, Browse-picker
+      // selection (openMediaPicker() already dispatches a real 'input'
+      // event), Paste Style, or undo/redo restoring a field (all of those
+      // already re-dispatch 'input' on the control, which bubbles up here).
+      // No-ops for a media-field-input with no .media-field-preview sibling
+      // (e.g. the Page Settings og:image field, which doesn't have one).
+      document.addEventListener('input', function (e) {
+        if (!e.target.classList.contains('media-field-input')) return;
+        var group = e.target.closest('.input-group');
+        var preview = group && group.nextElementSibling;
+        if (!preview || !preview.classList.contains('media-field-preview')) return;
+        var img = preview.querySelector('img');
+        var val = e.target.value.trim();
+        if (val) {
+          img.src = val;
+        } else {
+          img.removeAttribute('src');
+          preview.style.display = 'none';
+        }
+      });
 
       // Drag-to-reorder via the grip handle — reordering is a structural
       // change (positions shift for every block after the moved one), so it

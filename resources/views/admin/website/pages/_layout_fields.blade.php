@@ -1,11 +1,51 @@
-{{-- Universal per-block "Layout" tab — columns (grid blocks only) + responsive
-     visibility (every block). Vars: $prefix, $layout, $isGrid --}}
+{{-- Universal per-block "Layout" tab — spacing (padding/margin), columns
+     (grid blocks only), and responsive visibility (every block).
+     Vars: $prefix, $layout, $style, $isGrid --}}
 @php
+  $s = $style ?? [];
   $cols = $layout['columns'] ?? [];
   $hide = $layout['hide'] ?? [];
   $breakpoints = ['desktop' => 'Desktop', 'laptop' => 'Laptop', 'tablet' => 'Tablet', 'mobile' => 'Mobile'];
   $icons = ['desktop' => 'bi-display', 'laptop' => 'bi-laptop', 'tablet' => 'bi-tablet', 'mobile' => 'bi-phone'];
+  // One connected 4-box strip per spacing property — still stored as
+  // [style][{padding|margin}_{top|bottom|left|right}] (see the note at the
+  // top of _style_fields.blade.php), just rendered here since spacing is a
+  // layout concern. Bootstrap's .input-group already merges adjacent
+  // borders/corners into one continuous bar for free — no bespoke CSS
+  // needed to make four inputs read as a single connected field.
+  $spacingRows = [
+    ['key' => 'padding', 'label' => 'Padding (px)'],
+    ['key' => 'margin', 'label' => 'Margin (px)'],
+  ];
+  // Order requested: top, bottom, left, right (not CSS shorthand order).
+  $spacingSides = ['top' => 'T', 'bottom' => 'B', 'left' => 'L', 'right' => 'R'];
+  $spacingSideLabels = ['top' => 'Top', 'bottom' => 'Bottom', 'left' => 'Left', 'right' => 'Right'];
 @endphp
+
+<p class="small text-muted mb-1">{{ __('Spacing') }}</p>
+<div class="mb-3">
+  @foreach ($spacingRows as $row)
+    <div class="mb-2">
+      <label class="form-label small text-muted mb-1">{{ __($row['label']) }}</label>
+      <div class="input-group input-group-sm">
+        @foreach ($spacingSides as $side => $abbr)
+          {{-- The T/B/L/R letters themselves are left untranslated (a
+               compact universal abbreviation, same convention as "(px)" unit
+               suffixes elsewhere in this file) — the full word is still
+               translated in the tooltip/aria-label for screen readers and
+               anyone unsure what a bare letter means. --}}
+          <span class="input-group-text" title="{{ __($spacingSideLabels[$side]) }}">{{ $abbr }}</span>
+          <input type="number" min="0" max="400"
+                 name="{{ $prefix }}[style][{{ $row['key'] }}_{{ $side }}]"
+                 value="{{ $s[$row['key'].'_'.$side] ?? '' }}"
+                 class="form-control form-control-sm"
+                 placeholder="0"
+                 aria-label="{{ __($row['label']) }} — {{ __($spacingSideLabels[$side]) }}">
+        @endforeach
+      </div>
+    </div>
+  @endforeach
+</div>
 
 @if ($isGrid)
   <p class="small text-muted mb-1">{{ __('Columns per row') }}</p>
