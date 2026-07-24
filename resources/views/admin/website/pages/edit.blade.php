@@ -184,6 +184,13 @@
     .block-settings .nav-tabs .nav-link.active {
       background: var(--bs-primary); border-color: var(--bs-primary); color: #fff;
     }
+    /* Media Library drag-and-drop — toggled by dragenter/dragleave (see the
+       Autosave/Media Library script section below), a dashed highlight is
+       the standard "drop here" affordance without needing a separate
+       overlay element. */
+    #media-picker-modal .modal-body.media-drop-active {
+      outline: 2px dashed var(--bs-primary); outline-offset: -4px; background: rgba(79, 70, 229, .04);
+    }
   </style>
 
   <div class="editor-shell">
@@ -487,7 +494,8 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
         </div>
         <div class="modal-body">
-          <div id="media-picker-status" class="small text-muted mb-2"></div>
+          <div id="media-picker-status" class="small text-muted mb-1"></div>
+          <p class="small text-muted mb-2">{{ __('Or drag and drop files anywhere in this window to upload.') }}</p>
           <div id="media-picker-grid" class="row row-cols-3 row-cols-md-4 g-2"></div>
         </div>
       </div>
@@ -1679,13 +1687,13 @@
           }).catch(function () { alert(@json(__('Delete failed.'))); });
         }
 
-        uploadInput.addEventListener('change', function () {
-          var file = uploadInput.files[0];
-          if (!file) return;
+        // Shared by both the "Upload" button's file input AND the drop zone
+        // below — one upload path, two ways to trigger it.
+        function uploadFile(file) {
           var fd = new FormData();
           fd.append('file', file);
           status.textContent = @json(__('Uploading…'));
-          fetch(@json(route('admin.media.store')), {
+          return fetch(@json(route('admin.media.store')), {
             method: 'POST',
             body: fd,
             headers: { 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest' },
@@ -1695,12 +1703,53 @@
           }).then(function (created) {
             items = items ? [created].concat(items) : [created];
             renderGrid();
-            uploadInput.value = '';
           }).catch(function () {
             status.textContent = @json(__('Upload failed.'));
-            uploadInput.value = '';
           });
+        }
+
+        uploadInput.addEventListener('change', function () {
+          var file = uploadInput.files[0];
+          if (!file) return;
+          uploadFile(file).then(function () { uploadInput.value = ''; });
         });
+
+        // ── Drag-and-drop upload ─────────────────────────────────────────
+        // The whole modal body is the drop zone (simplest target — no need
+        // for a separate visually-distinct box when the grid itself already
+        // fills the space) — dragenter/dragover must both preventDefault()
+        // or the browser's default "reject the drop" behavior wins.
+        // dragleave fires on every child boundary crossing too, not just
+        // when truly leaving the zone, so it tracks a counter rather than
+        // toggling on/off directly (the standard fix for that quirk).
+        var dropZone = document.querySelector('#media-picker-modal .modal-body');
+        var dragDepth = 0;
+        if (dropZone) {
+          dropZone.addEventListener('dragenter', function (e) {
+            e.preventDefault();
+            dragDepth++;
+            dropZone.classList.add('media-drop-active');
+          });
+          dropZone.addEventListener('dragover', function (e) { e.preventDefault(); });
+          dropZone.addEventListener('dragleave', function () {
+            dragDepth = Math.max(0, dragDepth - 1);
+            if (dragDepth === 0) dropZone.classList.remove('media-drop-active');
+          });
+          dropZone.addEventListener('drop', function (e) {
+            e.preventDefault();
+            dragDepth = 0;
+            dropZone.classList.remove('media-drop-active');
+            var files = Array.prototype.slice.call((e.dataTransfer && e.dataTransfer.files) || []);
+            if (!files.length) return;
+            // Sequential, not Promise.all — keeps the "Uploading…" status
+            // text meaningful (one file's failure message isn't clobbered
+            // by another's success) and avoids hammering the endpoint with
+            // a burst of simultaneous requests for a multi-file drop.
+            files.reduce(function (chain, file) {
+              return chain.then(function () { return uploadFile(file); });
+            }, Promise.resolve());
+          });
+        }
       })();
     </script>
   @endpush
