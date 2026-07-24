@@ -12,16 +12,25 @@
     $icon = $icon ?? 'bi-square';
 @endphp
 <div class="card mb-2 block-card">
-  <div class="block-row d-flex align-items-center gap-2 px-2 py-2 js-block-toggle" role="button" tabindex="0">
-    <i class="bi bi-grip-vertical text-muted js-drag-handle" title="{{ __('Drag To Reorder') }}"></i>
-    <i class="bi {{ $icon }} text-brand"></i>
+  {{-- aria-expanded/aria-controls mirror the show/hide toggleBlockCard() JS
+       (edit.blade.php) already drives via the block-settings pane's
+       display:none/block — kept in sync there, not duplicated in markup,
+       since the pane always starts collapsed. --}}
+  <div class="block-row d-flex align-items-center gap-2 px-2 py-2 js-block-toggle" role="button" tabindex="0"
+       aria-expanded="false" aria-controls="tab-content-{{ $tabId }}" aria-label="{{ $label }}">
+    {{-- Decorative — the drag handle icon has no independent keyboard
+         interaction of its own; Move Up/Down below are the keyboard-operable
+         equivalent for reordering, so this stays out of the a11y tree
+         rather than announcing an icon a keyboard user can't act on. --}}
+    <i class="bi bi-grip-vertical text-muted js-drag-handle" aria-hidden="true" title="{{ __('Drag To Reorder') }}"></i>
+    <i class="bi {{ $icon }} text-brand" aria-hidden="true"></i>
     <span class="small fw-semibold flex-grow-1 text-truncate">{{ $label }}</span>
     <span class="btn-group btn-group-sm">
-      <button type="button" class="btn btn-outline-secondary js-up" title="{{ __('Move Up') }}"><i class="bi bi-arrow-up"></i></button>
-      <button type="button" class="btn btn-outline-secondary js-down" title="{{ __('Move Down') }}"><i class="bi bi-arrow-down"></i></button>
-      <button type="button" class="btn btn-outline-danger js-remove" title="{{ __('Remove') }}"><i class="bi bi-trash"></i></button>
+      <button type="button" class="btn btn-outline-secondary js-up" title="{{ __('Move Up') }}" aria-label="{{ __('Move up') }}: {{ $label }}"><i class="bi bi-arrow-up" aria-hidden="true"></i></button>
+      <button type="button" class="btn btn-outline-secondary js-down" title="{{ __('Move Down') }}" aria-label="{{ __('Move down') }}: {{ $label }}"><i class="bi bi-arrow-down" aria-hidden="true"></i></button>
+      <button type="button" class="btn btn-outline-danger js-remove" title="{{ __('Remove') }}" aria-label="{{ __('Remove') }}: {{ $label }}"><i class="bi bi-trash" aria-hidden="true"></i></button>
     </span>
-    <i class="bi bi-chevron-down small text-muted js-block-chevron"></i>
+    <i class="bi bi-chevron-down small text-muted js-block-chevron" aria-hidden="true"></i>
   </div>
   <div class="block-settings border-top" style="display:none;">
     <div class="card-body py-2 px-2">

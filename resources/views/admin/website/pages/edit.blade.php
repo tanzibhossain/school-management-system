@@ -225,24 +225,24 @@
     <div class="editor-topbar d-flex align-items-center justify-content-between px-2 py-2 gap-2 flex-wrap">
       {{-- Section 1: navigation + structural actions --}}
       <div class="d-flex align-items-center gap-1">
-        <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary btn-sm" title="{{ __('Back') }}"><i class="bi bi-arrow-left"></i></a>
-        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="add" title="{{ __('Add Block') }}"><i class="bi bi-plus-lg"></i></button>
-        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="blocks" title="{{ __('Content Blocks') }}"><i class="bi bi-stack"></i></button>
-        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="settings" title="{{ __('Page Settings') }}"><i class="bi bi-gear"></i></button>
+        <a href="{{ route('admin.pages.index') }}" class="btn btn-outline-secondary btn-sm" title="{{ __('Back') }}" aria-label="{{ __('Back') }}"><i class="bi bi-arrow-left" aria-hidden="true"></i></a>
+        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="add" title="{{ __('Add Block') }}" aria-label="{{ __('Add Block') }}"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="blocks" title="{{ __('Content Blocks') }}" aria-label="{{ __('Content Blocks') }}"><i class="bi bi-stack" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="settings" title="{{ __('Page Settings') }}" aria-label="{{ __('Page Settings') }}"><i class="bi bi-gear" aria-hidden="true"></i></button>
         <div class="vr mx-1"></div>
-        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-undo" title="{{ __('Undo (Ctrl+Z)') }}" disabled><i class="bi bi-arrow-counterclockwise"></i></button>
-        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-redo" title="{{ __('Redo (Ctrl+Y)') }}" disabled><i class="bi bi-arrow-clockwise"></i></button>
-        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="history" title="{{ __('History') }}"><i class="bi bi-clock-history"></i></button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-undo" title="{{ __('Undo (Ctrl+Z)') }}" aria-label="{{ __('Undo') }}" disabled><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-redo" title="{{ __('Redo (Ctrl+Y)') }}" aria-label="{{ __('Redo') }}" disabled><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-outline-secondary btn-sm js-panel-btn" data-panel="history" title="{{ __('History') }}" aria-label="{{ __('History') }}"><i class="bi bi-clock-history" aria-hidden="true"></i></button>
       </div>
 
       {{-- Section 2: page identity + viewport --}}
       <div class="d-flex align-items-center gap-2">
         <span class="fw-semibold small text-truncate" id="topbar-page-name" style="max-width:240px;">{{ $page->title }}</span>
         <div class="btn-group btn-group-sm" role="group" aria-label="{{ __('Preview Viewport') }}" id="viewport-toolbar">
-          <button type="button" class="btn btn-outline-secondary active" data-viewport="desktop" title="{{ __('Desktop') }}"><i class="bi bi-display"></i></button>
-          <button type="button" class="btn btn-outline-secondary" data-viewport="laptop" title="{{ __('Laptop') }}"><i class="bi bi-laptop"></i></button>
-          <button type="button" class="btn btn-outline-secondary" data-viewport="tablet" title="{{ __('Tablet') }}"><i class="bi bi-tablet"></i></button>
-          <button type="button" class="btn btn-outline-secondary" data-viewport="mobile" title="{{ __('Mobile') }}"><i class="bi bi-phone"></i></button>
+          <button type="button" class="btn btn-outline-secondary active" data-viewport="desktop" title="{{ __('Desktop') }}" aria-label="{{ __('Desktop') }}"><i class="bi bi-display" aria-hidden="true"></i></button>
+          <button type="button" class="btn btn-outline-secondary" data-viewport="laptop" title="{{ __('Laptop') }}" aria-label="{{ __('Laptop') }}"><i class="bi bi-laptop" aria-hidden="true"></i></button>
+          <button type="button" class="btn btn-outline-secondary" data-viewport="tablet" title="{{ __('Tablet') }}" aria-label="{{ __('Tablet') }}"><i class="bi bi-tablet" aria-hidden="true"></i></button>
+          <button type="button" class="btn btn-outline-secondary" data-viewport="mobile" title="{{ __('Mobile') }}" aria-label="{{ __('Mobile') }}"><i class="bi bi-phone" aria-hidden="true"></i></button>
         </div>
         <span class="small text-muted" id="preview-status"></span>
       </div>
@@ -250,7 +250,7 @@
       {{-- Section 3: preview + publish --}}
       <div class="d-flex align-items-center gap-2">
         @if ($page->status === 'published')
-          <a class="btn btn-outline-secondary btn-sm" href="{{ url('/' . $page->slug) }}" target="_blank" title="{{ __('Preview') }}"><i class="bi bi-eye"></i></a>
+          <a class="btn btn-outline-secondary btn-sm" href="{{ url('/' . $page->slug) }}" target="_blank" title="{{ __('Preview') }}" aria-label="{{ __('Preview') }}"><i class="bi bi-eye" aria-hidden="true"></i></a>
         @endif
         {{-- Starts disabled — updateSaveButtonState() (see the undo/redo
              history section below) enables it the moment the form actually
@@ -820,6 +820,8 @@
         list.querySelectorAll(':scope > .block-card').forEach(function (c) {
           c.classList.remove('is-open');
           c.querySelector('.block-settings').style.display = 'none';
+          var toggle = c.querySelector('.js-block-toggle');
+          if (toggle) toggle.setAttribute('aria-expanded', 'false');
         });
       }
       function openBlockCard(card) {
@@ -827,6 +829,8 @@
         closeBlockList(card.parentElement);
         card.classList.add('is-open');
         card.querySelector('.block-settings').style.display = '';
+        var toggle = card.querySelector('.js-block-toggle');
+        if (toggle) toggle.setAttribute('aria-expanded', 'true');
       }
       function toggleBlockCard(card) {
         if (card.classList.contains('is-open')) {
@@ -1615,7 +1619,7 @@
             col.innerHTML =
               '<div class="border rounded position-relative media-picker-item" style="cursor:pointer;">' +
                 thumbInner +
-                '<button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 py-0 px-1 media-picker-delete" title="' + @json(__('Delete')) + '"><i class="bi bi-trash"></i></button>' +
+                '<button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 py-0 px-1 media-picker-delete" title="' + @json(__('Delete')) + '" aria-label="' + @json(__('Delete')) + ' ' + item.filename + '"><i class="bi bi-trash" aria-hidden="true"></i></button>' +
                 '<div class="small text-truncate px-1" title="' + item.filename + '">' + item.filename + '</div>' +
               '</div>';
             col.querySelector('.media-picker-item').addEventListener('click', function (e) {

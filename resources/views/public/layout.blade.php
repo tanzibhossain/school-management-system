@@ -271,6 +271,48 @@
                 return true;
             }
 
+            // ── Accessibility: every selectable block gets a real role/label ──
+            // Editor-only (this whole bridge already returns early on the
+            // real public site — see the guard at the top of this IIFE) — a
+            // screen-reader or keyboard-only admin could otherwise only tell
+            // blocks apart by the (also editor-only, purely visual) hover
+            // outline, which isn't announced at all, and couldn't reach a
+            // block without a mouse. A MutationObserver rather than a
+            // one-time pass at load: blocks appear/move via a full iframe
+            // reload, the per-block fast-preview patch (runBlockPreview(),
+            // edit.blade.php), AND canvas drag-and-drop — one self-maintaining
+            // observer covers all three instead of re-running labeling by
+            // hand after every one of them.
+            function labelBlock(el) {
+                if (el.hasAttribute('tabindex')) return; // already labeled
+                el.setAttribute('tabindex', '0');
+                el.setAttribute('role', 'button');
+                el.setAttribute('aria-label', @json(__('Select block')) + ': ' + (el.dataset.blockType || 'block'));
+            }
+            function labelAllBlocks(root) {
+                if (root.nodeType !== 1) return;
+                if (root.matches('[data-block-path]')) labelBlock(root);
+                root.querySelectorAll('[data-block-path]').forEach(labelBlock);
+            }
+            labelAllBlocks(document.body);
+            new MutationObserver(function (mutations) {
+                mutations.forEach(function (m) {
+                    m.addedNodes.forEach(labelAllBlocks);
+                });
+            }).observe(document.body, { childList: true, subtree: true });
+            // Enter/Space activates a focused block exactly like a click —
+            // required once a role="button" is added above (an interactive
+            // role with no keyboard handler is worse than not labeling it at
+            // all). Reuses the click handler's own selection logic via a
+            // synthetic .click() rather than duplicating it.
+            document.addEventListener('keydown', function (e) {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                var el = e.target.closest && e.target.closest('[data-block-path]');
+                if (!el || el !== document.activeElement) return;
+                e.preventDefault();
+                el.click();
+            });
+
             var selected = null;
             document.addEventListener('mouseover', function (e) {
                 var el = e.target.closest('[data-block-path]');
@@ -478,6 +520,16 @@
                 var m = document.getElementById('editor-context-menu');
                 if (m) m.remove();
             }
+            // ARIA menu semantics + Escape-to-close: everything this menu can
+            // do (Copy/Paste Style, Remove) also has a real keyboard-operable
+            // equivalent in the sidebar (Style tab's Copy/Paste Style
+            // buttons, the rail's Remove button — see _card.blade.php/
+            // _style_fields.blade.php), so this right-click shortcut isn't
+            // the only way to reach these actions; it's still given proper
+            // menu/menuitem roles and an Escape handler so a screen reader
+            // that DOES land on it (e.g. via the OS/browser's own
+            // Shift+F10-style context-menu key) announces and can dismiss it
+            // correctly, rather than reading it as unlabeled plain buttons.
             document.addEventListener('contextmenu', function (e) {
                 var el = e.target.closest('[data-block-path]');
                 closeContextMenu();
@@ -486,6 +538,8 @@
                 var menu = document.createElement('div');
                 menu.id = 'editor-context-menu';
                 menu.className = 'shadow-sm';
+                menu.setAttribute('role', 'menu');
+                menu.setAttribute('aria-label', @json(__('Block actions')));
                 menu.style.cssText = 'position:fixed;z-index:99999;background:#fff;border:1px solid rgba(0,0,0,.15);'
                     + 'border-radius:.375rem;min-width:170px;padding:.25rem 0;font-family:system-ui,-apple-system,sans-serif;font-size:.875rem;';
                 [
@@ -495,8 +549,9 @@
                 ].forEach(function (a) {
                     var item = document.createElement('button');
                     item.type = 'button';
+                    item.setAttribute('role', 'menuitem');
                     item.className = 'btn btn-sm w-100 text-start border-0 rounded-0 d-flex align-items-center gap-2 px-3 py-1' + (a.danger ? ' text-danger' : '');
-                    item.innerHTML = '<i class="bi ' + a.icon + '"></i> ' + a.label;
+                    item.innerHTML = '<i class="bi ' + a.icon + '" aria-hidden="true"></i> ' + a.label;
                     item.addEventListener('click', function (ev) {
                         ev.stopPropagation();
                         window.parent.postMessage({
@@ -514,9 +569,14 @@
                 if (top + rect.height > window.innerHeight) top = window.innerHeight - rect.height - 8;
                 menu.style.left = Math.max(4, left) + 'px';
                 menu.style.top = Math.max(4, top) + 'px';
+                var firstItem = menu.querySelector('button');
+                if (firstItem) firstItem.focus();
             }, true);
             document.addEventListener('click', closeContextMenu);
             document.addEventListener('scroll', closeContextMenu, true);
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeContextMenu();
+            });
             document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeContextMenu(); });
         })();
     </script>
