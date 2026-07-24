@@ -210,6 +210,16 @@
       border-color: var(--bs-border-color, #dee2e6);
       color: var(--bs-body-color, #212529);
     }
+    /* Advanced tab's 4 independently-collapsible sections (Layout/Border/
+       Background/Responsive, _layout_fields.blade.php) — Bootstrap's own
+       collapse plugin already toggles aria-expanded on the trigger button,
+       this just mirrors that into a chevron rotation so the open/closed
+       state has a visual affordance beyond the section's own content
+       appearing/disappearing. */
+    .js-adv-section-toggle .bi-chevron-down { transition: transform .15s ease; }
+    .js-adv-section-toggle[aria-expanded="true"] .bi-chevron-down { transform: rotate(180deg); }
+    .js-adv-section-toggle { color: var(--bs-body-color, #212529); }
+    .js-adv-section-toggle:hover { color: var(--bs-primary); }
   </style>
 
   <div class="editor-shell">
@@ -925,9 +935,17 @@
       function applyFieldDependencies(card) {
         if (!card) return;
         card.querySelectorAll('[data-depends-on]').forEach(function (wrap) {
-          var depKey = wrap.dataset.dependsOn;
+          // "key" (no dot) means [data][key] — the original, still most
+          // common case (e.g. video's Source select). "group.key" (e.g.
+          // "style.width_mode", the Advanced tab's Width/Border Type
+          // dropdowns) targets [style][key]/[layout][key] instead — added
+          // for §7aa without changing any existing depends_on caller.
+          var depPath = wrap.dataset.dependsOn;
           var allowed = (wrap.dataset.dependsValues || '').split(',');
-          var control = card.querySelector('[name$="[data][' + depKey + ']"]');
+          var dot = depPath.indexOf('.');
+          var group = dot !== -1 ? depPath.slice(0, dot) : 'data';
+          var depKey = dot !== -1 ? depPath.slice(dot + 1) : depPath;
+          var control = card.querySelector('[name$="[' + group + '][' + depKey + ']"]');
           var current = control ? control.value : '';
           wrap.style.display = allowed.indexOf(current) !== -1 ? '' : 'none';
         });

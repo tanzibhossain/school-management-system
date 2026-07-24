@@ -36,7 +36,11 @@
       <ul class="nav nav-tabs mb-2" role="tablist">
         <li class="nav-item"><button type="button" class="nav-link active py-1 px-2 small" data-bs-toggle="tab" data-bs-target="#tab-content-{{ $tabId }}">{{ __('Content') }}</button></li>
         <li class="nav-item"><button type="button" class="nav-link py-1 px-2 small" data-bs-toggle="tab" data-bs-target="#tab-style-{{ $tabId }}"><i class="bi bi-palette"></i> {{ __('Style') }}</button></li>
-        <li class="nav-item"><button type="button" class="nav-link py-1 px-2 small" data-bs-toggle="tab" data-bs-target="#tab-layout-{{ $tabId }}"><i class="bi bi-layout-three-columns"></i> {{ __('Layout') }}</button></li>
+        {{-- Internal id/name "layout" is unchanged (tab-layout-*, [layout][...]
+             field names) — only the visible label changed to "Advanced" to
+             match its now-broader scope (spacing/width/border/background/
+             responsive), see docs/modules/28-elementor-block-editor-plan.md §7aa. --}}
+        <li class="nav-item"><button type="button" class="nav-link py-1 px-2 small" data-bs-toggle="tab" data-bs-target="#tab-layout-{{ $tabId }}"><i class="bi bi-sliders"></i> {{ __('Advanced') }}</button></li>
       </ul>
       <div class="tab-content">
         <div class="tab-pane fade show active" id="tab-content-{{ $tabId }}">

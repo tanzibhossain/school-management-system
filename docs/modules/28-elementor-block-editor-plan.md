@@ -1322,6 +1322,84 @@ leak into the normal, filled-in case). `bn.json` validated via `json.load`. Plea
 fresh Image and Video block with nothing filled in yet, and confirm both show a neutral placeholder box in the
 live preview rather than a broken image icon or plain unstyled text.
 
+## 7aa. Style tab split: "Advanced" tab with collapsible Layout/Border/Background/Responsive sections
+
+Requested against real Elementor screenshots (Layout, Border ×2 variants, Responsive, Background panels) as a
+follow-up to §7x's padding/margin move: rather than the Layout tab holding just spacing, it becomes the
+catch-all "Advanced" tab Elementor itself uses — spacing, sizing, border, background, and responsive-visibility
+all live there, leaving the Style tab with only the two things that are genuinely about a block's own
+typographic look (text color, entrance animation).
+
+**What changed:**
+
+- **Tab rename, same internals.** `_card.blade.php`'s nav-link label changed from "Layout" to "Advanced"
+  (icon: `bi-sliders`). The tab pane's id (`tab-layout-{tabId}`), the partial's filename
+  (`_layout_fields.blade.php`), and every `[layout][...]`/`[style][...]` field name are unchanged — this is a
+  UI-only rename, not a data-model or route change, so no migration and no JS beyond the label/icon swap.
+- **Four independently-collapsible sections**, not a strict one-at-a-time accordion — deliberately plain
+  Bootstrap `.collapse` triggers with no `data-bs-parent`, so opening Border doesn't close Layout, matching
+  Elementor's own panel behavior. Each section header is a `button[data-bs-toggle=collapse]` with a
+  `js-adv-section-toggle` class driving a CSS-only chevron-rotation on `aria-expanded` (no extra JS — Bootstrap's
+  collapse data-api is delegated on `document`, so it works automatically for blocks added later via JS
+  templates, same pattern relied on throughout this file).
+  - **Layout** (open by default): the existing grid-columns control stays always-visible above the accordion,
+    unchanged, for Container/Grid blocks only. Then Margin and Padding (§7x's 4-box T/B/L/R control, reused via
+    the same `$boxGroup` closure), then a Width dropdown (Default / Full Width / Inline (Auto) / Custom) with a
+    conditional Custom Width row (number input + unit dropdown: %, px, em, rem) shown only when Width = Custom,
+    via `applyFieldDependencies()`.
+  - **Border** (collapsed by default): Border Type dropdown (None/Solid/Dashed/Dotted/Double), then a
+    conditionally-shown group (hidden when type is None) holding Border Width (4-box T/B/L/R) and a single
+    Border Color picker. Border Radius (4-box, converted from §7x-era single `radius`) sits below, **not**
+    gated by border type — a block can have rounded corners with no visible border line. Shadow (sm/md/lg),
+    previously on the Style tab, moved down here too, since it's a border-adjacent "box treatment" concern in
+    Elementor's own grouping.
+  - **Background** (collapsed by default): Background Color, Background Image URL, and Overlay Darkness — all
+    three moved verbatim from the old Style tab, no behavior change, just relocated.
+  - **Responsive** (collapsed by default): the four existing Hide-on-{Desktop,Laptop,Tablet,Mobile} controls,
+    restyled from plain checkboxes to Bootstrap `.form-switch` toggles to match Elementor's own switch styling
+    for this exact panel — no change to the underlying `[layout][hide][...]` field names or backend handling.
+- **`applyFieldDependencies()` generalized** (`edit.blade.php`) to accept a dotted `"group.key"` path (e.g.
+  `"style.width_mode"`, `"style.border_style"`) for a `data-depends-on` attribute, defaulting to the original
+  `group = 'data'` when no dot is present — this keeps the pre-existing single-key callers (e.g. the video
+  block's Source-driven URL/file field visibility) working unchanged while letting the new Custom Width and
+  Border sub-fields depend on `[style][...]` keys instead of `[data][...]`.
+- **Backend border-safety rule** (`PageRenderService::sanitizeStyle()`, §7-prior): a border width or color with
+  no real `border_style` set (missing or `'none'`) is meaningless per the CSS spec (`border-width` alone
+  renders nothing), so the sanitizer drops `border_width_*`/`border_color` entirely whenever `border_style` is
+  absent or `'none'` — it is structurally impossible to save a half-configured invisible border. Verified by
+  `test_border_is_only_rendered_when_a_real_style_is_set`.
+- **Legacy-radius fallback preserved.** `BlockPresentation::inlineStyle()` prefers the new per-side
+  `radius_top/bottom/left/right` keys when any are set, and falls back to the old single `radius` key
+  otherwise — pages saved before this change keep rendering identically with zero migration.
+  `test_per_side_radius_wins_over_legacy_single_radius` covers the precedence when both are present.
+
+**Explicit scope decisions (not implemented, on purpose):**
+
+- **No "chain link" linked-values toggle.** Elementor's Border Width / Radius controls have a small link icon
+  that, when active, types one value into all four sides at once. This app's 4-box control (§7x) always accepts
+  four independent values with no linking affordance — simpler to build and reason about, and the four boxes
+  are already fast to fill in for the common "same value everywhere" case (tab between them). Flagged here
+  explicitly as a deliberate cut, not an oversight, in case it's requested later.
+- **Border color is one value for all four sides**, not per-side like width/radius — Elementor itself defaults
+  to this in its "non-per-side" border mode, and a 4-independent-color border is a rare enough real-world case
+  that it wasn't worth the extra picker rows.
+
+**Verification gap, same as every prior §7x-series entry**: no PHP/browser in this sandbox. Verified via: the
+brace/paren/bracket balance script on every touched file (`PageRenderService.php`, `BlockPresentation.php`,
+`_style_fields.blade.php`, `_layout_fields.blade.php`, `_card.blade.php`, `edit.blade.php`), a
+Blade-directive-stripping pipeline feeding `node --check` on `edit.blade.php`'s inline `<script>` (the
+`applyFieldDependencies()` change), and `python3 -c "import json; json.load(...)"` on `bn.json` after inserting
+the new Advanced-tab strings (Border/Border Color/Border Radius (px)/Border Type/Border Width (px)/Custom/
+Custom Width/Dashed/Dotted/Double/Inline (Auto)/Responsive/Solid/Width — no duplicate keys, checked with an
+`object_pairs_hook` counter). New/extended coverage in
+`tests/Feature/Admin/PageBuilderStyleLayoutNestingTest.php`: width mode rendering (full/inline/custom, including
+the no-value-stores-no-width-at-all edge case), the border-safety rule, per-side-radius-wins-over-legacy, and an
+editor-page assertion that all four Advanced-tab section labels ("Advanced"/"Border"/"Background"/"Responsive")
+render. Please confirm in-browser: open a block's Advanced tab, verify Layout is expanded by default and the
+other three are collapsed, open each independently (confirm they don't close each other), set a Custom width
+and a Solid/Dashed border and confirm both the live preview and the saved public page match, and toggle a
+Responsive hide-switch to confirm it still behaves like the old checkbox did.
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1

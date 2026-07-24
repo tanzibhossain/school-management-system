@@ -118,6 +118,18 @@ class BlockPresentation
             $rules[] = 'margin-right:'.((int) $style['margin_right']).'px';
         }
 
+        // Width — 'default' (or unset) applies no override at all, matching
+        // this block's behavior before this control existed.
+        if (($style['width_mode'] ?? null) === 'full') {
+            $rules[] = 'width:100%';
+        } elseif (($style['width_mode'] ?? null) === 'inline') {
+            $rules[] = 'display:inline-block';
+            $rules[] = 'width:auto';
+        } elseif (($style['width_mode'] ?? null) === 'custom' && ! empty($style['width_value'])) {
+            $unit = in_array($style['width_unit'] ?? null, ['%', 'px', 'em', 'rem'], true) ? $style['width_unit'] : '%';
+            $rules[] = 'width:'.self::trimNumber((float) $style['width_value']).$unit;
+        }
+
         if (! empty($style['bg_image'])) {
             $overlay = max(0, min(100, (int) ($style['bg_overlay'] ?? 0))) / 100;
             $image = str_replace("'", "\\'", $style['bg_image']);
@@ -131,14 +143,57 @@ class BlockPresentation
         if (! empty($style['text_color'])) {
             $rules[] = 'color:'.$style['text_color'];
         }
-        if (! empty($style['radius'])) {
+
+        // Radius — per-side (radius_top/bottom/left/right) wins whenever ANY
+        // of the four is set; the legacy single 'radius' (pre-§7aa, applied
+        // uniformly to all four corners) is only used as a fallback for a
+        // page saved before this control existed and never re-edited since.
+        $radiusSides = ['top', 'bottom', 'left', 'right'];
+        $hasPerSideRadius = false;
+        foreach ($radiusSides as $side) {
+            if (! empty($style["radius_{$side}"])) {
+                $hasPerSideRadius = true;
+                break;
+            }
+        }
+        if ($hasPerSideRadius) {
+            foreach ($radiusSides as $side) {
+                if (! empty($style["radius_{$side}"])) {
+                    $rules[] = "border-{$side}-radius:".((int) $style["radius_{$side}"]).'px';
+                }
+            }
+            $rules[] = 'overflow:hidden';
+        } elseif (! empty($style['radius'])) {
             $rules[] = 'border-radius:'.((int) $style['radius']).'px';
             $rules[] = 'overflow:hidden';
         }
+
+        // Border — width-per-side only actually draws a visible line once a
+        // real border-style is set (a plain border-width with no style is
+        // invisible per the CSS spec, browser default style is 'none'), so
+        // everything here is gated on that.
+        if (! empty($style['border_style']) && $style['border_style'] !== 'none') {
+            $rules[] = 'border-style:'.$style['border_style'];
+            foreach (['top', 'bottom', 'left', 'right'] as $side) {
+                if (! empty($style["border_width_{$side}"])) {
+                    $rules[] = "border-{$side}-width:".((int) $style["border_width_{$side}"]).'px';
+                }
+            }
+            if (! empty($style['border_color'])) {
+                $rules[] = 'border-color:'.$style['border_color'];
+            }
+        }
+
         if (! empty($style['shadow']) && isset(self::SHADOWS[$style['shadow']])) {
             $rules[] = 'box-shadow:'.self::SHADOWS[$style['shadow']];
         }
 
         return implode(';', $rules);
+    }
+
+    /** Formats a float without a trailing ".0" (e.g. "75" not "75.0", but "33.5" stays "33.5"). */
+    private static function trimNumber(float $n): string
+    {
+        return rtrim(rtrim(number_format($n, 2, '.', ''), '0'), '.');
     }
 }
