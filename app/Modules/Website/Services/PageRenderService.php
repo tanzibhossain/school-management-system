@@ -273,8 +273,12 @@ class PageRenderService
         return array_filter([
             'padding_top' => $px($style['padding_top'] ?? null),
             'padding_bottom' => $px($style['padding_bottom'] ?? null),
+            'padding_left' => $px($style['padding_left'] ?? null),
+            'padding_right' => $px($style['padding_right'] ?? null),
             'margin_top' => $px($style['margin_top'] ?? null),
             'margin_bottom' => $px($style['margin_bottom'] ?? null),
+            'margin_left' => $px($style['margin_left'] ?? null),
+            'margin_right' => $px($style['margin_right'] ?? null),
             'bg_color' => $hex($style['bg_color'] ?? null),
             'bg_image' => $url($style['bg_image'] ?? null),
             'bg_overlay' => max(0, min(100, (int) ($style['bg_overlay'] ?? 0))),

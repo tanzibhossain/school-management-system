@@ -60,6 +60,24 @@
           <input type="text" name="{{ $name }}" value="{{ $val }}" class="form-control form-control-sm media-field-input" @if(isset($f['placeholder'])) placeholder="{{ $f['placeholder'] }}" @endif>
           <button type="button" class="btn btn-outline-secondary btn-sm" onclick="openMediaPicker(this)">{{ __('Browse') }}</button>
         </div>
+        {{-- Thumbnail of whatever's currently in the field, so the admin can
+             tell what image they picked without switching over to the live
+             canvas preview. Kept in sync by a single delegated 'input'
+             listener (edit.blade.php) rather than a per-field script, so it
+             updates on typing, on Browse-picker selection (openMediaPicker()
+             already fires a real 'input' event), AND on Paste Style/undo-redo
+             restoring a field's value the same way. Starts hidden — shown
+             once the <img> actually loads, hidden again on error (a blank/
+             invalid URL never shows a broken-image icon here). --}}
+        <div class="media-field-preview mt-1" @if(empty($val)) style="display:none" @endif>
+          {{-- No src attribute at all when empty — an empty src="" is a real
+               browser quirk (some resolve it as a request for the CURRENT
+               page URL rather than erroring), so the safest "nothing set
+               yet" state is simply omitting the attribute entirely. --}}
+          <img @if(!empty($val)) src="{{ $val }}" @endif alt="" class="rounded border bg-body-secondary"
+               style="max-height:70px;max-width:140px;object-fit:cover;"
+               onload="this.parentElement.style.display=''" onerror="this.parentElement.style.display='none'">
+        </div>
       @else
         <input type="text" name="{{ $name }}" value="{{ $val }}" class="form-control form-control-sm" @if(isset($f['placeholder'])) placeholder="{{ $f['placeholder'] }}" @endif>
       @endif

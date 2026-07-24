@@ -1,28 +1,16 @@
 {{-- Universal per-block "Style" tab — same fields for every block type.
-     Vars: $prefix, $style --}}
+     Vars: $prefix, $style
+     Padding/margin moved to the Layout tab (_layout_fields.blade.php) — see
+     docs/modules/28-elementor-block-editor-plan.md §7x. They're still
+     `[style][padding_*]`/`[style][margin_*]` in the data model (unchanged,
+     no migration needed for existing pages), just rendered from a different
+     tab's partial now, since spacing is a layout concern, not a visual one. --}}
 @php $s = $style ?? []; @endphp
 <div class="d-flex justify-content-end gap-1 mb-2">
   <button type="button" class="btn btn-sm btn-outline-secondary js-copy-style" title="{{ __('Copy This Block\'s Style') }}"><i class="bi bi-clipboard"></i> {{ __('Copy Style') }}</button>
   <button type="button" class="btn btn-sm btn-outline-secondary js-paste-style" disabled title="{{ __('Paste The Copied Style Here') }}"><i class="bi bi-clipboard-check"></i> {{ __('Paste Style') }}</button>
 </div>
 <div class="row g-2">
-  <div class="col-6">
-    <label class="form-label small text-muted mb-1">{{ __('Padding top (px)') }}</label>
-    <input type="number" min="0" max="400" name="{{ $prefix }}[style][padding_top]" value="{{ $s['padding_top'] ?? '' }}" class="form-control form-control-sm" placeholder="{{ __('Default') }}">
-  </div>
-  <div class="col-6">
-    <label class="form-label small text-muted mb-1">{{ __('Padding bottom (px)') }}</label>
-    <input type="number" min="0" max="400" name="{{ $prefix }}[style][padding_bottom]" value="{{ $s['padding_bottom'] ?? '' }}" class="form-control form-control-sm" placeholder="{{ __('Default') }}">
-  </div>
-  <div class="col-6">
-    <label class="form-label small text-muted mb-1">{{ __('Margin top (px)') }}</label>
-    <input type="number" min="0" max="400" name="{{ $prefix }}[style][margin_top]" value="{{ $s['margin_top'] ?? '' }}" class="form-control form-control-sm" placeholder="0">
-  </div>
-  <div class="col-6">
-    <label class="form-label small text-muted mb-1">{{ __('Margin bottom (px)') }}</label>
-    <input type="number" min="0" max="400" name="{{ $prefix }}[style][margin_bottom]" value="{{ $s['margin_bottom'] ?? '' }}" class="form-control form-control-sm" placeholder="0">
-  </div>
-
   <div class="col-6">
     <label class="form-label small text-muted mb-1">{{ __('Background color') }}</label>
     <div class="input-group input-group-sm js-color-pair">

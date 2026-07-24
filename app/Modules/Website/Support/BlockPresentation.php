@@ -99,11 +99,23 @@ class BlockPresentation
         if (! empty($style['padding_bottom'])) {
             $rules[] = 'padding-bottom:'.((int) $style['padding_bottom']).'px';
         }
+        if (! empty($style['padding_left'])) {
+            $rules[] = 'padding-left:'.((int) $style['padding_left']).'px';
+        }
+        if (! empty($style['padding_right'])) {
+            $rules[] = 'padding-right:'.((int) $style['padding_right']).'px';
+        }
         if (! empty($style['margin_top'])) {
             $rules[] = 'margin-top:'.((int) $style['margin_top']).'px';
         }
         if (! empty($style['margin_bottom'])) {
             $rules[] = 'margin-bottom:'.((int) $style['margin_bottom']).'px';
+        }
+        if (! empty($style['margin_left'])) {
+            $rules[] = 'margin-left:'.((int) $style['margin_left']).'px';
+        }
+        if (! empty($style['margin_right'])) {
+            $rules[] = 'margin-right:'.((int) $style['margin_right']).'px';
         }
 
         if (! empty($style['bg_image'])) {
