@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Admin\Website;
 
 use App\Modules\School\Models\School;
 use App\Modules\Website\Models\Page;
+use App\Modules\Website\Models\PageTemplate;
 use App\Modules\Website\Models\SiteSetting;
+use App\Modules\Website\Repositories\PageTemplateRepository;
 use App\Modules\Website\Services\PageRenderService;
 use App\Modules\Website\Services\PageService;
+use App\Modules\Website\Services\PageTemplateService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -24,6 +27,8 @@ class PageController extends Controller
     public function __construct(
         private readonly PageService $pages,
         private readonly PageRenderService $render,
+        private readonly PageTemplateService $templates,
+        private readonly PageTemplateRepository $templateRepository,
     ) {}
 
     public function index(): View
@@ -37,7 +42,14 @@ class PageController extends Controller
 
     public function create(): View
     {
-        return view('admin.website.pages.create');
+        $schoolId = app('current_school_id');
+
+        return view('admin.website.pages.create', [
+            // Global starter templates (school_id null, seeded) + this
+            // school's own saved-as-template pages — see saveAsTemplate()
+            // below, the only place that creates the latter.
+            'templates' => $this->templateRepository->availableTo($schoolId),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -47,6 +59,7 @@ class PageController extends Controller
             'title' => ['required', 'string', 'max:150'],
             'slug' => ['nullable', 'string', 'max:150'],
             'template' => ['required', 'in:full,sidebar'],
+            'page_template_id' => ['nullable', 'integer'],
         ]);
 
         $page = $this->pages->create($schoolId, [
@@ -55,10 +68,45 @@ class PageController extends Controller
             'status' => 'draft',
         ]);
 
-        // Seed an empty layout with the chosen template.
-        $this->pages->saveLayout($page, ['template' => $data['template'], 'blocks' => [], 'sidebar' => []], $request->user());
+        // Starting from a saved PageTemplate replaces the blank layout with
+        // its own (already-complete) template/blocks/sidebar — the "New
+        // page" form's own full/sidebar Template select is only a fallback
+        // for the blank-page path, so it seeds the defaults array merge()
+        // draws from, never overrides a chosen starter template's own value.
+        $starter = ! empty($data['page_template_id'])
+            ? PageTemplate::availableTo($schoolId)->find($data['page_template_id'])
+            : null;
+
+        $layout = array_merge(
+            ['template' => $data['template'], 'blocks' => [], 'sidebar' => []],
+            $starter?->layout_json ?? [],
+        );
+
+        $this->pages->saveLayout($page, $layout, $request->user());
 
         return redirect()->route('admin.pages.edit', $page->id)->with('status', __('Page Created — Add Your Content.'));
+    }
+
+    /** Clone this page (new slug, "(Copy)" title, same latest layout) as a fresh draft. */
+    public function duplicate(int $id): RedirectResponse
+    {
+        $schoolId = app('current_school_id');
+        $page = Page::forSchool($schoolId)->findOrFail($id);
+        $copy = $this->pages->duplicate($page);
+
+        return redirect()->route('admin.pages.edit', $copy->id)->with('status', __('Page duplicated — this is a new draft.'));
+    }
+
+    /** Save this page's current (latest) layout as a reusable starter template for future new pages. */
+    public function saveAsTemplate(Request $request, int $id): RedirectResponse
+    {
+        $schoolId = app('current_school_id');
+        $page = Page::forSchool($schoolId)->findOrFail($id);
+        $data = $request->validate(['name' => ['required', 'string', 'max:150']]);
+
+        $this->templates->saveAsTemplate($page, $data['name']);
+
+        return back()->with('status', __('Saved as a reusable template — pick it from "Start from" the next time you create a page.'));
     }
 
     public function edit(int $id): View

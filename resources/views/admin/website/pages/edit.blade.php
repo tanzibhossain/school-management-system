@@ -352,6 +352,24 @@
           </div>
         </form>
 
+        {{-- Continuation of the settings panel (shares data-panel="settings"
+             with the form above — showPanel() toggles every element with a
+             matching data-panel, not just one), kept OUTSIDE #page-form
+             since it posts to a different route and a <form> cannot nest
+             inside another <form>. --}}
+        <div class="sidebar-panel" data-panel="settings">
+          <hr class="my-3">
+          <h6 class="small text-muted text-uppercase mb-3">{{ __('Reuse') }}</h6>
+          <form method="POST" action="{{ route('admin.pages.save-as-template', $page->id) }}" onsubmit="return fillTemplateName(this)">
+            @csrf
+            <input type="hidden" name="name">
+            <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
+              <i class="bi bi-bookmark-plus"></i> {{ __('Save as Template') }}
+            </button>
+            <div class="form-text small">{{ __('Saves the current layout of this page so future new pages can start from it.') }}</div>
+          </form>
+        </div>
+
         {{-- Panel: revision history — outside #page-form (has its own restore
              forms; a <form> cannot nest inside another <form>). Uses
              $page->layouts, eager-loaded with createdBy by PageController::edit(). --}}
@@ -444,6 +462,16 @@
       // "settings", and "history" are all considered a temporary "active
       // box" — clicking outside the sidebar or pressing Escape collapses
       // back to "add" and closes any open block-settings card.
+      // "Save as Template" (Page Settings panel) — a plain confirm-and-submit
+      // prompt, consistent with the Restore confirm() in the History panel
+      // below, rather than a full modal for a single free-text field.
+      window.fillTemplateName = function (form) {
+        var name = window.prompt(@json(__('Name this template:')));
+        if (!name) return false;
+        form.querySelector('[name="name"]').value = name;
+        return true;
+      };
+
       var DEFAULT_PANEL = 'add';
       function showPanel(name) {
         document.querySelectorAll('.sidebar-panel').forEach(function (p) {

@@ -28,6 +28,9 @@
                   @csrf<button class="btn btn-sm btn-outline-secondary" title="{{ __('Set As Homepage') }}"><i class="bi bi-house"></i></button>
                 </form>
               @endunless
+              <form method="POST" action="{{ route('admin.pages.duplicate', $p->id) }}" class="d-inline">
+                @csrf<button class="btn btn-sm btn-outline-secondary" title="{{ __('Duplicate') }}"><i class="bi bi-files"></i></button>
+              </form>
               <form method="POST" action="{{ route('admin.pages.destroy', $p->id) }}" class="d-inline" onsubmit="return confirm('Delete “{{ $p->title }}”?')">
                 @csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
               </form>

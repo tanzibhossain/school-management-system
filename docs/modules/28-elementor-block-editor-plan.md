@@ -673,6 +673,36 @@ used the site-wide `SiteSetting` values.
   page's SEO fields, saving, and viewing the rendered `<head>` (and the homepage specifically, since it renders
   through this same `public.page` view when a homepage Page exists — see `HomeController::index()`).
 
+## 7j. Duplicate Page + Save as Template
+
+`PageService::duplicate()` and `PageTemplateService::saveAsTemplate()` (plus the whole `PageTemplate` model/
+repository/observer stack) already existed, fully correct, with zero routes or UI pointing at either — the
+same "built but unreachable" pattern as the media library scaffolding in §7h.
+
+- **Duplicate:** `POST /admin/pages/{id}/duplicate` (`admin.pages.duplicate`) — a one-button action on the
+  pages index list (next to Set-as-Homepage/Delete), no confirmation prompt needed since it's non-destructive.
+  Redirects straight into the editor for the new copy (draft, `-copy` slug, `(Copy)` title, latest layout only
+  — never the published-only revision, so any in-progress draft edits carry over exactly as
+  `PageService::duplicate()` already documented).
+- **Save as Template:** a small form in the editor's Page Settings panel (second `.sidebar-panel[data-panel=
+  "settings"]` block, placed after `</form>` since it posts to a different route and can't nest inside
+  `#page-form`) — `window.fillTemplateName()` prompts for a name, fills a hidden input, then submits normally.
+  Saves the page's current *latest* layout (draft or published, whichever was saved most recently) as a new
+  `PageTemplate` row scoped to the current school.
+- **Actually using a saved template:** the "New page" form (`create.blade.php`) gained a "Start From" select —
+  Blank Page (default) plus every template `PageTemplateRepository::availableTo()` returns, grouped into
+  "Starter Templates" (`school_id IS NULL`, seeded global ones) and "My Templates" (this school's own saved
+  ones). `PageController::store()` accepts an optional `page_template_id`; when present, the new page's seed
+  layout is `array_merge($blankDefaults, $template->layout_json)` — the template's own stored `template`/
+  `blocks`/`sidebar` win over the create form's own Template (full/sidebar) select, which only matters for the
+  blank-page path now. Without this half, "Save as Template" would have been a write-only dead end — nothing
+  before this exposed the templates a user just saved anywhere they could be picked back up.
+- **What's still not built:** no template management UI at all — can't rename, preview, or delete a saved
+  template once created (only a raw DB row); no thumbnail generation despite the model having a `thumbnail`
+  column; no global/seeded starter templates actually exist yet (the "Starter Templates" optgroup will just be
+  empty until someone seeds `school_id => null` rows). Not verified in a real browser (no PHP/Docker in this
+  sandbox).
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1
