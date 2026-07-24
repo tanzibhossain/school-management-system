@@ -876,6 +876,42 @@ buttons with no menu semantics.
   on the live editor: tab through a page with nested containers, confirm each block announces sensibly, confirm
   Enter/Space selects a focused block, confirm the sidebar rail's buttons read distinctly from each other.
 
+## 7o. Real bug found by the real test suite: `Page::layouts()` tie ordering
+
+The user ran the actual PHPUnit suite for the first time this session (589 tests, no PHP/Docker available in
+this sandbox until then) — 588 passed, 1 failed:
+`PageBuilderTest::test_concurrent_save_keeps_both_revisions_and_warns_instead_of_overwriting` (§7m). The
+concurrent-edit warning wasn't firing — `session('warning')` was missing.
+
+**Root cause**: `Page::layouts()` ordered only by `created_at` — a plain `TIMESTAMP` column (second precision,
+see the `page_layouts` migration), never `orderByDesc('id')` as a tiebreak. Two saves inside the same
+wall-clock second (trivial in a fast test, and not impossible in real usage under normal editing) tie on
+`created_at`, and MySQL doesn't guarantee any particular order among tied rows for an otherwise-unspecified
+sort — `->first()` could return either row. In the failing test, Admin A's save (creating a newer revision)
+landed in the same second as the seed layout, and `->first()` happened to keep returning the OLDER seed
+layout as "latest" — so Admin B's save, whose `known_layout_id` genuinely matched that (wrong) "latest" id,
+was never flagged as a conflict.
+
+**This was a real, pre-existing latent bug, not something the concurrency feature introduced** — every caller
+that ever relied on `$page->layouts()->first()` meaning "the actual latest revision" had the same exposure:
+`PageController::edit()`'s `$layout = $page->layouts->first();  // latest revision` (which row the editor
+loads/displays), and now `save()`'s `known_layout_id` computation and conflict check (§7m). It simply never
+surfaced before because no prior test exercised two saves against the same page within the same test method
+closely enough in time to hit the tie, and `save()`'s own published-layout lookups already used explicit
+`where('is_published', true)` filters that sidestepped the ambiguity.
+
+**Fix**: `Page::layouts()` → `orderByDesc('created_at')->orderByDesc('id')`. `id` is a strictly increasing
+auto-increment primary key on an append-only table (every save is a new row, never updated — see
+`PageService`), so it's an unambiguous, always-correct tiebreak for "most recently created," independent of
+timestamp column precision. One-line fix, but the accompanying comment on the relation explains why the
+tiebreak is required so a future edit doesn't quietly drop it.
+
+**Confirmed the actual fix, not just reasoned about it**: this doc entry itself was written by working the
+failing test's exact sequence through the new ordering by hand and confirming Admin B's `known_layout_id`
+(pinned to the seed layout) now correctly loses to Admin A's newer revision's real `id`. Not re-run through
+PHPUnit in this sandbox (still no PHP available) — the user's next `php artisan test` run is what actually
+confirms it; flagging that explicitly rather than claiming a false "all green."
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1

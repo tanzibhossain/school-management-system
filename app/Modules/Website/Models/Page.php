@@ -33,10 +33,26 @@ class Page extends Model
         return $this->belongsTo(School::class);
     }
 
-    /** @return HasMany<PageLayout> */
+    /**
+     * Ordered newest-first — every save creates a NEW row, never an update
+     * (see PageService), so "layouts()->first()" is relied on everywhere as
+     * "the current latest revision" (edit()'s loaded layout, save()'s
+     * optimistic-concurrency check, etc.). `created_at` is a plain
+     * `TIMESTAMP` column (second precision, see the page_layouts
+     * migration), so two saves inside the same wall-clock second tie on it
+     * — an `id DESC` tiebreak is required for "latest" to be unambiguous;
+     * without it, ties resolve to whatever order the storage engine
+     * happens to return, which is not reliably insertion order. Found via
+     * a real, reproducible PHPUnit failure
+     * (PageBuilderTest::test_concurrent_save_keeps_both_revisions_and_warns_instead_of_overwriting),
+     * not just reasoned about — two saves inside one test method easily
+     * land in the same second.
+     *
+     * @return HasMany<PageLayout>
+     */
     public function layouts(): HasMany
     {
-        return $this->hasMany(PageLayout::class)->orderByDesc('created_at');
+        return $this->hasMany(PageLayout::class)->orderByDesc('created_at')->orderByDesc('id');
     }
 
     /** @return HasMany<PageLayout> */
