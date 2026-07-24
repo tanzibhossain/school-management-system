@@ -187,6 +187,41 @@
   </style>
 
   <div class="editor-shell">
+    {{-- Flash messages (Page Saved / concurrent-edit warning) — this
+         fullscreen shell has no admin sidebar/topbar chrome to show them in
+         (see layouts/admin-fullscreen.blade.php), so they render here,
+         floating over the canvas, auto-dismissing after a few seconds
+         except the concurrent-edit warning (needs a deliberate read). --}}
+    @if (session('status') || session('warning'))
+      <div class="position-fixed top-0 start-50 translate-middle-x mt-2" style="z-index:2000;max-width:90vw;">
+        @if (session('status'))
+          <div class="alert alert-success alert-dismissible shadow-sm py-2 px-3 mb-2" id="flash-status" role="alert">
+            {{ session('status') }}
+            <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="{{ __('Close') }}"></button>
+          </div>
+        @endif
+        @if (session('warning'))
+          <div class="alert alert-warning alert-dismissible shadow-sm py-2 px-3 mb-2" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> {{ session('warning') }}
+            <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="{{ __('Close') }}"></button>
+          </div>
+        @endif
+      </div>
+    @endif
+
+    {{-- Autosave-recovery banner — hidden by default, shown by
+         checkAutosaveRecovery() (see the Autosave section of the script
+         below) only when localStorage holds a draft newer than what the
+         server rendered. --}}
+    <div class="position-fixed top-0 start-50 translate-middle-x mt-2 d-none" id="autosave-banner" style="z-index:2000;max-width:90vw;">
+      <div class="alert alert-info shadow-sm py-2 px-3 mb-2 d-flex align-items-center gap-2" role="alert">
+        <i class="bi bi-clock-history"></i>
+        <span id="autosave-banner-text">{{ __('An unsaved draft from your last session was found.') }}</span>
+        <button type="button" class="btn btn-sm btn-primary" id="autosave-restore-btn">{{ __('Restore') }}</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="autosave-discard-btn">{{ __('Discard') }}</button>
+      </div>
+    </div>
+
     <div class="editor-topbar d-flex align-items-center justify-content-between px-2 py-2 gap-2 flex-wrap">
       {{-- Section 1: navigation + structural actions --}}
       <div class="d-flex align-items-center gap-1">
@@ -233,6 +268,12 @@
 
         <form method="POST" action="{{ route('admin.pages.save', $page->id) }}" id="page-form">
           @csrf @method('PUT')
+          {{-- The latest revision's id as of THIS page load — save()'s
+               optimistic concurrency check compares it against whatever the
+               latest revision actually is by the time the save arrives, to
+               detect a second admin having saved in between (see §7m in
+               docs/modules/28-elementor-block-editor-plan.md). --}}
+          <input type="hidden" name="known_layout_id" value="{{ $knownLayoutId }}">
 
           {{-- Panel: block layers --}}
           <div class="sidebar-panel" data-panel="blocks">
@@ -897,8 +938,11 @@
       // restoring rebuilds each block by cloning its <template> (exactly what
       // "Add block" already does) and filling in the captured values, so a
       // restored Quill field gets a fresh, working editor instead of Quill's
-      // internal DOM baked into a dead HTML string. Session-only, never sent
-      // to the server or persisted (see docs/modules/28-elementor-block-editor-plan.md).
+      // internal DOM baked into a dead HTML string. The history stack itself
+      // is session-only (never sent to the server) — but every push also
+      // feeds the Autosave section further down, which DOES persist the
+      // latest snapshot to localStorage for crash/tab-close recovery (see
+      // §7m in docs/modules/28-elementor-block-editor-plan.md).
       var history_ = [];
       var historyIndex = -1;
       var pushHistoryTimer = null;
@@ -1080,6 +1124,75 @@
       // Quill) has settled, so the very first edit has something to undo to.
       document.addEventListener('DOMContentLoaded', function () { pushHistory(); });
       if (document.readyState !== 'loading') pushHistory();
+
+      // ── Autosave (crash/tab-close recovery) ─────────────────────────────
+      // Purely client-side, localStorage only — never sent to the server (no
+      // extra PageLayout revisions created just from typing). Piggybacks on
+      // the existing pushHistory() debounce (already fires ~1.2s after the
+      // last edit) rather than its own timer, so it can't fire more often
+      // than the app already recomputes snapshotState() for anyway.
+      //
+      // This is deliberately separate from the concurrent-edit warning
+      // below: autosave protects ONE admin's own unsaved work in their OWN
+      // browser; the concurrent-edit check protects against TWO admins
+      // editing the same page — the two failure modes don't overlap.
+      var AUTOSAVE_KEY = 'website-editor-autosave-' + @json($page->id);
+      function autosaveNow() {
+        try {
+          localStorage.setItem(AUTOSAVE_KEY, JSON.stringify({ savedAt: Date.now(), snapshot: snapshotState() }));
+        } catch (e) { /* storage full/disabled — autosave is a nicety, never block editing over it */ }
+      }
+      function clearAutosave() {
+        try { localStorage.removeItem(AUTOSAVE_KEY); } catch (e) { /* ignore */ }
+      }
+      var _origPushHistory = pushHistory;
+      pushHistory = function () { _origPushHistory(); autosaveNow(); };
+      // A real save/publish makes the autosave redundant — the server now
+      // has this state (or newer, if a conflict warning applies), so keep
+      // localStorage from offering to "restore" something already saved.
+      document.getElementById('page-form').addEventListener('submit', clearAutosave);
+
+      function checkAutosaveRecovery() {
+        var raw;
+        try { raw = localStorage.getItem(AUTOSAVE_KEY); } catch (e) { return; }
+        if (!raw) return;
+        var draft;
+        try { draft = JSON.parse(raw); } catch (e) { clearAutosave(); return; }
+        // Only offer it when it actually differs from what the server just
+        // rendered — a stale-but-identical draft left over from a normal
+        // save isn't worth interrupting the admin about.
+        if (!draft || !draft.snapshot || JSON.stringify(draft.snapshot) === initialSnapshotJson) {
+          clearAutosave();
+          return;
+        }
+        var banner = document.getElementById('autosave-banner');
+        var textEl = document.getElementById('autosave-banner-text');
+        if (!banner || !textEl) return;
+        var when = new Date(draft.savedAt).toLocaleString();
+        textEl.textContent = @json(__('An unsaved draft from')) + ' ' + when + ' ' + @json(__('was found.'));
+        banner.classList.remove('d-none');
+        document.getElementById('autosave-restore-btn').addEventListener('click', function () {
+          restoreSnapshot(draft.snapshot);
+          pushHistory(); // the restored state becomes a real history entry, undo-able like any edit
+          banner.classList.add('d-none');
+        });
+        document.getElementById('autosave-discard-btn').addEventListener('click', function () {
+          clearAutosave();
+          banner.classList.add('d-none');
+        });
+      }
+      // Runs after the initial pushHistory() above has set initialSnapshotJson.
+      document.addEventListener('DOMContentLoaded', checkAutosaveRecovery);
+      if (document.readyState !== 'loading') checkAutosaveRecovery();
+
+      // Auto-dismiss the "Page Saved" success flash after a few seconds —
+      // the concurrent-edit warning (session('warning')) deliberately stays
+      // until the admin dismisses it themselves.
+      (function () {
+        var el = document.getElementById('flash-status');
+        if (!el) return;
+        setTimeout(function () { bootstrap.Alert.getOrCreateInstance(el).close(); }, 4000);
+      })();
 
       document.addEventListener('click', function (e) {
         var up = e.target.closest('.js-up'), down = e.target.closest('.js-down'), rm = e.target.closest('.js-remove');

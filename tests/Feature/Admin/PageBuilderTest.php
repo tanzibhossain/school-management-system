@@ -136,6 +136,56 @@ class PageBuilderTest extends TestCase
         $this->get('/contact')->assertOk()->assertSee('Reach us')->assertSee('Notices');
     }
 
+    /**
+     * Optimistic concurrency check (see §7m in
+     * docs/modules/28-elementor-block-editor-plan.md): a second admin's save
+     * arrives carrying a stale known_layout_id (captured when THEIR editor
+     * loaded, before the first admin's save created a newer revision).
+     * Neither admin's work is discarded — both revisions must exist — but
+     * the second (conflicting) save must NOT auto-publish and must flash a
+     * warning instead of the normal success message.
+     */
+    public function test_concurrent_save_keeps_both_revisions_and_warns_instead_of_overwriting(): void
+    {
+        $this->actingAs($this->admin);
+        $this->post('/admin/pages', ['title' => 'Race', 'template' => 'full']);
+        $page = Page::first();
+
+        // Both "admins" loaded the editor at the same moment — the page's
+        // only layout so far is the empty one seeded by store().
+        $seedLayoutId = $page->layouts()->first()->id;
+
+        // Admin A saves+publishes first — succeeds normally.
+        $this->put("/admin/pages/{$page->id}", [
+            'title' => 'Race', 'slug' => $page->slug, 'status' => 'published', 'template' => 'full',
+            'known_layout_id' => $seedLayoutId,
+            'blocks' => [['type' => 'heading', 'data' => ['text' => 'Admin A version']]],
+        ])->assertRedirect()->assertSessionHas('status');
+
+        $afterA = PageLayout::where('page_id', $page->id)->latest('id')->first();
+        $this->assertSame('Admin A version', $afterA->layout_json['blocks'][0]['data']['text']);
+
+        // Admin B's browser still only knows about the original seed layout
+        // — their save arrives with the now-stale known_layout_id.
+        $response = $this->put("/admin/pages/{$page->id}", [
+            'title' => 'Race', 'slug' => $page->slug, 'status' => 'published', 'template' => 'full',
+            'known_layout_id' => $seedLayoutId,
+            'blocks' => [['type' => 'heading', 'data' => ['text' => 'Admin B version']]],
+        ]);
+        $response->assertRedirect()->assertSessionHas('warning');
+
+        // Both A's and B's revisions exist — nothing was discarded.
+        $this->assertSame(3, PageLayout::where('page_id', $page->id)->count()); // seed + A + B
+
+        // The PUBLISHED revision is still Admin A's — B's conflicting save
+        // was kept as an unpublished draft, never auto-published over A's.
+        $published = PageLayout::where('page_id', $page->id)->where('is_published', true)->first();
+        $this->assertSame('Admin A version', $published->layout_json['blocks'][0]['data']['text']);
+
+        $bDraft = PageLayout::where('page_id', $page->id)->where('is_published', false)->latest('id')->first();
+        $this->assertSame('Admin B version', $bDraft->layout_json['blocks'][0]['data']['text']);
+    }
+
     public function test_set_homepage_and_delete(): void
     {
         $this->actingAs($this->admin);

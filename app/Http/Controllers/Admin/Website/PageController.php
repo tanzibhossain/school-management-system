@@ -122,6 +122,11 @@ class PageController extends Controller
             'view' => $this->layoutForEditor($layout?->layout_json),
             'blocks' => PageRenderService::BLOCKS,
             'sidebarBlocks' => PageRenderService::SIDEBAR_BLOCKS,
+            // Stashed into a hidden form field — save()'s optimistic
+            // concurrency check compares this against whatever the latest
+            // revision actually is BY THE TIME the save arrives, to detect
+            // a second admin having saved in between.
+            'knownLayoutId' => $layout?->id,
         ]);
     }
 
@@ -141,6 +146,7 @@ class PageController extends Controller
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_desc' => ['nullable', 'string', 'max:500'],
             'og_image' => ['nullable', 'string', 'max:2048'],
+            'known_layout_id' => ['nullable', 'integer'],
         ]);
 
         $this->pages->update($page, [
@@ -160,10 +166,29 @@ class PageController extends Controller
                 : [],
         ];
 
+        // Optimistic concurrency check: has someone ELSE saved a newer
+        // revision since this editor session loaded (edit()'s
+        // $knownLayoutId, round-tripped through a hidden field)? Layouts are
+        // already append-only/versioned (see PageService/CLAUDE.md) — the
+        // safest response to a real conflict is never to block or discard
+        // either admin's work, just to keep BOTH revisions and let a human
+        // sort it out in History, rather than risk silently overwriting one
+        // admin's edits with the other's.
+        $priorLatest = $page->layouts()->first();
+        $conflict = $request->filled('known_layout_id')
+            && $priorLatest
+            && (int) $data['known_layout_id'] !== $priorLatest->id;
+
         $revision = $this->pages->saveLayout($page->fresh(), $layout, $request->user());
 
-        if ($data['status'] === 'published') {
+        if ($data['status'] === 'published' && ! $conflict) {
             $this->pages->publish($page->fresh(), $revision->id);
+        }
+
+        if ($conflict) {
+            return redirect()->route('admin.pages.edit', $page->id)->with('warning', __(
+                'Someone else saved changes to this page while you were editing. Your changes were saved as a new draft (not published) — open History to compare revisions and publish the right one.'
+            ));
         }
 
         return redirect()->route('admin.pages.edit', $page->id)->with('status', __('Page Saved.'));
