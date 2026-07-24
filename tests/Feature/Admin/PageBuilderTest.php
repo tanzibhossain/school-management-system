@@ -88,6 +88,33 @@ class PageBuilderTest extends TestCase
             ->assertSee('https://x/a.jpg', false);
     }
 
+    /**
+     * PageRenderService::renderPage() caches the resolved view keyed by the
+     * PUBLISHED PageLayout's own id (see §7l in
+     * docs/modules/28-elementor-block-editor-plan.md) — every publish()
+     * creates a brand-new PageLayout row, so re-publishing with different
+     * content must show the new content immediately, not a stale cached
+     * render of the old layout id.
+     */
+    public function test_republishing_does_not_serve_a_stale_cached_render(): void
+    {
+        $this->actingAs($this->admin);
+        $this->post('/admin/pages', ['title' => 'Notice', 'template' => 'full']);
+        $page = Page::first();
+
+        $this->put("/admin/pages/{$page->id}", [
+            'title' => 'Notice', 'slug' => 'notice', 'status' => 'published', 'template' => 'full',
+            'blocks' => [['type' => 'heading', 'data' => ['text' => 'Version One']]],
+        ])->assertRedirect();
+        $this->get('/notice')->assertOk()->assertSee('Version One')->assertDontSee('Version Two');
+
+        $this->put("/admin/pages/{$page->id}", [
+            'title' => 'Notice', 'slug' => 'notice', 'status' => 'published', 'template' => 'full',
+            'blocks' => [['type' => 'heading', 'data' => ['text' => 'Version Two']]],
+        ])->assertRedirect();
+        $this->get('/notice')->assertOk()->assertSee('Version Two')->assertDontSee('Version One');
+    }
+
     public function test_sidebar_links_parse_into_pairs(): void
     {
         $this->actingAs($this->admin);

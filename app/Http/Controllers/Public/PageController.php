@@ -36,11 +36,14 @@ class PageController extends Controller
             abort(404);
         }
 
-        $layout = $page->publishedLayout->first();
+        // renderPage() is cached (keyed by the published layout's own id);
+        // null only when the page has no published layout yet, in which
+        // case this still renders — just with empty blocks, same as before.
+        $view = $this->render->renderPage($page) ?? $this->render->buildView($school->id, null);
 
         return view('public.page', [
             'page' => $page,
-            'view' => $this->render->buildView($school->id, $layout?->layout_json),
+            'view' => $view,
             'settings' => SiteSetting::forSchool($school->id),
             'school' => $school,
         ]);

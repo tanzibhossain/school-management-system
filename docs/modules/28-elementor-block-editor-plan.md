@@ -730,6 +730,39 @@ against the real `sanitizeStyle()`/`sanitizeLayout()`/`normalizeBlocks()`/`Block
 hand, including the exact depth arithmetic for the past-cap test), but "traced by hand" is not "observed
 passing."
 
+## 7l. Public page render caching
+
+`PageRenderService`/the public `PageController` never called `Cache::` at all before this — every visit to a
+published page re-resolved every block's live data (notices/stats/staff queries) from scratch, on every
+request, even though most published pages change rarely.
+
+- **New `PageRenderService::renderPage(Page $page): ?array`** — the cached counterpart to `buildView()`,
+  called by `Public\PageController::show()` and `HomeController::index()` (both previously called
+  `buildView($schoolId, $layout?->layout_json)` directly). The **admin live-preview endpoints
+  (`preview()`/`previewBlock()`) still call `buildView()`/`buildViewFromBlocks()` directly, untouched and
+  uncached** — they render the editor's current unsaved form state, which must never come from a cache.
+- **Cache key is the published `PageLayout` row's own id, not the page id.** Every `PageService::publish()`
+  creates a brand-new `PageLayout` row (layouts are versioned — see `CLAUDE.md`/§"the actual save
+  model"), so a fresh publish is automatically a fresh cache key with zero explicit invalidation code needed —
+  deliberately different from the tag-flushing Observer pattern (`Cache::tags([...])->flush()` on
+  `saved`/`deleted`) every other Repository cache in this codebase uses. `Cache::tags(['pageview'])` is still
+  applied (for ops visibility / bulk-flush capability), but nothing in this change ever calls
+  `Cache::tags(['pageview'])->flush()` itself.
+- **The one staleness window this can't close by construction**: a "dynamic" block's live data (notices count,
+  staff list, stats) changing without the page itself being re-published. Bounded by a flat 5-minute TTL
+  (`CACHE_TTL`) rather than making Announcement/Staff/etc. aware this cache exists — deliberately, to avoid
+  coupling unrelated modules to the Website module's rendering internals just to keep a cache fresh.
+- **Regression test**: `PageBuilderTest::test_republishing_does_not_serve_a_stale_cached_render()` — publishes
+  a page, republishes it with different content (a new `PageLayout` row/id), and asserts the second render
+  shows the new content, not the first render's cached HTML. This is the one behavior that would silently break
+  if the cache key were ever changed to something coarser (e.g. page id instead of layout id).
+- **What's still not built**: no caching for the admin pages list/history screens (not requested, and those are
+  already scoped to a handful of DB rows per school — not the same "resolve live module data on every request"
+  cost the public render has); no cache warming (first visitor after a publish pays the uncached cost, same as
+  before this change); not verified in a real browser/Redis (no PHP/Docker in this sandbox) — confirm by timing
+  a repeat request to a published page and checking `docker compose exec app php artisan tinker` shows the
+  `pageview:layout:{id}` key actually landing in Redis.
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1

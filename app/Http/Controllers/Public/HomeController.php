@@ -36,14 +36,17 @@ class HomeController extends Controller
             ]);
         }
 
-        // A designated homepage page's published layout wins.
+        // A designated homepage page's published layout wins. renderPage()
+        // (cached, keyed by the published layout's own id) returns null when
+        // there's no published layout, in which case the default landing
+        // below still applies exactly as before.
         $home = $this->render->homepage($school->id);
-        $layout = $home?->publishedLayout->first();
+        $view = $home ? $this->render->renderPage($home) : null;
 
-        if ($home && $layout) {
+        if ($home && $view) {
             return view('public.page', [
                 'page' => $home,
-                'view' => $this->render->buildView($school->id, $layout->layout_json),
+                'view' => $view,
                 'settings' => SiteSetting::forSchool($school->id),
                 'school' => $school,
             ]);
