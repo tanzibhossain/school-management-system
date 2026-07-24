@@ -33,6 +33,13 @@ class WebsiteMediaService
         $media->delete();
     }
 
+    public function updateAltText(WebsiteMedia $media, ?string $altText): WebsiteMedia
+    {
+        $media->update(['alt_text' => $altText]);
+
+        return $media;
+    }
+
     /** @return array{0: int, 1: int}|null */
     private function imageDimensions(UploadedFile $file): ?array
     {

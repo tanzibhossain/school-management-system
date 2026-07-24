@@ -1614,22 +1614,33 @@
             var col = document.createElement('div');
             col.className = 'col';
             var thumbInner = item.is_image
-              ? '<img src="' + item.url + '" class="w-100" style="height:90px;object-fit:cover;" alt="">'
+              ? '<img src="' + item.url + '" class="w-100" style="height:90px;object-fit:cover;" alt="' + (item.alt_text || '') + '">'
               : '<div class="w-100 d-flex align-items-center justify-content-center bg-body-secondary" style="height:90px;"><i class="bi bi-file-play fs-3"></i></div>';
+            // Alt text only makes sense for images — video/other files skip
+            // the field entirely rather than showing a meaningless input.
+            var altInput = item.is_image
+              ? '<input type="text" class="form-control form-control-sm media-picker-alt mt-1" value="' + (item.alt_text || '').replace(/"/g, '&quot;') + '" placeholder="' + @json(__('Alt text')) + '">'
+              : '';
             col.innerHTML =
               '<div class="border rounded position-relative media-picker-item" style="cursor:pointer;">' +
                 thumbInner +
                 '<button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 py-0 px-1 media-picker-delete" title="' + @json(__('Delete')) + '" aria-label="' + @json(__('Delete')) + ' ' + item.filename + '"><i class="bi bi-trash" aria-hidden="true"></i></button>' +
-                '<div class="small text-truncate px-1" title="' + item.filename + '">' + item.filename + '</div>' +
+                '<div class="small text-truncate px-1 pt-1" title="' + item.filename + '">' + item.filename + '</div>' +
+                (altInput ? '<div class="px-1 pb-1">' + altInput + '</div>' : '') +
               '</div>';
             col.querySelector('.media-picker-item').addEventListener('click', function (e) {
-              if (e.target.closest('.media-picker-delete')) return;
+              if (e.target.closest('.media-picker-delete') || e.target.closest('.media-picker-alt')) return;
               selectMedia(item);
             });
             col.querySelector('.media-picker-delete').addEventListener('click', function (e) {
               e.stopPropagation();
               deleteMedia(item);
             });
+            var altEl = col.querySelector('.media-picker-alt');
+            if (altEl) {
+              altEl.addEventListener('click', function (e) { e.stopPropagation(); });
+              altEl.addEventListener('change', function () { saveAltText(item, altEl.value); });
+            }
             grid.appendChild(col);
           });
         }
@@ -1642,6 +1653,18 @@
           // react to 'input' on every text field, nothing new to wire up.
           targetInput.dispatchEvent(new Event('input', { bubbles: true }));
           modal.hide();
+        }
+
+        function saveAltText(item, value) {
+          item.alt_text = value; // optimistic — reflected immediately if the modal reopens before the request lands
+          fetch(@json(url('/admin/media')) + '/' + item.id, {
+            method: 'PUT',
+            body: JSON.stringify({ alt_text: value }),
+            headers: {
+              'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest',
+              'Content-Type': 'application/json', 'Accept': 'application/json',
+            },
+          }).catch(function () { /* best-effort — a failed alt-text save isn't worth interrupting the editor over */ });
         }
 
         function deleteMedia(item) {
