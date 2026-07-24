@@ -982,6 +982,38 @@ school's media 404s, never leaks into another school's list). Not run in this sa
 same caveat as everything else this session; the user's own `php artisan test` run is what actually confirms
 it.
 
+## 7r. Media library: drag-and-drop upload
+
+The Media Library modal only had the explicit "Upload" button + native file picker before this — the whole
+modal body (not a separate drop-zone box; the grid already fills the space) is now a drop target too.
+`uploadFile(file)` was factored out of the file-input's `change` handler so both paths (button-triggered
+picker, drag-and-drop) share one upload call, with the input-triggered path unchanged (still resets
+`uploadInput.value` afterward; the drop path has no input to reset).
+
+- **`dragenter`/`dragover` must both call `preventDefault()`** — the browser's default behavior for a drop
+  target that never opts in is to reject the drop outright, opening the dragged file in a new tab/navigating
+  away from the editor.
+- **`dragleave` fires on every child-element boundary crossing, not just when truly leaving the zone** — a
+  known DOM quirk (the modal body's children, e.g. the grid's own thumbnail cards, each fire their own
+  enter/leave pair as the cursor crosses them). Tracked via a depth counter (increment on `dragenter`,
+  decrement on `dragleave`, only clear the "drop here" highlight at depth 0) rather than the naive "toggle a
+  boolean per event" approach, which flickers the highlight on/off constantly while dragging over any nested
+  element.
+- **Multiple dropped files upload sequentially, not via `Promise.all`** — deliberately: `status.textContent`
+  is shared, single-line, best-effort feedback ("Uploading…" / "Upload failed."); a parallel burst would let a
+  later file's status message stomp an earlier one's failure before the admin ever saw it, and a multi-file
+  drop hammering the endpoint with N simultaneous requests has no real upside over one-at-a-time for what this
+  modal is (a small admin tool, not a bulk-import feature).
+- Visual affordance is a CSS outline (`.media-drop-active`, toggled by the same dragenter/dragleave handlers)
+  rather than a separate overlay element — simpler, no extra DOM to keep positioned/sized as the grid's own
+  content grows.
+
+**Not covered by this pass**: no upload progress indicator (a single "Uploading…" status line, same as the
+button-triggered path already had — multi-file drops just don't show which file is currently in flight); no
+client-side file-type/size pre-check before the request round-trips (the existing server-side validation in
+`MediaController::store()` — 10MB, image/mp4/webm mimes — is still the only enforcement, same as before this
+change).
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1
