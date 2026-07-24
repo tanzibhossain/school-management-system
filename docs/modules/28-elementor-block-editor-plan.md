@@ -1160,6 +1160,30 @@ minimum, verify with VoiceOver/NVDA that adding, removing, reordering, and dragg
 each announce something sensible exactly once (not zero times, not twice), and that opening the context menu
 with Shift+F10 on a focused block, then pressing Escape, visibly returns focus to that same block.
 
+## 7v. Fix: Media Library modal invisible inside the fullscreen editor
+
+Reported directly by the user: clicking "Browse" on an Image block's URL field (or any `'media'` field —
+hero, image_text, video poster) did nothing visible — no modal appeared.
+
+**Root cause**: `public/css/admin-design-tokens.css`'s `.modal`/`.modal-backdrop` rules were written for a
+native `<dialog>` element toggled via the `[open]` *attribute* (`visibility:hidden; opacity:0` by default,
+only visible under `.modal[open]`) — but Bootstrap 5's modal JS toggles a `.show` *class*, never that
+attribute. `layouts/admin.blade.php` (the layout every other admin screen uses) already carries a fix for
+exactly this clash — a `.modal`/`.modal.show`/`.modal-backdrop` override restoring Bootstrap's actual
+positioning/visibility behavior (see its own inline comment, added well before this session). `layouts/
+admin-fullscreen.blade.php` (the page editor's own minimal shell, §7b) never got a copy of that fix — it
+predates the Media Library being the first real Bootstrap modal ever opened inside it (§7h), so the gap went
+unnoticed until now. `bootstrap.Modal.getOrCreateInstance(modalEl).show()` (`edit.blade.php`) was working
+correctly the entire time — the modal really was opening in the DOM, just invisible.
+
+**Fix**: copied the identical CSS block from `layouts/admin.blade.php` into `layouts/admin-fullscreen.blade.php`'s
+`<style>` tag — same rules, same values, no divergence between the two layouts' modal behavior. Any *future*
+Bootstrap modal added inside the fullscreen editor is now covered too, not just this one.
+
+**Verification gap**: no PHP/browser in this sandbox — checked only via a brace/paren-balance script (balanced).
+Please confirm in the browser: open a page in the editor, add or expand an Image block, click Browse, and
+confirm the Media Library modal now actually appears (not just that no console error is thrown).
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1
