@@ -1184,6 +1184,42 @@ Bootstrap modal added inside the fullscreen editor is now covered too, not just 
 Please confirm in the browser: open a page in the editor, add or expand an Image block, click Browse, and
 confirm the Media Library modal now actually appears (not just that no console error is thrown).
 
+## 7w. Removed the Move Up/Down buttons — drag-only reordering
+
+Requested directly by the user: the per-block Move Up/Down buttons (`.js-up`/`.js-down` in `_card.blade.php`)
+are gone from the rail row's button group, leaving only Remove. Reordering is now exclusively via the existing
+drag handle (SortableJS, Milestone 7/§7c) — dragging a block by its grip icon (or the row itself) up or down
+its list.
+
+- **`_card.blade.php`**: removed both buttons; the row's `btn-group` now holds only Remove.
+- **`edit.blade.php`**: removed the `.js-up`/`.js-down` branches from the delegated click handler, and the
+  now-unused `MSG_MOVED_UP`/`MSG_MOVED_DOWN` announcement templates (§7u) — the drag path's own `MSG_REORDERED`
+  announcement already covers this action, so nothing else needed to change there.
+- **No backend change** — reordering was always a pure client-side DOM operation (`insertBefore()`/SortableJS),
+  submitted as part of the whole form on Save like any other field; nothing about *how* the client got the
+  blocks into their final order was ever visible to the server.
+- **No new translation keys removed either** — `bn.json`'s `"Move Up"`/`"Move Down"`/`"Moved :label up"`/
+  `"Moved :label down"` entries were left in place rather than deleted, since removing translation keys that
+  might still be referenced elsewhere (or reintroduced later) is lower-value than the risk of a stale
+  `translations:scan` diff; they're simply unused now.
+
+**Real accessibility regression, worth flagging plainly rather than glossing over**: §7u's own comment in
+`_card.blade.php` explicitly called out that "Move Up/Down... are the keyboard-operable equivalent for
+reordering" — removing them removes the *only* keyboard-operable way to reorder a block. SortableJS's
+drag-and-drop has no built-in keyboard fallback, and this change doesn't add one. A keyboard-only admin (or a
+screen-reader user) can now add, remove, and edit blocks, but cannot reorder them at all — not "harder,"
+genuinely impossible through this UI. This was an explicit, informed trade-off the user asked for (drag-only,
+buttons removed), not an oversight — but if keyboard reordering ever needs to come back, SortableJS has no
+built-in keyboard-sensor equivalent, so the cleanest path would be either restoring the buttons in some less
+prominent form (e.g. only in the right-click context menu) or hand-rolling arrow-key handling on a focused
+block-row.
+
+**Verification gap**: no PHP/browser in this sandbox. `_card.blade.php`/`edit.blade.php` checked via
+brace/paren-balance script (this diff's own added/removed lines are self-balanced; the file's pre-existing
+`[`/`]` gap, documented in §7u, is untouched) and `node --check` on the extracted inline `<script>` (passed).
+Please confirm in-browser that drag-reordering still works for both top-level lists and nested containers, and
+that the rail row no longer shows Up/Down icons.
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1

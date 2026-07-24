@@ -624,8 +624,6 @@
       var a11yStatusEl = document.getElementById('a11y-status');
       var MSG_BLOCK_ADDED = @json(__('Block added: :label'));
       var MSG_BLOCK_REMOVED = @json(__('Block removed: :label'));
-      var MSG_MOVED_UP = @json(__('Moved :label up'));
-      var MSG_MOVED_DOWN = @json(__('Moved :label down'));
       var MSG_REORDERED = @json(__('Reordered :label'));
       var MSG_MOVED_INTO = @json(__('Moved :label into :container'));
       var MSG_MOVED_TOP = @json(__('Moved :label to the top level'));
@@ -1255,11 +1253,9 @@
       })();
 
       document.addEventListener('click', function (e) {
-        var up = e.target.closest('.js-up'), down = e.target.closest('.js-down'), rm = e.target.closest('.js-remove');
+        var rm = e.target.closest('.js-remove');
         var toggle = e.target.closest('.js-block-toggle');
         var copyStyle = e.target.closest('.js-copy-style'), pasteStyle = e.target.closest('.js-paste-style');
-        if (up) { var c = up.closest('.block-card'); if (c.previousElementSibling) { c.parentNode.insertBefore(c, c.previousElementSibling); announce(MSG_MOVED_UP, { label: cardLabel(c) }); schedulePreview(); pushHistory(); } return; }
-        if (down) { var c = down.closest('.block-card'); if (c.nextElementSibling) { c.parentNode.insertBefore(c.nextElementSibling, c); announce(MSG_MOVED_DOWN, { label: cardLabel(c) }); schedulePreview(); pushHistory(); } return; }
         if (rm) { removeCard(rm.closest('.block-card')); return; }
         if (toggle) { toggleBlockCard(toggle.closest('.block-card')); return; }
         if (copyStyle) {
