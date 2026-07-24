@@ -321,6 +321,7 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         // Website media library (page editor's Media Library modal)
         Route::get('/media', [MediaController::class, 'index'])->name('media.index');
         Route::post('/media', [MediaController::class, 'store'])->name('media.store');
+        Route::put('/media/{id}', [MediaController::class, 'update'])->whereNumber('id')->name('media.update');
         Route::delete('/media/{id}', [MediaController::class, 'destroy'])->whereNumber('id')->name('media.destroy');
 
         // Navigation menu editor

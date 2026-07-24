@@ -50,6 +50,18 @@ class MediaController extends Controller
         return response()->json($this->present($media), 201);
     }
 
+    /** Alt text only, for now — filename/dimensions/mime are derived from the upload itself, never edited. */
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $schoolId = app('current_school_id');
+        $media = WebsiteMedia::forSchool($schoolId)->findOrFail($id);
+        $data = $request->validate(['alt_text' => ['nullable', 'string', 'max:255']]);
+
+        $this->service->updateAltText($media, $data['alt_text'] ?? null);
+
+        return response()->json($this->present($media));
+    }
+
     public function destroy(int $id): JsonResponse
     {
         $schoolId = app('current_school_id');
@@ -69,6 +81,7 @@ class MediaController extends Controller
             'width' => $media->width_px,
             'height' => $media->height_px,
             'is_image' => str_starts_with($media->mime_type, 'image/'),
+            'alt_text' => $media->alt_text,
         ];
     }
 }

@@ -355,6 +355,12 @@ parameters:
 			path: app/Http/Controllers/Admin/Website/MediaController.php
 
 		-
+			message: '#^Access to an undefined property App\\Modules\\Website\\Models\\WebsiteMedia\:\:\$alt_text\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/Admin/Website/MediaController.php
+
+		-
 			message: '#^Access to an undefined property App\\Modules\\Website\\Models\\Page\:\:\$slug\.$#'
 			identifier: property.notFound
 			count: 1

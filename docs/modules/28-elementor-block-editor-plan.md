@@ -956,6 +956,32 @@ entry in particular is a best-effort prediction of what the analyzer will report
 confirmed against real output — the next `phpstan analyse` run is what actually confirms all of this, the same
 loop that just caught and fixed the `Page::layouts()` bug in §7o.
 
+## 7q. Media library: alt-text editing
+
+`WebsiteMedia.alt_text` was a real column with nothing anywhere ever setting it (§7h's own "what's still not
+built" list flagged this). Rather than a prompt at upload time (friction on every single upload, and doesn't
+help the images already uploaded before this), each grid item in the Media Library modal now has its own
+inline text input, saved on `change` (blur/Enter) via a new `PUT /admin/media/{id}` endpoint
+(`MediaController::update()` → `WebsiteMediaService::updateAltText()`) — one mechanism that covers both new and
+already-uploaded files. The request is fire-and-forget (best-effort, no error UI) — deliberately: losing an
+alt-text edit is low-stakes compared to interrupting the editor over it, unlike a real save/publish.
+`present()` now includes `alt_text` in the JSON payload so the picker shows the current value on reopen, and
+selected thumbnails render with it as their own `alt` attribute in the grid itself (not blank).
+
+**Deliberately out of scope for this pass**: the alt text captured here isn't wired into any BLOCK's own
+rendered `<img>` yet — `image` block's public render already uses its own `caption` field as alt text (a
+separate, pre-existing field), and `hero`'s image is a CSS `background-image` (no `<img>` tag exists to put
+`alt` on, which is correct — decorative backgrounds don't need alt text). `image_text.image` is the one real
+gap (it renders a genuine `<img alt="">`, always blank) — auto-filling it from the picked media's `alt_text`
+when selected is a reasonable follow-up, not done here to keep this change scoped to the media library itself
+rather than also touching the block-field spec/picker-selection JS.
+
+**Verification gap**: `tests/Feature/Admin/WebsiteMediaLibraryTest.php` (new — media had zero test coverage
+before this) covers upload/list/delete and the new alt-text update, including school-scoping (a different
+school's media 404s, never leaks into another school's list). Not run in this sandbox (no PHP available) —
+same caveat as everything else this session; the user's own `php artisan test` run is what actually confirms
+it.
+
 ## 8. Decisions to confirm when resuming (if not already answered above)
 
 - Confirm the exact current route/controller method name for the public page `show()` action before Phase 1
