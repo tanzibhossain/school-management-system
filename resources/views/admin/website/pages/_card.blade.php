@@ -18,16 +18,15 @@
        since the pane always starts collapsed. --}}
   <div class="block-row d-flex align-items-center gap-2 px-2 py-2 js-block-toggle" role="button" tabindex="0"
        aria-expanded="false" aria-controls="tab-content-{{ $tabId }}" aria-label="{{ $label }}">
-    {{-- Decorative — the drag handle icon has no independent keyboard
-         interaction of its own; Move Up/Down below are the keyboard-operable
-         equivalent for reordering, so this stays out of the a11y tree
-         rather than announcing an icon a keyboard user can't act on. --}}
+    {{-- Decorative — dragging the handle (or anywhere on the row) is now the
+         ONLY way to reorder a block; there is no keyboard-operable
+         equivalent since the Move Up/Down buttons were removed in favor of
+         drag-only reordering (see docs/modules/28-elementor-block-editor-plan.md
+         §7w for the accessibility trade-off this leaves open). --}}
     <i class="bi bi-grip-vertical text-muted js-drag-handle" aria-hidden="true" title="{{ __('Drag To Reorder') }}"></i>
     <i class="bi {{ $icon }} text-brand" aria-hidden="true"></i>
     <span class="small fw-semibold flex-grow-1 text-truncate">{{ $label }}</span>
     <span class="btn-group btn-group-sm">
-      <button type="button" class="btn btn-outline-secondary js-up" title="{{ __('Move Up') }}" aria-label="{{ __('Move up') }}: {{ $label }}"><i class="bi bi-arrow-up" aria-hidden="true"></i></button>
-      <button type="button" class="btn btn-outline-secondary js-down" title="{{ __('Move Down') }}" aria-label="{{ __('Move down') }}: {{ $label }}"><i class="bi bi-arrow-down" aria-hidden="true"></i></button>
       <button type="button" class="btn btn-outline-danger js-remove" title="{{ __('Remove') }}" aria-label="{{ __('Remove') }}: {{ $label }}"><i class="bi bi-trash" aria-hidden="true"></i></button>
     </span>
     <i class="bi bi-chevron-down small text-muted js-block-chevron" aria-hidden="true"></i>
