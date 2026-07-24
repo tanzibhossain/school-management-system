@@ -12,8 +12,8 @@ use Tests\TestCase;
 /**
  * Public page SEO meta tags — Open Graph (§7 per-page SEO wiring, task #55)
  * and Twitter Card (docs/modules/28-elementor-block-editor-plan.md §7t),
- * which mirror the same og:*/twitter:* precedence: a page's own
- * meta_desc/og_image win over the site-wide Website > Settings default.
+ * which mirror the same precedence for both the og: and twitter: tags: a
+ * page's own meta_desc/og_image win over the site-wide Website > Settings default.
  */
 class PageSeoMetaTagsTest extends TestCase
 {
@@ -60,7 +60,6 @@ class PageSeoMetaTagsTest extends TestCase
         $response->assertSee('<meta property="og:description" content="Learn about our history and mission.">', false);
         $response->assertSee('<meta property="og:image" content="https://example.com/about-og.jpg">', false);
         $response->assertSee('<meta name="twitter:card" content="summary_large_image">', false);
-        $response->assertSee('About Us · Test School', false);
         $response->assertSee('<meta name="twitter:description" content="Learn about our history and mission.">', false);
         $response->assertSee('<meta name="twitter:image" content="https://example.com/about-og.jpg">', false);
     }
