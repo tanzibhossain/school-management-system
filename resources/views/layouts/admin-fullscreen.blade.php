@@ -37,6 +37,26 @@
     }
     .text-primary { color: #4f46e5 !important; }
     .form-control:focus, .form-select:focus { border-color: #a5b4fc; box-shadow: 0 0 0 .2rem rgba(79, 70, 229, .2); }
+
+    /* admin-design-tokens.css's .modal/.modal-backdrop were written for a
+       native <dialog> shown via the [open] attribute (visibility:hidden;
+       opacity:0 by default, only visible under .modal[open]) — Bootstrap's
+       JS instead toggles a .show CLASS, never that attribute, so any
+       Bootstrap modal in this layout (e.g. the page editor's Media Library
+       modal, edit.blade.php) opens in the DOM but stays invisible. Same fix
+       layouts/admin.blade.php already carries for this exact clash — this
+       fullscreen layout never got a copy of it since it predates the first
+       real Bootstrap modal (#media-picker-modal, §7h) being used inside it. */
+    .modal {
+      position: fixed; inset: 0; top: 0; left: 0;
+      width: 100%; height: 100%; max-width: none; max-height: none;
+      transform: none; opacity: 1; visibility: visible;
+      background: transparent; border-radius: 0; box-shadow: none;
+      overflow-x: hidden; overflow-y: auto; display: none; z-index: 1055;
+    }
+    .modal.show { display: block; }
+    .modal-backdrop { z-index: 1050; }
+    .modal-backdrop.show { opacity: .5; }
   </style>
   @stack('styles')
 </head>
