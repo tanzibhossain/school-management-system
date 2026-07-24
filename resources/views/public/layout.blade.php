@@ -530,9 +530,26 @@
             // arbitrary cursor position, so a plain absolutely-positioned menu
             // is simpler here). Actions are dispatched to the parent, which
             // already owns the copy/paste-style clipboard and block removal.
-            function closeContextMenu() {
+            // Element that had focus just before the menu opened — restored
+            // when the menu closes via an explicit action (Escape, or
+            // choosing a menu item), matching the WAI-ARIA APG menu-button
+            // pattern ("focus is typically returned to the element that had
+            // focus before the menu opened"). Deliberately NOT restored on a
+            // plain outside click/scroll dismissal: a click may have landed
+            // on a genuinely focusable element inside a block (a contact
+            // form field, a button block's link), and forcing focus back to
+            // the pre-menu element in that case would steal it right back
+            // out from under whatever the user just clicked.
+            var lastFocusedBeforeMenu = null;
+            function closeContextMenu(restoreFocus) {
                 var m = document.getElementById('editor-context-menu');
-                if (m) m.remove();
+                if (!m) return;
+                m.remove();
+                if (restoreFocus && lastFocusedBeforeMenu && document.body.contains(lastFocusedBeforeMenu)
+                    && typeof lastFocusedBeforeMenu.focus === 'function') {
+                    lastFocusedBeforeMenu.focus();
+                }
+                lastFocusedBeforeMenu = null;
             }
             // ARIA menu semantics + Escape-to-close: everything this menu can
             // do (Copy/Paste Style, Remove) also has a real keyboard-operable
@@ -546,9 +563,15 @@
             // correctly, rather than reading it as unlabeled plain buttons.
             document.addEventListener('contextmenu', function (e) {
                 var el = e.target.closest('[data-block-path]');
-                closeContextMenu();
+                // Captured BEFORE closing any already-open menu, so a
+                // right-click that lands on a new block still remembers
+                // whatever had focus prior to the FIRST menu opening (not
+                // a button inside that menu, which is about to be removed).
+                var active = document.activeElement;
+                closeContextMenu(false);
                 if (!el) return;
                 e.preventDefault();
+                lastFocusedBeforeMenu = (active && active !== document.body) ? active : null;
                 var menu = document.createElement('div');
                 menu.id = 'editor-context-menu';
                 menu.className = 'shadow-sm';
@@ -572,7 +595,7 @@
                             source: 'page-preview', type: 'context-action', action: a.action,
                             group: el.dataset.blockGroup, path: parsePath(el.dataset.blockPath),
                         }, '*');
-                        closeContextMenu();
+                        closeContextMenu(true);
                     });
                     menu.appendChild(item);
                 });
@@ -586,12 +609,14 @@
                 var firstItem = menu.querySelector('button');
                 if (firstItem) firstItem.focus();
             }, true);
-            document.addEventListener('click', closeContextMenu);
-            document.addEventListener('scroll', closeContextMenu, true);
+            document.addEventListener('click', function () { closeContextMenu(false); });
+            document.addEventListener('scroll', function () { closeContextMenu(false); }, true);
+            // Escape is the one dismissal that always restores focus — the
+            // standard keyboard "back out" gesture, matching every other
+            // Escape handler already in this app (sidebar panels, modals).
             document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape') closeContextMenu();
+                if (e.key === 'Escape') closeContextMenu(true);
             });
-            document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeContextMenu(); });
         })();
     </script>
 </body>
