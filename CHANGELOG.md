@@ -16,10 +16,6 @@ follows [Semantic Versioning](https://semver.org/).
 - `actions/checkout` v6 → v7 in all CI workflows
 - Docker base image `php:8.3-fpm` → `php:8.5-fpm`
 
-### Notes
-- The PHP base image is now 8.5; CLAUDE.md and the README still say 8.3. Update one or the other, and
-  re-run the test suite under the new image before deploying it.
-
 ## [1.3.0] — 2026-07-24
 
 ### Added
@@ -60,10 +56,6 @@ follows [Semantic Versioning](https://semver.org/).
 - Fixed a parse error in `PageSeoMetaTagsTest.php` that had been silently skipping that entire test file.
 - Fixed two incorrect assertions in the width tests.
 
-### Notes
-- Removing the Move Up/Down buttons drops the only keyboard-operable way to reorder blocks — dragging has no
-  keyboard equivalent yet.
-
 ## [1.2.0] — 2026-07-24
 
 ### Added
@@ -99,10 +91,6 @@ follows [Semantic Versioning](https://semver.org/).
 - Changing your password or disabling two-factor authentication now signs out every other active session.
 - Requesting an email change now also notifies the current address, with a link to cancel the change.
 
-### Notes
-- The Container/Grid nesting engine and its drag-and-drop interactions haven't been tested end-to-end in a
-  browser — verify deeply nested layouts before relying on this in production.
-
 ## [1.0.1] — 2026-07-23
 
 ### Added
@@ -120,10 +108,6 @@ follows [Semantic Versioning](https://semver.org/).
 - Fixed the session/device list always reporting "No other active sessions" — the session ID was never being
   persisted.
 
-### Notes
-- The Account & Security feature ships without automated tests in this release — verify the 2FA and
-  email-change flows manually before relying on them in production.
-
 ## [1.0.0] — 2026-07-22
 
 First tagged release.
@@ -136,10 +120,6 @@ First tagged release.
   directly.
 - 578 automated tests; CI runs the suite, Pint, and Larastan/PHPStan on every push and pull request.
 - AGPL-3.0 license.
-
-### Notes
-- Single-school, self-hosted by design — no multi-tenant SaaS layer.
-- Seeded demo credentials are for local development only — see the README before production use.
 
 [1.2.0]: https://github.com/tanzibhossain/school-management-system/compare/v1.0.1...v1.2.0
 [1.0.1]: https://github.com/tanzibhossain/school-management-system/compare/v1.0.0...v1.0.1
