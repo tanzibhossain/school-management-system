@@ -365,6 +365,13 @@ Types: feat | fix | test | refactor | chore | docs
 ```
 Aim for 2–3 commits per session, one per 10-step stage where practical.
 
+## CHANGELOG Convention
+Every entry is **one line, minimal**: what changed, not why, not the debugging story behind it. No
+root-cause narratives, no file/commit references, no "previously X, now Y" before/after explanations —
+that detail belongs in the commit message and, if it's worth remembering long-term, a Gotchas Learned
+bullet above, not the changelog. New entries go under `## [Unreleased]`; fold into a dated `## [X.Y.Z]`
+section at release/tag time.
+
 ## After Every Module — Run & Ship
 ```bash
 docker compose exec app php artisan migrate

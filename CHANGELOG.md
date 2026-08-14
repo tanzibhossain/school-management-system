@@ -7,145 +7,134 @@ follows [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Fixed
-- Documented that a plain `docker compose down` does not stop the profile-gated `ai-detector` service (it keeps running, and restarts on reboot) — use `docker compose stop ai-detector` or `docker compose --profile ai-detector down` instead. No code change; this is a Docker Compose profile-resolution behavior, not a bug in the service itself.
-- `docker compose build`/`up --build` for `app`, `horizon`, and `scheduler` failed outright (`docker-php-ext-configure gd`, exit code 2) after an automatic dependency update bumped the Docker base image from PHP 8.3 to 8.5 — PHP 8.4 changed how the `gd` extension detects `libjpeg`/`libfreetype`, and the Dockerfile was missing the now-required `pkg-config` package.
-- After the `pkg-config` fix above, the same build still failed one step later (`cp: cannot stat 'modules/*'` installing the `gd` shared extension) — `gd` now builds in its own isolated `docker-php-ext-install` call instead of being bundled with several other extensions in one invocation.
-- The build still failed one more time after that, on the very next line (the remaining seven extensions bundled into one `docker-php-ext-install` call) — every PHP extension now gets its own isolated `docker-php-ext-install` step.
-- Even fully isolated, `docker-php-ext-install opcache` kept failing with the same error. Root cause: PHP 8.5 made OPcache a non-optional, built-into-the-binary extension (upstream RFC), so there's no longer an `opcache.so` to build at all — the install step is now a no-op that fails. Removed the `docker-php-ext-install opcache` line entirely; `opcache.ini` is still copied in and still controls OPcache's behavior via php.ini directives as before.
-- With the image finally building, `composer install` then failed outright: `phpoffice/phpspreadsheet` 1.30.6 (locked, pulled in by `maatwebsite/excel` for the DataImport module) caps `php: <8.5.0` in its own `composer.json` — a real dependency incompatibility, not a Docker issue. Reverted the Docker base image back to `php:8.3-fpm` (matching composer.json's own `"php": "^8.3"` floor) instead of chasing a `phpoffice/phpspreadsheet`/`maatwebsite/excel` major-version upgrade as a side effect of a base-image bump; restored the `docker-php-ext-install opcache` line since 8.3 still needs it. `.github/dependabot.yml` now ignores major-version bumps of the `php` Docker image so this isn't silently re-proposed.
+- Documented that `docker compose down` doesn't stop the profile-gated `ai-detector` service — use `docker compose stop ai-detector` instead.
+- Reverted the Docker base image from PHP 8.5 back to 8.3 after a chain of build failures (`gd`, bundled extensions, `opcache`) and a hard PHP-version cap in `phpoffice/phpspreadsheet`.
 
 ## [1.4.2] — 2026-08-06
 
 ### Added
-- Notices block: Style tab now has targeted Heading, Card Background, Card Date, Card Title, Card Text, and Card Icon color fields.
-- Staff block: Style tab now has targeted Heading, Avatar Ring, Avatar Text, Name, and Designation color fields.
-- Hero banner block: Style tab now has Title, Subtitle, Button Text/Background, and Button Hover Text/Background color fields, plus an explicit Background Image / Solid Color toggle — only one is ever applied, instead of an image silently overriding an unused color field.
-- Announcement bar block: Style tab now has targeted Message Text and Link Text color fields (background color already worked via the existing Advanced tab field).
-- Every block's Advanced tab Background section now offers a third option, Gradient, alongside Image and Solid Color — pick a start color, end color, and direction.
-- Margin, Padding, Border Width, and Border Radius controls: the four side inputs now sit flush against each other with only the outer corners rounded (no more separate T/B/L/R labels breaking them up), plus a new link-values button that, when toggled on, copies whatever you type into one box into the other three.
-- Every block's Advanced tab now has an "ID & Class" section — set a custom HTML id and/or one or more CSS class names on a block for your own custom CSS or JavaScript to hook into.
+- Notices block: targeted color fields (Heading, Card Background/Date/Title/Text/Icon).
+- Staff block: targeted color fields (Heading, Avatar Ring/Text, Name, Designation).
+- Hero banner block: Title/Subtitle/Button color fields, plus a Background Image / Solid Color toggle.
+- Announcement bar block: Message Text and Link Text color fields.
+- Gradient background option added alongside Image and Solid Color for every block.
+- Margin, Padding, Border Width, and Border Radius controls redesigned as linked four-side inputs.
+- Custom ID & Class section added to every block's Advanced tab.
 
 ### Changed
-- Background Image / Solid Color / Gradient is now one field per block, always on the Advanced tab, for every block type including Hero — previously Hero kept its own copy of this control on the Style tab (added when the toggle was first introduced), which duplicated the Advanced tab's field under the hood and could silently overwrite it depending on form submission order.
+- Background Image/Color/Gradient is now one shared Advanced-tab field for every block, including Hero.
 
 ### Fixed
-- Statistics block: Style tab colors and the entrance animation now actually apply. A single wrapper-level color/animation could never reach the heading or tile text (they each carry their own explicit CSS), so those settings visibly did nothing. Replaced with four targeted fields (Heading, Tile Background, Tile Number, Tile Subtext color) for this block only, and the entrance animation now plays on the heading and each tile individually instead of the whole section at once.
-- Page builder: editing a block's Style tab could make its live preview go blank (content still in the DOM, just invisible) whenever that block had an entrance animation set — the preview's fast per-block update path never told the page's scroll-reveal animation about newly-inserted elements, so they stayed permanently hidden instead of fading in.
-- Hero banner block: Background Color now applies to the block's own section (consistent with every other block) instead of the inner header element, which used to paint over it and hide it completely.
-- Notices block: added a Card Icon color field for the notice icon badge.
-- Staff block: added an Avatar Text color field for the initial-letter avatar shown when a member has no photo.
-- Hero banner block: fixed the Style tab's Background Color field silently doing nothing — it shared its underlying field name with the unrelated, always-present generic Background color field on the Advanced tab, so submitting the form could overwrite whichever one the admin had actually set.
-- Hero banner block: a Background Color set on the block would previously be applied to the (invisible) wrapper element and never actually show, because the hero's own gradient/image sits on top of it. Now applies directly to the visible hero element, gated behind the new Image/Solid Color toggle.
-- Public page rendering cache: strengthened the cache key for a published page so it can never serve a stale render for the wrong page — only ever observed under the automated test suite's in-memory database, not in normal operation.
+- Statistics block: Style tab colors and entrance animation now apply correctly.
+- Page builder: fixed a blank live preview after editing a Style tab on a block with an entrance animation.
+- Hero banner block: fixed Background Color not applying to the correct element.
+- Fixed a page-view cache key collision that could serve a stale page render.
 
 ## [1.4.1] — 2026-08-01
 
 ### Added
-- Free, self-hosted alternative to the paid Anthropic AI checker in LMS — switch with one setting.
+- Free, self-hosted alternative to the paid Anthropic AI checker in LMS.
 
 ### Fixed
-- AI checker score is now always kept within the expected range, and no longer builds/starts by default.
-- Test suite no longer makes real network calls when a developer has the self-hosted checker enabled locally.
-- Updated README, CLAUDE.md, and AGENTS.md to match the current codebase (both were out of date).
-- Fixed the self-hosted AI checker container failing to build with a mismatched, non-CPU-only PyTorch install.
-- Fixed the self-hosted AI checker crashing on startup after an automatic dependency update broke it, then properly migrated to and verified the newer version instead of just reverting.
-- Documented that the self-hosted checker is less reliable on very short or casual submissions.
-- Fixed the self-hosted AI checker printing an "unauthenticated requests" warning and unnecessarily phoning home to Hugging Face on every startup, despite already having everything it needs baked into the image.
-- Applied a further batch of routine dependency updates to the self-hosted AI checker (transformers, fastapi, uvicorn, pydantic, safetensors), each verified with a real build and smoke test before merging.
+- AI checker score clamped to valid range; no longer builds/starts by default.
+- Test suite no longer makes real network calls with the self-hosted checker enabled.
+- Updated README, CLAUDE.md, and AGENTS.md to match the current codebase.
+- Fixed self-hosted AI checker build and startup failures (PyTorch mismatch, dependency bump).
+- Documented reduced reliability on very short or casual submissions.
+- Fixed unnecessary Hugging Face network calls on startup.
+- Routine dependency updates for the self-hosted AI checker, each verified with a build + smoke test.
 
 ## [1.4.0] — 2026-07-31
 
 ### Added
 - Multi-language support for pages, menus, school info, staff, departments, and announcements.
-- AI-assisted translation button, for both website content and admin UI text.
-- Automatic Bengali date and digit formatting across the public site.
-- Bilingual (English + Bengali) sample data for the whole app, so it's ready to demo out of the box.
-- Translation status indicators on the Staff, Department, Page, and Announcement lists.
-- Sample data for features that had none before: certificates, ID cards, SMS, payroll, loans, refunds, holidays, and contact messages.
-- Refreshed and cleaned up Bengali translations using real usage data.
+- AI-assisted translation for website content and admin UI text.
+- Automatic Bengali date and digit formatting on the public site.
+- Bilingual (English + Bengali) sample data throughout.
+- Translation status indicators on Staff, Department, Page, and Announcement lists.
+- Sample data added for previously-empty modules (certificates, ID cards, SMS, payroll, loans, refunds, holidays, contact messages).
+- Refreshed Bengali translations using real usage data.
 
 ### Fixed
-- Your own admin language setting no longer changes what visitors see on the public site.
-- Fixed a crash when browsing the admin panel in Bengali.
-- Fixed a bug where AI-translating a menu could scramble its order.
-- Several public-site details (dates, phone numbers, addresses, the admission form) were ignoring the language switcher — now translated properly.
-- Staff and announcement translations weren't showing up on the public site.
-- The AI-translate button no longer closes your edit form unexpectedly.
-- General code-quality cleanup: fixed test failures and static-analysis warnings.
-- Cleaned up roughly 30 incorrect or awkward Bengali translations.
-- Some admission form labels stayed in English under Bengali — now translate correctly.
-- Cleaned up duplicate entries in the translation system.
+- Admin language setting no longer affects what public visitors see.
+- Fixed a crash browsing the admin panel in Bengali.
+- Fixed AI translation scrambling menu order.
+- Fixed several public-site details (dates, phone numbers, addresses, admission form) not translating.
+- Fixed staff and announcement translations not showing on the public site.
+- Fixed the AI-translate button closing the edit form unexpectedly.
+- Fixed test failures and static-analysis warnings.
+- Cleaned up ~30 incorrect or awkward Bengali translations.
+- Fixed admission form labels not translating.
+- Cleaned up duplicate translation entries.
 
 ### Changed
-- Removed a redundant "copy" button now that AI-translate does the same job.
+- Removed a redundant copy button superseded by AI-translate.
 
 ## [1.3.4] — 2026-07-31
 
 ### Added
-- Wired up ~19 dormant site-theming settings (fonts, colors, buttons, background) via a new "Advanced Theme" section — fully backward compatible.
-- Font choices are now validated against an allow-list to prevent CSS/HTML injection.
-- Redesigned the public header into a single sticky bar that shrinks on scroll, plus a new "Apply Now" button and a fluid heading type scale.
-- Two new page-builder blocks: a dismissible Announcement Bar and an FAQ accordion.
+- Wired up ~19 dormant site-theming settings via a new Advanced Theme section.
+- Font choices validated against an allow-list.
+- Redesigned public header into a sticky, shrinking bar with an Apply Now button and fluid type scale.
+- Two new page-builder blocks: Announcement Bar and FAQ accordion.
 
 ### Changed
 - Demo school now showcases the new theming, announcement bar, and FAQ blocks.
 
 ### Fixed
-- Fixed the nav underline and Bootstrap's dropdown arrow visually colliding on submenu items.
+- Fixed the nav underline visually colliding with the dropdown arrow on submenu items.
 
 ## [1.3.3] — 2026-07-28
 
 ### Added
-- Shared cPanel hosting support: local-disk fallback when MinIO isn't configured, plus a full deployment guide.
-- Version integrity checking — validates the app's VERSION file and can verify it against git tags.
-- Added a safe deployment script and VPS/cPanel update documentation.
+- Shared cPanel hosting support: local-disk fallback and a full deployment guide.
+- Version integrity checking against git tags.
+- Deployment script and VPS/cPanel update documentation.
 
 ### Changed
 - Routine dependency bumps (Laravel framework/Pint, concurrently).
 
 ### Fixed
-- Removed leftover debug console logging from the page-builder's Admission Form editor.
+- Removed leftover debug logging from the Admission Form editor.
 - Fixed `scripts/deploy.sh` not being executable after cloning.
-- Fixed stale caching examples in the project docs that could reintroduce a cPanel-breaking bug.
-- Fixed one remaining caching call that would break page rendering on shared hosting.
-- Fixed the health-check endpoint hardcoding a Redis connection, breaking it on non-Redis deployments.
-- Moved the app version to a git-tracked file so it actually updates on every deploy.
+- Fixed stale caching examples in the project docs.
+- Fixed a remaining caching call that broke page rendering on shared hosting.
+- Fixed the health-check endpoint hardcoding a Redis connection.
+- Moved the app version to a git-tracked file.
 
 ### Security
-- Patched a denial-of-service vulnerability in a dev-only dependency (via `concurrently`).
+- Patched a denial-of-service vulnerability in a dev-only dependency (`concurrently`).
 
 ## [1.3.2] — 2026-07-27
 
 ### Added
-- Gallery Photo/Video blocks now open a lightbox with prev/next navigation instead of leaving the page.
-- Subtle hover/motion polish across the public site, respecting reduced-motion preferences.
+- Gallery Photo/Video blocks now open a lightbox with prev/next navigation.
+- Hover/motion polish across the public site, respecting reduced-motion preferences.
 
 ### Changed
-- Refreshed the public site's design tokens for a more minimal, consistent look.
-- The school's accent color is now actually used (nav underline).
-- Restyled the homepage and every page-builder block — visual polish only, no functional changes.
+- Refreshed the public site's design tokens.
+- School accent color now used in the nav underline.
+- Restyled the homepage and page-builder blocks (visual only).
 
 ### Fixed
-- Fixed the Admission Form block rendering full-width instead of the normal content column.
-- Fixed a 500 error on any page using the Admission Form block.
-- Fixed muted text and several hardcoded English strings not using the translation system.
+- Fixed the Admission Form block's width and a 500 error on pages using it.
+- Fixed muted text and hardcoded strings bypassing translation.
 
 ## [1.3.1] — 2026-07-25
 
 ### Added
-- Submit buttons now show a spinner and disable themselves while a form is submitting.
+- Submit buttons show a spinner and disable while submitting.
 
 ### Changed
-- Unified the admin panel's two conflicting color systems into one consistent brand palette.
-- Page headers can now show multiple action buttons.
-- All admin views use a shared badge component instead of raw markup.
+- Unified the admin panel's color system.
+- Page headers support multiple action buttons.
+- Shared badge component used across admin views.
 
 ### Removed
-- Deleted a dead, unrouted student-detail page and an unused dark-mode CSS block.
+- Dead student-detail page and unused dark-mode CSS.
 
 ### Fixed
 - Fixed ~250 lines of corrupted CSS from a bad copy-paste.
-- Removed a dark-mode CSS block that had no way to actually be enabled.
 
 ### Dependencies
 - `laravel/framework` 13.18.0 → 13.21.1, `laravel/horizon` 5.47.2 → 5.48.1, `laravel/sanctum` 4.3.2 → 4.3.3
@@ -160,36 +149,36 @@ follows [Semantic Versioning](https://semver.org/).
 ## [1.3.0] — 2026-07-24
 
 ### Added
-- Per-page SEO fields (meta title, description, Open Graph image) with matching Twitter Card tags.
-- Duplicate Page and Save as Template actions, plus a screen for managing saved templates.
+- Per-page SEO fields (meta title, description, Open Graph image) with Twitter Card tags.
+- Duplicate Page and Save as Template actions, plus a template management screen.
 - Media library with drag-and-drop upload, image picker, and alt-text editing.
-- Autosave with local crash recovery and a conflict warning if the page changed elsewhere.
-- Public page rendering is now cached and invalidated automatically on publish.
-- Reorganized the block editor's Layout tab into Layout/Border/Background/Responsive sections.
-- Accessibility improvements: action announcements, restored focus, and aria-labels across the canvas.
+- Autosave with local crash recovery and a conflict warning.
+- Public page rendering now cached and invalidated automatically on publish.
+- Reorganized the block editor's Layout tab into sub-sections.
+- Accessibility improvements across the canvas.
 
 ### Changed
 - Padding/margin controls moved to the Advanced tab as four-box controls.
-- Block reordering is drag-only now (removed the Move Up/Down buttons).
-- Media fields show a live thumbnail preview instead of a broken-image icon.
+- Block reordering is drag-only now.
+- Media fields show a live thumbnail preview.
 - Page editor sidebar now has a fixed minimum width.
 
 ### Fixed
-- Registered a missing filesystem disk so the media library can actually store uploads.
+- Registered a missing filesystem disk for the media library.
 - Fixed inconsistent page-layout ordering when timestamps tie.
 - Resolved 14 static-analysis errors.
 - Fixed clipped status badges and a hidden Media Library modal in fullscreen mode.
 - Fixed double-HTML-escaped page titles and meta tags.
-- Fixed a silently-skipped test file and two incorrect test assertions.
+- Fixed a skipped test file and two incorrect test assertions.
 
 ## [1.2.0] — 2026-07-24
 
 ### Added
-- Elementor-style live page builder: fullscreen canvas, resizable sidebar, live preview, and a responsive viewport toolbar.
-- Click-to-select, drag-to-reorder, and copy/paste style on the live canvas.
+- Elementor-style live page builder with fullscreen canvas and live preview.
+- Click-to-select, drag-to-reorder, and copy/paste style on the canvas.
 - Drag-and-drop block placement, including into nested containers.
-- 8 new block types, including two layout blocks that hold nested children up to 6 levels deep.
-- Per-block Style and Layout tabs, applied consistently across every block type.
+- 8 new block types, including two nestable layout blocks.
+- Per-block Style and Layout tabs, applied consistently across block types.
 - Session undo/redo, page revision history, and copy/paste block style.
 - Scheduled dependency updates via Dependabot.
 
@@ -198,27 +187,27 @@ follows [Semantic Versioning](https://semver.org/).
 - Block tabs are smaller and more clearly show the active tab.
 
 ### Fixed
-- Fixed a crash when rendering a saved page with a populated nested block.
+- Fixed a crash rendering pages with nested blocks.
 - Fixed undo/redo dropping a nested block's children.
-- Fixed the responsive viewport toolbar not actually resizing the live preview.
+- Fixed the responsive viewport toolbar not resizing the live preview.
 - Fixed an unclickable sidebar-resize divider.
 - Removed dead legacy rich-text-editor code.
 - Fixed a console error from the live preview.
 
 ### Security
 - Rate-limited login and two-factor verification (5 attempts/minute).
-- Changing your password or disabling two-factor auth now signs out every other session.
-- Requesting an email change now notifies the current address, with a way to cancel it.
+- Password/2FA changes now sign out every other session.
+- Email change requests notify the current address, with a way to cancel it.
 
 ## [1.0.1] — 2026-07-23
 
 ### Added
-- Self-service Account & Security page: change name/password/email, enable two-factor auth, manage sessions.
+- Self-service Account & Security page: change name/password/email, enable 2FA, manage sessions.
 - Placeholder favicon across every layout.
 - Release version shown in the admin panel footer.
 
 ### Fixed
-- Selected language no longer reverts to English after a page refresh.
+- Fixed selected language reverting to English after a page refresh.
 - Completed Bangla translation coverage across the admin panel.
 - Fixed a translation bug where one string could corrupt an unrelated one sharing its prefix.
 - Fixed the session/device list always showing no other active sessions.
