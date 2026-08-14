@@ -4,8 +4,10 @@ Read automatically at the start of every session. Follow every rule here across 
 
 ## Project Overview
 Multi-school self-hosted school management platform.
-Stack: Laravel 13 · PHP 8.5 (Docker image; composer.json still requires `^8.3`, so any 8.3+ interpreter
-works outside Docker) · MySQL 8 · Redis 7 · Laravel Horizon · MinIO · Sanctum · Spatie Permission
+Stack: Laravel 13 · PHP 8.3 (Docker image, matches composer.json's `"php": "^8.3"` — do NOT bump the Docker
+image past 8.4 without first checking phpoffice/phpspreadsheet's locked version against the target PHP
+version; see the Gotchas Learned entry on the f2ebb3dd Dependabot bump) · MySQL 8 · Redis 7 · Laravel Horizon
+· MinIO · Sanctum · Spatie Permission
 
 ## Frontend (Laravel Blade + Bootstrap admin — in this repo)
 - **Decision:** the school-facing admin UI is **server-rendered Laravel Blade + Bootstrap 5**, living in THIS
@@ -324,7 +326,29 @@ DB::transaction(function () use ($data) {
   Fix: just delete the `docker-php-ext-install opcache` line entirely once on PHP 8.5+ — `opcache.ini` is
   still copied in and still controls OPcache's actual behavior (enable, memory, JIT, etc.) via normal
   php.ini directives, same as before. If this base image is ever bumped to a PHP version where OPcache
-  becomes optional again, this line will need to come back.
+  becomes optional again, this line will need to come back. **Update — this whole bump was ultimately
+  reverted, not just patched:** with all four Docker-build-level issues above finally worked around, the
+  image built clean, but `composer install` then failed OUTRIGHT — a problem no Dockerfile change could
+  touch. `phpoffice/phpspreadsheet` 1.30.6 (the version `composer.lock` had pinned, pulled in transitively by
+  `maatwebsite/excel` ^3.1 for the DataImport module, per its own `composer.json`) hard-caps
+  `"php": ">=7.4.0 <8.5.0"` — a real, upstream, unfixable-from-here version ceiling, not a Docker quirk.
+  Newer phpspreadsheet majors (2.x through the current 5.x) drop that cap and support 8.5+, but jumping
+  `maatwebsite/excel` + `phpoffice/phpspreadsheet` several majors forward is its own real upgrade with its
+  own breaking-change risk to the DataImport module's actual code — not something to do as an incidental
+  side effect of a base-image bump. **Resolution: reverted `FROM` back to `php:8.3-fpm`** (composer.json's
+  own `"php": "^8.3"` floor, and what the whole dependency tree already supports) rather than continuing to
+  chase PHP 8.5 compatibility. Kept the `pkg-config` package and the isolated-per-extension
+  `docker-php-ext-install` structure (both harmless under 8.3, and the isolation is good practice regardless
+  of PHP version); restored the `docker-php-ext-install opcache` line removed above, since 8.3 still needs
+  it built as a normal shared extension. `.github/dependabot.yml`'s docker ecosystem entry now ignores
+  major-version bumps for the `php` image specifically, so this doesn't just get re-proposed and re-merged
+  the same way next week — lift that ignore only once `phpoffice/phpspreadsheet`/`maatwebsite/excel` have
+  been deliberately upgraded past the 1.30.x line as their own tested change. **The general lesson: when a
+  base-image bump breaks the build, get the build passing before assuming the bump itself is fine — the
+  Docker-level failures here were all real and all fixable, which made it easy to keep patching one at a
+  time without stepping back to ask whether 8.5 was actually viable for this dependency tree at all. It
+  wasn't, and the very last step (`composer install`, after four rounds of purely Docker-side fixes) is what
+  finally surfaced that.**
 - **A profile-gated `docker-compose.yml` service does not tear down with a bare `docker compose down`.**
   Compose resolves which services are "in scope" for ANY command — not just `up` — from the currently
   active profile set, computed before that command runs. `ai-detector` (`profiles: ["ai-detector"]`,

@@ -1,12 +1,36 @@
-FROM php:8.5-fpm
+FROM php:8.3-fpm
 
-# pkg-config: required since PHP 8.4 (dependabot bumped this image from
-# 8.3-fpm to 8.5-fpm in f2ebb3dd without anyone noticing the build broke) —
-# the gd extension's configure script switched from manually searching for
-# libjpeg/libfreetype headers to detecting them via pkg-config .pc files.
-# Without it, `docker-php-ext-configure gd --with-jpeg --with-freetype`
-# fails outright (exit code 2) even though the -dev packages below are
-# installed, because configure can no longer find them on its own.
+# --- PHP 8.5 REVERTED, DO NOT RE-BUMP WITHOUT READING THIS ---
+# Dependabot bumped this image 8.3-fpm -> 8.5-fpm in f2ebb3dd. Getting a
+# working *Docker build* on 8.5 took four separate rounds (missing
+# pkg-config for gd's new detection method, gd needing its own isolated
+# docker-php-ext-install call, the same bundling issue hitting the other
+# seven extensions, then opcache specifically failing because PHP 8.5 made
+# OPcache a non-optional part of the PHP binary itself and there's no
+# opcache.so left to build at all) -- and then, with the image finally
+# building, `composer install` failed outright: phpoffice/phpspreadsheet
+# 1.30.6 (locked, pulled in transitively by maatwebsite/excel ^3.1 for the
+# DataImport module) hard-caps `php: >=7.4.0 <8.5.0` in its OWN
+# composer.json. Newer phpspreadsheet majors (2.x-5.x) drop that cap, but
+# upgrading past 1.30.x is a real breaking-change bump for maatwebsite/excel
+# too, not something to do as a side effect of a base-image version bump.
+# So: reverted to 8.3-fpm, the version composer.json's own `"php": "^8.3"`
+# constraint already targets and the whole dependency tree already
+# supports. pkg-config below and the isolated-extension-install structure
+# are harmless under 8.3 and left in place (no reason to re-introduce the
+# same bundling risk if this is ever revisited); the opcache install line
+# (removed while chasing the 8.5 bug) is restored below since 8.3 still
+# builds it as a normal shared extension. Don't bump this image past 8.4
+# again without FIRST checking phpoffice/phpspreadsheet's currently locked
+# version's php constraint via `composer why-not php 8.5` (or whatever
+# target version) -- the Docker-level issues above are all fixable, but a
+# hard version cap in a locked dependency is not, short of a deliberate,
+# tested upgrade of that dependency itself.
+#
+# pkg-config: required since PHP 8.4 for gd's configure script, which
+# switched from manually searching for libjpeg/libfreetype headers to
+# detecting them via pkg-config .pc files. Not strictly needed on 8.3, but
+# harmless to keep installed.
 RUN apt-get update && apt-get install -y \
     git curl libpng-dev libonig-dev libxml2-dev zip unzip \
     libzip-dev libicu-dev libjpeg-dev libfreetype6-dev pkg-config
@@ -40,22 +64,8 @@ RUN docker-php-ext-install pcntl
 RUN docker-php-ext-install bcmath
 RUN docker-php-ext-install zip
 RUN docker-php-ext-install intl
+RUN docker-php-ext-install opcache
 
-# NOT `docker-php-ext-install opcache` -- as of PHP 8.5, OPcache is a
-# non-optional, ALWAYS-BUILT-IN part of the PHP binary itself (RFC "Make
-# OPcache a non-optional part of PHP", wiki.php.net/rfc/make_opcache_required).
-# There is no more opcache.so to build/install -- docker-php-ext-install
-# opcache still runs configure/make (which report "Build complete" with
-# zero actual compiler output, because nothing is registered left to
-# compile) and then fails at the copy-modules step with `cp: cannot stat
-# 'modules/*'`, because no module file is ever produced. This is not a
-# Dockerfile bug or another extension-bundling casualty like the ones
-# above -- it is a known upstream change (confirmed via
-# github.com/php/php-src/issues/20557, closed not-planned, and
-# github.com/docker-library/php/issues/1631, still open, both showing this
-# exact log signature). opcache.ini below still applies -- OPcache is built
-# in but its actual behavior (enable, memory limits, JIT, etc.) is still
-# controlled entirely through php.ini directives, same as always.
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
 
 RUN pecl install redis && docker-php-ext-enable redis
