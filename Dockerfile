@@ -24,7 +24,23 @@ RUN apt-get update && apt-get install -y \
 RUN docker-php-ext-configure gd --with-jpeg --with-freetype && \
     docker-php-ext-install gd
 
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath zip intl opcache
+# Same "bundling multiple extensions into one docker-php-ext-install call"
+# pattern that broke gd above ALSO broke this line under PHP 8.5 — this
+# used to be a single `docker-php-ext-install pdo_mysql mbstring exif pcntl
+# bcmath zip intl opcache` call. Whichever extension actually failed isn't
+# knowable without a real build log (not available in the environment that
+# wrote this) — rather than keep guessing one extension at a time, every
+# extension here gets its own isolated RUN so the NEXT failure (if any)
+# points at exactly one extension instead of eight, and a successful build
+# no longer depends on all eight sharing build state cleanly in one call.
+RUN docker-php-ext-install pdo_mysql
+RUN docker-php-ext-install mbstring
+RUN docker-php-ext-install exif
+RUN docker-php-ext-install pcntl
+RUN docker-php-ext-install bcmath
+RUN docker-php-ext-install zip
+RUN docker-php-ext-install intl
+RUN docker-php-ext-install opcache
 
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
 

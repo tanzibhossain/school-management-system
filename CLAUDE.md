@@ -298,7 +298,16 @@ DB::transaction(function () use ($data) {
   but giving `gd` its own isolated `docker-php-ext-install gd` call — separate from the rest of the list —
   worked around it. Two independent build breakages from one dependency bump; check the SECOND `RUN
   docker-php-ext-install` step too if this base image is ever bumped again, don't assume `pkg-config` alone
-  is the whole story.
+  is the whole story. **Update:** isolating `gd` alone wasn't sufficient — the very next line, a single
+  `docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath zip intl opcache` call, hit the exact same
+  class of failure next (confirmed by the build log pointing straight at that line; the specific extension
+  and error text weren't captured before the Dockerfile was changed again, so the true root cause across
+  BOTH failures is still not fully pinned down — plausibly the same "modules/*" symptom, but not confirmed).
+  Every extension in that line now gets its OWN isolated `RUN docker-php-ext-install {name}` — slower build
+  (one layer per extension instead of one), but each failure (if the image is bumped again and something
+  breaks) will point at exactly one extension instead of eight. If this base image is bumped again, watch
+  the ENTIRE build, not just the first `RUN` that used to fail — this incident took three separate rebuild
+  attempts to actually get past, each one uncovering a failure the previous fix didn't touch yet.
 - **A profile-gated `docker-compose.yml` service does not tear down with a bare `docker compose down`.**
   Compose resolves which services are "in scope" for ANY command — not just `up` — from the currently
   active profile set, computed before that command runs. `ai-detector` (`profiles: ["ai-detector"]`,
