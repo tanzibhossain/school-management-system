@@ -4,7 +4,8 @@ Read automatically at the start of every session. Follow every rule here across 
 
 ## Project Overview
 Multi-school self-hosted school management platform.
-Stack: Laravel 13 · PHP 8.3 · MySQL 8 · Redis 7 · Laravel Horizon · MinIO · Sanctum · Spatie Permission
+Stack: Laravel 13 · PHP 8.5 (Docker image; composer.json still requires `^8.3`, so any 8.3+ interpreter
+works outside Docker) · MySQL 8 · Redis 7 · Laravel Horizon · MinIO · Sanctum · Spatie Permission
 
 ## Frontend (Laravel Blade + Bootstrap admin — in this repo)
 - **Decision:** the school-facing admin UI is **server-rendered Laravel Blade + Bootstrap 5**, living in THIS
@@ -278,6 +279,18 @@ DB::transaction(function () use ($data) {
   the split was deterministic, ruling out timing entirely and pointing at the cascade/ORDER BY
   interaction instead. When a "random-looking" corruption bug turns out to reproduce identically on
   repeat attempts, that's the tell it isn't random at all.
+- **A Dependabot Docker base-image bump can merge clean and still break every build.** `f2ebb3dd` bumped
+  `Dockerfile`'s `FROM php:8.3-fpm` to `php:8.5-fpm` — a valid semver-style dependency update, no merge
+  conflicts, nothing for `composer.json`'s own `"php": "^8.3"` constraint to complain about — but PHP 8.4
+  changed the `gd` extension's `configure` script to detect `libjpeg`/`libfreetype` via `pkg-config` instead
+  of searching for their headers manually, and this Dockerfile's `apt-get install` line never installed
+  `pkg-config` (never needed it under 8.3). Every `docker compose build`/`up --build` for `app`/`horizon`/
+  `scheduler` (all three build from this one root `Dockerfile`) failed at
+  `docker-php-ext-configure gd --with-jpeg --with-freetype` (exit code 2) the moment anyone actually tried to
+  build after that merge — nobody did until well after it landed. Dependabot PRs for a base OS/language image
+  (not just a library version) deserve an actual build+run check before merging, not just "CI passed" (this
+  repo has no CI step that builds the Docker images at all) — a green library-version bump and a green
+  base-image bump carry very different risk.
 - **A profile-gated `docker-compose.yml` service does not tear down with a bare `docker compose down`.**
   Compose resolves which services are "in scope" for ANY command — not just `up` — from the currently
   active profile set, computed before that command runs. `ai-detector` (`profiles: ["ai-detector"]`,

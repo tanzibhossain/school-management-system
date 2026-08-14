@@ -8,6 +8,7 @@ follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 - Documented that a plain `docker compose down` does not stop the profile-gated `ai-detector` service (it keeps running, and restarts on reboot) — use `docker compose stop ai-detector` or `docker compose --profile ai-detector down` instead. No code change; this is a Docker Compose profile-resolution behavior, not a bug in the service itself.
+- `docker compose build`/`up --build` for `app`, `horizon`, and `scheduler` failed outright (`docker-php-ext-configure gd`, exit code 2) after an automatic dependency update bumped the Docker base image from PHP 8.3 to 8.5 — PHP 8.4 changed how the `gd` extension detects `libjpeg`/`libfreetype`, and the Dockerfile was missing the now-required `pkg-config` package.
 
 ## [1.4.2] — 2026-08-06
 
