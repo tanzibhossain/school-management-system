@@ -11,8 +11,20 @@ RUN apt-get update && apt-get install -y \
     git curl libpng-dev libonig-dev libxml2-dev zip unzip \
     libzip-dev libicu-dev libjpeg-dev libfreetype6-dev pkg-config
 
+# gd gets its own docker-php-ext-install call, separate from the rest of
+# this list. Bundling it in with several plain extensions in one invocation
+# (as this used to do) failed under PHP 8.5 with `cp: cannot stat
+# 'modules/*'` at the "Installing shared extensions" step — gd's own
+# configure/make completed ("Build complete"), but no .so ever landed in
+# its modules/ dir, so the install step had nothing to copy. gd is the one
+# extension here with extra configure flags (--with-jpeg/--with-freetype)
+# and external library detection (libjpeg/libfreetype via pkg-config, see
+# above) — building it in isolation avoids whatever state gets shared/
+# clobbered across extensions in a single docker-php-ext-install call.
 RUN docker-php-ext-configure gd --with-jpeg --with-freetype && \
-    docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl opcache
+    docker-php-ext-install gd
+
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath zip intl opcache
 
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
 

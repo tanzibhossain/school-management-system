@@ -290,7 +290,15 @@ DB::transaction(function () use ($data) {
   build after that merge — nobody did until well after it landed. Dependabot PRs for a base OS/language image
   (not just a library version) deserve an actual build+run check before merging, not just "CI passed" (this
   repo has no CI step that builds the Docker images at all) — a green library-version bump and a green
-  base-image bump carry very different risk.
+  base-image bump carry very different risk. Fixing `pkg-config` uncovered a SECOND, separate PHP 8.5 issue
+  one step later: `docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl opcache` (all eight
+  in one call, `gd` bundled in with the plain ones) got past `gd`'s own `configure`/`make` ("Build complete")
+  but then failed installing it (`cp: cannot stat 'modules/*'`) — nothing ever landed in `gd`'s `modules/`
+  dir despite the successful build. Not fully root-caused (no Docker runtime available to bisect it further),
+  but giving `gd` its own isolated `docker-php-ext-install gd` call — separate from the rest of the list —
+  worked around it. Two independent build breakages from one dependency bump; check the SECOND `RUN
+  docker-php-ext-install` step too if this base image is ever bumped again, don't assume `pkg-config` alone
+  is the whole story.
 - **A profile-gated `docker-compose.yml` service does not tear down with a bare `docker compose down`.**
   Compose resolves which services are "in scope" for ANY command — not just `up` — from the currently
   active profile set, computed before that command runs. `ai-detector` (`profiles: ["ai-detector"]`,
