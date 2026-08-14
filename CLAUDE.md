@@ -278,6 +278,14 @@ DB::transaction(function () use ($data) {
   the split was deterministic, ruling out timing entirely and pointing at the cascade/ORDER BY
   interaction instead. When a "random-looking" corruption bug turns out to reproduce identically on
   repeat attempts, that's the tell it isn't random at all.
+- **A profile-gated `docker-compose.yml` service does not tear down with a bare `docker compose down`.**
+  Compose resolves which services are "in scope" for ANY command — not just `up` — from the currently
+  active profile set, computed before that command runs. `ai-detector` (`profiles: ["ai-detector"]`,
+  the self-hosted LMS AI checker) needs `--profile` on the way down too, or it's silently left running
+  (`restart: unless-stopped`, so it survives reboots) even though a plain `down` looks like it tore
+  everything out. `docker compose stop ai-detector` (naming it directly bypasses profile filtering, same
+  as `up -d --build ai-detector` already did) or `docker compose --profile ai-detector down` actually
+  stops it. `docker compose ps -a` still showing it `Up` right after a `down` is the tell.
 
 ## Git Commit Convention
 ```

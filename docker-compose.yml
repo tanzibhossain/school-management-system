@@ -101,6 +101,21 @@ services:
         # `docker compose up -d --build ai-detector` (naming it directly
         # still works despite the profile) or `docker compose --profile
         # ai-detector up -d`.
+        #
+        # STOPPING IT IS NOT SYMMETRICAL — this is the #1 support trap with
+        # profile-gated services. Compose resolves which services are "in
+        # scope" for ANY command from the active profile set BEFORE running
+        # that command, and a bare `docker compose down` runs with an empty
+        # profile set — so it silently skips this service entirely, leaving
+        # it running (with `restart: unless-stopped`, forever, across
+        # reboots) even though `down` looks like it tore everything down.
+        # Either of these actually stops it:
+        #   docker compose stop ai-detector      (naming it directly bypasses
+        #                                          profile filtering, same as
+        #                                          `up` above)
+        #   docker compose --profile ai-detector down
+        # `docker compose ps -a` after a plain `down` will still show it
+        # running if you hit this — that's the tell.
         profiles: ["ai-detector"]
         build:
             context: ./services/ai-detector

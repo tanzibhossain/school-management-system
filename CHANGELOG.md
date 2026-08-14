@@ -4,6 +4,11 @@ All notable changes to this project are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+- Documented that a plain `docker compose down` does not stop the profile-gated `ai-detector` service (it keeps running, and restarts on reboot) — use `docker compose stop ai-detector` or `docker compose --profile ai-detector down` instead. No code change; this is a Docker Compose profile-resolution behavior, not a bug in the service itself.
+
 ## [1.4.2] — 2026-08-06
 
 ### Added
