@@ -11,6 +11,7 @@ follows [Semantic Versioning](https://semver.org/).
 - `docker compose build`/`up --build` for `app`, `horizon`, and `scheduler` failed outright (`docker-php-ext-configure gd`, exit code 2) after an automatic dependency update bumped the Docker base image from PHP 8.3 to 8.5 — PHP 8.4 changed how the `gd` extension detects `libjpeg`/`libfreetype`, and the Dockerfile was missing the now-required `pkg-config` package.
 - After the `pkg-config` fix above, the same build still failed one step later (`cp: cannot stat 'modules/*'` installing the `gd` shared extension) — `gd` now builds in its own isolated `docker-php-ext-install` call instead of being bundled with several other extensions in one invocation.
 - The build still failed one more time after that, on the very next line (the remaining seven extensions bundled into one `docker-php-ext-install` call) — every PHP extension now gets its own isolated `docker-php-ext-install` step.
+- Even fully isolated, `docker-php-ext-install opcache` kept failing with the same error. Root cause: PHP 8.5 made OPcache a non-optional, built-into-the-binary extension (upstream RFC), so there's no longer an `opcache.so` to build at all — the install step is now a no-op that fails. Removed the `docker-php-ext-install opcache` line entirely; `opcache.ini` is still copied in and still controls OPcache's behavior via php.ini directives as before.
 
 ## [1.4.2] — 2026-08-06
 

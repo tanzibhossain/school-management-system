@@ -307,7 +307,24 @@ DB::transaction(function () use ($data) {
   (one layer per extension instead of one), but each failure (if the image is bumped again and something
   breaks) will point at exactly one extension instead of eight. If this base image is bumped again, watch
   the ENTIRE build, not just the first `RUN` that used to fail — this incident took three separate rebuild
-  attempts to actually get past, each one uncovering a failure the previous fix didn't touch yet.
+  attempts to actually get past, each one uncovering a failure the previous fix didn't touch yet. **Update:**
+  after isolating all 8, 7 of them (`pdo_mysql`, `mbstring`, `exif`, `pcntl`, `bcmath`, `zip`, `intl`) built
+  fine — `opcache` alone still failed with the identical `cp: cannot stat 'modules/*'` signature, EVEN FULLY
+  ISOLATED, ruling out the bundling theory for this one. Root cause turned out to be unrelated to anything
+  above: PHP 8.5 shipped an RFC ("Make OPcache a non-optional part of PHP",
+  `wiki.php.net/rfc/make_opcache_required`) that compiles OPcache directly into the PHP binary — it's no
+  longer a separate loadable module at all. `docker-php-ext-install opcache` still runs `configure`/`make`
+  (harmlessly — "Build complete" with zero actual compiler output, since nothing is left registered to
+  build) and then fails at the copy-modules step because no `.so` is ever produced to copy. This is a real,
+  currently-open upstream gap in the official PHP Docker images, not a bug in this Dockerfile
+  (`github.com/php/php-src/issues/20557`, closed not-planned; `github.com/docker-library/php/issues/1631`,
+  still open, both showing this exact log signature including "Build complete" appearing ~30ms after
+  configure with no compiler output in between — that timing gap is the tell for this failure mode
+  specifically, distinct from the gd/bundling failures above which had proper build output before failing).
+  Fix: just delete the `docker-php-ext-install opcache` line entirely once on PHP 8.5+ — `opcache.ini` is
+  still copied in and still controls OPcache's actual behavior (enable, memory, JIT, etc.) via normal
+  php.ini directives, same as before. If this base image is ever bumped to a PHP version where OPcache
+  becomes optional again, this line will need to come back.
 - **A profile-gated `docker-compose.yml` service does not tear down with a bare `docker compose down`.**
   Compose resolves which services are "in scope" for ANY command — not just `up` — from the currently
   active profile set, computed before that command runs. `ai-detector` (`profiles: ["ai-detector"]`,

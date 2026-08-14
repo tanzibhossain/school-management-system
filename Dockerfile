@@ -40,8 +40,22 @@ RUN docker-php-ext-install pcntl
 RUN docker-php-ext-install bcmath
 RUN docker-php-ext-install zip
 RUN docker-php-ext-install intl
-RUN docker-php-ext-install opcache
 
+# NOT `docker-php-ext-install opcache` -- as of PHP 8.5, OPcache is a
+# non-optional, ALWAYS-BUILT-IN part of the PHP binary itself (RFC "Make
+# OPcache a non-optional part of PHP", wiki.php.net/rfc/make_opcache_required).
+# There is no more opcache.so to build/install -- docker-php-ext-install
+# opcache still runs configure/make (which report "Build complete" with
+# zero actual compiler output, because nothing is registered left to
+# compile) and then fails at the copy-modules step with `cp: cannot stat
+# 'modules/*'`, because no module file is ever produced. This is not a
+# Dockerfile bug or another extension-bundling casualty like the ones
+# above -- it is a known upstream change (confirmed via
+# github.com/php/php-src/issues/20557, closed not-planned, and
+# github.com/docker-library/php/issues/1631, still open, both showing this
+# exact log signature). opcache.ini below still applies -- OPcache is built
+# in but its actual behavior (enable, memory limits, JIT, etc.) is still
+# controlled entirely through php.ini directives, same as always.
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
 
 RUN pecl install redis && docker-php-ext-enable redis
