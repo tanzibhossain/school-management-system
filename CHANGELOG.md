@@ -4,6 +4,12 @@ All notable changes to this project are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- Docker base image bumped from PHP 8.3 to PHP 8.4; `maatwebsite/excel` upgraded to 4.0 and `phpoffice/phpspreadsheet` to 5.9.
+- `brianium/paratest` added as a dev dependency for parallel test runs (`php artisan test --parallel`).
+
 ## [1.4.2] — 2026-08-06
 
 ### Added

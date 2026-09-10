@@ -4,7 +4,7 @@ Read automatically at the start of every session. Follow every rule here across 
 
 ## Project Overview
 Multi-school self-hosted school management platform.
-Stack: Laravel 13 · PHP 8.3 · MySQL 8 · Redis 7 · Laravel Horizon · MinIO · Sanctum · Spatie Permission
+Stack: Laravel 13 · PHP 8.4 · MySQL 8 · Redis 7 · Laravel Horizon · MinIO · Sanctum · Spatie Permission
 
 ## Frontend (Laravel Blade + Bootstrap admin — in this repo)
 - **Decision:** the school-facing admin UI is **server-rendered Laravel Blade + Bootstrap 5**, living in THIS
