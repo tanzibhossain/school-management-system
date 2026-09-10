@@ -3079,7 +3079,7 @@ parameters:
 			path: app/Modules/IdCard/Services/IdCardBatchService.php
 
 		-
-			message: '#^Using nullsafe property access on non\-nullable type App\\Modules\\Student\\Models\\StudentAcademic\. Use \-\> instead\.$#'
+			message: '#^Using nullsafe property access "\?\-\>phone" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Modules/IdCard/Services/IdCardBatchService.php
