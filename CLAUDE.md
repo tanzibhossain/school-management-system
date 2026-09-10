@@ -278,6 +278,82 @@ DB::transaction(function () use ($data) {
   the split was deterministic, ruling out timing entirely and pointing at the cascade/ORDER BY
   interaction instead. When a "random-looking" corruption bug turns out to reproduce identically on
   repeat attempts, that's the tell it isn't random at all.
+- **A Dependabot Docker base-image bump can merge clean and still break every build.** `f2ebb3dd` bumped
+  `Dockerfile`'s `FROM php:8.3-fpm` to `php:8.5-fpm` — a valid semver-style dependency update, no merge
+  conflicts, nothing for `composer.json`'s own `"php": "^8.3"` constraint to complain about — but PHP 8.4
+  changed the `gd` extension's `configure` script to detect `libjpeg`/`libfreetype` via `pkg-config` instead
+  of searching for their headers manually, and this Dockerfile's `apt-get install` line never installed
+  `pkg-config` (never needed it under 8.3). Every `docker compose build`/`up --build` for `app`/`horizon`/
+  `scheduler` (all three build from this one root `Dockerfile`) failed at
+  `docker-php-ext-configure gd --with-jpeg --with-freetype` (exit code 2) the moment anyone actually tried to
+  build after that merge — nobody did until well after it landed. Dependabot PRs for a base OS/language image
+  (not just a library version) deserve an actual build+run check before merging, not just "CI passed" (this
+  repo has no CI step that builds the Docker images at all) — a green library-version bump and a green
+  base-image bump carry very different risk. Fixing `pkg-config` uncovered a SECOND, separate PHP 8.5 issue
+  one step later: `docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl opcache` (all eight
+  in one call, `gd` bundled in with the plain ones) got past `gd`'s own `configure`/`make` ("Build complete")
+  but then failed installing it (`cp: cannot stat 'modules/*'`) — nothing ever landed in `gd`'s `modules/`
+  dir despite the successful build. Not fully root-caused (no Docker runtime available to bisect it further),
+  but giving `gd` its own isolated `docker-php-ext-install gd` call — separate from the rest of the list —
+  worked around it. Two independent build breakages from one dependency bump; check the SECOND `RUN
+  docker-php-ext-install` step too if this base image is ever bumped again, don't assume `pkg-config` alone
+  is the whole story. **Update:** isolating `gd` alone wasn't sufficient — the very next line, a single
+  `docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath zip intl opcache` call, hit the exact same
+  class of failure next (confirmed by the build log pointing straight at that line; the specific extension
+  and error text weren't captured before the Dockerfile was changed again, so the true root cause across
+  BOTH failures is still not fully pinned down — plausibly the same "modules/*" symptom, but not confirmed).
+  Every extension in that line now gets its OWN isolated `RUN docker-php-ext-install {name}` — slower build
+  (one layer per extension instead of one), but each failure (if the image is bumped again and something
+  breaks) will point at exactly one extension instead of eight. If this base image is bumped again, watch
+  the ENTIRE build, not just the first `RUN` that used to fail — this incident took three separate rebuild
+  attempts to actually get past, each one uncovering a failure the previous fix didn't touch yet. **Update:**
+  after isolating all 8, 7 of them (`pdo_mysql`, `mbstring`, `exif`, `pcntl`, `bcmath`, `zip`, `intl`) built
+  fine — `opcache` alone still failed with the identical `cp: cannot stat 'modules/*'` signature, EVEN FULLY
+  ISOLATED, ruling out the bundling theory for this one. Root cause turned out to be unrelated to anything
+  above: PHP 8.5 shipped an RFC ("Make OPcache a non-optional part of PHP",
+  `wiki.php.net/rfc/make_opcache_required`) that compiles OPcache directly into the PHP binary — it's no
+  longer a separate loadable module at all. `docker-php-ext-install opcache` still runs `configure`/`make`
+  (harmlessly — "Build complete" with zero actual compiler output, since nothing is left registered to
+  build) and then fails at the copy-modules step because no `.so` is ever produced to copy. This is a real,
+  currently-open upstream gap in the official PHP Docker images, not a bug in this Dockerfile
+  (`github.com/php/php-src/issues/20557`, closed not-planned; `github.com/docker-library/php/issues/1631`,
+  still open, both showing this exact log signature including "Build complete" appearing ~30ms after
+  configure with no compiler output in between — that timing gap is the tell for this failure mode
+  specifically, distinct from the gd/bundling failures above which had proper build output before failing).
+  Fix: just delete the `docker-php-ext-install opcache` line entirely once on PHP 8.5+ — `opcache.ini` is
+  still copied in and still controls OPcache's actual behavior (enable, memory, JIT, etc.) via normal
+  php.ini directives, same as before. If this base image is ever bumped to a PHP version where OPcache
+  becomes optional again, this line will need to come back. **Update — this whole bump was ultimately
+  reverted, not just patched:** with all four Docker-build-level issues above finally worked around, the
+  image built clean, but `composer install` then failed OUTRIGHT — a problem no Dockerfile change could
+  touch. `phpoffice/phpspreadsheet` 1.30.6 (the version `composer.lock` had pinned, pulled in transitively by
+  `maatwebsite/excel` ^3.1 for the DataImport module, per its own `composer.json`) hard-caps
+  `"php": ">=7.4.0 <8.5.0"` — a real, upstream, unfixable-from-here version ceiling, not a Docker quirk.
+  Newer phpspreadsheet majors (2.x through the current 5.x) drop that cap and support 8.5+, but jumping
+  `maatwebsite/excel` + `phpoffice/phpspreadsheet` several majors forward is its own real upgrade with its
+  own breaking-change risk to the DataImport module's actual code — not something to do as an incidental
+  side effect of a base-image bump. **Resolution: reverted `FROM` back to `php:8.3-fpm`** (composer.json's
+  own `"php": "^8.3"` floor, and what the whole dependency tree already supports) rather than continuing to
+  chase PHP 8.5 compatibility. Kept the `pkg-config` package and the isolated-per-extension
+  `docker-php-ext-install` structure (both harmless under 8.3, and the isolation is good practice regardless
+  of PHP version); restored the `docker-php-ext-install opcache` line removed above, since 8.3 still needs
+  it built as a normal shared extension. `.github/dependabot.yml`'s docker ecosystem entry now ignores
+  major-version bumps for the `php` image specifically, so this doesn't just get re-proposed and re-merged
+  the same way next week — lift that ignore only once `phpoffice/phpspreadsheet`/`maatwebsite/excel` have
+  been deliberately upgraded past the 1.30.x line as their own tested change. **The general lesson: when a
+  base-image bump breaks the build, get the build passing before assuming the bump itself is fine — the
+  Docker-level failures here were all real and all fixable, which made it easy to keep patching one at a
+  time without stepping back to ask whether 8.5 was actually viable for this dependency tree at all. It
+  wasn't, and the very last step (`composer install`, after four rounds of purely Docker-side fixes) is what
+  finally surfaced that.**
+- **A profile-gated `docker-compose.yml` service does not tear down with a bare `docker compose down`.**
+  Compose resolves which services are "in scope" for ANY command — not just `up` — from the currently
+  active profile set, computed before that command runs. `ai-detector` (`profiles: ["ai-detector"]`,
+  the self-hosted LMS AI checker) needs `--profile` on the way down too, or it's silently left running
+  (`restart: unless-stopped`, so it survives reboots) even though a plain `down` looks like it tore
+  everything out. `docker compose stop ai-detector` (naming it directly bypasses profile filtering, same
+  as `up -d --build ai-detector` already did) or `docker compose --profile ai-detector down` actually
+  stops it. `docker compose ps -a` still showing it `Up` right after a `down` is the tell.
 
 ## Git Commit Convention
 ```
@@ -285,6 +361,13 @@ type(module): short description
 Types: feat | fix | test | refactor | chore | docs
 ```
 Aim for 2–3 commits per session, one per 10-step stage where practical.
+
+## CHANGELOG Convention
+Every entry is **one line, minimal**: what changed, not why, not the debugging story behind it. No
+root-cause narratives, no file/commit references, no "previously X, now Y" before/after explanations —
+that detail belongs in the commit message and, if it's worth remembering long-term, a Gotchas Learned
+bullet above, not the changelog. New entries go under `## [Unreleased]`; fold into a dated `## [X.Y.Z]`
+section at release/tag time.
 
 ## After Every Module — Run & Ship
 ```bash

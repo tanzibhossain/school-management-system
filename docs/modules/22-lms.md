@@ -83,4 +83,14 @@ stack (not plain cPanel hosting).
    ```
 
 To switch back to Anthropic later, set `LMS_AI_PROVIDER=anthropic` in `.env` and restart `app`/`horizon` again
-— `ai-detector` can keep running idle or be stopped, either is fine.
+— `ai-detector` can keep running idle or be stopped, either is fine. If you do want to stop it, a plain
+`docker compose down` **will not** — that only tears down services in the currently active profile set, which
+is empty by default, so a profile-gated service like `ai-detector` is silently left running (`docker compose
+ps -a` will still show it as `Up` after `down`). Stop it explicitly instead:
+```
+docker compose stop ai-detector
+```
+or tear the whole stack down including it:
+```
+docker compose --profile ai-detector down
+```
