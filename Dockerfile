@@ -1,4 +1,4 @@
-FROM php:8.4-fpm
+FROM php:8.5-fpm
 
 # pkg-config: required since PHP 8.4 — the gd extension's configure script
 # switched from manually searching for libjpeg/libfreetype headers to
