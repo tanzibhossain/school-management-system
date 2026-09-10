@@ -6,6 +6,12 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Docker base image bumped from PHP 8.3 to PHP 8.4; `maatwebsite/excel` upgraded to 4.0 and `phpoffice/phpspreadsheet` to 5.9.
+- `brianium/paratest` added as a dev dependency for parallel test runs (`php artisan test --parallel`).
+
+## [Unreleased]
+
 ### Fixed
 - Documented that `docker compose down` doesn't stop the profile-gated `ai-detector` service — use `docker compose stop ai-detector` instead.
 - Reverted the Docker base image from PHP 8.5 back to 8.3 after a chain of build failures (`gd`, bundled extensions, `opcache`) and a hard PHP-version cap in `phpoffice/phpspreadsheet`.
