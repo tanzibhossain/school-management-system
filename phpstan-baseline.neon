@@ -169,7 +169,7 @@ parameters:
 			path: app/Http/Controllers/Admin/Comms/MessageController.php
 
 		-
-			message: '#^Access to an undefined property App\\Modules\\Student\\Models\\Student\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Modules\\Student\\Models\\Student\>\:\:\$name\.$#'
+			message: '#^Access to an undefined property App\\Modules\\Student\\Models\\Student\|Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), App\\Modules\\Student\\Models\\Student\>\:\:\$name\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Http/Controllers/Admin/Comms/ReportController.php
@@ -445,13 +445,13 @@ parameters:
 			path: app/Http/Controllers/Portal/DashboardController.php
 
 		-
-			message: '#^Access to an undefined property App\\Modules\\Academic\\Models\\SchoolClass\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Modules\\Academic\\Models\\SchoolClass\>\:\:\$max_age\.$#'
+			message: '#^Access to an undefined property App\\Modules\\Academic\\Models\\SchoolClass\|Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), App\\Modules\\Academic\\Models\\SchoolClass\>\:\:\$max_age\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Http/Controllers/Public/AdmissionController.php
 
 		-
-			message: '#^Access to an undefined property App\\Modules\\Academic\\Models\\SchoolClass\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Modules\\Academic\\Models\\SchoolClass\>\:\:\$min_age\.$#'
+			message: '#^Access to an undefined property App\\Modules\\Academic\\Models\\SchoolClass\|Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), App\\Modules\\Academic\\Models\\SchoolClass\>\:\:\$min_age\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Http/Controllers/Public/AdmissionController.php
@@ -1951,7 +1951,7 @@ parameters:
 			path: app/Modules/Certificate/Services/TestimonialService.php
 
 		-
-			message: '#^Access to an undefined property App\\Modules\\School\\Models\\School\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Modules\\School\\Models\\School\>\:\:\$name\.$#'
+			message: '#^Access to an undefined property App\\Modules\\School\\Models\\School\|Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), App\\Modules\\School\\Models\\School\>\:\:\$name\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Modules/Certificate/Services/TestimonialService.php
@@ -4279,7 +4279,7 @@ parameters:
 			path: app/Modules/Library/Http/Resources/LibraryMemberResource.php
 
 		-
-			message: '#^Access to an undefined property App\\Modules\\Library\\Models\\Book\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Modules\\Library\\Models\\Book\>\:\:\$available_copies\.$#'
+			message: '#^Access to an undefined property App\\Modules\\Library\\Models\\Book\|Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), App\\Modules\\Library\\Models\\Book\>\:\:\$available_copies\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Modules/Library/Services/BorrowRecordService.php
