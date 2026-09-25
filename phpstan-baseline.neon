@@ -3085,6 +3085,12 @@ parameters:
 			path: app/Modules/IdCard/Services/IdCardBatchService.php
 
 		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Modules\\Student\\Models\\StudentAcademic\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Modules/IdCard/Services/IdCardBatchService.php
+
+		-
 			message: '#^Access to an undefined property App\\Modules\\IdCard\\Models\\IdCardTemplate\:\:\$accent_color\.$#'
 			identifier: property.notFound
 			count: 2
