@@ -4826,7 +4826,7 @@ parameters:
 			path: app/Modules/Mark/Services/GradeTemplateService.php
 
 		-
-			message: '#^Access to an undefined property App\\Modules\\Examination\\Models\\Exam\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Modules\\Examination\\Models\\Exam\>\:\:\$class_id\.$#'
+			message: '#^Access to an undefined property App\\Modules\\Examination\\Models\\Exam\|Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), App\\Modules\\Examination\\Models\\Exam\>\:\:\$class_id\.$#'
 			identifier: property.notFound
 			count: 2
 			path: app/Modules/Mark/Services/MarkEntryService.php
@@ -8390,7 +8390,7 @@ parameters:
 			path: app/Modules/Student/Services/StudentService.php
 
 		-
-			message: '#^Access to an undefined property App\\Modules\\Academic\\Models\\Section\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Modules\\Academic\\Models\\Section\>\:\:\$capacity\.$#'
+			message: '#^Access to an undefined property App\\Modules\\Academic\\Models\\Section\|Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), App\\Modules\\Academic\\Models\\Section\>\:\:\$capacity\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Modules/Student/Services/StudentService.php
@@ -8726,7 +8726,7 @@ parameters:
 			path: app/Modules/Transport/Services/StudentTransportAssignmentService.php
 
 		-
-			message: '#^Access to an undefined property App\\Modules\\Transport\\Models\\TransportRoute\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Modules\\Transport\\Models\\TransportRoute\>\:\:\$current_vehicle_id\.$#'
+			message: '#^Access to an undefined property App\\Modules\\Transport\\Models\\TransportRoute\|Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), App\\Modules\\Transport\\Models\\TransportRoute\>\:\:\$current_vehicle_id\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Modules/Transport/Services/StudentTransportAssignmentService.php
@@ -8738,7 +8738,7 @@ parameters:
 			path: app/Modules/Transport/Services/StudentTransportAssignmentService.php
 
 		-
-			message: '#^Access to an undefined property App\\Modules\\Transport\\Models\\TransportVehicle\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Modules\\Transport\\Models\\TransportVehicle\>\:\:\$status\.$#'
+			message: '#^Access to an undefined property App\\Modules\\Transport\\Models\\TransportVehicle\|Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), App\\Modules\\Transport\\Models\\TransportVehicle\>\:\:\$status\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Modules/Transport/Services/StudentTransportAssignmentService.php
