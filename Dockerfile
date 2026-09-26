@@ -25,8 +25,16 @@ RUN docker-php-ext-install pcntl
 RUN docker-php-ext-install bcmath
 RUN docker-php-ext-install zip
 RUN docker-php-ext-install intl
-RUN docker-php-ext-install opcache
 
+# opcache: NOT installed via docker-php-ext-install on PHP 8.5+. The
+# "Make OPcache a non-optional part of PHP" RFC compiled it directly into
+# the PHP binary starting in 8.5 — it's no longer a separate loadable
+# module, so `docker-php-ext-install opcache` runs configure/make
+# ("Build complete") but then fails at the copy-modules step with
+# `cp: cannot stat 'modules/*'`, since nothing is left to copy. OPcache is
+# already built in and still fully controlled via normal php.ini directives
+# (opcache.ini below) — if this base image is ever downgraded below 8.5,
+# this docker-php-ext-install line will need to come back.
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
 
 RUN pecl install redis && docker-php-ext-enable redis
