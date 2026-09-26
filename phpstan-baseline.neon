@@ -8732,7 +8732,7 @@ parameters:
 			path: app/Modules/Transport/Services/StudentTransportAssignmentService.php
 
 		-
-			message: '#^Access to an undefined property App\\Modules\\Transport\\Models\\TransportVehicle\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Modules\\Transport\\Models\\TransportVehicle\>\:\:\$capacity\.$#'
+			message: '#^Access to an undefined property App\\Modules\\Transport\\Models\\TransportVehicle\|Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\), App\\Modules\\Transport\\Models\\TransportVehicle\>\:\:\$capacity\.$#'
 			identifier: property.notFound
 			count: 1
 			path: app/Modules/Transport/Services/StudentTransportAssignmentService.php
