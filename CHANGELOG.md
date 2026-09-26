@@ -4,6 +4,15 @@ All notable changes to this project are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- Docker base image bumped to PHP 8.5.
+
+### Fixed
+- Dropped the `docker-php-ext-install opcache` step (built into the PHP binary since 8.5).
+- Updated 8 stale PHPStan baseline entries following the Larastan 3.11.0 bump.
+
 ## [1.4.3] — 2026-09-11
 
 ### Changed
