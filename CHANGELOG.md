@@ -8,6 +8,7 @@ follows [Semantic Versioning](https://semver.org/).
 
 ### Changed
 - Docker base image bumped to PHP 8.5.
+- Routine dependency bumps: Laravel group, `maatwebsite/excel` 4.0.3, `predis/predis` 3.6.1, Vite 8.3.0, `transformers` 5.17.0, `uvicorn` 0.53.0.
 
 ### Fixed
 - Dropped the `docker-php-ext-install opcache` step (built into the PHP binary since 8.5).
