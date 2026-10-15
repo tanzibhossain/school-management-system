@@ -402,6 +402,22 @@ that detail belongs in the commit message and, if it's worth remembering long-te
 bullet above, not the changelog. New entries go under `## [Unreleased]`; fold into a dated `## [X.Y.Z]`
 section at release/tag time.
 
+## Release
+`main` only ever moves by **fast-forward to a `dev` commit CI has already passed** — no local
+`Merge dev into main` commit. `main`'s ruleset requires the `test (PHP 8.3)`, `test (PHP 8.5)`,
+`test (PHP 8.5, MySQL 8)`, `phpstan` and `pint` checks, and a merge commit made locally has never run CI,
+so pushing one is rejected. (Docker Build's `build` is deliberately not required: it only runs when
+Docker/Composer files change.)
+```bash
+git checkout dev && git pull origin dev
+git merge origin/main            # only if main has commits dev lacks (e.g. a merged Dependabot PR)
+# fold CHANGELOG [Unreleased] into [X.Y.Z] — dated, bump VERSION, commit
+git push origin dev              # wait for Tests, Static Analysis and Code Style to go green
+git push origin dev:main         # fast-forward main to that exact, already-checked commit
+git tag -a vX.Y.Z -m "vX.Y.Z" dev && git push origin vX.Y.Z
+```
+Never move or re-push a published tag — `version:verify` / `GET /api/v2/health` check `VERSION` against it.
+
 ## After Every Module — Run & Ship
 ```bash
 docker compose exec app php artisan migrate
