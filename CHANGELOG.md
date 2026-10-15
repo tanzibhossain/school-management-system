@@ -4,6 +4,17 @@ All notable changes to this project are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [1.4.5] — 2026-10-16
+
+### Changed
+- Dependency bumps: Laravel 13.36.0, `predis/predis` 3.7.0, `smalot/pdfparser` 2.13.0, Larastan 3.13.0, Vite 8.3.4, `concurrently` 10.0.6.
+- AI detector dependency bumps: `fastapi` 0.143.0, `uvicorn` 0.54.0, `pydantic` 2.14.1, `torch` 2.14.1, `transformers` 5.19.0.
+- npm `shell-quote` override raised to 1.11.0.
+- `source-map-js` added as a direct npm dependency.
+
+### Fixed
+- PHPStan baseline updated for Larastan 3.13.0.
+
 ## [1.4.4] — 2026-09-26
 
 ### Changed
