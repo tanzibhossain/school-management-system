@@ -11,6 +11,8 @@ follows [Semantic Versioning](https://semver.org/).
 - CI runs the test suite on PHP 8.3 and 8.5; runners pinned to Ubuntu 24.04.
 - Composer resolves dependencies for PHP 8.3 (`config.platform.php`), keeping the lock installable on cPanel hosts.
 - Dependabot no longer proposes PHP minor-version bumps for the Docker image.
+- CI builds and smoke-tests the Docker image on Docker/Composer changes and weekly.
+- Docker image pins Composer 2 instead of `latest`.
 
 ### Security
 - Login rate limiting adds a per-IP ceiling (60/min) across all emails; the API login route is now throttled too.

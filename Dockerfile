@@ -39,7 +39,9 @@ COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
 
 RUN pecl install redis && docker-php-ext-enable redis
 
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# composer:2, not :latest — a future Composer 3 shouldn't land in the image
+# without a deliberate change here.
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
