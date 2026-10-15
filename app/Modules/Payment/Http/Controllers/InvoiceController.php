@@ -50,18 +50,20 @@ class InvoiceController extends Controller
         if (isset($data['class_id']) && ! isset($data['student_id'])) {
             $result = $this->service->generateBulk(
                 $schoolId,
-                $data['academic_year_id'],
-                $data['month'] ?? null,
-                $data['class_id'],
-                $data['discount_id'] ?? null,
+                (int) $data['academic_year_id'],
+                isset($data['month']) ? (int) $data['month'] : null,
+                (int) $data['class_id'],
+                isset($data['discount_id']) ? (int) $data['discount_id'] : null,
                 $data['due_date'],
                 $issuedBy,
             );
 
             return response()->json([
-                'message' => "{$result['generated']} invoice(s) generated, {$result['skipped']} skipped.",
+                'message' => "{$result['generated']} invoice(s) generated, {$result['skipped']} skipped"
+                    .($result['failed'] ? ", {$result['failed']} failed (no fee items)" : '').'.',
                 'generated' => $result['generated'],
                 'skipped' => $result['skipped'],
+                'failed' => $result['failed'],
             ]);
         }
 

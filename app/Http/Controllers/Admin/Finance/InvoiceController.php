@@ -84,43 +84,15 @@ class InvoiceController extends Controller
             'due_date' => ['required', 'date'],
         ]);
 
-        // students currently in this class for the chosen year (students has no class_id)
-        $studentIds = StudentAcademic::where('school_id', $schoolId)
-            ->where('class_id', $data['class_id'])
-            ->where('academic_year_id', $data['academic_year_id'])
-            ->where('is_current', true)
-            ->whereHas('student', fn ($q) => $q->where('status', 'active')->where('is_trash', false))
-            ->pluck('student_id');
-
-        $generated = 0;
-        $skipped = 0;
-        $failed = 0;
-
-        foreach ($studentIds as $studentId) {
-            $open = Invoice::where('school_id', $schoolId)
-                ->where('student_id', $studentId)
-                ->where('academic_year_id', $data['academic_year_id'])
-                ->where('month', $data['month'] ?? null)
-                ->whereIn('status', ['unpaid', 'partial'])
-                ->exists();
-
-            if ($open) {
-                $skipped++;
-
-                continue;
-            }
-
-            try {
-                $this->invoices->generate(
-                    $schoolId, $data['academic_year_id'], $data['month'] ?? null,
-                    $studentId, $data['class_id'], $data['discount_id'] ?? null,
-                    $data['due_date'], (int) auth()->id(),
-                );
-                $generated++;
-            } catch (RuntimeException) {
-                $failed++;
-            }
-        }
+        ['generated' => $generated, 'skipped' => $skipped, 'failed' => $failed] = $this->invoices->generateBulk(
+            $schoolId,
+            (int) $data['academic_year_id'],
+            isset($data['month']) ? (int) $data['month'] : null,
+            (int) $data['class_id'],
+            isset($data['discount_id']) ? (int) $data['discount_id'] : null,
+            $data['due_date'],
+            (int) auth()->id(),
+        );
 
         $msg = "Bulk generation complete — {$generated} generated, {$skipped} skipped".($failed ? ", {$failed} failed (no fee items)" : '').'.';
 

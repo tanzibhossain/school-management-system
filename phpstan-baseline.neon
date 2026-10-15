@@ -1849,12 +1849,6 @@ parameters:
 			path: app/Modules/Payment/Services/ChequeService.php
 
 		-
-			message: '#^Access to an undefined property App\\Modules\\Student\\Models\\Student\:\:\$class_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Payment/Services/InvoiceService.php
-
-		-
 			message: '#^Offset ''statusCode'' on array\{trxID\: string, amount\: string, transactionStatus\: string\} on left side of \?\? does not exist\.$#'
 			identifier: nullCoalesce.offset
 			count: 1

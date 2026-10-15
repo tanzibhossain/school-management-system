@@ -12,6 +12,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 - Admin dashboard "fee defaulters" now counts every overdue invoice per student, so the worst defaulters are listed first.
+- Bulk invoice generation by class through the API works, and its result includes a failed count.
+- The student list API returns each student's academic year.
 
 ## [1.4.6] — 2026-10-16
 
