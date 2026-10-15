@@ -10,6 +10,9 @@ follows [Semantic Versioning](https://semver.org/).
 - Messaging API: adding a participant to a conversation you aren't in returns 403 instead of 422.
 - Docker image no longer keeps the apt package index.
 
+### Fixed
+- Admin dashboard "fee defaulters" now counts every overdue invoice per student, so the worst defaulters are listed first.
+
 ## [1.4.6] — 2026-10-16
 
 ### Changed

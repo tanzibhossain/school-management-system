@@ -144,34 +144,28 @@ class AdminDashboardService
     }
 
     /**
-     * Up to 5 students with overdue invoices, most-overdue first. Counts are
-     * taken over the 5 oldest overdue invoices only (unchanged behaviour).
+     * Up to 5 students with the most overdue invoices (ties: longest overdue
+     * first). Counted across ALL of each student's overdue invoices — this
+     * used to take the 5 oldest invoices first and count within those, which
+     * under-counted and could leave the worst defaulters off entirely.
      */
     private function feeDefaulters(int $schoolId): Collection
     {
-        return Invoice::where('school_id', $schoolId)
-            ->where('status', '!=', 'paid')
-            ->where('status', '!=', 'cancelled')
-            ->where('due_date', '<', Carbon::today())
-            ->with('student:id,name,admission_number')
-            ->orderBy('due_date')
-            ->take(5)
+        return $this->overdueInvoices($schoolId)
+            ->select('student_id')
+            ->selectRaw('count(*) as overdue_count, min(due_date) as oldest_due')
+            ->groupBy('student_id')
+            ->orderByDesc('overdue_count')
+            ->orderBy('oldest_due')
+            ->limit(5)
             ->get()
-            ->map(fn ($inv) => [
-                'id' => $inv->student->id ?? null,
-                'name' => $inv->student->name ?? 'Unknown',
-                'admission_number' => $inv->student->admission_number ?? 'N/A',
-                'overdue_count' => 1,
+            ->load('student:id,name,admission_number')
+            ->map(fn (Invoice $row) => [
+                'id' => $row->student->id ?? null,
+                'name' => $row->student->name ?? 'Unknown',
+                'admission_number' => $row->student->admission_number ?? 'N/A',
+                'overdue_count' => (int) $row->getAttribute('overdue_count'),
             ])
-            ->groupBy('id')
-            ->map(fn ($group) => [
-                'id' => $group[0]['id'],
-                'name' => $group[0]['name'],
-                'admission_number' => $group[0]['admission_number'],
-                'overdue_count' => count($group),
-            ])
-            ->sortByDesc('overdue_count')
-            ->values()
-            ->take(5);
+            ->values();
     }
 }
