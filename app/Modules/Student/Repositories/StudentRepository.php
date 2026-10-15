@@ -27,7 +27,7 @@ class StudentRepository extends BaseRepository
      */
     public function paginate(int $schoolId, array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
-        $query = Student::with(['currentAcademic.schoolClass', 'currentAcademic.section', 'primaryGuardian'])
+        $query = Student::with(['currentAcademic.schoolClass', 'currentAcademic.section', 'currentAcademic.year', 'primaryGuardian'])
             ->where('school_id', $schoolId)
             ->where('is_trash', false);
 

@@ -22,7 +22,7 @@ class StudentListResource extends JsonResource
             'current_class' => $this->whenLoaded('currentAcademic', fn () => [
                 'class' => $this->currentAcademic?->schoolClass?->name,
                 'section' => $this->currentAcademic?->section?->name,
-                'year' => $this->currentAcademic?->year?->name,
+                'year' => $this->currentAcademic?->year?->year, // academic_years has `year`, not `name`
             ]),
             'primary_guardian' => $this->whenLoaded('primaryGuardian', fn () => $this->primaryGuardian ? [
                 'name' => $this->primaryGuardian->name,

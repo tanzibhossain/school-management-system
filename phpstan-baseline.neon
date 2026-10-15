@@ -2497,12 +2497,6 @@ parameters:
 			path: app/Modules/Student/Http/Controllers/StudentController.php
 
 		-
-			message: '#^Access to an undefined property App\\Modules\\Academic\\Models\\AcademicYear\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Student/Http/Resources/StudentListResource.php
-
-		-
 			message: '#^Using nullsafe method call on non\-nullable type Carbon\\Carbon\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
