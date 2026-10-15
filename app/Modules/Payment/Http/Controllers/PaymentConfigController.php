@@ -5,10 +5,13 @@ namespace App\Modules\Payment\Http\Controllers;
 use App\Modules\Payment\Http\Requests\UpdatePaymentConfigRequest;
 use App\Modules\Payment\Http\Resources\PaymentConfigResource;
 use App\Modules\Payment\Models\PaymentConfig;
+use App\Modules\Payment\Services\PaymentConfigService;
 use Illuminate\Routing\Controller;
 
 class PaymentConfigController extends Controller
 {
+    public function __construct(private readonly PaymentConfigService $configs) {}
+
     public function show(): PaymentConfigResource
     {
         $config = PaymentConfig::firstOrCreate(
@@ -30,30 +33,22 @@ class PaymentConfigController extends Controller
             }
         }
 
-        // Generic gateway store — only slugs available to this school's country are
-        // applied; a blank credential keeps the stored value; credentials never leave.
+        // Only slugs available to this school's country are applied; a blank
+        // credential keeps the stored value; an omitted `enabled` keeps the
+        // stored state; credentials never leave (see PaymentConfigResource).
         if (isset($data['gateways'])) {
             $available = array_keys($config->availableGatewayDefs());
-            $store = $config->gateways ?? [];
-
+            $updates = [];
             foreach ($data['gateways'] as $slug => $gw) {
-                if (! in_array($slug, $available, true)) {
-                    continue;
+                if (in_array($slug, $available, true)) {
+                    $updates[$slug] = [
+                        'enabled' => isset($gw['enabled']) ? (bool) $gw['enabled'] : null,
+                        'credentials' => (array) ($gw['credentials'] ?? []),
+                        'fee_pct' => $gw['fee_pct'] ?? null,
+                    ];
                 }
-                $creds = $store[$slug]['credentials'] ?? [];
-                foreach (($gw['credentials'] ?? []) as $key => $value) {
-                    if (filled($value)) {
-                        $creds[$key] = $value;
-                    }
-                }
-                $feePct = $gw['fee_pct'] ?? null;
-                $store[$slug] = [
-                    'enabled' => (bool) ($gw['enabled'] ?? ($store[$slug]['enabled'] ?? false)),
-                    'credentials' => $creds,
-                    'fee_pct' => filled($feePct) ? (float) $feePct : ($store[$slug]['fee_pct'] ?? 0.0),
-                ];
             }
-            $config->gateways = $store;
+            $this->configs->applyGatewayUpdates($config, $updates);
         }
 
         $config->save();
