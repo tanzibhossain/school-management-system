@@ -268,15 +268,22 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // ── Auth rate limiting ──────────────────────────────────────────────
-        // Keyed by (submitted email + IP), matching Laravel's own historical
-        // ThrottlesLogins convention — stops one attacker IP from credential-
-        // stuffing many accounts at full speed, without letting someone lock
-        // out a victim purely by rotating IPs (each attempt still has to name
-        // the victim's own email to consume their slot).
+        // Two limits, both must pass:
+        //  - (email + IP), 5/min — Laravel's ThrottlesLogins convention: slows
+        //    password guessing against one account, and a victim can't be
+        //    locked out by someone on a different IP.
+        //  - IP alone, 60/min — the email+IP key on its own gives a single IP
+        //    a fresh 5 attempts for EVERY email it tries, so credential
+        //    stuffing across many accounts was effectively unlimited. 60 is
+        //    deliberately loose: a whole school's staff/students often share
+        //    one NAT'd IP and may all log in within the same minute.
         RateLimiter::for('login', function (Request $request) {
-            $key = strtolower((string) $request->input('email')).'|'.$request->ip();
+            $email = strtolower((string) $request->input('email'));
 
-            return Limit::perMinute(5)->by($key);
+            return [
+                Limit::perMinute(5)->by('email:'.$email.'|'.$request->ip()),
+                Limit::perMinute(60)->by('ip:'.$request->ip()),
+            ];
         });
 
         // Keyed by the pending 2FA user id (stashed in session by
