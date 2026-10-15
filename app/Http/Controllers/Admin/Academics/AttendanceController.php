@@ -46,7 +46,7 @@ class AttendanceController extends Controller
                     'name' => $a->student->name,
                     'code' => $a->student->student_id,
                     'status' => $marked[$a->student_id] ?? 'present',
-                ])->sortBy(fn ($r) => $r->name)->values();
+                ])->sortBy('name')->values();
         }
 
         return view('admin.academics.attendance.index', [
