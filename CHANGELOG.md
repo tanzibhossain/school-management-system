@@ -4,6 +4,24 @@ All notable changes to this project are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [1.4.6] — 2026-10-16
+
+### Changed
+- PHPStan now reads module migrations, so model columns are type-checked instead of baselined.
+- CI runs the test suite on PHP 8.3 and 8.5; runners pinned to Ubuntu 24.04.
+- Composer resolves dependencies for PHP 8.3 (`config.platform.php`), keeping the lock installable on cPanel hosts.
+- Dependabot no longer proposes PHP minor-version bumps for the Docker image.
+- CI builds and smoke-tests the Docker image on Docker/Composer changes and weekly.
+- CI also runs the test suite against MySQL 8.
+- Docker image pins Composer 2 instead of `latest`.
+- N+1 lazy loads now fail the test suite and are logged to `storage/logs/lazy-loading.log` in local development.
+
+### Fixed
+- Hiring or editing staff no longer fails on an unsupported or blank employment type; the admin form offers the allowed types as a dropdown.
+
+### Security
+- Login rate limiting adds a per-IP ceiling (60/min) across all emails; the API login route is now throttled too.
+
 ## [1.4.5] — 2026-10-16
 
 ### Changed

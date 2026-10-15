@@ -8,7 +8,18 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Pinned rather than ubuntu-latest so a runner OS migration can't change
+    # the environment underneath us without a deliberate commit.
+    runs-on: ubuntu-24.04
+
+    # 8.3 = the supported floor (composer.json, cPanel hosting docs).
+    # 8.5 = what the Docker image actually runs.
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["8.3", "8.5"]
+
+    name: test (PHP ${{ matrix.php }})
 
     steps:
       - name: Checkout code
@@ -17,7 +28,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.3"
+          php-version: ${{ matrix.php }}
           extensions: mbstring, bcmath, intl, pdo_sqlite, redis, gd, zip
           coverage: none
 
@@ -32,5 +43,60 @@ jobs:
 
       # phpunit.xml points DB/cache/session/queue at in-memory drivers, so no
       # MySQL/Redis services are needed to run the suite in CI.
+      - name: Run test suite
+        run: php artisan test
+
+  # Same suite against real MySQL 8 (what Docker and production run). SQLite
+  # can't catch: lockForUpdate (a no-op there), strict-mode errors on
+  # over-long strings / invalid enum values, case-insensitive collation, and
+  # auto-increment ids that do NOT reset when a test's transaction rolls back.
+  test-mysql:
+    name: test (PHP 8.5, MySQL 8)
+    runs-on: ubuntu-24.04
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: secret
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -psecret"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+
+    # Real environment variables win over phpunit.xml's <env> entries (they
+    # aren't force="true"), so these switch the suite from SQLite to MySQL.
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: testing
+      DB_USERNAME: root
+      DB_PASSWORD: secret
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.5"
+          extensions: mbstring, bcmath, intl, pdo_mysql, redis, gd, zip
+          coverage: none
+
+      - name: Copy .env
+        run: cp .env.example .env
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Generate application key
+        run: php artisan key:generate
+
       - name: Run test suite
         run: php artisan test

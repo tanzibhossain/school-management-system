@@ -25,7 +25,7 @@ class BorrowRecordService extends BaseService
         // Same pattern Payment/CreditService uses for balance mutations.
         $borrow = DB::transaction(function () use ($schoolId, $data): BorrowRecord {
             LibraryMember::forSchool($schoolId)->findOrFail($data['library_member_id']);
-            $book = Book::forSchool($schoolId)->lockForUpdate()->findOrFail($data['book_id']);
+            $book = Book::forSchool($schoolId)->lockForUpdate()->findOrFail((int) $data['book_id']);
 
             if ($book->available_copies < 1) {
                 throw new \InvalidArgumentException('No available copies for this book.');

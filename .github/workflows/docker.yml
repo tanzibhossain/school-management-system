@@ -1,0 +1,74 @@
+name: Docker Build
+
+# Builds the app image (the one Dockerfile shared by app/horizon/scheduler)
+# and smoke-tests it. Every base-image breakage so far (pkg-config for gd,
+# opcache on 8.5, phpspreadsheet's PHP cap) was only found when someone ran
+# `docker compose build` by hand after the change had already merged.
+on:
+  push:
+    branches: [dev, main]
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - docker/**
+      - composer.json
+      - composer.lock
+      - .github/workflows/docker.yml
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - docker/**
+      - composer.json
+      - composer.lock
+      - .github/workflows/docker.yml
+  # FROM php:8.5-fpm is a moving tag (new patch releases, Debian base updates)
+  # that Dependabot never proposes, so build weekly to catch upstream changes.
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build app image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          push: false
+          tags: school-app:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Required PHP extensions are loaded
+        run: |
+          docker run --rm school-app:ci php -m > modules.txt
+          missing=0
+          for ext in gd pdo_mysql mbstring exif pcntl bcmath zip intl redis "Zend OPcache"; do
+            grep -qxF "$ext" modules.txt || { echo "::error::missing PHP extension: $ext"; missing=1; }
+          done
+          exit $missing
+
+      # Unlike install/update, check-platform-reqs ignores config.platform.php
+      # (pinned to 8.3 for cPanel) and checks the image's real PHP — i.e. that
+      # every locked package actually runs on the PHP version Docker ships.
+      - name: Locked packages run on the image's PHP
+        run: docker run --rm school-app:ci composer check-platform-reqs
+
+      - name: Laravel boots
+        run: |
+          docker run --rm \
+            -e APP_KEY="base64:$(openssl rand -base64 32)" \
+            -e DB_CONNECTION=sqlite -e DB_DATABASE=:memory: \
+            -e CACHE_STORE=array -e SESSION_DRIVER=array -e QUEUE_CONNECTION=sync \
+            school-app:ci php artisan --version

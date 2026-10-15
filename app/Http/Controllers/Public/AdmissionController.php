@@ -36,7 +36,7 @@ class AdmissionController extends Controller
                 if (! strtotime((string) $value)) {
                     return;
                 }
-                $class = SchoolClass::where('school_id', $sid)->find($request->input('desired_class_id'));
+                $class = SchoolClass::where('school_id', $sid)->find($request->integer('desired_class_id'));
                 if (! $class) {
                     return;
                 }

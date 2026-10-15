@@ -14,5 +14,19 @@ parameters:
 
     tmpDir: storage/phpstan
 
+    # Larastan infers model properties from migrations, but only scans
+    # database/migrations by default. Every module keeps its own migrations
+    # (loaded via ModuleServiceProvider::loadMigrationsFrom), so without this
+    # every column access looked like an "undefined property" and had to be
+    # baselined. Setting this replaces the default, so list both.
+    databaseMigrationsPath:
+        - database/migrations
+        - app/Modules/*/database/migrations
+
+    # User is the one model that declares casts via casts() instead of $casts.
+    # Without this Larastan ignores that method's body, so e.g.
+    # pending_email_expires_at (cast 'datetime') was typed as a string.
+    parseModelCastsMethod: true
+
     excludePaths:
         - app/Modules/*/database/migrations/*

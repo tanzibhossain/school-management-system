@@ -6,7 +6,9 @@ use Illuminate\Support\Facades\Route;
 
 // ── Public auth endpoints ─────────────────────────────────────────────────────
 Route::prefix('v2/auth')->group(function (): void {
-    Route::post('login', [AuthController::class, 'login']);
+    // Same named limiter as the web logins (AppServiceProvider). AuthService
+    // adds its own 3-strike lockout per email+IP on top of this.
+    Route::post('login', [AuthController::class, 'login'])->middleware('throttle:login');
 });
 
 // ── Authenticated endpoints (any valid token) ─────────────────────────────────

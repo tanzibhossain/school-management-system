@@ -28,7 +28,7 @@ class StudentTransportAssignmentService extends BaseService
     public function assign(int $schoolId, array $data): StudentTransportAssignment
     {
         $assignment = DB::transaction(function () use ($schoolId, $data): StudentTransportAssignment {
-            $route = TransportRoute::forSchool($schoolId)->lockForUpdate()->findOrFail($data['transport_route_id']);
+            $route = TransportRoute::forSchool($schoolId)->lockForUpdate()->findOrFail((int) $data['transport_route_id']);
 
             // Interim state: a route between a breakdown and a replacement has no
             // operational vehicle. Block new riders until one is attached.

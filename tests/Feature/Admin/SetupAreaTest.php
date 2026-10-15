@@ -229,8 +229,10 @@ class SetupAreaTest extends TestCase
             'global_bg_color' => '#777777',
         ]);
         $settings = SiteSetting::forSchool($this->school->id)->fresh();
-        $this->assertSame(['bg' => '#555555', 'text' => '#ffffff'], $settings->btn_filled_json);
-        $this->assertSame(['border' => '#666666', 'text' => '#666666'], $settings->btn_outline_json);
+        // assertEquals, not assertSame: these are JSON columns, and MySQL stores
+        // JSON object keys re-sorted (shortest first), so key order isn't kept.
+        $this->assertEquals(['bg' => '#555555', 'text' => '#ffffff'], $settings->btn_filled_json);
+        $this->assertEquals(['border' => '#666666', 'text' => '#666666'], $settings->btn_outline_json);
     }
 
     public function test_advanced_theme_font_rejects_values_outside_the_allow_list(): void

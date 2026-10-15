@@ -78,6 +78,23 @@ class AuthTest extends TestCase
         $response->assertStatus(429);
     }
 
+    public function test_one_ip_is_throttled_across_many_emails(): void
+    {
+        // Each email is tried only once, so neither the per-email+IP limit nor
+        // AuthService's lockout trips — only the per-IP ceiling can stop this.
+        for ($i = 0; $i < 60; $i++) {
+            $this->postJson('/api/v2/auth/login', [
+                'email' => "stuffing{$i}@test.com",
+                'password' => 'wrong-password',
+            ])->assertStatus(422);
+        }
+
+        $this->postJson('/api/v2/auth/login', [
+            'email' => 'stuffing60@test.com',
+            'password' => 'wrong-password',
+        ])->assertStatus(429);
+    }
+
     public function test_successful_login_clears_lockout(): void
     {
         RateLimiter::clear('login:admin@test.com|127.0.0.1');
