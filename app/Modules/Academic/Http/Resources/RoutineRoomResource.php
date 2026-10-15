@@ -2,9 +2,11 @@
 
 namespace App\Modules\Academic\Http\Resources;
 
+use App\Modules\Academic\Models\RoutineRoom;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/** @mixin RoutineRoom */
 class RoutineRoomResource extends JsonResource
 {
     /**

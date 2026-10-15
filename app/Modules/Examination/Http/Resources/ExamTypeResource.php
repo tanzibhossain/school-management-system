@@ -2,9 +2,11 @@
 
 namespace App\Modules\Examination\Http\Resources;
 
+use App\Modules\Examination\Models\ExamType;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/** @mixin ExamType */
 class ExamTypeResource extends JsonResource
 {
     public function toArray(Request $request): array

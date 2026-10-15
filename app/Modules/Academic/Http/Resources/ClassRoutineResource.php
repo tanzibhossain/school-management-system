@@ -2,9 +2,11 @@
 
 namespace App\Modules\Academic\Http\Resources;
 
+use App\Modules\Academic\Models\ClassRoutine;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/** @mixin ClassRoutine */
 class ClassRoutineResource extends JsonResource
 {
     /**

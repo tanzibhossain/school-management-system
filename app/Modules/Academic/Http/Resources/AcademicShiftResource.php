@@ -2,9 +2,11 @@
 
 namespace App\Modules\Academic\Http\Resources;
 
+use App\Modules\Academic\Models\AcademicShift;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/** @mixin AcademicShift */
 class AcademicShiftResource extends JsonResource
 {
     /**
