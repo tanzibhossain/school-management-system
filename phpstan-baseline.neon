@@ -1,6 +1,18 @@
 parameters:
 	ignoreErrors:
 		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,object\{student_id\: mixed, name\: mixed, code\: mixed, status\: mixed\}&stdClass\>\:\:sortBy\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Admin/Academics/AttendanceController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,object\{student_id\: mixed, name\: mixed, code\: mixed, status\: mixed\}&stdClass\>\:\:sortBy\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/Staff/AttendanceController.php
+
+		-
 			message: '#^Access to an undefined property App\\Modules\\Student\\Models\\Student\:\:\$name\.$#'
 			identifier: property.notFound
 			count: 1
@@ -2577,19 +2589,19 @@ parameters:
 		-
 			message: '#^Access to an undefined property App\\Modules\\Student\\Models\\StudentAcademic\:\:\$group_id\.$#'
 			identifier: property.notFound
-			count: 1
+			count: 2
 			path: app/Modules/Examination/Services/SeatingService.php
 
 		-
 			message: '#^Access to an undefined property App\\Modules\\Student\\Models\\StudentAcademic\:\:\$section_id\.$#'
 			identifier: property.notFound
-			count: 1
+			count: 2
 			path: app/Modules/Examination/Services/SeatingService.php
 
 		-
 			message: '#^Access to an undefined property App\\Modules\\Student\\Models\\StudentAcademic\:\:\$student_id\.$#'
 			identifier: property.notFound
-			count: 1
+			count: 2
 			path: app/Modules/Examination/Services/SeatingService.php
 
 		-
