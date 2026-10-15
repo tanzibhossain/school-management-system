@@ -45,7 +45,7 @@ class AttendanceController extends Controller
                     'name' => $a->student->name,
                     'code' => $a->student->student_id,
                     'status' => $marked[$a->student_id] ?? 'present',
-                ])->sortBy('name')->values();
+                ])->sortBy(fn ($r) => $r->name)->values();
         }
 
         return view('staff.attendance', compact('sections', 'section', 'date', 'roster'));
