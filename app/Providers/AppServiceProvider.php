@@ -111,7 +111,9 @@ use App\Modules\Website\Observers\SiteLayoutObserver;
 use App\Modules\Website\Observers\SiteSettingObserver;
 use App\Modules\Website\Observers\WebsiteMediaObserver;
 use App\Modules\Website\Services\PublicPortalService;
+use App\Support\LazyLoadingReporter;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
@@ -150,6 +152,13 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // ── N+1 detection ─────────────────────────────────────────────────────
+        // Outside production, every relation lazy-loaded on a model from a
+        // multi-row query is logged to storage/logs/lazy-loading.log (once per
+        // call site). Log-only: the load still happens, nothing throws.
+        Model::preventLazyLoading(! $this->app->isProduction());
+        Model::handleLazyLoadingViolationUsing([LazyLoadingReporter::class, 'report']);
+
         // ── School module observers ───────────────────────────────────────────
         School::observe(SchoolObserver::class);
         SchoolPhone::observe(SchoolPhoneObserver::class);
