@@ -43,7 +43,7 @@ class StudentService extends BaseService
             // Capacity check
             $sectionId = $academicData['section_id'];
             $yearId = $academicData['academic_year_id'];
-            $section = Section::findOrFail($sectionId);
+            $section = Section::findOrFail((int) $sectionId);
 
             if ($section->capacity !== null) {
                 /** @var StudentRepository $repo */

@@ -14,5 +14,14 @@ parameters:
 
     tmpDir: storage/phpstan
 
+    # Larastan infers model properties from migrations, but only scans
+    # database/migrations by default. Every module keeps its own migrations
+    # (loaded via ModuleServiceProvider::loadMigrationsFrom), so without this
+    # every column access looked like an "undefined property" and had to be
+    # baselined. Setting this replaces the default, so list both.
+    databaseMigrationsPath:
+        - database/migrations
+        - app/Modules/*/database/migrations
+
     excludePaths:
         - app/Modules/*/database/migrations/*

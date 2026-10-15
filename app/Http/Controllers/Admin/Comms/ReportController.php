@@ -85,7 +85,7 @@ class ReportController extends Controller
         $data = null;
         $student = null;
         if (! empty($filters['student_id'])) {
-            $student = Student::where('school_id', $schoolId)->findOrFail($filters['student_id']);
+            $student = Student::where('school_id', $schoolId)->findOrFail((int) $filters['student_id']);
             $data = $this->reports->studentLedger($schoolId, $student->id, [
                 'date_from' => $filters['date_from'] ?? null,
                 'date_to' => $filters['date_to'] ?? null,
