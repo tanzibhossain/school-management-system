@@ -12,6 +12,7 @@ follows [Semantic Versioning](https://semver.org/).
 - Composer resolves dependencies for PHP 8.3 (`config.platform.php`), keeping the lock installable on cPanel hosts.
 - Dependabot no longer proposes PHP minor-version bumps for the Docker image.
 - CI builds and smoke-tests the Docker image on Docker/Composer changes and weekly.
+- CI also runs the test suite against MySQL 8.
 - Docker image pins Composer 2 instead of `latest`.
 - N+1 lazy loads now fail the test suite and are logged to `storage/logs/lazy-loading.log` in local development.
 

@@ -99,11 +99,11 @@ class CertificateAreaTest extends TestCase
     {
         $this->actingAs($this->admin);
         $student = $this->student();
-        AcademicYear::create(['school_id' => $this->school->id, 'year' => '2026', 'is_current' => true]);
+        $year = AcademicYear::create(['school_id' => $this->school->id, 'year' => '2026', 'is_current' => true]);
         $class = SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 6']);
         $type = ExamType::create(['school_id' => $this->school->id, 'name' => 'Final', 'is_active' => true]);
         $exam = Exam::create([
-            'school_id' => $this->school->id, 'exam_type_id' => $type->id, 'academic_year_id' => 1,
+            'school_id' => $this->school->id, 'exam_type_id' => $type->id, 'academic_year_id' => $year->id,
             'class_id' => $class->id, 'title' => 'Final 2026', 'start_date' => '2026-11-01', 'end_date' => '2026-11-10',
         ]);
 
