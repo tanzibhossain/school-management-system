@@ -364,6 +364,14 @@ DB::transaction(function () use ($data) {
   more than one row, so a test with a single student/invoice never trips it. When testing a list page or a
   loop over a collection, create at least two rows. Fix a violation with `with()`/`load()`, never by turning
   the guard off.
+- **Tests run on SQLite locally but also on MySQL 8 in CI — write them to pass on both.** Two differences
+  bite: (1) auto-increment ids reset after each test's rollback on SQLite but NOT on MySQL, so never
+  hard-code an id (`'academic_year_id' => 1`) — use the created model's `->id`; (2) MySQL `json` columns
+  re-sort object keys, so compare a decoded JSON attribute with `assertEquals`, not `assertSame` (which also
+  checks key order). To reproduce a MySQL-only failure locally, run the suite against a separate `testing`
+  database — never the dev database, which `RefreshDatabase` would wipe:
+  `docker compose exec -e DB_CONNECTION=mysql -e DB_HOST=db -e DB_DATABASE=testing -e DB_USERNAME=root -e DB_PASSWORD=secret app php artisan test`
+  (create it once with `docker compose exec db mysql -uroot -psecret -e "CREATE DATABASE IF NOT EXISTS testing"`).
 - **A profile-gated `docker-compose.yml` service does not tear down with a bare `docker compose down`.**
   Compose resolves which services are "in scope" for ANY command — not just `up` — from the currently
   active profile set, computed before that command runs. `ai-detector` (`profiles: ["ai-detector"]`,

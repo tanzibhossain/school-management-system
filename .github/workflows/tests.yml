@@ -54,10 +54,6 @@ jobs:
     name: test (PHP 8.5, MySQL 8)
     runs-on: ubuntu-24.04
 
-    # Non-blocking while the first MySQL-only failures are being fixed.
-    # Remove once the job is green so it gates merges like the others.
-    continue-on-error: true
-
     services:
       mysql:
         image: mysql:8.0
