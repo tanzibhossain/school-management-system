@@ -8,7 +8,18 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Pinned rather than ubuntu-latest so a runner OS migration can't change
+    # the environment underneath us without a deliberate commit.
+    runs-on: ubuntu-24.04
+
+    # 8.3 = the supported floor (composer.json, cPanel hosting docs).
+    # 8.5 = what the Docker image actually runs.
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["8.3", "8.5"]
+
+    name: test (PHP ${{ matrix.php }})
 
     steps:
       - name: Checkout code
@@ -17,7 +28,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.3"
+          php-version: ${{ matrix.php }}
           extensions: mbstring, bcmath, intl, pdo_sqlite, redis, gd, zip
           coverage: none
 
