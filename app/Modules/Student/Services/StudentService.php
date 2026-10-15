@@ -27,6 +27,48 @@ class StudentService extends BaseService
     }
 
     /**
+     * Admin People → Students "Enrol" form: one flat validated array split into
+     * the three payloads enrol() takes. Optional fields left blank are dropped
+     * (not stored as nulls); the guardian row is only created when a name is given.
+     *
+     * @param  array<string, mixed>  $validated
+     */
+    public function enrolFromAdminForm(int $schoolId, array $validated): Student
+    {
+        $studentData = array_filter([
+            'name' => $validated['name'],
+            'gender' => $validated['gender'] ?? null,
+            'dob' => $validated['dob'] ?? null,
+            'blood_group' => $validated['blood_group'] ?? null,
+            'religion' => $validated['religion'] ?? null,
+            'admission_number' => $validated['admission_number'] ?? null,
+        ], fn ($v) => $v !== null);
+
+        $academicData = array_filter([
+            'academic_year_id' => $validated['academic_year_id'],
+            'class_id' => $validated['class_id'],
+            'section_id' => $validated['section_id'],
+            'version_id' => $validated['version_id'] ?? null,
+            'group_id' => $validated['group_id'] ?? null,
+            'shift_id' => $validated['shift_id'] ?? null,
+            'roll_number' => $validated['roll_number'] ?? null,
+        ], fn ($v) => $v !== null);
+
+        $guardians = [];
+        if (! empty($validated['guardian_name'])) {
+            $guardians[] = array_filter([
+                'name' => $validated['guardian_name'],
+                'relation' => $validated['guardian_relation'] ?? 'other',
+                'phone' => $validated['guardian_phone'] ?? null,
+                'email' => $validated['guardian_email'] ?? null,
+                'is_primary' => true,
+            ], fn ($v) => $v !== null);
+        }
+
+        return $this->enrol($schoolId, $studentData, $academicData, $guardians);
+    }
+
+    /**
      * Enrol a new student: generate ID, create academic record, fire event.
      *
      * @param  array<string, mixed>  $studentData

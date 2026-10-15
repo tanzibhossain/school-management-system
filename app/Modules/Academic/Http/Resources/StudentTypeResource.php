@@ -2,9 +2,11 @@
 
 namespace App\Modules\Academic\Http\Resources;
 
+use App\Modules\Academic\Models\StudentType;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/** @mixin StudentType */
 class StudentTypeResource extends JsonResource
 {
     /**

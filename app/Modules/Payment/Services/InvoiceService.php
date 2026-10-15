@@ -10,7 +10,7 @@ use App\Modules\Payment\Events\InvoicePaid;
 use App\Modules\Payment\Events\InvoiceWaived;
 use App\Modules\Payment\Models\Invoice;
 use App\Modules\School\Models\School;
-use App\Modules\Student\Models\Student;
+use App\Modules\Student\Models\StudentAcademic;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -137,10 +137,14 @@ class InvoiceService
     }
 
     /**
-     * Bulk invoice generation for all active students in a class.
-     * Silently skips students who already have an open invoice for the period.
+     * Bulk invoice generation for every active student currently enrolled in a
+     * class for the given year. Class membership lives on student_academics —
+     * `students` has no class_id column (this method used to query one, so the
+     * API's bulk path always failed). Students who already have an open
+     * (unpaid/partial) invoice for the period are skipped; a student with no
+     * applicable fee items is counted as failed instead of aborting the batch.
      *
-     * @return array{ generated: int, skipped: int }
+     * @return array{generated: int, skipped: int, failed: int}
      */
     public function generateBulk(
         int $schoolId,
@@ -151,33 +155,40 @@ class InvoiceService
         string $dueDate,
         int $issuedBy,
     ): array {
-        $students = Student::where('school_id', $schoolId)
+        $studentIds = StudentAcademic::where('school_id', $schoolId)
             ->where('class_id', $classId)
-            ->where('status', 'active')
-            ->get(['id', 'class_id']);
+            ->where('academic_year_id', $yearId)
+            ->where('is_current', true)
+            ->whereHas('student', fn ($q) => $q->where('status', 'active')->where('is_trash', false))
+            ->pluck('student_id');
 
         $generated = 0;
         $skipped = 0;
+        $failed = 0;
 
-        foreach ($students as $student) {
-            $exists = Invoice::where('school_id', $schoolId)
-                ->where('student_id', $student->id)
+        foreach ($studentIds as $studentId) {
+            $open = Invoice::where('school_id', $schoolId)
+                ->where('student_id', $studentId)
                 ->where('academic_year_id', $yearId)
                 ->where('month', $month)
                 ->whereIn('status', ['unpaid', 'partial'])
                 ->exists();
 
-            if ($exists) {
+            if ($open) {
                 $skipped++;
 
                 continue;
             }
 
-            $this->generate($schoolId, $yearId, $month, $student->id, $student->class_id, $discountId, $dueDate, $issuedBy);
-            $generated++;
+            try {
+                $this->generate($schoolId, $yearId, $month, (int) $studentId, $classId, $discountId, $dueDate, $issuedBy);
+                $generated++;
+            } catch (RuntimeException) {
+                $failed++; // no applicable fee items for this student
+            }
         }
 
-        return ['generated' => $generated, 'skipped' => $skipped];
+        return ['generated' => $generated, 'skipped' => $skipped, 'failed' => $failed];
     }
 
     public function cancel(Invoice $invoice, string $note, int $cancelledBy): Invoice

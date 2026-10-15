@@ -250,22 +250,13 @@ class PageController extends Controller
 
     /**
      * Save meta + a new layout revision for ONE locale, and publish it when
-     * status = published. docs/modules/30-multilingual-content-plan.md
-     * Phase 2 — `slug`/`status` are site structure, shared across every
-     * locale regardless of which language tab submitted the form; `title`/
-     * `meta_title`/`meta_desc`/`og_image` are content, so they only update
-     * the shared `pages` row (the default-locale seed) when editing the
-     * default locale — otherwise they're this locale's own translated SEO,
-     * stored on the new PageLayout row instead. Every locale's own
-     * PageLayout row always gets its own copy of these four regardless
-     * (see PageService::saveLayout()), so a fallback-rendered default-locale
-     * page and a real default-locale edit always carry consistent meta.
+     * status = published — see PageService::saveFromEditor() for which fields
+     * are shared vs per-locale and how a concurrent edit is handled.
      */
     public function save(Request $request, int $id): RedirectResponse
     {
         $schoolId = app('current_school_id');
         $page = Page::forSchool($schoolId)->findOrFail($id);
-        $defaultLocale = Language::defaultCode();
         $locale = Language::resolve($request->input('locale'));
 
         $data = $request->validate([
@@ -281,18 +272,6 @@ class PageController extends Controller
             'known_layout_id' => ['nullable', 'integer'],
         ]);
 
-        $pageUpdate = [
-            'slug' => $data['slug'] ?? $page->slug,
-            'status' => $data['status'],
-        ];
-        if ($locale === $defaultLocale) {
-            $pageUpdate['title'] = $data['title'];
-            $pageUpdate['meta_title'] = $data['meta_title'] ?? null;
-            $pageUpdate['meta_desc'] = $data['meta_desc'] ?? null;
-            $pageUpdate['og_image'] = $data['og_image'] ?? null;
-        }
-        $this->pages->update($page, $pageUpdate);
-
         $layout = [
             'template' => $data['template'],
             'blocks' => $this->normalizeBlocks($request->input('blocks', []), PageRenderService::BLOCKS),
@@ -300,41 +279,19 @@ class PageController extends Controller
                 ? $this->normalizeBlocks($request->input('sidebar', []), PageRenderService::SIDEBAR_BLOCKS)
                 : [],
         ];
-        $meta = [
-            'title' => $data['title'],
-            'meta_title' => $data['meta_title'] ?? null,
-            'meta_desc' => $data['meta_desc'] ?? null,
-            'og_image' => $data['og_image'] ?? null,
-        ];
 
-        // Optimistic concurrency check: has someone ELSE saved a newer
-        // revision of THIS LOCALE since this editor session loaded (edit()'s
-        // $knownLayoutId, round-tripped through a hidden field)? Scoped to
-        // the locale being saved — two admins translating two different
-        // languages of the same page never conflict with each other.
-        // Layouts are already append-only/versioned (see PageService/
-        // CLAUDE.md) — the safest response to a real conflict is never to
-        // block or discard either admin's work, just to keep BOTH revisions
-        // and let a human sort it out in History, rather than risk silently
-        // overwriting one admin's edits with the other's.
-        $priorLatest = $page->layoutsForLocale($locale)->first();
-        $conflict = $request->filled('known_layout_id')
-            && $priorLatest
-            && (int) $data['known_layout_id'] !== $priorLatest->id;
+        $conflict = $this->pages->saveFromEditor(
+            $page, $locale, $data, $layout, $request->user(),
+            $request->filled('known_layout_id') ? (int) $data['known_layout_id'] : null,
+        );
 
-        $revision = $this->pages->saveLayout($page->fresh(), $layout, $request->user(), $locale, $meta);
+        $back = redirect()->route('admin.pages.edit', ['id' => $page->id, 'locale' => $locale]);
 
-        if ($data['status'] === 'published' && ! $conflict) {
-            $this->pages->publish($page->fresh(), $revision->id, $locale);
-        }
-
-        if ($conflict) {
-            return redirect()->route('admin.pages.edit', ['id' => $page->id, 'locale' => $locale])->with('warning', __(
+        return $conflict
+            ? $back->with('warning', __(
                 'Someone else saved changes to this page while you were editing. Your changes were saved as a new draft (not published) — open History to compare revisions and publish the right one.'
-            ));
-        }
-
-        return redirect()->route('admin.pages.edit', ['id' => $page->id, 'locale' => $locale])->with('status', __('Page Saved.'));
+            ))
+            : $back->with('status', __('Page Saved.'));
     }
 
     /**

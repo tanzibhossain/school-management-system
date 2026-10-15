@@ -10,6 +10,7 @@ use App\Modules\Messaging\Repositories\ThreadRepository;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class ThreadService
@@ -94,7 +95,8 @@ class ThreadService
         $isAdderParticipant = MessageParticipant::where('thread_id', $thread->id)
             ->where('user_id', $adder->id)->whereNull('left_at')->exists();
         if (! $isAdderParticipant) {
-            throw new UnprocessableEntityHttpException('Only a participant can add others.');
+            // 403 like MessageService::send() / removeParticipant: it's a permission refusal, not bad input.
+            throw new AccessDeniedHttpException('Only a participant can add others.');
         }
 
         $newUser = User::forSchool($schoolId)->findOrFail($newUserId);

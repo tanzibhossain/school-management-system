@@ -372,6 +372,13 @@ DB::transaction(function () use ($data) {
   database — never the dev database, which `RefreshDatabase` would wipe:
   `docker compose exec -e DB_CONNECTION=mysql -e DB_HOST=db -e DB_DATABASE=testing -e DB_USERNAME=root -e DB_PASSWORD=secret app php artisan test`
   (create it once with `docker compose exec db mysql -uroot -psecret -e "CREATE DATABASE IF NOT EXISTS testing"`).
+- **A FormRequest whose `authorize()` returns `true` is only as safe as its route's middleware.** 58 of them
+  do, relying on `auth:sanctum`/`auth` + an `ability:`/`role:` check on the route group. Audited against
+  `route:list` (2026-10): all covered, except the messaging write routes, which deliberately have auth but no
+  role check (any signed-in user may message) — there, `MessageService::send()` / `ThreadService` participant
+  checks + `MessagingPolicyService` are the only guard, and `ThreadMessagingTest` pins them.
+  `WriteRoutesRequireAuthTest` fails CI if any POST/PUT/PATCH/DELETE route is reachable without login; a new
+  deliberately-public write route must be added to its allowlist with a note on what protects it instead.
 - **A profile-gated `docker-compose.yml` service does not tear down with a bare `docker compose down`.**
   Compose resolves which services are "in scope" for ANY command — not just `up` — from the currently
   active profile set, computed before that command runs. `ai-detector` (`profiles: ["ai-detector"]`,

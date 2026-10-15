@@ -48,41 +48,7 @@ class PaymentController extends Controller
         }
 
         try {
-            if ($data['gateway'] === 'paypal') {
-                $result = $service->initiatePayPal(
-                    $invoice,
-                    route('portal.pay.paypal.return'),
-                    route('portal.pay.paypal.return', ['cancel' => 1]),
-                );
-
-                return redirect()->away($result['approveUrl']);
-            }
-
-            if ($data['gateway'] === 'stripe') {
-                $result = $service->initiateStripe(
-                    $invoice,
-                    route('portal.pay.stripe.return').'?session_id={CHECKOUT_SESSION_ID}',
-                    route('portal.pay.stripe.return'), // cancel — no session_id
-                );
-
-                return redirect()->away($result['checkoutUrl']);
-            }
-
-            if ($data['gateway'] === 'sslcommerz') {
-                $result = $service->initiateSslcommerz(
-                    $invoice,
-                    route('portal.pay.sslcommerz.return', ['result' => 'success']),
-                    route('portal.pay.sslcommerz.return', ['result' => 'fail']),
-                    route('portal.pay.sslcommerz.return', ['result' => 'cancel']),
-                    route('payment.sslcommerz.ipn'),
-                );
-
-                return redirect()->away($result['GatewayPageURL']);
-            }
-
-            $result = $service->initiateBkash($invoice, route('portal.pay.bkash.callback'));
-
-            return redirect()->away($result['bkashURL']);
+            return redirect()->away($this->startGatewayPayment($service, $invoice, $data['gateway']));
         } catch (\Throwable $e) {
             report($e);
 
@@ -212,6 +178,35 @@ class PaymentController extends Controller
             return redirect()->route('portal.fees')
                 ->with('error', __('We Could Not Confirm Your Payment. If Your Account Was Debited, Please Contact The Office.'));
         }
+    }
+
+    /**
+     * Start the payment with the chosen gateway and return the URL to send the
+     * browser to. Return/callback URLs are the portal's own routes; the IPN for
+     * SSLCommerz is the server-to-server API route.
+     */
+    private function startGatewayPayment(PaymentService $service, Invoice $invoice, string $gateway): string
+    {
+        return match ($gateway) {
+            'paypal' => $service->initiatePayPal(
+                $invoice,
+                route('portal.pay.paypal.return'),
+                route('portal.pay.paypal.return', ['cancel' => 1]),
+            )['approveUrl'],
+            'stripe' => $service->initiateStripe(
+                $invoice,
+                route('portal.pay.stripe.return').'?session_id={CHECKOUT_SESSION_ID}',
+                route('portal.pay.stripe.return'), // cancel — no session_id
+            )['checkoutUrl'],
+            'sslcommerz' => $service->initiateSslcommerz(
+                $invoice,
+                route('portal.pay.sslcommerz.return', ['result' => 'success']),
+                route('portal.pay.sslcommerz.return', ['result' => 'fail']),
+                route('portal.pay.sslcommerz.return', ['result' => 'cancel']),
+                route('payment.sslcommerz.ipn'),
+            )['GatewayPageURL'],
+            default => $service->initiateBkash($invoice, route('portal.pay.bkash.callback'))['bkashURL'],
+        };
     }
 
     /** Student IDs the logged-in family member may pay for. */

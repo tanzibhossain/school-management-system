@@ -2,6 +2,7 @@
 
 namespace App\Modules\Staff\Services;
 
+use App\Models\User;
 use App\Modules\Staff\Events\StaffAssignedToClass;
 use App\Modules\Staff\Events\StaffHired;
 use App\Modules\Staff\Events\StaffReHired;
@@ -12,6 +13,7 @@ use App\Modules\Staff\Repositories\StaffRepository;
 use App\Services\BaseService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\PersonalAccessToken;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class StaffService extends BaseService
@@ -87,8 +89,7 @@ class StaffService extends BaseService
         DB::transaction(function () use ($staff): void {
             // Revoke portal login if linked
             if ($staff->user_id) {
-                DB::table('personal_access_tokens')
-                    ->where('tokenable_type', 'App\\Models\\User')
+                PersonalAccessToken::where('tokenable_type', User::class)
                     ->where('tokenable_id', $staff->user_id)
                     ->delete();
             }

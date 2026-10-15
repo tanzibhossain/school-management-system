@@ -238,4 +238,25 @@ class StudentTest extends TestCase
             ->assertOk()
             ->assertJsonStructure(['data' => [['id', 'name', 'student_id', 'status']]]);
     }
+
+    // Two rows on purpose: the N+1 guard only fires for multi-row results, so
+    // this also proves the list eager-loads everything StudentListResource reads.
+    public function test_student_list_shows_each_students_current_class_and_year(): void
+    {
+        foreach (['ADM-001' => 'John Doe', 'ADM-002' => 'Jane Roe'] as $admission => $name) {
+            $this->withToken($this->token())
+                ->postJson('/api/v2/students', $this->enrolPayload(['admission_number' => $admission, 'name' => $name]))
+                ->assertCreated();
+            auth()->forgetGuards();
+        }
+
+        $rows = $this->withToken($this->token())->getJson('/api/v2/students')->assertOk()->json('data');
+
+        $this->assertCount(2, $rows);
+        foreach ($rows as $row) {
+            $this->assertSame($this->class->name, $row['current_class']['class']);
+            $this->assertSame($this->section->name, $row['current_class']['section']);
+            $this->assertSame($this->year->year, $row['current_class']['year']);
+        }
+    }
 }

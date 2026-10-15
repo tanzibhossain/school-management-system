@@ -75,6 +75,41 @@ class ThreadMessagingTest extends MessagingTestCase
         $this->getJson("/api/v2/messaging/threads/{$threadId}", $this->auth($outsider))->assertStatus(403);
     }
 
+    // The messaging write routes have auth but no role/ability middleware (any
+    // signed-in user may message) — these service-level checks are the only
+    // thing keeping outsiders out of an existing conversation.
+    public function test_non_participant_cannot_post_into_a_thread(): void
+    {
+        $teacher = $this->makeUser('teacher');
+        $parent = $this->makeUser('parent');
+        $outsider = $this->makeUser('teacher');
+
+        $threadId = $this->postJson('/api/v2/messaging/threads', [
+            'participant_ids' => [$parent->id], 'body' => 'hi',
+        ], $this->auth($teacher))->json('data.id');
+
+        $this->postJson("/api/v2/messaging/threads/{$threadId}/messages", ['body' => 'intrusion'], $this->auth($outsider))
+            ->assertStatus(403);
+        $this->assertDatabaseMissing('messages', ['body' => 'intrusion']);
+    }
+
+    public function test_non_participant_cannot_add_people_to_a_group_thread(): void
+    {
+        $teacher = $this->makeUser('teacher');
+        $parentA = $this->makeUser('parent');
+        $parentB = $this->makeUser('parent');
+        $outsider = $this->makeUser('teacher');
+        $newcomer = $this->makeUser('parent');
+
+        $threadId = $this->postJson('/api/v2/messaging/threads', [
+            'participant_ids' => [$parentA->id, $parentB->id], 'subject' => 'Group', 'body' => 'hi',
+        ], $this->auth($teacher))->assertStatus(201)->json('data.id');
+
+        $this->postJson("/api/v2/messaging/threads/{$threadId}/participants", ['user_id' => $newcomer->id], $this->auth($outsider))
+            ->assertStatus(403);
+        $this->assertDatabaseMissing('message_participants', ['thread_id' => $threadId, 'user_id' => $newcomer->id]);
+    }
+
     public function test_sender_can_delete_own_message(): void
     {
         $teacher = $this->makeUser('teacher');

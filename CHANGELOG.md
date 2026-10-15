@@ -4,6 +4,18 @@ All notable changes to this project are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [1.4.7] — 2026-10-16
+
+### Changed
+- Dependency bump: `maatwebsite/excel` 4.0.4.
+- Messaging API: adding a participant to a conversation you aren't in returns 403 instead of 422.
+- Docker image no longer keeps the apt package index.
+
+### Fixed
+- Admin dashboard "fee defaulters" now counts every overdue invoice per student, so the worst defaulters are listed first.
+- Bulk invoice generation by class through the API works, and its result includes a failed count.
+- The student list API returns each student's academic year.
+
 ## [1.4.6] — 2026-10-16
 
 ### Changed

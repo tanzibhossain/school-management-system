@@ -5,12 +5,14 @@ namespace Tests\Feature\Payment;
 use App\Models\User;
 use App\Modules\Academic\Models\AcademicYear;
 use App\Modules\Academic\Models\SchoolClass;
+use App\Modules\Academic\Models\Section;
 use App\Modules\FeeItem\Models\FeeCategory;
 use App\Modules\FeeItem\Models\FeeItem;
 use App\Modules\Payment\Models\Invoice;
 use App\Modules\Payment\Models\StudentCredit;
 use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
+use App\Modules\Student\Models\StudentAcademic;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -81,7 +83,58 @@ class InvoiceTest extends TestCase
         ]);
     }
 
+    /** Put a student in a class for this year (class membership lives on student_academics). */
+    private function placeInClass(Student $student, SchoolClass $class): void
+    {
+        StudentAcademic::create([
+            'school_id' => $this->school->id,
+            'student_id' => $student->id,
+            'academic_year_id' => $this->year->id,
+            'class_id' => $class->id,
+            'section_id' => Section::create(['school_id' => $this->school->id, 'class_id' => $class->id, 'name' => 'S'.$student->id])->id,
+            'is_current' => true,
+        ]);
+    }
+
     // ── Tests ────────────────────────────────────────────────────────────────
+
+    // InvoiceService::generateBulk() used to query students.class_id, a column
+    // that doesn't exist, so this API path returned 500 on every call.
+    public function test_admin_can_bulk_generate_invoices_for_a_class(): void
+    {
+        $this->makeFeeItem();
+        $classmate = Student::create([
+            'school_id' => $this->school->id, 'admission_number' => 'ADM-2026-002',
+            'name' => 'Classmate', 'gender' => 'female', 'status' => 'active',
+        ]);
+        $otherClassStudent = Student::create([
+            'school_id' => $this->school->id, 'admission_number' => 'ADM-2026-003',
+            'name' => 'Other Class', 'gender' => 'male', 'status' => 'active',
+        ]);
+        $this->placeInClass($this->student, $this->class);
+        $this->placeInClass($classmate, $this->class);
+        $this->placeInClass($otherClassStudent, SchoolClass::create(['school_id' => $this->school->id, 'name' => 'Class 2']));
+
+        $payload = [
+            'class_id' => $this->class->id,
+            'academic_year_id' => $this->year->id,
+            'month' => 3,
+            'due_date' => '2026-03-31',
+        ];
+
+        $this->withToken($this->token())->postJson('/api/v2/invoices/generate', $payload)
+            ->assertOk()
+            ->assertJson(['generated' => 2, 'skipped' => 0, 'failed' => 0]);
+
+        $this->assertSame(2, Invoice::where('school_id', $this->school->id)->where('month', 3)->count());
+        $this->assertDatabaseMissing('invoices', ['student_id' => $otherClassStudent->id]);
+
+        // Running it again skips both (each already has an open invoice for the period).
+        auth()->forgetGuards();
+        $this->withToken($this->token())->postJson('/api/v2/invoices/generate', $payload)
+            ->assertOk()
+            ->assertJson(['generated' => 0, 'skipped' => 2]);
+    }
 
     public function test_admin_can_generate_invoice_for_student(): void
     {

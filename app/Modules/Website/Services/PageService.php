@@ -84,6 +84,50 @@ class PageService
     }
 
     /**
+     * Save the page editor's form for ONE locale (docs/modules/30-multilingual-
+     * content-plan.md Phase 2). `slug`/`status` are site structure, shared by
+     * every locale. `title`/`meta_title`/`meta_desc`/`og_image` are content:
+     * they update the shared `pages` row (the default-locale seed) only when
+     * editing the default locale, and always ride along on the new PageLayout
+     * revision, so a fallback-rendered page and a real default-locale edit
+     * carry consistent meta.
+     *
+     * Optimistic concurrency: if someone ELSE saved a newer revision of THIS
+     * locale since the editor loaded ($knownLayoutId), both admins' work is
+     * kept — the new revision is saved but not published, for a human to sort
+     * out in History. Two admins translating different locales never conflict.
+     *
+     * @param  array<string, mixed>  $data  validated editor input
+     * @param  array<string, mixed>  $layout  normalised layout_json
+     * @return bool true when a conflict was detected (saved as an unpublished draft)
+     */
+    public function saveFromEditor(Page $page, string $locale, array $data, array $layout, ?User $user, ?int $knownLayoutId): bool
+    {
+        $meta = [
+            'title' => $data['title'],
+            'meta_title' => $data['meta_title'] ?? null,
+            'meta_desc' => $data['meta_desc'] ?? null,
+            'og_image' => $data['og_image'] ?? null,
+        ];
+        $pageUpdate = ['slug' => $data['slug'] ?? $page->slug, 'status' => $data['status']];
+        if ($locale === Language::defaultCode()) {
+            $pageUpdate += $meta;
+        }
+        $this->update($page, $pageUpdate);
+
+        $priorLatest = $page->layoutsForLocale($locale)->first();
+        $conflict = $knownLayoutId !== null && $priorLatest && $knownLayoutId !== $priorLatest->id;
+
+        $revision = $this->saveLayout($page->fresh(), $layout, $user, $locale, $meta);
+
+        if ($data['status'] === 'published' && ! $conflict) {
+            $this->publish($page->fresh(), $revision->id, $locale);
+        }
+
+        return $conflict;
+    }
+
+    /**
      * Publishes one revision of ONE locale (defaults to that locale's
      * latest) and unpublishes any other revision of the SAME locale only —
      * each language's published state is independent (publishing the

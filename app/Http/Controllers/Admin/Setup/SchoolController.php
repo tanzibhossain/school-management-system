@@ -4,14 +4,12 @@ namespace App\Http\Controllers\Admin\Setup;
 
 use App\Modules\Language\Jobs\SuggestSchoolTranslationJob;
 use App\Modules\Language\Models\Language;
-use App\Modules\Language\Services\TranslationService;
 use App\Modules\School\Models\ModuleSetting;
 use App\Modules\School\Models\School;
 use App\Modules\School\Models\SchoolOpeningHour;
 use App\Modules\School\Services\ModuleSettingService;
-use App\Modules\School\Services\SchoolService;
 use App\Modules\Website\Models\SiteSetting;
-use App\Modules\Website\Services\SiteSettingService;
+use App\Services\SchoolSettingsFormService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -19,20 +17,9 @@ use Illuminate\View\View;
 
 class SchoolController extends Controller
 {
-    /** School/SiteSetting fields translatable per docs/modules/30-multilingual-content-plan.md Phase 4. */
-    private const SCHOOL_TRANSLATABLE_FIELDS = [
-        'name', 'institution_code_label', 'institution_code',
-        'school_code_label', 'school_code',
-        'technical_branch_code_label', 'technical_branch_code', 'address',
-    ];
-
-    private const SETTING_TRANSLATABLE_FIELDS = ['meta_title', 'meta_description'];
-
     public function __construct(
-        private readonly SchoolService $schools,
-        private readonly SiteSettingService $siteSettings,
         private readonly ModuleSettingService $modules,
-        private readonly TranslationService $translations,
+        private readonly SchoolSettingsFormService $settingsForm,
     ) {}
 
     public function edit(): View
@@ -76,8 +63,30 @@ class SchoolController extends Controller
             'currency' => strtoupper((string) $request->input('currency')),
             'country_code' => $request->filled('country_code') ? strtoupper((string) $request->input('country_code')) : null,
         ]);
+        $validated = $request->validate($this->settingsRules());
 
-        $validated = $request->validate([
+        $images = [];
+        foreach (['logo', 'favicon', 'og_image', 'global_bg_image'] as $field) {
+            if ($path = $this->storeImage($request, $field)) {
+                $images[$field] = $path;
+            }
+        }
+
+        $this->settingsForm->save(
+            $school,
+            $validated,
+            $images,
+            (array) $request->input('phones', []),
+            (int) $request->input('primary_phone', 0),
+        );
+
+        return back()->with('status', __('School Settings Saved.'));
+    }
+
+    /** @return array<string, mixed> */
+    private function settingsRules(): array
+    {
+        return [
             // Profile
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email'],
@@ -146,93 +155,7 @@ class SchoolController extends Controller
             'translations' => ['nullable', 'array'],
             'translations.*' => ['array'],
             'translations.*.*' => ['nullable', 'string', 'max:2000'],
-        ]);
-
-        // ── School profile ──────────────────────────────────────────────────
-        $schoolData = collect($validated)->only([
-            'name', 'email',
-            'institution_code', 'institution_code_label',
-            'school_code', 'school_code_label',
-            'technical_branch_code', 'technical_branch_code_label',
-            'address', 'country_code', 'currency', 'timezone', 'locale', 'academic_year_pattern',
-        ])->all();
-        // "established" is entered as a plain year; the column stores a date.
-        $schoolData['established'] = filled($validated['established'] ?? null) ? $validated['established'].'-01-01' : null;
-        if ($path = $this->storeImage($request, 'logo')) {
-            $schoolData['logo'] = $path;
-        }
-        $this->schools->updateSettings($school, $schoolData);
-
-        // ── Appearance / SEO (SiteSetting) ──────────────────────────────────
-        $settingData = collect($validated)->only([
-            'primary_color', 'accent_color', 'heading_color',
-            'topbar_text_color', 'ticker_position', 'meta_title', 'meta_description',
-            'secondary_color', 'background_color', 'surface_color', 'text_color',
-            'link_color', 'link_hover_color', 'border_color',
-            'font_heading', 'font_body', 'base_font_size', 'container_width',
-            'btn_radius', 'btn_font_weight', 'btn_transition_ms',
-            'global_bg_type', 'global_bg_color', 'global_bg_overlay',
-        ])->all();
-        // btn_filled_json/btn_outline_json are stored as a small fixed-key
-        // JSON object each ({bg,text} / {border,text}) assembled from their
-        // own flat form fields — array_filter() drops empty sub-fields so an
-        // admin who only sets one of the two colors doesn't have the other
-        // silently stored as an empty string; an entirely-empty result
-        // becomes null (falls back to the CSS defaults in layout.blade.php)
-        // rather than an empty-but-truthy [] the render side would have to
-        // special-case.
-        $filled = array_filter([
-            'bg' => $validated['btn_filled_bg'] ?? null,
-            'text' => $validated['btn_filled_text'] ?? null,
-        ]);
-        $settingData['btn_filled_json'] = $filled ?: null;
-        $outline = array_filter([
-            'border' => $validated['btn_outline_border'] ?? null,
-            'text' => $validated['btn_outline_text'] ?? null,
-        ]);
-        $settingData['btn_outline_json'] = $outline ?: null;
-        if ($path = $this->storeImage($request, 'favicon')) {
-            $settingData['favicon'] = $path;
-        }
-        if ($path = $this->storeImage($request, 'og_image')) {
-            $settingData['og_image'] = $path;
-        }
-        if ($path = $this->storeImage($request, 'global_bg_image')) {
-            $settingData['global_bg_image'] = $path;
-        }
-        $settings = $this->siteSettings->update($school->id, $settingData);
-
-        // ── Translations (docs/modules/30-multilingual-content-plan.md Phase 4) ──
-        // Only iterate over locales the DB actually knows are active -- an
-        // arbitrary/stale locale key in the submitted payload (deactivated
-        // language, tampered form) is simply ignored rather than stored.
-        $activeLocales = Language::activeCached()
-            ->pluck('code')
-            ->reject(fn ($code) => $code === Language::defaultCode());
-
-        $submitted = (array) ($validated['translations'] ?? []);
-        $schoolTranslations = [];
-        $settingTranslations = [];
-        foreach ($activeLocales as $locale) {
-            $fields = is_array($submitted[$locale] ?? null) ? $submitted[$locale] : [];
-            $schoolTranslations[$locale] = array_intersect_key($fields, array_flip(self::SCHOOL_TRANSLATABLE_FIELDS));
-            $settingTranslations[$locale] = array_intersect_key($fields, array_flip(self::SETTING_TRANSLATABLE_FIELDS));
-        }
-        $this->translations->saveMany($school, $schoolTranslations);
-        $this->translations->saveMany($settings, $settingTranslations);
-
-        // ── Phones (dynamic list; each can be flagged to show in the header) ─
-        $phones = collect($request->input('phones', []))
-            ->filter(fn ($p) => filled($p['phone'] ?? null))
-            ->map(fn ($p, $i) => [
-                'phone' => $p['phone'],
-                'is_primary' => (int) $request->input('primary_phone', 0) === (int) $i,
-                'show_in_header' => (bool) ($p['show_in_header'] ?? false),
-            ])->values()->all();
-
-        $this->schools->syncPhones($school->id, $phones);
-
-        return back()->with('status', __('School Settings Saved.'));
+        ];
     }
 
     /** Store an uploaded image on the public disk; returns the path or null if none uploaded. */
