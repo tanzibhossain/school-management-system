@@ -4,7 +4,7 @@ All notable changes to this project are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning
 follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.4.6] — 2026-10-16
 
 ### Changed
 - PHPStan now reads module migrations, so model columns are type-checked instead of baselined.
