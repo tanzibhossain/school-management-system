@@ -31,7 +31,7 @@ class StudentService extends BaseService
      *
      * @param  array<string, mixed>  $studentData
      * @param  array<string, mixed>  $academicData  {academic_year_id, class_id, section_id, ...}
-     * @param  array<string, mixed>  $guardianData
+     * @param  array<int, array<string, mixed>>  $guardianData  one row per guardian
      */
     public function enrol(
         int $schoolId,

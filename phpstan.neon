@@ -23,5 +23,10 @@ parameters:
         - database/migrations
         - app/Modules/*/database/migrations
 
+    # User is the one model that declares casts via casts() instead of $casts.
+    # Without this Larastan ignores that method's body, so e.g.
+    # pending_email_expires_at (cast 'datetime') was typed as a string.
+    parseModelCastsMethod: true
+
     excludePaths:
         - app/Modules/*/database/migrations/*

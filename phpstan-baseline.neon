@@ -1807,12 +1807,6 @@ parameters:
 			path: app/Modules/OnlineAdmission/Models/AdmissionApplication.php
 
 		-
-			message: '#^Parameter \#4 \$guardianData of method App\\Modules\\Student\\Services\\StudentService\:\:enrol\(\) expects array\<string, mixed\>, array\<int, array\<string, string\|null\>\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Modules/OnlineAdmission/Services/AdmissionApplicationService.php
-
-		-
 			message: '#^Negated boolean expression is always false\.$#'
 			identifier: booleanNot.alwaysFalse
 			count: 1
@@ -2957,12 +2951,6 @@ parameters:
 			identifier: generics.notSubtype
 			count: 1
 			path: app/Modules/User/Repositories/UserRepository.php
-
-		-
-			message: '#^Cannot call method isPast\(\) on string\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: app/Modules/User/Services/AccountService.php
 
 		-
 			message: '#^Using nullsafe method call on non\-nullable type Laravel\\Sanctum\\PersonalAccessToken\. Use \-\> instead\.$#'
