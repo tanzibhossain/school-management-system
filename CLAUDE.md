@@ -4,7 +4,7 @@ Read automatically at the start of every session. Follow every rule here across 
 
 ## Project Overview
 Multi-school self-hosted school management platform.
-Stack: Laravel 13 · PHP 8.4 · MySQL 8 · Redis 7 · Laravel Horizon · MinIO · Sanctum · Spatie Permission
+Stack: Laravel 13 · PHP 8.3+ (Docker: 8.5) · MySQL 8 · Redis 7 · Laravel Horizon · MinIO · Sanctum · Spatie Permission
 
 ## Frontend (Laravel Blade + Bootstrap admin — in this repo)
 - **Decision:** the school-facing admin UI is **server-rendered Laravel Blade + Bootstrap 5**, living in THIS
@@ -345,7 +345,19 @@ DB::transaction(function () use ($data) {
   Docker-level failures here were all real and all fixable, which made it easy to keep patching one at a
   time without stepping back to ask whether 8.5 was actually viable for this dependency tree at all. It
   wasn't, and the very last step (`composer install`, after four rounds of purely Docker-side fixes) is what
-  finally surfaced that.**
+  finally surfaced that.** **Update (current state):** once `maatwebsite/excel` 4.x / `phpoffice/phpspreadsheet`
+  5.x removed the `<8.5.0` cap, the image moved 8.3 → 8.4 → 8.5 deliberately; the `opcache` install line is
+  gone again (8.5 builds it in). The old `semver-major` Dependabot ignore did NOT block PR #55 (8.4 → 8.5 is a
+  semver-*minor* bump to Dependabot) — the rule now ignores minor too. The PHP floor stays 8.3 for cPanel
+  hosts: `composer.json` pins `config.platform.php` to 8.3.0 so the lock file stays installable there, and CI
+  tests both 8.3 and 8.5.
+- **Larastan only knows model columns from the migrations it scans.** It defaults to `database/migrations`,
+  but every module's migrations live in `app/Modules/*/database/migrations`, so until `phpstan.neon` set
+  `databaseMigrationsPath` every column access (`$invoice->status`, `$student->name`, ...) was an "undefined
+  property" — ~1,500 of the baseline's ~1,900 suppressions. A side effect: an ID read from an unknown
+  property or an untyped array (`findOrFail($data['book_id'])`) makes Larastan return `Model|Collection`,
+  and how it prints that union changed between Larastan versions, breaking the baseline on every bump. Pass
+  `findOrFail()`/`find()` an `int` (cast it, or `$request->integer()`).
 - **A profile-gated `docker-compose.yml` service does not tear down with a bare `docker compose down`.**
   Compose resolves which services are "in scope" for ANY command — not just `up` — from the currently
   active profile set, computed before that command runs. `ai-detector` (`profiles: ["ai-detector"]`,

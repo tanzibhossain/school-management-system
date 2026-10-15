@@ -20,26 +20,21 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
 
-  # Base image in Dockerfile.
-  # A prior bump (f2ebb3dd) went 8.3-fpm -> 8.5-fpm and merged clean, but
-  # broke two independent things: several rounds of Docker build failures
-  # (docker-php-ext-install issues, some genuinely Dockerfile-fixable, one
-  # -- opcache -- an actual upstream PHP 8.5 change), AND, once the image
-  # finally built, `composer install` itself failing outright because
-  # phpoffice/phpspreadsheet 1.30.x (locked, pulled in by maatwebsite/excel
-  # for the DataImport module) hard-caps `php: <8.5.0` in its own
-  # composer.json -- a dependency-tree incompatibility no Dockerfile change
-  # can fix. Reverted back to 8.3-fpm. Ignoring major-version bumps here
-  # until phpoffice/phpspreadsheet + maatwebsite/excel are deliberately
-  # upgraded past that cap as their own tested change -- see the Dockerfile
-  # header comment for the full account.
+  # Base image in Dockerfile (currently php:8.5-fpm).
+  # PHP version bumps are ignored here and done by hand: every one so far
+  # (8.3 -> 8.4 -> 8.5) needed Dockerfile changes (pkg-config for gd, the
+  # opcache install step removed in 8.5) and a dependency check before it
+  # would build. Dependabot treats 8.5 -> 8.6 as a *minor* bump, so ignoring
+  # only semver-major (the old rule) is what let PR #55 through. Patch bumps
+  # (new builds of the same PHP minor) still come through. Full history is
+  # in CLAUDE.md "Gotchas Learned".
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "weekly"
     ignore:
       - dependency-name: "php"
-        update-types: ["version-update:semver-major"]
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
   # Actions used by the CI workflows (tests.yml, pint.yml, phpstan.yml).
   - package-ecosystem: "github-actions"
