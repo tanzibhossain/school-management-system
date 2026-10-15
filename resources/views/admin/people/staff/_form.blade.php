@@ -28,7 +28,12 @@
         <div class="col-md-4"><label class="form-label">{{ __('Joining Date') }}</label>
           <input type="date" name="joining_date" class="form-control" value="{{ $isEdit ? optional($s->joining_date)->format('Y-m-d') : old('joining_date') }}"></div>
         <div class="col-md-4"><label class="form-label">{{ __('Employment Type') }}</label>
-          <input name="employment_type" class="form-control" value="{{ $isEdit ? $s->employment_type : old('employment_type') }}" placeholder="e.g. full_time"></div>
+          @php $empType = $isEdit ? $s->employment_type : old('employment_type', 'permanent'); @endphp
+          <select name="employment_type" class="form-select">
+            @foreach (\App\Modules\Staff\Models\Staff::EMPLOYMENT_TYPES as $type)
+              <option value="{{ $type }}" @selected($empType === $type)>{{ __(ucfirst(str_replace('_', ' ', $type))) }}</option>
+            @endforeach
+          </select></div>
         <div class="col-md-4"><label class="form-label">{{ __('Basic Salary') }}</label>
           <input type="number" step="0.01" min="0" name="basic_salary" class="form-control" value="{{ $isEdit ? $s->basic_salary : old('basic_salary') }}"></div>
 

@@ -2,7 +2,9 @@
 
 namespace App\Modules\Staff\Http\Requests;
 
+use App\Modules\Staff\Models\Staff;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateStaffRequest extends FormRequest
 {
@@ -26,7 +28,7 @@ class UpdateStaffRequest extends FormRequest
             'mother_tongue' => ['nullable', 'string', 'max:50'],
             'joining_date' => ['nullable', 'date'],
             'leaving_date' => ['nullable', 'date', 'after_or_equal:joining_date'],
-            'employment_type' => ['nullable', 'in:permanent,contractual,part_time'],
+            'employment_type' => ['sometimes', 'required', Rule::in(Staff::EMPLOYMENT_TYPES)],
             'basic_salary' => ['nullable', 'numeric', 'min:0'],
             'rfid_number' => ['nullable', 'string', 'max:30'],
             'designation_id' => ['nullable', 'integer', "exists:designations,id,school_id,{$schoolId}"],

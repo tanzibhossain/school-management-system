@@ -16,6 +16,9 @@ follows [Semantic Versioning](https://semver.org/).
 - Docker image pins Composer 2 instead of `latest`.
 - N+1 lazy loads now fail the test suite and are logged to `storage/logs/lazy-loading.log` in local development.
 
+### Fixed
+- Hiring or editing staff no longer fails on an unsupported or blank employment type; the admin form offers the allowed types as a dropdown.
+
 ### Security
 - Login rate limiting adds a per-IP ceiling (60/min) across all emails; the API login route is now throttled too.
 

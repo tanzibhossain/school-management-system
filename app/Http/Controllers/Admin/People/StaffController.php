@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Arr;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class StaffController extends Controller
@@ -128,7 +129,8 @@ class StaffController extends Controller
             'gender' => ['nullable', 'in:male,female,other'],
             'dob' => ['nullable', 'date'],
             'joining_date' => ['nullable', 'date'],
-            'employment_type' => ['nullable', 'string', 'max:50'],
+            // NOT NULL enum column: may be omitted (DB default 'permanent') but never null.
+            'employment_type' => ['sometimes', 'required', Rule::in(Staff::EMPLOYMENT_TYPES)],
             'basic_salary' => ['nullable', 'numeric', 'min:0'],
             'rfid_number' => ['nullable', 'string', 'max:50'],
             'translations' => ['nullable', 'array'],

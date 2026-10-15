@@ -6,6 +6,7 @@ use App\Modules\DataImport\Exceptions\RowImportException;
 use App\Modules\DataImport\Services\Concerns\ParsesExcelDates;
 use App\Modules\Staff\Models\Department;
 use App\Modules\Staff\Models\Designation;
+use App\Modules\Staff\Models\Staff;
 use App\Modules\Staff\Services\StaffService;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
@@ -25,8 +26,6 @@ class StaffImportRowService
     private const GENDERS = ['male', 'female', 'other'];
 
     private const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-
-    private const EMPLOYMENT_TYPES = ['permanent', 'contractual', 'part_time'];
 
     public function __construct(private readonly StaffService $staffService) {}
 
@@ -91,8 +90,8 @@ class StaffImportRowService
 
         $employmentTypeRaw = trim((string) ($row['employment_type'] ?? ''));
         $employmentType = $employmentTypeRaw !== '' ? strtolower($employmentTypeRaw) : null;
-        if ($employmentType !== null && ! in_array($employmentType, self::EMPLOYMENT_TYPES, true)) {
-            $messages[] = 'employment_type must be one of: '.implode(', ', self::EMPLOYMENT_TYPES).'.';
+        if ($employmentType !== null && ! in_array($employmentType, Staff::EMPLOYMENT_TYPES, true)) {
+            $messages[] = 'employment_type must be one of: '.implode(', ', Staff::EMPLOYMENT_TYPES).'.';
         }
 
         $basicSalaryRaw = trim((string) ($row['basic_salary'] ?? ''));
@@ -116,7 +115,8 @@ class StaffImportRowService
                 'dob' => $dob,
                 'blood_group' => $bloodGroup,
                 'joining_date' => $joiningDate,
-                'employment_type' => $employmentType,
+                // NOT NULL column: a blank cell takes the same default the DB would.
+                'employment_type' => $employmentType ?? 'permanent',
                 'basic_salary' => $basicSalary,
                 'designation_id' => $designationId,
                 'department_id' => $departmentId,

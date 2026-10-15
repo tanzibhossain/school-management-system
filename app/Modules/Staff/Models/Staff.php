@@ -13,6 +13,13 @@ class Staff extends Model
 {
     use HasTranslations;
 
+    /**
+     * The only values the `staff.employment_type` enum column accepts (see the
+     * create_staff_table migration). Every validator and form should use this
+     * list — MySQL rejects anything else with a 500, SQLite silently doesn't.
+     */
+    public const EMPLOYMENT_TYPES = ['permanent', 'contractual', 'part_time'];
+
     protected $table = 'staff';
 
     protected $fillable = [

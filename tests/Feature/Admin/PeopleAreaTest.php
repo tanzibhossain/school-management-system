@@ -84,14 +84,40 @@ class PeopleAreaTest extends TestCase
 
         $this->post('/admin/staff', [
             'name' => 'Jane Teacher', 'gender' => 'female', 'department_id' => $dep->id,
-            'joining_date' => '2026-01-05', 'employment_type' => 'full_time', 'basic_salary' => 40000,
-        ])->assertRedirect();
+            'joining_date' => '2026-01-05', 'employment_type' => 'part_time', 'basic_salary' => 40000,
+        ])->assertSessionHasNoErrors()->assertRedirect();
 
         $staff = Staff::where('school_id', $this->school->id)->where('name', 'Jane Teacher')->firstOrFail();
         $this->assertNotNull($staff->employee_id);
+        $this->assertSame('part_time', $staff->employment_type);
 
         $this->patch("/admin/staff/{$staff->id}/deactivate")->assertRedirect();
         $this->assertDatabaseMissing('staff', ['id' => $staff->id, 'status' => 'active']);
+    }
+
+    // employment_type is a NOT NULL enum column. A value outside the enum, or an
+    // explicit blank, used to reach the INSERT and fail there (a 500 on MySQL).
+    public function test_hire_rejects_an_employment_type_outside_the_enum(): void
+    {
+        $this->actingAs($this->admin);
+
+        foreach (['full_time', ''] as $bad) {
+            $this->post('/admin/staff', ['name' => 'Bad Type', 'gender' => 'female', 'employment_type' => $bad])
+                ->assertRedirect()
+                ->assertSessionHasErrors('employment_type');
+        }
+
+        $this->assertDatabaseMissing('staff', ['name' => 'Bad Type']);
+    }
+
+    public function test_hire_without_employment_type_uses_the_default(): void
+    {
+        $this->actingAs($this->admin);
+
+        $this->post('/admin/staff', ['name' => 'No Type', 'gender' => 'male'])
+            ->assertSessionHasNoErrors()->assertRedirect();
+
+        $this->assertSame('permanent', Staff::where('name', 'No Type')->firstOrFail()->employment_type);
     }
 
     // ── Students ────────────────────────────────────────────────────────────────
