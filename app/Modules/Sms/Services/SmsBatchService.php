@@ -137,7 +137,7 @@ class SmsBatchService
      * remaining due (see SmsBatchRepository::studentsWithDues()).
      *
      * @param  array{class_id?: int|null, section_id?: int|null, academic_year_id?: int|null, target_ids?: array<int>|null}  $filters
-     * @return Collection<int, object{student_id: int, total_due: float, currency: string}>
+     * @return Collection<int, object{student_id: int, total_due: float, currency: string}&\stdClass>
      */
     public function studentsWithDues(int $schoolId, array $filters): Collection
     {

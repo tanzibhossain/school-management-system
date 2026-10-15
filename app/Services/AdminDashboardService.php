@@ -111,7 +111,6 @@ class AdminDashboardService
         return $chart;
     }
 
-    /** @return Collection<int, array<string, mixed>> */
     private function classStrength(int $schoolId): Collection
     {
         return SchoolClass::where('school_id', $schoolId)
@@ -147,8 +146,6 @@ class AdminDashboardService
     /**
      * Up to 5 students with overdue invoices, most-overdue first. Counts are
      * taken over the 5 oldest overdue invoices only (unchanged behaviour).
-     *
-     * @return Collection<int, array<string, mixed>>
      */
     private function feeDefaulters(int $schoolId): Collection
     {
