@@ -153,9 +153,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // ── N+1 detection ─────────────────────────────────────────────────────
-        // Outside production, every relation lazy-loaded on a model from a
-        // multi-row query is logged to storage/logs/lazy-loading.log (once per
-        // call site). Log-only: the load still happens, nothing throws.
+        // Outside production, a relation lazy-loaded on a model from a
+        // multi-row query throws under tests and is logged (once per call site)
+        // to storage/logs/lazy-loading.log everywhere else.
         Model::preventLazyLoading(! $this->app->isProduction());
         Model::handleLazyLoadingViolationUsing([LazyLoadingReporter::class, 'report']);
 

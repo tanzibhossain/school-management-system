@@ -13,7 +13,7 @@ follows [Semantic Versioning](https://semver.org/).
 - Dependabot no longer proposes PHP minor-version bumps for the Docker image.
 - CI builds and smoke-tests the Docker image on Docker/Composer changes and weekly.
 - Docker image pins Composer 2 instead of `latest`.
-- Outside production, N+1 lazy loads are logged to `storage/logs/lazy-loading.log`.
+- N+1 lazy loads now fail the test suite and are logged to `storage/logs/lazy-loading.log` in local development.
 
 ### Security
 - Login rate limiting adds a per-IP ceiling (60/min) across all emails; the API login route is now throttled too.

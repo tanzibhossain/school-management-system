@@ -358,6 +358,12 @@ DB::transaction(function () use ($data) {
   property or an untyped array (`findOrFail($data['book_id'])`) makes Larastan return `Model|Collection`,
   and how it prints that union changed between Larastan versions, breaking the baseline on every bump. Pass
   `findOrFail()`/`find()` an `int` (cast it, or `$request->integer()`).
+- **N+1 queries fail the test suite — but only if the test has 2+ rows.** `AppServiceProvider` turns on
+  `Model::preventLazyLoading()` outside production; `App\Support\LazyLoadingReporter` throws under tests and
+  logs to `storage/logs/lazy-loading.log` locally. Laravel only flags models that came from a query returning
+  more than one row, so a test with a single student/invoice never trips it. When testing a list page or a
+  loop over a collection, create at least two rows. Fix a violation with `with()`/`load()`, never by turning
+  the guard off.
 - **A profile-gated `docker-compose.yml` service does not tear down with a bare `docker compose down`.**
   Compose resolves which services are "in scope" for ANY command — not just `up` — from the currently
   active profile set, computed before that command runs. `ai-detector` (`profiles: ["ai-detector"]`,

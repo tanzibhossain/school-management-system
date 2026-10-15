@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\LazyLoadingViolationException;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -10,10 +11,11 @@ use Illuminate\Support\Facades\Log;
  * distinct N+1 — a relation lazy-loaded on a model that came from a
  * multi-row query — once per process to storage/logs/lazy-loading.log.
  *
- * It logs instead of throwing, and Laravel still performs the load after the
- * handler returns, so turning prevention on changes no behaviour. That lets it
- * run everywhere outside production (including the test suite) while the
- * existing violations are found and fixed.
+ * Under the test suite it throws (Laravel's default behaviour), so a new N+1
+ * fails CI. Everywhere else outside production it only logs, and Laravel still
+ * performs the load after the handler returns, so local browsing never breaks.
+ * Note: Laravel only flags models from queries returning more than one row, so
+ * a test only catches an N+1 if it creates at least two rows for that list.
  */
 final class LazyLoadingReporter
 {
@@ -26,6 +28,11 @@ final class LazyLoadingReporter
         // models have nothing to eager-load yet.
         if (! $model->exists || $model->wasRecentlyCreated) {
             return;
+        }
+
+        // In the test suite a new N+1 is a failure, not a log line.
+        if (app()->runningUnitTests()) {
+            throw new LazyLoadingViolationException($model, $relation);
         }
 
         $where = self::callSite();
