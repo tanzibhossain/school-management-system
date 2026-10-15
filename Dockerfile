@@ -5,9 +5,12 @@ FROM php:8.5-fpm
 # detecting them via pkg-config .pc files. Without it,
 # `docker-php-ext-configure gd --with-jpeg --with-freetype` fails outright
 # (exit code 2) even though the -dev packages below are installed.
+# The package index is deleted in the same layer it's downloaded in, so it
+# never ends up in the image (it's only needed during this install).
 RUN apt-get update && apt-get install -y \
     git curl libpng-dev libonig-dev libxml2-dev zip unzip \
-    libzip-dev libicu-dev libjpeg-dev libfreetype6-dev pkg-config
+    libzip-dev libicu-dev libjpeg-dev libfreetype6-dev pkg-config \
+    && rm -rf /var/lib/apt/lists/*
 
 # gd gets its own docker-php-ext-install call, separate from the rest.
 # Bundling several extensions into one docker-php-ext-install invocation
