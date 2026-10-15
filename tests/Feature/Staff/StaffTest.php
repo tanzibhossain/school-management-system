@@ -168,6 +168,28 @@ class StaffTest extends TestCase
         $this->assertNotNull($staff->fresh()->leaving_date);
     }
 
+    public function test_terminating_staff_revokes_only_their_linked_users_tokens(): void
+    {
+        $portalUser = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
+        $portalUser->createToken('phone');
+        $portalUser->createToken('tablet');
+        $bystander = User::factory()->create(['school_id' => $this->school->id, 'is_active' => true]);
+        $bystander->createToken('phone');
+
+        $this->withToken($this->token())
+            ->postJson('/api/v2/staff', $this->hirePayload(['user_id' => $portalUser->id]))
+            ->assertCreated();
+        $staff = Staff::where('name', 'Rahim Uddin')->firstOrFail();
+        auth()->forgetGuards();
+
+        $this->withToken($this->token())
+            ->postJson("/api/v2/staff/{$staff->id}/terminate")
+            ->assertOk();
+
+        $this->assertSame(0, $portalUser->tokens()->count());
+        $this->assertSame(1, $bystander->tokens()->count());
+    }
+
     public function test_rfid_number_stored_on_hire(): void
     {
         $this->withToken($this->token())

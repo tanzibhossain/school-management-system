@@ -2329,12 +2329,6 @@ parameters:
 			path: app/Modules/Sms/Models/SmsLog.php
 
 		-
-			message: '#^Method App\\Modules\\Sms\\Services\\SmsBatchService\:\:studentsWithDues\(\) should return Illuminate\\Support\\Collection\<int, object\{student_id\: int, total_due\: float, currency\: string\}\> but returns Illuminate\\Support\\Collection\<int, object\{student_id\: int, total_due\: float, currency\: mixed\}&stdClass\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Modules/Sms/Services/SmsBatchService.php
-
-		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:academics\(\)\.$#'
 			identifier: method.notFound
 			count: 1
