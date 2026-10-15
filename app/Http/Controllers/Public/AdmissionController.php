@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Public;
 
 use App\Modules\Academic\Models\SchoolClass;
-use App\Modules\OnlineAdmission\Models\AdmissionApplication;
 use App\Modules\OnlineAdmission\Services\AdmissionApplicationService;
 use App\Modules\School\Models\School;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Carbon;
 
@@ -25,9 +25,24 @@ class AdmissionController extends Controller
     {
         $school = School::current();
         abort_unless($school, 404);
-        $sid = $school->id;
 
-        $data = $request->validate([
+        $data = $request->validate($this->rules($request, $school->id));
+        $photo = $request->file('photo');
+
+        // Throws a 'duplicate' ValidationException -> back with input + error.
+        $application = $this->applications->submitPublicForm(
+            $school->id,
+            $data,
+            $photo instanceof UploadedFile ? $photo : null,
+        );
+
+        return back()->with('admission_reference', $application->reference_number);
+    }
+
+    /** @return array<string, mixed> */
+    private function rules(Request $request, int $sid): array
+    {
+        return [
             // Student
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['nullable', 'string', 'max:100'],
@@ -74,68 +89,6 @@ class AdmissionController extends Controller
             'permanent_address' => ['nullable', 'string', 'max:500'],
             'is_permanent_same' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string', 'max:2000'],
-        ]);
-
-        $guardianType = $data['guardian_type'];
-        $guardianName = $data['guardian_name'] ?? ($guardianType === 'mother' ? $data['mother_name'] : $data['father_name']);
-        $guardianPhone = $data['guardian_phone'] ?? $data['father_phone'];
-        $guardianRelation = in_array($guardianType, ['father', 'mother'], true) ? $guardianType : 'other';
-
-        // ── Duplicate protection ────────────────────────────────────────────
-        $duplicate = AdmissionApplication::where('school_id', $sid)
-            ->whereIn('status', ['submitted', 'approved'])
-            ->where(function ($q) use ($data, $guardianPhone) {
-                $q->where('birth_certificate_no', $data['birth_certificate_no'])
-                    ->orWhere('father_nid', $data['father_nid'])
-                    ->orWhere('guardian_phone', $guardianPhone);
-                if (! empty($data['student_phone'])) {
-                    $q->orWhere('student_phone', $data['student_phone']);
-                }
-            })
-            ->exists();
-
-        if ($duplicate) {
-            return back()->withInput()->withErrors([
-                'duplicate' => 'An application already exists for this student or guardian (matching birth certificate, NID, or phone number).',
-            ]);
-        }
-
-        $photoPath = $request->hasFile('photo') ? $request->file('photo')->store('admissions', 'public') : null;
-
-        $application = $this->applications->submit($sid, [
-            'applicant_name' => trim($data['first_name'].' '.($data['last_name'] ?? '')),
-            'gender' => $data['gender'],
-            'dob' => $data['dob'],
-            'blood_group' => $data['blood_group'] ?? null,
-            'birth_certificate_no' => $data['birth_certificate_no'],
-            'student_phone' => $data['student_phone'] ?? null,
-            'father_nid' => $data['father_nid'],
-            'guardian_nid' => $guardianType === 'mother' ? $data['mother_nid'] : $data['father_nid'],
-            'desired_class_id' => $data['desired_class_id'],
-            'desired_academic_year_id' => $data['desired_academic_year_id'],
-            'guardian_name' => $guardianName,
-            'guardian_phone' => $guardianPhone,
-            'guardian_relation' => $guardianRelation,
-            'notes' => $data['notes'] ?? null,
-            'form_data' => [
-                'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'] ?? null,
-                'religion' => $data['religion'],
-                'previous_school' => $data['previous_school'],
-                'gpa' => $data['gpa'],
-                'father_name' => $data['father_name'],
-                'father_phone' => $data['father_phone'],
-                'mother_name' => $data['mother_name'],
-                'mother_nid' => $data['mother_nid'],
-                'guardian_type' => $guardianType,
-                'guardian_relationship' => $data['guardian_relationship'] ?? null,
-                'present_address' => $data['present_address'],
-                'permanent_address' => $data['permanent_address'] ?? null,
-                'is_permanent_same' => (bool) ($data['is_permanent_same'] ?? false),
-                'photo' => $photoPath,
-            ],
-        ]);
-
-        return back()->with('admission_reference', $application->reference_number);
+        ];
     }
 }
