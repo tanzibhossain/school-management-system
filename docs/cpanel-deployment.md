@@ -15,9 +15,11 @@ there anyway, without code changes beyond what already ships:
   tables Laravel's database-backed cache/queue/session drivers need — no
   extra migration to write.
 - Every module reads/writes files through `Storage::disk('minio')` by name.
-  `config/filesystems.php`'s `minio` disk definition falls back to a plain
-  local disk automatically whenever `AWS_ENDPOINT` is unset — object storage
-  is optional, not required.
+  `config/filesystems.php`'s `minio` disk definition falls back to a private
+  local disk (`storage/app/private/files`) automatically whenever
+  `AWS_ENDPOINT` is unset — object storage is optional, not required. Those
+  files are never web-reachable by path; the app serves them through its own
+  role-checked routes or short-lived signed links.
 - Laravel Horizon is only used if `QUEUE_CONNECTION=redis`. Leaving it on the
   `database` driver means Horizon's package (and its dashboard) just sits
   unused — nothing tries to reach Redis.
@@ -129,9 +131,11 @@ artisan commands from running interactively without it.
 
 ## 5. Storage symlink
 
-Uploaded files (student/staff photos, ID card batches, admission photos,
-website media, …) live under `storage/app/public` and are served through a
-symlink at `public/storage`:
+Uploaded files (student/staff photos, documents, ID card batches, generated
+PDFs, admission uploads, website media, …) live in private storage under
+`storage/app/private` and are streamed by the app, not served directly. Only
+the site logo, favicon and share image live under `storage/app/public` and
+are served through a symlink at `public/storage`:
 
 ```bash
 php artisan storage:link
@@ -261,10 +265,17 @@ get new code onto the server* step differs without git/SSH:
    hosts — this is the single biggest reason to prefer a host with a
    Terminal app over one without, once you're maintaining a live site
    rather than just standing one up once.
-9. Load `/api/v2/health` yourself and confirm `"status":"ok"` before
+9. **Updating from a version before 1.5.0:** uploads used to be kept in
+   `storage/app/public`, readable by anyone with the link. Move them to
+   private storage once: `php artisan storage:make-uploads-private`
+   (add `--dry-run` first to see the list). Until you do, older photos and
+   documents won't open. Without Terminal, do the same by hand in File
+   Manager: move every folder inside `storage/app/public` **except** `site`
+   and `admissions` into `storage/app/private/files` (create it if needed).
+10. Load `/api/v2/health` yourself and confirm `"status":"ok"` before
    pointing anyone else at the site again (`php artisan up` if you used
    maintenance mode).
-10. Once you're confident the update is good, delete the `-old` folder.
+11. Once you're confident the update is good, delete the `-old` folder.
 
 If your host's Terminal does have `git` available, `scripts/deploy.sh` (see
 `docs/vps-deployment.md`) automates the whole maintenance-mode/backup/
@@ -291,7 +302,8 @@ requirement.
 | Blank page / 500 with no detail | `APP_DEBUG=false` hides the real error — temporarily set it to `true`, reload, read the error, then set it back to `false`. Also check `storage/logs/laravel.log`. |
 | "vendor/autoload.php not found" | Composer dependencies weren't installed/uploaded, or `public/index.php`'s paths (step 2) weren't updated for the copied-`public/`-contents layout. |
 | `.env` changes don't seem to apply | Config was cached (step 8) — run `php artisan config:clear`. |
-| Uploaded images 404 | `storage:link` (step 5) wasn't run, or was run before the document-root layout was finalized and points at the wrong `public/`. |
+| Site logo/favicon 404 | `storage:link` (step 5) wasn't run, or was run before the document-root layout was finalized and points at the wrong `public/`. |
+| Photos/documents uploaded before updating to 1.5.0 don't open | They're still in `storage/app/public` — run `php artisan storage:make-uploads-private` (Updating, step 9). |
 | Scheduled/queued things never happen | Cron jobs (step 6) aren't installed, use the wrong PHP path, or point at the wrong `artisan` path. Check cPanel's cron job email output (sent to the account's contact email by default) for the actual error. |
 | Emails never send | `MAIL_MAILER=log` (the Docker default) was carried over instead of using `.env.cpanel.example`'s SMTP block — logged emails write to `storage/logs/laravel.log`, not your inbox. |
 | `/api/v2/health` shows `"version":"unknown"` | The `VERSION` file is missing or its contents got mangled during upload (e.g. line-ending conversion, accidental edit) — it must be a plain semver string like `1.3.3`, nothing else. |

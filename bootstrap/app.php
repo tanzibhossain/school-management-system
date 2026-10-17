@@ -1,5 +1,6 @@
 <?php
 
+use App\Console\Commands\MakeUploadsPrivateCommand;
 use App\Console\Commands\VersionVerifyCommand;
 use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Middleware\CheckModuleEnabled;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withCommands([
         AutoCloseStaffAttendance::class,
+        MakeUploadsPrivateCommand::class,
         VersionVerifyCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {

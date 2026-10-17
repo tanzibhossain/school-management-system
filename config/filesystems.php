@@ -62,13 +62,21 @@ return [
         // On shared cPanel hosting there's no MinIO/S3 endpoint to point at,
         // and every module still only ever calls Storage::disk('minio') —
         // so rather than touch 26+ call sites, the 'minio' key itself falls
-        // back to a plain local disk (same shape as the 'public' disk above,
-        // symlinked via the same storage:link 'links' config below) whenever
-        // AWS_ENDPOINT isn't configured. Set AWS_ENDPOINT/AWS_BUCKET/etc. to
-        // point at a real MinIO server or any S3-compatible provider (AWS
-        // S3, DigitalOcean Spaces, Backblaze B2, Cloudflare R2, …) to use
-        // object storage instead — nothing else in the app needs to change
-        // either way.
+        // back to a plain local disk whenever AWS_ENDPOINT isn't configured.
+        // Set AWS_ENDPOINT/AWS_BUCKET/etc. to point at a real MinIO server or
+        // any S3-compatible provider (AWS S3, DigitalOcean Spaces, Backblaze
+        // B2, Cloudflare R2, …) to use object storage instead — nothing else
+        // in the app needs to change either way.
+        //
+        // The fallback is PRIVATE: these are student/staff photos, documents,
+        // certificates, payslips, message attachments. Nothing here is
+        // web-reachable by path; the app streams files through its own
+        // role-checked routes, and temporaryUrl() hands out short-lived
+        // signed links served at /files/{path} ('serve' registers that
+        // route; it rejects any request without a valid signature). Before
+        // 1.5.0 this fallback lived in storage/app/public and was reachable
+        // by anyone with the path — existing installs move their files once
+        // with `php artisan storage:make-uploads-private`.
         'minio' => env('AWS_ENDPOINT') ? [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
@@ -82,9 +90,10 @@ return [
             'report' => false,
         ] : [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
-            'visibility' => 'public',
+            'root' => storage_path('app/private/files'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/files',
+            'serve' => true,
+            'visibility' => 'private',
             'throw' => false,
             'report' => false,
         ],

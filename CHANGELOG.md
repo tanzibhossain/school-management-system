@@ -14,12 +14,14 @@ follows [Semantic Versioning](https://semver.org/).
 - Admission review page shows everything the applicant submitted, including custom answers and uploads.
 - Applicant photos and uploaded files are stored privately; only admins can open them.
 - Online admission form: father's and guardian's phone are limited to 20 characters.
+- Installs without MinIO keep uploaded files in private storage; run `php artisan storage:make-uploads-private` once after updating.
 
 ### Fixed
 - Online admission form: answers to custom fields are validated and saved.
 - Online admission form: fields the admin marks Required are enforced on submit.
 - Page editor: adding a custom admission field no longer overwrites an existing one.
 - Students admitted from an online application now have their guardian marked as primary.
+- Installs without MinIO: API links to student documents, certificates and ID cards no longer fail.
 
 ## [1.4.9] — 2026-10-17
 
