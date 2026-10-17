@@ -43,172 +43,10 @@ parameters:
 			path: app/Http/Controllers/Admin/Website/PageController.php
 
 		-
-			message: '#^Parameter \#1 \$boolean of function abort_unless expects bool, App\\Modules\\Student\\Models\\Student\|null given\.$#'
-			identifier: argument.type
-			count: 2
-			path: app/Http/Controllers/Portal/DashboardController.php
-
-		-
-			message: '#^Parameter \#1 \$boolean of function abort_unless expects bool, App\\Modules\\School\\Models\\School\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Public/AdmissionController.php
-
-		-
-			message: '#^Parameter \#1 \$boolean of function abort_unless expects bool, App\\Modules\\School\\Models\\School\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Public/ContactController.php
-
-		-
-			message: '#^Parameter \#1 \$boolean of function abort_unless expects bool, App\\Modules\\School\\Models\\School\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Public/PageController.php
-
-		-
-			message: '#^Parameter \#1 \$boolean of function abort_unless expects bool, App\\Modules\\Staff\\Models\\Staff\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Staff/ClockController.php
-
-		-
-			message: '#^Parameter \#1 \$boolean of function abort_unless expects bool, App\\Modules\\Staff\\Models\\Staff\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Http/Controllers/Staff/LeaveController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$subjectRelation\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Controllers/Staff/MarkController.php
-
-		-
 			message: '#^Using nullsafe property access "\?\-\>is_absent" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Http/Controllers/Staff/MarkController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$school_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Http/Middleware/ResolveSchool.php
-
-		-
-			message: '#^Property App\\Modules\\Academic\\Http\\Controllers\\AcademicGroupController\:\:\$repository is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: app/Modules/Academic/Http/Controllers/AcademicGroupController.php
-
-		-
-			message: '#^Ternary operator condition is always true\.$#'
-			identifier: ternary.alwaysTrue
-			count: 1
-			path: app/Modules/Academic/Http/Controllers/AcademicPublicController.php
-
-		-
-			message: '#^Property App\\Modules\\Academic\\Http\\Controllers\\AcademicShiftController\:\:\$repository is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: app/Modules/Academic/Http/Controllers/AcademicShiftController.php
-
-		-
-			message: '#^Property App\\Modules\\Academic\\Http\\Controllers\\AcademicVersionController\:\:\$repository is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: app/Modules/Academic/Http/Controllers/AcademicVersionController.php
-
-		-
-			message: '#^Property App\\Modules\\Academic\\Http\\Controllers\\RoutinePeriodController\:\:\$repository is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: app/Modules/Academic/Http/Controllers/RoutinePeriodController.php
-
-		-
-			message: '#^Property App\\Modules\\Academic\\Http\\Controllers\\RoutineRoomController\:\:\$repository is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: app/Modules/Academic/Http/Controllers/RoutineRoomController.php
-
-		-
-			message: '#^Property App\\Modules\\Academic\\Http\\Controllers\\SchoolClassController\:\:\$repository is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: app/Modules/Academic/Http/Controllers/SchoolClassController.php
-
-		-
-			message: '#^Property App\\Modules\\Academic\\Http\\Controllers\\SectionController\:\:\$repository is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: app/Modules/Academic/Http/Controllers/SectionController.php
-
-		-
-			message: '#^Property App\\Modules\\Academic\\Http\\Controllers\\StudentTypeController\:\:\$repository is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: app/Modules/Academic/Http/Controllers/StudentTypeController.php
-
-		-
-			message: '#^Property App\\Modules\\Academic\\Http\\Controllers\\TransportController\:\:\$repository is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: app/Modules/Academic/Http/Controllers/TransportController.php
-
-		-
-			message: '#^Call to an undefined method App\\Repositories\\BaseRepository\:\:getDropdownData\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Modules/Academic/Services/AcademicService.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\:\:published\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Modules/Announcement/Models/Announcement.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$employee_id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Attendance/Http/Resources/StaffAttendanceResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Attendance/Http/Resources/StaffAttendanceResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Attendance/Http/Resources/StaffAttendanceResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$admission_number\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Attendance/Http/Resources/StudentAttendanceResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Attendance/Http/Resources/StudentAttendanceResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Attendance/Http/Resources/StudentAttendanceResource.php
-
-		-
-			message: '#^Method App\\Modules\\Attendance\\Models\\AttendanceSetting\:\:forSchool\(\) should return static\(App\\Modules\\Attendance\\Models\\AttendanceSetting\) but returns App\\Modules\\Attendance\\Models\\AttendanceSetting\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Modules/Attendance/Models/AttendanceSetting.php
 
 		-
 			message: '#^Using nullsafe method call on non\-nullable type Carbon\\Carbon\. Use \-\> instead\.$#'
@@ -277,36 +115,6 @@ parameters:
 			path: app/Modules/Examination/Http/Resources/ExamSubjectResource.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Examination/Services/SeatingService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$row\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Modules/Examination/Services/SeatingService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$side\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Examination/Services/SeatingService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$type\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/IdCard/Http/Controllers/IdCardTemplateController.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$phone\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Modules/IdCard/Services/IdCardBatchService.php
-
-		-
 			message: '#^Using nullsafe property access "\?\-\>phone" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
@@ -323,18 +131,6 @@ parameters:
 			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Modules/LMS/Http/Resources/SubmissionResource.php
-
-		-
-			message: '#^Method App\\Modules\\LMS\\Services\\CourseService\:\:create\(\) should return App\\Modules\\LMS\\Models\\Course but returns Illuminate\\Database\\Eloquent\\Model\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Modules/LMS/Services/CourseService.php
-
-		-
-			message: '#^Method App\\Modules\\LMS\\Services\\CourseService\:\:update\(\) should return App\\Modules\\LMS\\Models\\Course but returns Illuminate\\Database\\Eloquent\\Model\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Modules/LMS/Services/CourseService.php
 
 		-
 			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
@@ -361,106 +157,10 @@ parameters:
 			path: app/Modules/Language/Jobs/SuggestStaffTranslationJob.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Modules/Library/Http/Resources/BorrowRecordResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$member_type\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Library/Http/Resources/BorrowRecordResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Library/Http/Resources/BorrowRecordResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Modules/Library/Http/Resources/BorrowRecordResource.php
-
-		-
 			message: '#^Using nullsafe method call on non\-nullable type Carbon\\Carbon\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 2
 			path: app/Modules/Library/Http/Resources/BorrowRecordResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Library/Http/Resources/LibraryMemberResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Library/Http/Resources/LibraryMemberResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Library/Http/Resources/LibraryMemberResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$admission_number\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Mark/Http/Resources/ExamResultResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Mark/Http/Resources/ExamResultResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Mark/Http/Resources/ExamResultResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$admission_number\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Mark/Http/Resources/MarkResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Mark/Http/Resources/MarkResource.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Mark/Http/Resources/MarkResource.php
-
-		-
-			message: '#^Method App\\Modules\\Mark\\Models\\MarkSetting\:\:forClass\(\) should return static\(App\\Modules\\Mark\\Models\\MarkSetting\) but returns App\\Modules\\Mark\\Models\\MarkSetting\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Modules/Mark/Models/MarkSetting.php
-
-		-
-			message: '#^Method App\\Modules\\Mark\\Services\\AnnualResultService\:\:combined\(\) should return Illuminate\\Support\\Collection\<int, array\<string, mixed\>\> but returns Illuminate\\Support\\Collection\<int, array\{student_id\: mixed, student\: array\{id\: mixed, name\: mixed, admission_number\: mixed\}, weighted_percentage\: float, weighted_gpa\: float\|null, exams_counted\: int, is_pass\: bool, is_complete\: bool, position\: int\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Modules/Mark/Services/AnnualResultService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$subjectRelation\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Mark/Services/MarkEntryService.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>is_optional" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
@@ -475,76 +175,10 @@ parameters:
 			path: app/Modules/Messaging/Services/ThreadService.php
 
 		-
-			message: '#^Negated boolean expression is always false\.$#'
-			identifier: booleanNot.alwaysFalse
-			count: 1
-			path: app/Modules/Payment/Http/Controllers/BkashWebhookController.php
-
-		-
 			message: '#^Using nullsafe property access "\?\-\>country_code" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Modules/Payment/Models/PaymentConfig.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$amount_due\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Payment/Services/ChequeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$amount_paid\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Payment/Services/ChequeService.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$note\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Modules/Payment/Services/ChequeService.php
-
-		-
-			message: '#^Offset ''statusCode'' on array\{trxID\: string, amount\: string, transactionStatus\: string\} on left side of \?\? does not exist\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Modules/Payment/Services/PaymentService.php
-
-		-
-			message: '#^Offset ''statusMessage'' on array\{trxID\: string, amount\: string, transactionStatus\: string\} on left side of \?\? does not exist\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Modules/Payment/Services/PaymentService.php
-
-		-
-			message: '#^Offset ''transactionStatus'' on \*NEVER\* on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Modules/Payment/Services/PaymentService.php
-
-		-
-			message: '#^Result of \|\| is always true\.$#'
-			identifier: booleanOr.alwaysTrue
-			count: 1
-			path: app/Modules/Payment/Services/PaymentService.php
-
-		-
-			message: '#^Strict comparison using \!\=\= between '''' and ''0000'' will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: app/Modules/Payment/Services/PaymentService.php
-
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
-			path: app/Modules/Payment/Services/PaymentService.php
-
-		-
-			message: '#^Variable \$result in empty\(\) always exists and is not falsy\.$#'
-			identifier: empty.variable
-			count: 1
-			path: app/Modules/Payment/Services/PaymentService.php
 
 		-
 			message: '#^Using nullsafe method call on non\-nullable type Carbon\\Carbon\. Use \-\> instead\.$#'
@@ -559,28 +193,10 @@ parameters:
 			path: app/Modules/Payroll/Services/PayslipService.php
 
 		-
-			message: '#^Parameter \#2 \$syntax of method Carbon\\Carbon\:\:diffForHumans\(\) expects array\|int\|null, true given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Modules/Payroll/Services/SalaryCertificateService.php
-
-		-
 			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 2
 			path: app/Modules/Payroll/Services/SalaryCertificateService.php
-
-		-
-			message: '#^Method App\\Modules\\Payroll\\Services\\StaffSalaryValueService\:\:breakdown\(\) should return Illuminate\\Support\\Collection\<int, array\{component\: App\\Modules\\Payroll\\Models\\SalaryComponent, amount\: string\}\> but returns Illuminate\\Support\\Collection\<\(int\|string\), array\{component\: App\\Modules\\Payroll\\Models\\SalaryComponent, amount\: numeric\-string\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Modules/Payroll/Services/StaffSalaryValueService.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\|string\)\: array\{component\: App\\Modules\\Payroll\\Models\\SalaryComponent, amount\: numeric\-string\}, Closure\(App\\Modules\\Payroll\\Models\\SalaryComponent\)\: array\{component\: App\\Modules\\Payroll\\Models\\SalaryComponent, amount\: numeric\-string\} given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Modules/Payroll/Services/StaffSalaryValueService.php
 
 		-
 			message: '#^Using nullsafe property access "\?\-\>amount" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
@@ -589,112 +205,10 @@ parameters:
 			path: app/Modules/Payroll/Services/StaffSalaryValueService.php
 
 		-
-			message: '#^Method App\\Modules\\School\\Models\\School\:\:current\(\) should return static\(App\\Modules\\School\\Models\\School\)\|null but returns App\\Modules\\School\\Models\\School\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Modules/School/Models/School.php
-
-		-
-			message: '#^Method App\\Modules\\School\\Services\\ModuleSettingService\:\:setEnabled\(\) should return App\\Modules\\School\\Models\\ModuleSetting but returns Illuminate\\Database\\Eloquent\\Model\.$#'
-			identifier: return.type
-			count: 2
-			path: app/Modules/School/Services/ModuleSettingService.php
-
-		-
 			message: '#^Using nullsafe property access "\?\-\>is_enabled" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
 			path: app/Modules/School/Services/ModuleSettingService.php
-
-		-
-			message: '#^Call to an undefined method App\\Repositories\\BaseRepository\:\:getCurrent\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Modules/School/Services/SchoolService.php
-
-		-
-			message: '#^Method App\\Modules\\School\\Services\\SchoolService\:\:updateSettings\(\) should return App\\Modules\\School\\Models\\School but returns Illuminate\\Database\\Eloquent\\Model\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Modules/School/Services/SchoolService.php
-
-		-
-			message: '#^Method App\\Modules\\Sms\\Jobs\\SendSmsBatchJob\:\:dueReminderTargets\(\) should return Illuminate\\Support\\Collection\<int, array\{student\: App\\Modules\\Student\\Models\\Student, body\: string\}\> but returns Illuminate\\Support\\Collection\<int, array\{student\: App\\Modules\\Student\\Models\\Student, body\: \(array\|string\)\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Modules/Sms/Jobs/SendSmsBatchJob.php
-
-		-
-			message: '#^Method App\\Modules\\Sms\\Jobs\\SendSmsBatchJob\:\:manualTargets\(\) should return Illuminate\\Support\\Collection\<int, array\{student\: App\\Modules\\Student\\Models\\Student, body\: string\}\> but returns Illuminate\\Support\\Collection\<int, array\{student\: App\\Modules\\Student\\Models\\Student, body\: string\|null\}\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Modules/Sms/Jobs/SendSmsBatchJob.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:academics\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Modules/Staff/Http/Controllers/StaffAcademicController.php
-
-		-
-			message: '#^Parameter \#1 \$staff of method App\\Modules\\Staff\\Services\\StaffService\:\:assign\(\) expects App\\Modules\\Staff\\Models\\Staff, Illuminate\\Database\\Eloquent\\Model given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Modules/Staff/Http/Controllers/StaffAcademicController.php
-
-		-
-			message: '#^Parameter \#1 \$staff of method App\\Modules\\Staff\\Services\\StaffService\:\:reHire\(\) expects App\\Modules\\Staff\\Models\\Staff, Illuminate\\Database\\Eloquent\\Model given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Modules/Staff/Http/Controllers/StaffController.php
-
-		-
-			message: '#^Parameter \#1 \$staff of method App\\Modules\\Staff\\Services\\StaffService\:\:terminate\(\) expects App\\Modules\\Staff\\Models\\Staff, Illuminate\\Database\\Eloquent\\Model given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Modules/Staff/Http/Controllers/StaffController.php
-
-		-
-			message: '#^Parameter \#1 \$staff of method App\\Modules\\Staff\\Services\\StaffService\:\:trash\(\) expects App\\Modules\\Staff\\Models\\Staff, Illuminate\\Database\\Eloquent\\Model given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Modules/Staff/Http/Controllers/StaffController.php
-
-		-
-			message: '#^Parameter \#1 \$staff of method App\\Modules\\Staff\\Services\\StaffService\:\:uploadPhoto\(\) expects App\\Modules\\Staff\\Models\\Staff, Illuminate\\Database\\Eloquent\\Model given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Modules/Staff/Http/Controllers/StaffController.php
-
-		-
-			message: '#^Right side of && is always true\.$#'
-			identifier: booleanAnd.rightAlwaysTrue
-			count: 1
-			path: app/Modules/Staff/Services/StaffService.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:academics\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Modules/Student/Http/Controllers/StudentAcademicController.php
-
-		-
-			message: '#^Parameter \$student of method App\\Modules\\Student\\Services\\StudentService\:\:promote\(\) expects App\\Modules\\Student\\Models\\Student, Illuminate\\Database\\Eloquent\\Model given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Modules/Student/Http/Controllers/StudentAcademicController.php
-
-		-
-			message: '#^Parameter \#1 \$student of method App\\Modules\\Student\\Services\\StudentService\:\:transfer\(\) expects App\\Modules\\Student\\Models\\Student, Illuminate\\Database\\Eloquent\\Model given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Modules/Student/Http/Controllers/StudentController.php
-
-		-
-			message: '#^Parameter \#1 \$student of method App\\Modules\\Student\\Services\\StudentService\:\:uploadPhoto\(\) expects App\\Modules\\Student\\Models\\Student, Illuminate\\Database\\Eloquent\\Model given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Modules/Student/Http/Controllers/StudentController.php
 
 		-
 			message: '#^Using nullsafe method call on non\-nullable type Carbon\\Carbon\. Use \-\> instead\.$#'
@@ -715,12 +229,6 @@ parameters:
 			path: app/Modules/Transport/Http/Resources/StudentTransportAssignmentResource.php
 
 		-
-			message: '#^PHPDoc tag @var with type Laravel\\Sanctum\\PersonalAccessToken is not subtype of native type \$this\(App\\Modules\\User\\Http\\Resources\\DeviceResource\)\.$#'
-			identifier: varTag.nativeType
-			count: 1
-			path: app/Modules/User/Http/Resources/DeviceResource.php
-
-		-
 			message: '#^Using nullsafe method call on non\-nullable type Laravel\\Sanctum\\PersonalAccessToken\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
@@ -739,54 +247,6 @@ parameters:
 			path: app/Modules/User/Services/UserService.php
 
 		-
-			message: '#^Method App\\Modules\\Website\\Models\\SiteSetting\:\:forSchool\(\) should return static\(App\\Modules\\Website\\Models\\SiteSetting\) but returns App\\Modules\\Website\\Models\\SiteSetting\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Modules/Website/Models/SiteSetting.php
-
-		-
-			message: '#^Call to function is_array\(\) with null will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: app/Modules/Website/Services/PageRenderService.php
-
-		-
-			message: '#^Call to function is_string\(\) with null will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: app/Modules/Website/Services/PageRenderService.php
-
-		-
-			message: '#^Offset ''data'' on array\{type\: string, data\: array\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Modules/Website/Services/PageRenderService.php
-
-		-
-			message: '#^Offset ''enabled'' on array\{enabled\: bool, label\: string\|null, required\: bool\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Modules/Website/Services/PageRenderService.php
-
-		-
-			message: '#^Offset ''options'' on array\{enabled\: bool, label\: string\|null, required\: bool\} on left side of \?\? does not exist\.$#'
-			identifier: nullCoalesce.offset
-			count: 2
-			path: app/Modules/Website/Services/PageRenderService.php
-
-		-
-			message: '#^Offset ''required'' on array\{enabled\: bool, label\: string\|null, required\: bool\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Modules/Website/Services/PageRenderService.php
-
-		-
-			message: '#^Offset ''type'' on array\{enabled\: bool, label\: string\|null, required\: bool\} on left side of \?\? does not exist\.$#'
-			identifier: nullCoalesce.offset
-			count: 1
-			path: app/Modules/Website/Services/PageRenderService.php
-
-		-
 			message: '#^Using nullsafe property access "\?\-\>layout_json" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
@@ -803,27 +263,3 @@ parameters:
 			identifier: nullsafe.neverNull
 			count: 1
 			path: database/seeders/DemoOperationsSeeder.php
-
-		-
-			message: '#^Class App\\Modules\\LMS\\Models\\Assignment referenced with incorrect case\: App\\Modules\\Lms\\Models\\Assignment\.$#'
-			identifier: class.nameCase
-			count: 2
-			path: database/seeders/DemoOptionalSeeder.php
-
-		-
-			message: '#^Class App\\Modules\\LMS\\Models\\Course referenced with incorrect case\: App\\Modules\\Lms\\Models\\Course\.$#'
-			identifier: class.nameCase
-			count: 2
-			path: database/seeders/DemoOptionalSeeder.php
-
-		-
-			message: '#^Class App\\Modules\\LMS\\Models\\Lesson referenced with incorrect case\: App\\Modules\\Lms\\Models\\Lesson\.$#'
-			identifier: class.nameCase
-			count: 2
-			path: database/seeders/DemoOptionalSeeder.php
-
-		-
-			message: '#^Right side of && is always true\.$#'
-			identifier: booleanAnd.rightAlwaysTrue
-			count: 1
-			path: database/seeders/DemoOptionalSeeder.php
