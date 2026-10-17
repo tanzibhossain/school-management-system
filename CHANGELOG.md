@@ -6,8 +6,11 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.4.9] — 2026-10-17
+
 ### Fixed
 - Online admission form: custom dropdown fields now show their options.
+- Online admission form: custom checkbox labels are HTML-escaped.
 - bKash API callback returns 422 instead of 500 when bKash rejects or doesn't complete the payment.
 
 ## [1.4.8] — 2026-10-16
