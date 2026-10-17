@@ -28,7 +28,7 @@ class ExamSubject extends Model
 
     // ── Relationships ──────────────────────────────────────────────────────────
 
-    /** @return BelongsTo<Exam, ExamSubject> */
+    /** @return BelongsTo<Exam, $this> */
     public function exam(): BelongsTo
     {
         return $this->belongsTo(Exam::class);
@@ -38,7 +38,7 @@ class ExamSubject extends Model
      * SubjectRelation carries school_id + subject_id + class_id + group_id.
      * Load ->subjectRelation->subject to get the subject name.
      *
-     * @return BelongsTo<SubjectRelation, ExamSubject>
+     * @return BelongsTo<SubjectRelation, $this>
      */
     public function subjectRelation(): BelongsTo
     {

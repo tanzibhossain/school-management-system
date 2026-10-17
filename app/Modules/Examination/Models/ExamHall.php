@@ -13,14 +13,14 @@ class ExamHall extends Model
 
     // ── Relationships ──────────────────────────────────────────────────────────
 
-    /** @return HasMany<ExamHallSeat> */
+    /** @return HasMany<ExamHallSeat, $this> */
     public function seats(): HasMany
     {
         return $this->hasMany(ExamHallSeat::class, 'hall_id')
             ->orderBy('row')->orderBy('side')->orderBy('position');
     }
 
-    /** @return HasMany<ExamHallSeat> */
+    /** @return HasMany<ExamHallSeat, $this> */
     public function availableSeats(): HasMany
     {
         return $this->seats()->where('is_available', true);

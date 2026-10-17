@@ -23,19 +23,19 @@ class ExamSeating extends Model
 
     // ── Relationships ──────────────────────────────────────────────────────────
 
-    /** @return BelongsTo<Exam, ExamSeating> */
+    /** @return BelongsTo<Exam, $this> */
     public function exam(): BelongsTo
     {
         return $this->belongsTo(Exam::class);
     }
 
-    /** @return BelongsTo<Student, ExamSeating> */
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
     }
 
-    /** @return BelongsTo<ExamHallSeat, ExamSeating> */
+    /** @return BelongsTo<ExamHallSeat, $this> */
     public function hallSeat(): BelongsTo
     {
         return $this->belongsTo(ExamHallSeat::class, 'hall_seat_id');

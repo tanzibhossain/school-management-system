@@ -30,13 +30,13 @@ class PayrollEntry extends Model
         'payslip_generated_at' => 'datetime',
     ];
 
-    /** @return BelongsTo<PayrollRun, PayrollEntry> */
+    /** @return BelongsTo<PayrollRun, $this> */
     public function run(): BelongsTo
     {
         return $this->belongsTo(PayrollRun::class, 'payroll_run_id');
     }
 
-    /** @return BelongsTo<Staff, PayrollEntry> */
+    /** @return BelongsTo<Staff, $this> */
     public function staff(): BelongsTo
     {
         return $this->belongsTo(Staff::class);

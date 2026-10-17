@@ -13,13 +13,13 @@ class Section extends Model
 
     protected $casts = ['is_trash' => 'boolean'];
 
-    /** @return BelongsTo<SchoolClass, Section> */
+    /** @return BelongsTo<SchoolClass, $this> */
     public function schoolClass(): BelongsTo
     {
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
-    /** @return BelongsTo<AcademicShift, Section> */
+    /** @return BelongsTo<AcademicShift, $this> */
     public function shift(): BelongsTo
     {
         return $this->belongsTo(AcademicShift::class, 'shift_id');

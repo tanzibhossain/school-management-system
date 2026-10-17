@@ -37,25 +37,25 @@ class Submission extends Model
         'late_submission' => false,
     ];
 
-    /** @return BelongsTo<School, Submission> */
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    /** @return BelongsTo<Assignment, Submission> */
+    /** @return BelongsTo<Assignment, $this> */
     public function assignment(): BelongsTo
     {
         return $this->belongsTo(Assignment::class);
     }
 
-    /** @return BelongsTo<Student, Submission> */
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
     }
 
-    /** @return HasOne<SubmissionAiCheck> */
+    /** @return HasOne<SubmissionAiCheck, $this> */
     public function aiCheck(): HasOne
     {
         return $this->hasOne(SubmissionAiCheck::class);

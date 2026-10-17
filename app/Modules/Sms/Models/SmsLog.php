@@ -42,37 +42,37 @@ class SmsLog extends Model
         'sent_at' => 'datetime',
     ];
 
-    /** @return BelongsTo<School, SmsLog> */
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    /** @return BelongsTo<SmsBatch, SmsLog> */
+    /** @return BelongsTo<SmsBatch, $this> */
     public function batch(): BelongsTo
     {
         return $this->belongsTo(SmsBatch::class, 'batch_id');
     }
 
-    /** @return BelongsTo<Student, SmsLog> */
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
     }
 
-    /** @return BelongsTo<StudentGuardian, SmsLog> */
+    /** @return BelongsTo<StudentGuardian, $this> */
     public function guardian(): BelongsTo
     {
         return $this->belongsTo(StudentGuardian::class, 'guardian_id');
     }
 
-    /** @return BelongsTo<User, SmsLog> */
+    /** @return BelongsTo<User, $this> */
     public function sentBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sent_by');
     }
 
-    /** @return BelongsTo<SmsLog, SmsLog> */
+    /** @return BelongsTo<SmsLog, $this> */
     public function resentFrom(): BelongsTo
     {
         return $this->belongsTo(self::class, 'resent_from_id');

@@ -12,7 +12,7 @@ class ExamType extends Model
 
     protected $casts = ['is_active' => 'boolean'];
 
-    /** @return HasMany<Exam> */
+    /** @return HasMany<Exam, $this> */
     public function exams(): HasMany
     {
         return $this->hasMany(Exam::class);

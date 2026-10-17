@@ -40,25 +40,25 @@ class StaffLeaveRequest extends Model
         'status' => 'pending',
     ];
 
-    /** @return BelongsTo<Staff, StaffLeaveRequest> */
+    /** @return BelongsTo<Staff, $this> */
     public function staff(): BelongsTo
     {
         return $this->belongsTo(Staff::class);
     }
 
-    /** @return BelongsTo<LeaveType, StaffLeaveRequest> */
+    /** @return BelongsTo<LeaveType, $this> */
     public function leaveType(): BelongsTo
     {
         return $this->belongsTo(LeaveType::class);
     }
 
-    /** @return BelongsTo<User, StaffLeaveRequest> */
+    /** @return BelongsTo<User, $this> */
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by');
     }
 
-    /** @return BelongsTo<User, StaffLeaveRequest> */
+    /** @return BelongsTo<User, $this> */
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');

@@ -53,7 +53,7 @@ class User extends Authenticatable
         return $this->two_factor_confirmed_at !== null;
     }
 
-    /** @return HasMany<LoginHistory> */
+    /** @return HasMany<LoginHistory, $this> */
     public function loginHistories(): HasMany
     {
         return $this->hasMany(LoginHistory::class);

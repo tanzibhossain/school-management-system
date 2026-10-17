@@ -42,19 +42,19 @@ class PayrollRun extends Model
         'status' => 'draft',
     ];
 
-    /** @return HasMany<PayrollEntry> */
+    /** @return HasMany<PayrollEntry, $this> */
     public function entries(): HasMany
     {
         return $this->hasMany(PayrollEntry::class);
     }
 
-    /** @return BelongsTo<User, PayrollRun> */
+    /** @return BelongsTo<User, $this> */
     public function processedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'processed_by');
     }
 
-    /** @return BelongsTo<User, PayrollRun> */
+    /** @return BelongsTo<User, $this> */
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');

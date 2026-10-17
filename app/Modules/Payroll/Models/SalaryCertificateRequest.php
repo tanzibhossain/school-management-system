@@ -32,13 +32,13 @@ class SalaryCertificateRequest extends Model
         'status' => 'pending',
     ];
 
-    /** @return BelongsTo<Staff, SalaryCertificateRequest> */
+    /** @return BelongsTo<Staff, $this> */
     public function staff(): BelongsTo
     {
         return $this->belongsTo(Staff::class);
     }
 
-    /** @return BelongsTo<User, SalaryCertificateRequest> */
+    /** @return BelongsTo<User, $this> */
     public function generatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'generated_by');

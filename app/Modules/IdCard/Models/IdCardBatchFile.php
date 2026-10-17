@@ -21,7 +21,7 @@ class IdCardBatchFile extends Model
         'card_count' => 'integer',
     ];
 
-    /** @return BelongsTo<IdCardBatch, IdCardBatchFile> */
+    /** @return BelongsTo<IdCardBatch, $this> */
     public function batch(): BelongsTo
     {
         return $this->belongsTo(IdCardBatch::class, 'batch_id');

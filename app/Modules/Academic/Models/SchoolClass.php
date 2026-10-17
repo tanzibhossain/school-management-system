@@ -19,19 +19,19 @@ class SchoolClass extends Model
         'max_age' => 'integer',
     ];
 
-    /** @return HasMany<Section> */
+    /** @return HasMany<Section, $this> */
     public function sections(): HasMany
     {
         return $this->hasMany(Section::class, 'class_id');
     }
 
-    /** @return HasMany<SubjectRelation> */
+    /** @return HasMany<SubjectRelation, $this> */
     public function subjectRelations(): HasMany
     {
         return $this->hasMany(SubjectRelation::class, 'class_id');
     }
 
-    /** @return HasMany<StudentAcademic> */
+    /** @return HasMany<StudentAcademic, $this> */
     public function studentAcademics(): HasMany
     {
         return $this->hasMany(StudentAcademic::class, 'class_id');

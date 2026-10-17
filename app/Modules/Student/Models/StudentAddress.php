@@ -17,7 +17,7 @@ class StudentAddress extends Model
         'country',
     ];
 
-    /** @return BelongsTo<Student, StudentAddress> */
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);

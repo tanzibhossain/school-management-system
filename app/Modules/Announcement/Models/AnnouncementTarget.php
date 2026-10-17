@@ -9,7 +9,7 @@ class AnnouncementTarget extends Model
 {
     protected $fillable = ['announcement_id', 'target_type', 'target_id'];
 
-    /** @return BelongsTo<Announcement, AnnouncementTarget> */
+    /** @return BelongsTo<Announcement, $this> */
     public function announcement(): BelongsTo
     {
         return $this->belongsTo(Announcement::class);

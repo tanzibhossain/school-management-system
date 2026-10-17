@@ -29,7 +29,7 @@ class LoginHistory extends Model
         'logged_out_at' => 'datetime',
     ];
 
-    /** @return BelongsTo<User, LoginHistory> */
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

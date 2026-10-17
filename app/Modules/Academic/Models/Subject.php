@@ -14,7 +14,7 @@ class Subject extends Model
         'is_trash' => 'boolean',
     ];
 
-    /** @return HasMany<SubjectRelation> */
+    /** @return HasMany<SubjectRelation, $this> */
     public function relations(): HasMany
     {
         return $this->hasMany(SubjectRelation::class, 'subject_id');

@@ -35,25 +35,29 @@ class MenuItem extends Model
         'sort_order' => 0,
     ];
 
-    /** @return BelongsTo<Menu, MenuItem> */
+    /** @return BelongsTo<Menu, $this> */
     public function menu(): BelongsTo
     {
         return $this->belongsTo(Menu::class);
     }
 
-    /** @return BelongsTo<Page, MenuItem> */
+    /** @return BelongsTo<Page, $this> */
     public function page(): BelongsTo
     {
         return $this->belongsTo(Page::class);
     }
 
-    /** @return BelongsTo<MenuItem, MenuItem> */
+    /** @return BelongsTo<MenuItem, $this> */
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
     }
 
-    /** One level of nesting only — a dropdown parent's direct children. @return HasMany<MenuItem> */
+    /**
+     * One level of nesting only — a dropdown parent's direct children.
+     *
+     * @return HasMany<MenuItem, $this>
+     */
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order');

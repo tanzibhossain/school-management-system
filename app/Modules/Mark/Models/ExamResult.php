@@ -38,7 +38,7 @@ class ExamResult extends Model
         return $this->belongsTo(Student::class);
     }
 
-    /** @return BelongsTo<Exam, ExamResult> */
+    /** @return BelongsTo<Exam, $this> */
     public function exam(): BelongsTo
     {
         return $this->belongsTo(Exam::class);

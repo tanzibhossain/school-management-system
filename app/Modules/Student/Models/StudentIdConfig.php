@@ -28,7 +28,7 @@ class StudentIdConfig extends Model
         'last_reset_year' => 'integer',
     ];
 
-    /** @return BelongsTo<School, StudentIdConfig> */
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);

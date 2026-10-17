@@ -37,13 +37,13 @@ class PageLayout extends Model
         'published_at' => 'datetime',
     ];
 
-    /** @return BelongsTo<Page, PageLayout> */
+    /** @return BelongsTo<Page, $this> */
     public function page(): BelongsTo
     {
         return $this->belongsTo(Page::class);
     }
 
-    /** @return BelongsTo<User, PageLayout> */
+    /** @return BelongsTo<User, $this> */
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

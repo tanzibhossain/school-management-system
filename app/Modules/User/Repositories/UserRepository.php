@@ -41,7 +41,7 @@ class UserRepository extends BaseRepository
         return User::where('email', $email)->first();
     }
 
-    /** @return Collection<int, LoginHistory> */
+    /** @return LengthAwarePaginator<int, LoginHistory> */
     public function getLoginHistory(int $userId, int $perPage = 30): LengthAwarePaginator
     {
         return LoginHistory::where('user_id', $userId)
@@ -49,7 +49,7 @@ class UserRepository extends BaseRepository
             ->paginate($perPage);
     }
 
-    /** @return LengthAwarePaginator<LoginHistory> */
+    /** @return LengthAwarePaginator<int, LoginHistory> */
     public function getAllLoginHistory(int $schoolId, int $perPage = 30): LengthAwarePaginator
     {
         return LoginHistory::where('school_id', $schoolId)

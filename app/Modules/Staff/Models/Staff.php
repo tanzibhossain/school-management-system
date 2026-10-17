@@ -58,43 +58,47 @@ class Staff extends Model
 
     // ── Relationships ─────────────────────────────────────────────────────────
 
-    /** @return BelongsTo<Designation, Staff> */
+    /** @return BelongsTo<Designation, $this> */
     public function designation(): BelongsTo
     {
         return $this->belongsTo(Designation::class);
     }
 
-    /** @return BelongsTo<Department, Staff> */
+    /** @return BelongsTo<Department, $this> */
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
     }
 
-    /** Primary teaching subject (for teachers). @return BelongsTo<\App\Modules\Academic\Models\Subject, Staff> */
+    /**
+     * Primary teaching subject (for teachers).
+     *
+     * @return BelongsTo<Subject, $this>
+     */
     public function subject(): BelongsTo
     {
         return $this->belongsTo(Subject::class);
     }
 
-    /** @return HasMany<StaffAcademic> */
+    /** @return HasMany<StaffAcademic, $this> */
     public function academics(): HasMany
     {
         return $this->hasMany(StaffAcademic::class);
     }
 
-    /** @return HasMany<StaffAddress> */
+    /** @return HasMany<StaffAddress, $this> */
     public function addresses(): HasMany
     {
         return $this->hasMany(StaffAddress::class);
     }
 
-    /** @return HasMany<StaffDocument> */
+    /** @return HasMany<StaffDocument, $this> */
     public function documents(): HasMany
     {
         return $this->hasMany(StaffDocument::class);
     }
 
-    /** @return HasMany<StaffExperience> */
+    /** @return HasMany<StaffExperience, $this> */
     public function experiences(): HasMany
     {
         return $this->hasMany(StaffExperience::class);

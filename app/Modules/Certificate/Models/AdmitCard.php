@@ -24,19 +24,19 @@ class AdmitCard extends Model
         'generated_at' => 'datetime',
     ];
 
-    /** @return BelongsTo<Student, AdmitCard> */
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
     }
 
-    /** @return BelongsTo<Exam, AdmitCard> */
+    /** @return BelongsTo<Exam, $this> */
     public function exam(): BelongsTo
     {
         return $this->belongsTo(Exam::class);
     }
 
-    /** @return BelongsTo<User, AdmitCard> */
+    /** @return BelongsTo<User, $this> */
     public function generatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'generated_by');

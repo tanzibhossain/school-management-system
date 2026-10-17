@@ -26,19 +26,19 @@ class TransportRoute extends Model
         'is_active' => 'boolean',
     ];
 
-    /** @return BelongsTo<TransportVehicle, TransportRoute> */
+    /** @return BelongsTo<TransportVehicle, $this> */
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(TransportVehicle::class, 'current_vehicle_id');
     }
 
-    /** @return BelongsTo<TransportDriver, TransportRoute> */
+    /** @return BelongsTo<TransportDriver, $this> */
     public function driver(): BelongsTo
     {
         return $this->belongsTo(TransportDriver::class, 'driver_id');
     }
 
-    /** @return HasMany<StudentTransportAssignment> */
+    /** @return HasMany<StudentTransportAssignment, $this> */
     public function assignments(): HasMany
     {
         return $this->hasMany(StudentTransportAssignment::class);

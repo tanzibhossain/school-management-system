@@ -40,37 +40,37 @@ class IdCardBatch extends Model
         'generated_at' => 'datetime',
     ];
 
-    /** @return BelongsTo<School, IdCardBatch> */
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    /** @return BelongsTo<IdCardTemplate, IdCardBatch> */
+    /** @return BelongsTo<IdCardTemplate, $this> */
     public function template(): BelongsTo
     {
         return $this->belongsTo(IdCardTemplate::class, 'template_id');
     }
 
-    /** @return BelongsTo<SchoolClass, IdCardBatch> */
+    /** @return BelongsTo<SchoolClass, $this> */
     public function schoolClass(): BelongsTo
     {
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
-    /** @return BelongsTo<Section, IdCardBatch> */
+    /** @return BelongsTo<Section, $this> */
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);
     }
 
-    /** @return BelongsTo<User, IdCardBatch> */
+    /** @return BelongsTo<User, $this> */
     public function requestedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by');
     }
 
-    /** @return HasMany<IdCardBatchFile> */
+    /** @return HasMany<IdCardBatchFile, $this> */
     public function files(): HasMany
     {
         return $this->hasMany(IdCardBatchFile::class, 'batch_id')->orderBy('file_index');

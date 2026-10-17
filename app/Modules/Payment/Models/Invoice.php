@@ -27,7 +27,7 @@ class Invoice extends Model
         'month' => 'integer',
     ];
 
-    /** @return BelongsTo<Student, Invoice> */
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);

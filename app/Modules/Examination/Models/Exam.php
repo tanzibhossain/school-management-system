@@ -39,25 +39,25 @@ class Exam extends Model
 
     // ── Relationships ──────────────────────────────────────────────────────────
 
-    /** @return BelongsTo<ExamType, Exam> */
+    /** @return BelongsTo<ExamType, $this> */
     public function examType(): BelongsTo
     {
         return $this->belongsTo(ExamType::class);
     }
 
-    /** @return BelongsTo<SchoolClass, Exam> */
+    /** @return BelongsTo<SchoolClass, $this> */
     public function schoolClass(): BelongsTo
     {
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
-    /** @return HasMany<ExamSubject> */
+    /** @return HasMany<ExamSubject, $this> */
     public function subjects(): HasMany
     {
         return $this->hasMany(ExamSubject::class)->orderBy('exam_date')->orderBy('start_time');
     }
 
-    /** @return HasMany<ExamSeating> */
+    /** @return HasMany<ExamSeating, $this> */
     public function seating(): HasMany
     {
         return $this->hasMany(ExamSeating::class)->orderBy('exam_roll');

@@ -24,13 +24,13 @@ class StudentTransportAssignment extends Model
         'ends_on' => 'date',
     ];
 
-    /** @return BelongsTo<TransportRoute, StudentTransportAssignment> */
+    /** @return BelongsTo<TransportRoute, $this> */
     public function route(): BelongsTo
     {
         return $this->belongsTo(TransportRoute::class, 'transport_route_id');
     }
 
-    /** @return BelongsTo<Student, StudentTransportAssignment> */
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);

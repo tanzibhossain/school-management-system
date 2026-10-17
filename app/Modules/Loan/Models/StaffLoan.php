@@ -39,25 +39,25 @@ class StaffLoan extends Model
         'status' => 'pending',
     ];
 
-    /** @return BelongsTo<Staff, StaffLoan> */
+    /** @return BelongsTo<Staff, $this> */
     public function staff(): BelongsTo
     {
         return $this->belongsTo(Staff::class);
     }
 
-    /** @return HasMany<LoanSchedule> */
+    /** @return HasMany<LoanSchedule, $this> */
     public function schedules(): HasMany
     {
         return $this->hasMany(LoanSchedule::class)->orderBy('installment_number');
     }
 
-    /** @return BelongsTo<User, StaffLoan> */
+    /** @return BelongsTo<User, $this> */
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by');
     }
 
-    /** @return BelongsTo<User, StaffLoan> */
+    /** @return BelongsTo<User, $this> */
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');

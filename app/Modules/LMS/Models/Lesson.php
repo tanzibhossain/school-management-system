@@ -36,13 +36,13 @@ class Lesson extends Model
         'is_published' => false,
     ];
 
-    /** @return BelongsTo<School, Lesson> */
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    /** @return BelongsTo<Course, Lesson> */
+    /** @return BelongsTo<Course, $this> */
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);

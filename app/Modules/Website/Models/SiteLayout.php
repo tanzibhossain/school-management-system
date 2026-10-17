@@ -29,7 +29,7 @@ class SiteLayout extends Model
         'published_at' => 'datetime',
     ];
 
-    /** @return BelongsTo<User, SiteLayout> */
+    /** @return BelongsTo<User, $this> */
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

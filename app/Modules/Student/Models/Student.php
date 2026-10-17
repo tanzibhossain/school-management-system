@@ -37,55 +37,55 @@ class Student extends Model
 
     // ── Relationships ─────────────────────────────────────────────────────────
 
-    /** @return BelongsTo<User, Student> */
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /** @return HasMany<StudentAcademic> */
+    /** @return HasMany<StudentAcademic, $this> */
     public function academics(): HasMany
     {
         return $this->hasMany(StudentAcademic::class);
     }
 
-    /** @return HasOne<StudentAcademic> */
+    /** @return HasOne<StudentAcademic, $this> */
     public function currentAcademic(): HasOne
     {
         return $this->hasOne(StudentAcademic::class)->where('is_current', true);
     }
 
-    /** @return HasMany<StudentGuardian> */
+    /** @return HasMany<StudentGuardian, $this> */
     public function guardians(): HasMany
     {
         return $this->hasMany(StudentGuardian::class);
     }
 
-    /** @return HasOne<StudentGuardian> */
+    /** @return HasOne<StudentGuardian, $this> */
     public function primaryGuardian(): HasOne
     {
         return $this->hasOne(StudentGuardian::class)->where('is_primary', true);
     }
 
-    /** @return HasMany<StudentSibling> */
+    /** @return HasMany<StudentSibling, $this> */
     public function siblingLinks(): HasMany
     {
         return $this->hasMany(StudentSibling::class);
     }
 
-    /** @return HasMany<StudentAddress> */
+    /** @return HasMany<StudentAddress, $this> */
     public function addresses(): HasMany
     {
         return $this->hasMany(StudentAddress::class);
     }
 
-    /** @return HasMany<StudentDocument> */
+    /** @return HasMany<StudentDocument, $this> */
     public function documents(): HasMany
     {
         return $this->hasMany(StudentDocument::class);
     }
 
-    /** @return HasMany<TransferCertificate> */
+    /** @return HasMany<TransferCertificate, $this> */
     public function transferCertificates(): HasMany
     {
         return $this->hasMany(TransferCertificate::class);

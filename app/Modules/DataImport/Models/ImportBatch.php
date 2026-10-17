@@ -37,13 +37,13 @@ class ImportBatch extends Model
         'completed_at' => 'datetime',
     ];
 
-    /** @return BelongsTo<School, ImportBatch> */
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    /** @return BelongsTo<User, ImportBatch> */
+    /** @return BelongsTo<User, $this> */
     public function requestedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by');

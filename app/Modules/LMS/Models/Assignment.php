@@ -33,19 +33,19 @@ class Assignment extends Model
         'allow_late_submission' => true,
     ];
 
-    /** @return BelongsTo<School, Assignment> */
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    /** @return BelongsTo<Course, Assignment> */
+    /** @return BelongsTo<Course, $this> */
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
     }
 
-    /** @return HasMany<Submission> */
+    /** @return HasMany<Submission, $this> */
     public function submissions(): HasMany
     {
         return $this->hasMany(Submission::class);

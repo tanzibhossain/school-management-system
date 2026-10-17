@@ -16,7 +16,7 @@ class StaffDocument extends Model
         'uploaded_by',
     ];
 
-    /** @return BelongsTo<Staff, StaffDocument> */
+    /** @return BelongsTo<Staff, $this> */
     public function staff(): BelongsTo
     {
         return $this->belongsTo(Staff::class);

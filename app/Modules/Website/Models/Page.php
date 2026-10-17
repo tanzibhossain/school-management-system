@@ -27,7 +27,7 @@ class Page extends Model
         'is_homepage' => 'boolean',
     ];
 
-    /** @return BelongsTo<School, Page> */
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
@@ -48,7 +48,7 @@ class Page extends Model
      * not just reasoned about — two saves inside one test method easily
      * land in the same second.
      *
-     * @return HasMany<PageLayout>
+     * @return HasMany<PageLayout, $this>
      */
     public function layouts(): HasMany
     {
@@ -62,7 +62,7 @@ class Page extends Model
      * history, so admin edit()/history() need this instead of layouts()
      * whenever "latest" means "latest FOR THE LOCALE BEING EDITED".
      *
-     * @return HasMany<PageLayout>
+     * @return HasMany<PageLayout, $this>
      */
     public function layoutsForLocale(string $locale): HasMany
     {
@@ -80,7 +80,7 @@ class Page extends Model
      * published row the query happens to return first once more than one
      * exists.
      *
-     * @return HasMany<PageLayout>
+     * @return HasMany<PageLayout, $this>
      */
     public function publishedLayout(): HasMany
     {

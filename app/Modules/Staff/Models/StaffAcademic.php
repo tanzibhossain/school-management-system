@@ -24,7 +24,7 @@ class StaffAcademic extends Model
 
     // ── Relationships ─────────────────────────────────────────────────────────
 
-    /** @return BelongsTo<Staff, StaffAcademic> */
+    /** @return BelongsTo<Staff, $this> */
     public function staff(): BelongsTo
     {
         return $this->belongsTo(Staff::class);

@@ -14,43 +14,43 @@ class ClassRoutine extends Model
         'teacher_id', 'room_id', 'period_id', 'shift_id', 'day_of_week',
     ];
 
-    /** @return BelongsTo<SchoolClass, ClassRoutine> */
+    /** @return BelongsTo<SchoolClass, $this> */
     public function schoolClass(): BelongsTo
     {
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
-    /** @return BelongsTo<Section, ClassRoutine> */
+    /** @return BelongsTo<Section, $this> */
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);
     }
 
-    /** @return BelongsTo<Subject, ClassRoutine> */
+    /** @return BelongsTo<Subject, $this> */
     public function subject(): BelongsTo
     {
         return $this->belongsTo(Subject::class);
     }
 
-    /** @return BelongsTo<Staff, ClassRoutine> */
+    /** @return BelongsTo<Staff, $this> */
     public function teacher(): BelongsTo
     {
         return $this->belongsTo(Staff::class, 'teacher_id');
     }
 
-    /** @return BelongsTo<RoutineRoom, ClassRoutine> */
+    /** @return BelongsTo<RoutineRoom, $this> */
     public function room(): BelongsTo
     {
         return $this->belongsTo(RoutineRoom::class, 'room_id');
     }
 
-    /** @return BelongsTo<RoutinePeriod, ClassRoutine> */
+    /** @return BelongsTo<RoutinePeriod, $this> */
     public function period(): BelongsTo
     {
         return $this->belongsTo(RoutinePeriod::class, 'period_id');
     }
 
-    /** @return BelongsTo<AcademicShift, ClassRoutine> */
+    /** @return BelongsTo<AcademicShift, $this> */
     public function shift(): BelongsTo
     {
         return $this->belongsTo(AcademicShift::class, 'shift_id');

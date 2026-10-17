@@ -33,43 +33,43 @@ class StudentAcademic extends Model
         'promoted_at' => 'datetime',
     ];
 
-    /** @return BelongsTo<Student, StudentAcademic> */
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
     }
 
-    /** @return BelongsTo<AcademicYear, StudentAcademic> */
+    /** @return BelongsTo<AcademicYear, $this> */
     public function year(): BelongsTo
     {
         return $this->belongsTo(AcademicYear::class, 'academic_year_id');
     }
 
-    /** @return BelongsTo<SchoolClass, StudentAcademic> */
+    /** @return BelongsTo<SchoolClass, $this> */
     public function schoolClass(): BelongsTo
     {
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
-    /** @return BelongsTo<Section, StudentAcademic> */
+    /** @return BelongsTo<Section, $this> */
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);
     }
 
-    /** @return BelongsTo<AcademicVersion, StudentAcademic> */
+    /** @return BelongsTo<AcademicVersion, $this> */
     public function version(): BelongsTo
     {
         return $this->belongsTo(AcademicVersion::class, 'version_id');
     }
 
-    /** @return BelongsTo<AcademicGroup, StudentAcademic> */
+    /** @return BelongsTo<AcademicGroup, $this> */
     public function group(): BelongsTo
     {
         return $this->belongsTo(AcademicGroup::class, 'group_id');
     }
 
-    /** @return BelongsTo<AcademicShift, StudentAcademic> */
+    /** @return BelongsTo<AcademicShift, $this> */
     public function shift(): BelongsTo
     {
         return $this->belongsTo(AcademicShift::class, 'shift_id');

@@ -36,13 +36,13 @@ class IdCardTemplate extends Model
         'is_default' => 'boolean',
     ];
 
-    /** @return BelongsTo<School, IdCardTemplate> */
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    /** @return HasMany<IdCardBatch> */
+    /** @return HasMany<IdCardBatch, $this> */
     public function batches(): HasMany
     {
         return $this->hasMany(IdCardBatch::class, 'template_id');

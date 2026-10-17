@@ -45,37 +45,37 @@ class StudentLeaveRequest extends Model
         'status' => 'pending',
     ];
 
-    /** @return BelongsTo<Student, StudentLeaveRequest> */
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
     }
 
-    /** @return BelongsTo<SchoolClass, StudentLeaveRequest> */
+    /** @return BelongsTo<SchoolClass, $this> */
     public function schoolClass(): BelongsTo
     {
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
-    /** @return BelongsTo<Section, StudentLeaveRequest> */
+    /** @return BelongsTo<Section, $this> */
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);
     }
 
-    /** @return BelongsTo<LeaveType, StudentLeaveRequest> */
+    /** @return BelongsTo<LeaveType, $this> */
     public function leaveType(): BelongsTo
     {
         return $this->belongsTo(LeaveType::class);
     }
 
-    /** @return BelongsTo<User, StudentLeaveRequest> */
+    /** @return BelongsTo<User, $this> */
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by');
     }
 
-    /** @return BelongsTo<User, StudentLeaveRequest> */
+    /** @return BelongsTo<User, $this> */
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');

@@ -23,7 +23,7 @@ class MessageParticipant extends Model
         'last_read_message_id' => 'integer',
     ];
 
-    /** @return BelongsTo<MessageThread, MessageParticipant> */
+    /** @return BelongsTo<MessageThread, $this> */
     public function thread(): BelongsTo
     {
         return $this->belongsTo(MessageThread::class, 'thread_id');

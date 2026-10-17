@@ -22,7 +22,7 @@ class WebsiteMedia extends Model
         'height_px' => 'integer',
     ];
 
-    /** @return BelongsTo<User, WebsiteMedia> */
+    /** @return BelongsTo<User, $this> */
     public function uploadedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');

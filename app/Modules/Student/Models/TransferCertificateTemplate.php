@@ -22,13 +22,13 @@ class TransferCertificateTemplate extends Model
 
     protected $casts = ['is_default' => 'boolean'];
 
-    /** @return BelongsTo<School, TransferCertificateTemplate> */
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    /** @return HasMany<TransferCertificate> */
+    /** @return HasMany<TransferCertificate, $this> */
     public function certificates(): HasMany
     {
         return $this->hasMany(TransferCertificate::class, 'template_id');

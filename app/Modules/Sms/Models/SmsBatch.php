@@ -42,37 +42,37 @@ class SmsBatch extends Model
         'completed_at' => 'datetime',
     ];
 
-    /** @return BelongsTo<School, SmsBatch> */
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    /** @return BelongsTo<User, SmsBatch> */
+    /** @return BelongsTo<User, $this> */
     public function requestedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by');
     }
 
-    /** @return BelongsTo<SchoolClass, SmsBatch> */
+    /** @return BelongsTo<SchoolClass, $this> */
     public function schoolClass(): BelongsTo
     {
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
-    /** @return BelongsTo<Section, SmsBatch> */
+    /** @return BelongsTo<Section, $this> */
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);
     }
 
-    /** @return BelongsTo<AcademicYear, SmsBatch> */
+    /** @return BelongsTo<AcademicYear, $this> */
     public function academicYear(): BelongsTo
     {
         return $this->belongsTo(AcademicYear::class);
     }
 
-    /** @return HasMany<SmsLog> */
+    /** @return HasMany<SmsLog, $this> */
     public function logs(): HasMany
     {
         return $this->hasMany(SmsLog::class, 'batch_id');

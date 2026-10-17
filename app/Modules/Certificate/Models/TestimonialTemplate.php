@@ -24,13 +24,13 @@ class TestimonialTemplate extends Model
         'is_default' => 'boolean',
     ];
 
-    /** @return BelongsTo<School, TestimonialTemplate> */
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    /** @return HasMany<Testimonial> */
+    /** @return HasMany<Testimonial, $this> */
     public function testimonials(): HasMany
     {
         return $this->hasMany(Testimonial::class, 'template_id');

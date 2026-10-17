@@ -19,13 +19,13 @@ class Message extends Model
         'body',
     ];
 
-    /** @return BelongsTo<MessageThread, Message> */
+    /** @return BelongsTo<MessageThread, $this> */
     public function thread(): BelongsTo
     {
         return $this->belongsTo(MessageThread::class, 'thread_id');
     }
 
-    /** @return HasMany<MessageAttachment> */
+    /** @return HasMany<MessageAttachment, $this> */
     public function attachments(): HasMany
     {
         return $this->hasMany(MessageAttachment::class, 'message_id');

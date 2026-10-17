@@ -14,13 +14,13 @@ class Menu extends Model
     // public header composer are now locale-aware; see published() below).
     protected $fillable = ['school_id', 'name', 'locale'];
 
-    /** @return HasMany<MenuItem> */
+    /** @return HasMany<MenuItem, $this> */
     public function items(): HasMany
     {
         return $this->hasMany(MenuItem::class)->whereNull('parent_id')->orderBy('sort_order');
     }
 
-    /** @return HasMany<MenuItem> */
+    /** @return HasMany<MenuItem, $this> */
     public function allItems(): HasMany
     {
         return $this->hasMany(MenuItem::class)->orderBy('sort_order');

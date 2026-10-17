@@ -24,13 +24,13 @@ class StudentGuardian extends Model
 
     protected $casts = ['is_primary' => 'boolean'];
 
-    /** @return BelongsTo<Student, StudentGuardian> */
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
     }
 
-    /** @return BelongsTo<User, StudentGuardian> */
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

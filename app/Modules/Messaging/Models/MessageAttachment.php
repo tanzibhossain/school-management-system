@@ -20,7 +20,7 @@ class MessageAttachment extends Model
         'size_bytes' => 'integer',
     ];
 
-    /** @return BelongsTo<Message, MessageAttachment> */
+    /** @return BelongsTo<Message, $this> */
     public function message(): BelongsTo
     {
         return $this->belongsTo(Message::class, 'message_id');

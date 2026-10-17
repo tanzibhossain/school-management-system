@@ -11,7 +11,7 @@ class AnnouncementRead extends Model
 
     protected $casts = ['read_at' => 'datetime'];
 
-    /** @return BelongsTo<Announcement, AnnouncementRead> */
+    /** @return BelongsTo<Announcement, $this> */
     public function announcement(): BelongsTo
     {
         return $this->belongsTo(Announcement::class);

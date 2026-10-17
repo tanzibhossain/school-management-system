@@ -34,37 +34,37 @@ class Course extends Model
         'is_active' => true,
     ];
 
-    /** @return BelongsTo<School, Course> */
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    /** @return BelongsTo<SchoolClass, Course> */
+    /** @return BelongsTo<SchoolClass, $this> */
     public function schoolClass(): BelongsTo
     {
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
-    /** @return BelongsTo<Subject, Course> */
+    /** @return BelongsTo<Subject, $this> */
     public function subject(): BelongsTo
     {
         return $this->belongsTo(Subject::class);
     }
 
-    /** @return BelongsTo<Staff, Course> */
+    /** @return BelongsTo<Staff, $this> */
     public function teacher(): BelongsTo
     {
         return $this->belongsTo(Staff::class, 'teacher_id');
     }
 
-    /** @return HasMany<Lesson> */
+    /** @return HasMany<Lesson, $this> */
     public function lessons(): HasMany
     {
         return $this->hasMany(Lesson::class)->orderBy('sort_order');
     }
 
-    /** @return HasMany<Assignment> */
+    /** @return HasMany<Assignment, $this> */
     public function assignments(): HasMany
     {
         return $this->hasMany(Assignment::class);

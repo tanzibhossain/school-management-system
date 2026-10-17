@@ -23,13 +23,13 @@ class MessageThread extends Model
         'is_locked' => 'boolean',
     ];
 
-    /** @return HasMany<MessageParticipant> */
+    /** @return HasMany<MessageParticipant, $this> */
     public function participants(): HasMany
     {
         return $this->hasMany(MessageParticipant::class, 'thread_id');
     }
 
-    /** @return HasMany<Message> */
+    /** @return HasMany<Message, $this> */
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class, 'thread_id');

@@ -21,7 +21,7 @@ class StaffExperience extends Model
         'to_date' => 'date',
     ];
 
-    /** @return BelongsTo<Staff, StaffExperience> */
+    /** @return BelongsTo<Staff, $this> */
     public function staff(): BelongsTo
     {
         return $this->belongsTo(Staff::class);

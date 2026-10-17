@@ -27,7 +27,7 @@ class PaymentConfig extends Model
     /** @var list<string> */
     protected $hidden = ['gateways'];
 
-    /** @return BelongsTo<School, PaymentConfig> */
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);

@@ -39,7 +39,7 @@ class SalaryComponent extends Model
         'is_trash' => false,
     ];
 
-    /** @return HasMany<StaffSalaryValue> */
+    /** @return HasMany<StaffSalaryValue, $this> */
     public function staffValues(): HasMany
     {
         return $this->hasMany(StaffSalaryValue::class);

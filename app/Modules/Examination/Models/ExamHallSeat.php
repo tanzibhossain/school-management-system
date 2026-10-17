@@ -13,7 +13,7 @@ class ExamHallSeat extends Model
 
     // ── Relationships ──────────────────────────────────────────────────────────
 
-    /** @return BelongsTo<ExamHall, ExamHallSeat> */
+    /** @return BelongsTo<ExamHall, $this> */
     public function hall(): BelongsTo
     {
         return $this->belongsTo(ExamHall::class, 'hall_id');

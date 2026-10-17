@@ -39,25 +39,25 @@ class Testimonial extends Model
         'status' => 'draft',
     ];
 
-    /** @return BelongsTo<Student, Testimonial> */
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
     }
 
-    /** @return BelongsTo<TestimonialTemplate, Testimonial> */
+    /** @return BelongsTo<TestimonialTemplate, $this> */
     public function template(): BelongsTo
     {
         return $this->belongsTo(TestimonialTemplate::class, 'template_id');
     }
 
-    /** @return BelongsTo<Exam, Testimonial> */
+    /** @return BelongsTo<Exam, $this> */
     public function exam(): BelongsTo
     {
         return $this->belongsTo(Exam::class);
     }
 
-    /** @return BelongsTo<User, Testimonial> */
+    /** @return BelongsTo<User, $this> */
     public function issuedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'issued_by');

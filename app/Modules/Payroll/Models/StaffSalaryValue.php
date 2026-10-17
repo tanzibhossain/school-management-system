@@ -25,13 +25,13 @@ class StaffSalaryValue extends Model
         'amount' => 0,
     ];
 
-    /** @return BelongsTo<Staff, StaffSalaryValue> */
+    /** @return BelongsTo<Staff, $this> */
     public function staff(): BelongsTo
     {
         return $this->belongsTo(Staff::class);
     }
 
-    /** @return BelongsTo<SalaryComponent, StaffSalaryValue> */
+    /** @return BelongsTo<SalaryComponent, $this> */
     public function component(): BelongsTo
     {
         return $this->belongsTo(SalaryComponent::class, 'salary_component_id');

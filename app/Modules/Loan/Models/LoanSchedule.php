@@ -38,7 +38,7 @@ class LoanSchedule extends Model
         'is_paid' => false,
     ];
 
-    /** @return BelongsTo<StaffLoan, LoanSchedule> */
+    /** @return BelongsTo<StaffLoan, $this> */
     public function staffLoan(): BelongsTo
     {
         return $this->belongsTo(StaffLoan::class);

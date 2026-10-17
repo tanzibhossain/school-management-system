@@ -17,13 +17,13 @@ class StudentDocument extends Model
         'uploaded_by',
     ];
 
-    /** @return BelongsTo<Student, StudentDocument> */
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
     }
 
-    /** @return BelongsTo<User, StudentDocument> */
+    /** @return BelongsTo<User, $this> */
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');

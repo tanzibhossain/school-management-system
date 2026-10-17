@@ -37,13 +37,13 @@ class SubmissionAiCheck extends Model
         'status' => 'pending',
     ];
 
-    /** @return BelongsTo<School, SubmissionAiCheck> */
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    /** @return BelongsTo<Submission, SubmissionAiCheck> */
+    /** @return BelongsTo<Submission, $this> */
     public function submission(): BelongsTo
     {
         return $this->belongsTo(Submission::class);

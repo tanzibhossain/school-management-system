@@ -36,7 +36,7 @@ class ModuleSetting extends Model
         'is_enabled' => false,
     ];
 
-    /** @return BelongsTo<School, ModuleSetting> */
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);

@@ -23,19 +23,19 @@ class TransferCertificate extends Model
 
     protected $casts = ['issued_date' => 'date'];
 
-    /** @return BelongsTo<Student, TransferCertificate> */
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
     }
 
-    /** @return BelongsTo<TransferCertificateTemplate, TransferCertificate> */
+    /** @return BelongsTo<TransferCertificateTemplate, $this> */
     public function template(): BelongsTo
     {
         return $this->belongsTo(TransferCertificateTemplate::class, 'template_id');
     }
 
-    /** @return BelongsTo<User, TransferCertificate> */
+    /** @return BelongsTo<User, $this> */
     public function issuedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'issued_by');

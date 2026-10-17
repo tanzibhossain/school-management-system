@@ -12,7 +12,7 @@ class Designation extends Model
 
     protected $fillable = ['school_id', 'name'];
 
-    /** @return HasMany<Staff> */
+    /** @return HasMany<Staff, $this> */
     public function staff(): HasMany
     {
         return $this->hasMany(Staff::class);

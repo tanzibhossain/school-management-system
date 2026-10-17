@@ -25,19 +25,19 @@ class StudentWaitlist extends Model
         'notes',
     ];
 
-    /** @return BelongsTo<AcademicYear, StudentWaitlist> */
+    /** @return BelongsTo<AcademicYear, $this> */
     public function year(): BelongsTo
     {
         return $this->belongsTo(AcademicYear::class, 'academic_year_id');
     }
 
-    /** @return BelongsTo<SchoolClass, StudentWaitlist> */
+    /** @return BelongsTo<SchoolClass, $this> */
     public function schoolClass(): BelongsTo
     {
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
-    /** @return BelongsTo<Section, StudentWaitlist> */
+    /** @return BelongsTo<Section, $this> */
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);

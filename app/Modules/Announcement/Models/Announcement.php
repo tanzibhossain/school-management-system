@@ -34,19 +34,19 @@ class Announcement extends Model
 
     // ── Relationships ─────────────────────────────────────────────────────────
 
-    /** @return HasMany<AnnouncementTarget> */
+    /** @return HasMany<AnnouncementTarget, $this> */
     public function targets(): HasMany
     {
         return $this->hasMany(AnnouncementTarget::class);
     }
 
-    /** @return HasMany<AnnouncementAttachment> */
+    /** @return HasMany<AnnouncementAttachment, $this> */
     public function attachments(): HasMany
     {
         return $this->hasMany(AnnouncementAttachment::class);
     }
 
-    /** @return HasMany<AnnouncementRead> */
+    /** @return HasMany<AnnouncementRead, $this> */
     public function reads(): HasMany
     {
         return $this->hasMany(AnnouncementRead::class);
