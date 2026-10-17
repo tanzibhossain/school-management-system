@@ -6,6 +6,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-10-17
+
 ### Added
 - Approving an online application also copies religion, photo, father and mother, addresses and uploaded files into the new student.
 - Student page shows the student's photo, addresses and documents, and links to the online application it came from.
