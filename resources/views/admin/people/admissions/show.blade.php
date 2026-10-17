@@ -57,20 +57,18 @@
     <div class="row g-4 mt-0">
       <div class="col-lg-6">
         <div class="card"><div class="card-header">{{ __('Student Details') }}</div><div class="card-body">
-          <div class="d-flex gap-3 align-items-start">
-            <dl class="row mb-0 flex-grow-1">
-              <dt class="col-5 text-muted">{{ __('Birth Certificate No.') }}</dt><dd class="col-7">{{ $val($application->birth_certificate_no) }}</dd>
-              <dt class="col-5 text-muted">{{ __('Student Phone') }}</dt><dd class="col-7">{{ $val($application->student_phone) }}</dd>
-              <dt class="col-5 text-muted">{{ __('Religion') }}</dt><dd class="col-7">{{ $val($fd['religion'] ?? null) }}</dd>
-              <dt class="col-5 text-muted">{{ __('Previous School') }}</dt><dd class="col-7">{{ $val($fd['previous_school'] ?? null) }}</dd>
-              <dt class="col-5 text-muted">{{ __('GPA') }}</dt><dd class="col-7">{{ $val($fd['gpa'] ?? null) }}</dd>
-            </dl>
-            @if (! empty($fd['photo']))
-              <a href="{{ route('admin.admissions.file', [$application->id, 'photo']) }}" target="_blank" rel="noopener">
-                <img src="{{ route('admin.admissions.file', [$application->id, 'photo']) }}" alt="{{ __('Student Photo') }}" class="img-thumbnail" style="max-width:120px;max-height:150px;object-fit:cover">
-              </a>
-            @endif
-          </div>
+          @if (! empty($fd['photo']))
+            <a href="{{ route('admin.admissions.file', [$application->id, 'photo']) }}" target="_blank" rel="noopener" class="d-inline-block mb-3">
+              <img src="{{ route('admin.admissions.file', [$application->id, 'photo']) }}" alt="{{ __('Student Photo') }}" class="img-thumbnail" style="max-width:120px;max-height:150px;object-fit:cover">
+            </a>
+          @endif
+          <dl class="row mb-0">
+            <dt class="col-5 text-muted">{{ __('Birth Certificate No.') }}</dt><dd class="col-7">{{ $val($application->birth_certificate_no) }}</dd>
+            <dt class="col-5 text-muted">{{ __('Student Phone') }}</dt><dd class="col-7">{{ $val($application->student_phone) }}</dd>
+            <dt class="col-5 text-muted">{{ __('Religion') }}</dt><dd class="col-7">{{ $val($fd['religion'] ?? null) }}</dd>
+            <dt class="col-5 text-muted">{{ __('Previous School') }}</dt><dd class="col-7">{{ $val($fd['previous_school'] ?? null) }}</dd>
+            <dt class="col-5 text-muted">{{ __('GPA') }}</dt><dd class="col-7">{{ $val($fd['gpa'] ?? null) }}</dd>
+          </dl>
         </div></div>
       </div>
       <div class="col-lg-6">
@@ -109,7 +107,7 @@
               @foreach ($custom as $key => $answer)
                 @php $answer = is_array($answer) ? $answer : []; @endphp
                 <dt class="col-sm-4 col-lg-3 text-muted">{{ $answer['label'] ?? $key }}</dt>
-                <dd class="col-sm-8 col-lg-9" style="white-space:pre-line">
+                <dd class="col-sm-8 col-lg-9">
                   @if (($answer['type'] ?? null) === 'file')
                     @if (filled($answer['value'] ?? null))
                       <a href="{{ route('admin.admissions.file', [$application->id, $key]) }}" target="_blank" rel="noopener"><i class="bi bi-paperclip"></i> {{ __('View File') }}</a>
@@ -119,7 +117,8 @@
                   @elseif (($answer['type'] ?? null) === 'checkbox')
                     {{ ! empty($answer['value']) ? __('Yes') : __('No') }}
                   @else
-                    {{ $val($answer['value'] ?? null) }}
+                    {{-- pre-line keeps a textarea answer's line breaks; kept on its own span so the Blade indentation around it isn't rendered --}}
+                    <span style="white-space:pre-line">{{ $val($answer['value'] ?? null) }}</span>
                   @endif
                 </dd>
               @endforeach
