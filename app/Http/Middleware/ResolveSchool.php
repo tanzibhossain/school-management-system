@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use App\Modules\School\Models\School;
 use Closure;
 use Illuminate\Http\Request;
@@ -29,7 +30,7 @@ class ResolveSchool
         $user = Auth::guard('sanctum')->user();
         $school = null;
 
-        if ($user && $user->school_id) {
+        if ($user instanceof User && $user->school_id) {
             $school = School::find($user->school_id);
         }
 

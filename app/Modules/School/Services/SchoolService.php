@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\DB;
 
 class SchoolService extends BaseService
 {
-    public function __construct(SchoolRepository $repository)
+    public function __construct(private readonly SchoolRepository $schools)
     {
-        parent::__construct($repository);
+        parent::__construct($schools);
     }
 
     /**
@@ -21,7 +21,7 @@ class SchoolService extends BaseService
      */
     public function getSettings(): ?School
     {
-        return $this->repository->getCurrent();
+        return $this->schools->getCurrent();
     }
 
     /**

@@ -31,6 +31,7 @@ class Book extends Model
         'is_trash' => 'boolean',
     ];
 
+    /** @return HasMany<BorrowRecord, $this> */
     public function borrowRecords(): HasMany
     {
         return $this->hasMany(BorrowRecord::class);

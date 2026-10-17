@@ -54,25 +54,41 @@ class Announcement extends Model
 
     // ── Scopes ────────────────────────────────────────────────────────────────
 
-    /** Live: publish_at is set and in the past. @param Builder<Announcement> $query */
+    /**
+     * Live: publish_at is set and in the past.
+     *
+     * @param  Builder<Announcement>  $query
+     */
     public function scopePublished(Builder $query): Builder
     {
         return $query->whereNotNull('publish_at')->where('publish_at', '<=', now());
     }
 
-    /** Not expired (or no expiry set). @param Builder<Announcement> $query */
+    /**
+     * Not expired (or no expiry set).
+     *
+     * @param  Builder<Announcement>  $query
+     */
     public function scopeNotExpired(Builder $query): Builder
     {
         return $query->where(fn ($q) => $q->whereNull('expire_at')->orWhere('expire_at', '>', now()));
     }
 
-    /** Visible to portal users: published + not expired + not trashed. @param Builder<Announcement> $query */
+    /**
+     * Visible to portal users: published + not expired + not trashed.
+     *
+     * @param  Builder<Announcement>  $query
+     */
     public function scopeVisible(Builder $query): Builder
     {
         return $query->published()->notExpired()->where('is_trash', false);
     }
 
-    /** Admin archive: includes scheduled, expired, and drafts. @param Builder<Announcement> $query */
+    /**
+     * Admin archive: includes scheduled, expired, and drafts.
+     *
+     * @param  Builder<Announcement>  $query
+     */
     public function scopeNotTrashed(Builder $query): Builder
     {
         return $query->where('is_trash', false);

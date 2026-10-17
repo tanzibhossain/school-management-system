@@ -33,16 +33,19 @@ class Invoice extends Model
         return $this->belongsTo(Student::class);
     }
 
+    /** @return HasMany<InvoiceItem, $this> */
     public function items(): HasMany
     {
         return $this->hasMany(InvoiceItem::class);
     }
 
+    /** @return HasMany<Payment, $this> */
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class)->where('is_reversed', false);
     }
 
+    /** @return HasManyThrough<Refund, Payment, $this> */
     public function refunds(): HasManyThrough
     {
         return $this->hasManyThrough(Refund::class, Payment::class);

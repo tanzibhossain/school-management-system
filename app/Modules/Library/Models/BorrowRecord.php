@@ -25,11 +25,13 @@ class BorrowRecord extends Model
         'returned_at' => 'datetime',
     ];
 
+    /** @return BelongsTo<Book, $this> */
     public function book(): BelongsTo
     {
         return $this->belongsTo(Book::class);
     }
 
+    /** @return BelongsTo<LibraryMember, $this> */
     public function member(): BelongsTo
     {
         return $this->belongsTo(LibraryMember::class, 'library_member_id');

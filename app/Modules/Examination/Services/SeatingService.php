@@ -70,6 +70,8 @@ class SeatingService
     /**
      * Order students according to strategy, then zip them sequentially into seats.
      * Optionally leave every (blank_every+1)th seat empty.
+     *
+     * @param  Collection<int, ExamHallSeat>  $seats
      */
     private function assignLinear(Exam $exam, Collection $seats, string $strategy, ?int $blankEvery): int
     {
@@ -135,6 +137,8 @@ class SeatingService
      *
      *   blank_every applies globally: every ($blankEvery+1)th physical seat slot
      *   is left empty.
+     *
+     * @param  Collection<int, ExamHallSeat>  $seats
      */
     private function assignAntiAdjacency(Exam $exam, Collection $seats, ?int $blankEvery): int
     {

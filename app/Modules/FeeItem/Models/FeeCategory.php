@@ -14,6 +14,7 @@ class FeeCategory extends Model
         'is_active' => 'boolean',
     ];
 
+    /** @return HasMany<FeeItem, $this> */
     public function items(): HasMany
     {
         return $this->hasMany(FeeItem::class, 'category_id');

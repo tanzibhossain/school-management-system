@@ -47,6 +47,7 @@ class IdCardTemplateController extends Controller
     public function update(UpdateIdCardTemplateRequest $request, int $id): IdCardTemplateResource
     {
         $schoolId = app('current_school_id');
+        /** @var IdCardTemplate $template */
         $template = $this->service->findOrFail($id, $schoolId);
 
         if (! empty($request->validated()['is_default'])) {

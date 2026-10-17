@@ -20,6 +20,7 @@ class FeeItem extends Model
         'is_active' => 'boolean',
     ];
 
+    /** @return BelongsTo<FeeCategory, $this> */
     public function category(): BelongsTo
     {
         return $this->belongsTo(FeeCategory::class, 'category_id');

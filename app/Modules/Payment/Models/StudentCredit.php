@@ -13,6 +13,7 @@ class StudentCredit extends Model
         'balance' => 'decimal:2',
     ];
 
+    /** @return HasMany<CreditTransaction, $this> */
     public function transactions(): HasMany
     {
         return $this->hasMany(CreditTransaction::class, 'student_id', 'student_id')

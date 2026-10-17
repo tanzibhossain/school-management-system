@@ -26,16 +26,19 @@ class Payment extends Model
         'is_reversed' => 'boolean',
     ];
 
+    /** @return BelongsTo<Invoice, $this> */
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class);
     }
 
+    /** @return HasMany<PaymentGatewayLog, $this> */
     public function gatewayLogs(): HasMany
     {
         return $this->hasMany(PaymentGatewayLog::class);
     }
 
+    /** @return HasMany<Refund, $this> */
     public function refunds(): HasMany
     {
         return $this->hasMany(Refund::class);

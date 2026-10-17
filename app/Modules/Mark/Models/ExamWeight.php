@@ -17,6 +17,7 @@ class ExamWeight extends Model
         'weight_percent' => 'decimal:2',
     ];
 
+    /** @return BelongsTo<Exam, $this> */
     public function exam(): BelongsTo
     {
         return $this->belongsTo(Exam::class);

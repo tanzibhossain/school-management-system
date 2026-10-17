@@ -20,11 +20,13 @@ class MarkDivision extends Model
         'display_order' => 'integer',
     ];
 
+    /** @return BelongsTo<ExamSubject, $this> */
     public function examSubject(): BelongsTo
     {
         return $this->belongsTo(ExamSubject::class);
     }
 
+    /** @return HasMany<Mark, $this> */
     public function marks(): HasMany
     {
         return $this->hasMany(Mark::class);

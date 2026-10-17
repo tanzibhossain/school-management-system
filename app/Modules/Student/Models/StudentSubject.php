@@ -20,11 +20,13 @@ class StudentSubject extends Model
     // Mirror DB-level default
     protected $attributes = ['is_optional' => false];
 
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
     }
 
+    /** @return BelongsTo<SubjectRelation, $this> */
     public function subjectRelation(): BelongsTo
     {
         return $this->belongsTo(SubjectRelation::class);

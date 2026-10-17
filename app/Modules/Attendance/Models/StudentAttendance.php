@@ -25,16 +25,19 @@ class StudentAttendance extends Model
         'date' => 'date',
     ];
 
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
     }
 
+    /** @return BelongsTo<SchoolClass, $this> */
     public function schoolClass(): BelongsTo
     {
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
+    /** @return BelongsTo<Section, $this> */
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);

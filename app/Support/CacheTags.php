@@ -39,7 +39,11 @@ class CacheTags
         Cache::forget(self::composite($tags, $key));
     }
 
-    /** Invalidate everything cached under any of these tags. @param array<int, string>|string $tags */
+    /**
+     * Invalidate everything cached under any of these tags.
+     *
+     * @param  array<int, string>|string  $tags
+     */
     public static function flush(array|string $tags): void
     {
         foreach ((array) $tags as $tag) {

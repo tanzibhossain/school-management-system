@@ -20,6 +20,7 @@ class SchoolPhone extends Model
         'show_in_header' => 'boolean',
     ];
 
+    /** @return BelongsTo<School, $this> */
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);

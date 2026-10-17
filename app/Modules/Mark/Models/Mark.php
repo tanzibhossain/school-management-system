@@ -28,11 +28,13 @@ class Mark extends Model
         'grace_marks' => 0,
     ];
 
+    /** @return BelongsTo<MarkDivision, $this> */
     public function division(): BelongsTo
     {
         return $this->belongsTo(MarkDivision::class, 'mark_division_id');
     }
 
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);

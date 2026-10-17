@@ -4,6 +4,7 @@ namespace App\Modules\Staff\Http\Controllers;
 
 use App\Modules\Staff\Http\Requests\AssignStaffRequest;
 use App\Modules\Staff\Http\Resources\StaffAcademicResource;
+use App\Modules\Staff\Models\Staff;
 use App\Modules\Staff\Models\StaffAcademic;
 use App\Modules\Staff\Repositories\StaffRepository;
 use App\Modules\Staff\Services\StaffService;
@@ -20,6 +21,7 @@ class StaffAcademicController extends Controller
 
     public function index(int $staffId): AnonymousResourceCollection
     {
+        /** @var Staff $staff */
         $staff = $this->repository->findOrFail($staffId, app('current_school_id'));
         $academics = $staff->academics()->orderByDesc('academic_year_id')->get();
 

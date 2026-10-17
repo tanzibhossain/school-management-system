@@ -61,11 +61,13 @@ class School extends Model
 
     // ─── Relationships ────────────────────────────────────────────────────────
 
+    /** @return HasMany<SchoolPhone, $this> */
     public function phones(): HasMany
     {
         return $this->hasMany(SchoolPhone::class);
     }
 
+    /** @return HasMany<SchoolOpeningHour, $this> */
     public function openingHours(): HasMany
     {
         return $this->hasMany(SchoolOpeningHour::class)->orderBy('day_of_week');

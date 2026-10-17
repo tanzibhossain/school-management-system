@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\DB;
 class AcademicService extends BaseService
 {
     public function __construct(
-        AcademicRepository $repository,
+        private readonly AcademicRepository $academics,
     ) {
-        parent::__construct($repository);
+        parent::__construct($academics);
     }
 
     /**
@@ -41,7 +41,7 @@ class AcademicService extends BaseService
      */
     public function getDropdownData(int $schoolId): array
     {
-        return $this->repository->getDropdownData($schoolId);
+        return $this->academics->getDropdownData($schoolId);
     }
 
     /**

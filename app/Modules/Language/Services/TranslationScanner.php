@@ -16,7 +16,11 @@ class TranslationScanner
     /** @var list<string> Directories scanned for translatable strings. */
     private const PATHS = ['resources/views', 'app'];
 
-    /** Extract the distinct set of __() keys from the codebase. @return list<string> */
+    /**
+     * Extract the distinct set of __() keys from the codebase.
+     *
+     * @return list<string>
+     */
     public function keys(): array
     {
         $keys = [];

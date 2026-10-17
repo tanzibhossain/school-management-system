@@ -26,11 +26,13 @@ class LibraryMember extends Model
         'is_trash' => 'boolean',
     ];
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return HasMany<BorrowRecord, $this> */
     public function borrowRecords(): HasMany
     {
         return $this->hasMany(BorrowRecord::class);

@@ -35,7 +35,11 @@ class MessageParticipant extends Model
         return $query->where('school_id', $schoolId);
     }
 
-    /** Active (not left) participants. @param Builder<MessageParticipant> $query */
+    /**
+     * Active (not left) participants.
+     *
+     * @param  Builder<MessageParticipant>  $query
+     */
     public function scopeActive(Builder $query): Builder
     {
         return $query->whereNull('left_at');

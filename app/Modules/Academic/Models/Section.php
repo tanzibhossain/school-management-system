@@ -25,7 +25,11 @@ class Section extends Model
         return $this->belongsTo(AcademicShift::class, 'shift_id');
     }
 
-    /** Class teacher — the staff member who records this section's daily attendance. */
+    /**
+     * Class teacher — the staff member who records this section's daily attendance.
+     *
+     * @return BelongsTo<Staff, $this>
+     */
     public function classTeacher(): BelongsTo
     {
         return $this->belongsTo(Staff::class, 'class_teacher_id');

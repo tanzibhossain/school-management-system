@@ -33,6 +33,7 @@ class ExamResult extends Model
         'is_locked' => false,
     ];
 
+    /** @return BelongsTo<Student, $this> */
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);

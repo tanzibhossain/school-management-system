@@ -20,6 +20,7 @@ class Refund extends Model
         'processed_at' => 'datetime',
     ];
 
+    /** @return BelongsTo<Payment, $this> */
     public function payment(): BelongsTo
     {
         return $this->belongsTo(Payment::class);
