@@ -595,6 +595,54 @@ class PageRenderService
         ];
     }
 
+    /**
+     * The field config of the admission form a visitor submitted from: the
+     * first admission_form block (container/grid children included) on that
+     * published page's layout for $locale — the same layout the form was
+     * rendered from. Null when the page isn't this school's, isn't published,
+     * or has no admission form.
+     *
+     * @return array<string, array{enabled: bool, label: ?string, required: bool, type?: string, options?: mixed}>|null
+     */
+    public function admissionFormFields(int $schoolId, int $pageId, string $locale): ?array
+    {
+        $page = $pageId > 0 ? Page::forSchool($schoolId)->published()->find($pageId) : null;
+        $layout = $page instanceof Page ? $this->publishedLayoutFor($page, $locale) : null;
+        if (! $layout) {
+            return null;
+        }
+
+        $block = $this->firstBlockOfType($this->normalize($layout->layout_json)['blocks'], 'admission_form');
+
+        return $block !== null
+            ? $this->normalizeAdmissionFields($block['data']['fields'] ?? $block['data']['hidden'] ?? [])
+            : null;
+    }
+
+    /**
+     * Depth-first search of normalized blocks, descending into container/grid children.
+     *
+     * @param  array<mixed>  $blocks
+     * @return array<string, mixed>|null
+     */
+    private function firstBlockOfType(array $blocks, string $type): ?array
+    {
+        foreach ($blocks as $block) {
+            if (! is_array($block)) {
+                continue;
+            }
+            if (($block['type'] ?? null) === $type) {
+                return $block;
+            }
+            $children = $block['data']['blocks'] ?? null;
+            if (is_array($children) && ($found = $this->firstBlockOfType($children, $type)) !== null) {
+                return $found;
+            }
+        }
+
+        return null;
+    }
+
     /** The page whose layout should drive the homepage, if any — locale-independent, the same Page serves every language. */
     public function homepage(int $schoolId): ?Page
     {

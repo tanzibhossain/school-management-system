@@ -44,7 +44,7 @@ class AdmissionFormTest extends TestCase
         $this->publishAdmissionPage();
     }
 
-    private function publishAdmissionPage(array $blockData = []): void
+    private function publishAdmissionPage(array $blockData = []): Page
     {
         $page = Page::updateOrCreate(
             ['school_id' => $this->school->id, 'slug' => 'online-admission'],
@@ -56,6 +56,18 @@ class AdmissionFormTest extends TestCase
             'is_published' => true, 'published_at' => now(),
             'layout_json' => ['template' => 'full', 'blocks' => [['type' => 'admission_form', 'data' => $blockData]]],
         ]);
+
+        return $page;
+    }
+
+    /**
+     * Publish the form with this field config; returns the page id the form posts back.
+     *
+     * @param  array<string, array<string, mixed>>  $fields
+     */
+    private function publishFormWith(array $fields): int
+    {
+        return $this->publishAdmissionPage(['fields' => $fields])->id;
     }
 
     private function validData(array $overrides = []): array
@@ -229,13 +241,121 @@ class AdmissionFormTest extends TestCase
             ->assertSee('<option value="Private"', false);
     }
 
-    public function test_photo_upload_is_stored(): void
+    public function test_photo_upload_is_stored_privately(): void
     {
+        Storage::fake('local');
         Storage::fake('public');
         $this->post('/admission', $this->validData(['photo' => UploadedFile::fake()->image('p.jpg', 300, 300)]));
 
         $app = AdmissionApplication::first();
         $this->assertNotNull($app->form_data['photo']);
-        Storage::disk('public')->assertExists($app->form_data['photo']);
+        Storage::disk('local')->assertExists($app->form_data['photo']);
+        Storage::disk('public')->assertMissing($app->form_data['photo']);
+    }
+
+    public function test_rendered_form_posts_its_page_id(): void
+    {
+        $page = Page::where('school_id', $this->school->id)->where('slug', 'online-admission')->firstOrFail();
+
+        $this->get('/online-admission')->assertOk()
+            ->assertSee('name="page_id" value="'.$page->id.'"', false);
+    }
+
+    public function test_custom_field_answers_are_saved_with_their_labels(): void
+    {
+        $pageId = $this->publishFormWith([
+            'custom_1000' => ['label' => 'Emergency Contact', 'type' => 'text', 'enabled' => '1', 'required' => '0'],
+            'custom_1001' => ['label' => 'Transport Need', 'type' => 'select', 'options' => 'School Bus, Private', 'enabled' => '1'],
+            'custom_1002' => ['label' => 'Has A Sibling Here', 'type' => 'checkbox', 'enabled' => '1'],
+        ]);
+
+        $this->from('/online-admission')->post('/admission', $this->validData([
+            'page_id' => $pageId,
+            'custom' => ['custom_1000' => '01811111111', 'custom_1001' => 'School Bus', 'custom_1002' => '1'],
+        ]))->assertSessionHasNoErrors();
+
+        // assertEquals, not assertSame: MySQL re-sorts JSON object keys.
+        $this->assertEquals([
+            'custom_1000' => ['label' => 'Emergency Contact', 'type' => 'text', 'value' => '01811111111'],
+            'custom_1001' => ['label' => 'Transport Need', 'type' => 'select', 'value' => 'School Bus'],
+            'custom_1002' => ['label' => 'Has A Sibling Here', 'type' => 'checkbox', 'value' => true],
+        ], AdmissionApplication::firstOrFail()->form_data['custom']);
+    }
+
+    public function test_a_required_custom_field_is_enforced(): void
+    {
+        $pageId = $this->publishFormWith([
+            'custom_1000' => ['label' => 'Emergency Contact', 'type' => 'text', 'enabled' => '1', 'required' => '1'],
+        ]);
+
+        $this->from('/online-admission')->post('/admission', $this->validData(['page_id' => $pageId]))
+            ->assertSessionHasErrors('custom.custom_1000');
+        $this->assertDatabaseCount('admission_applications', 0);
+    }
+
+    public function test_a_custom_select_only_accepts_its_own_options(): void
+    {
+        $pageId = $this->publishFormWith([
+            'custom_1000' => ['label' => 'Transport Need', 'type' => 'select', 'options' => 'School Bus, Private', 'enabled' => '1'],
+        ]);
+
+        $this->from('/online-admission')->post('/admission', $this->validData([
+            'page_id' => $pageId, 'custom' => ['custom_1000' => 'Helicopter'],
+        ]))->assertSessionHasErrors('custom.custom_1000');
+    }
+
+    public function test_answers_for_fields_not_on_the_form_are_ignored(): void
+    {
+        $pageId = $this->publishFormWith([
+            'custom_1000' => ['label' => 'Emergency Contact', 'type' => 'text', 'enabled' => '1'],
+            'custom_1001' => ['label' => 'Switched Off', 'type' => 'text', 'enabled' => '0'],
+        ]);
+
+        $this->post('/admission', $this->validData([
+            'page_id' => $pageId,
+            'custom' => ['custom_1000' => 'Uncle', 'custom_1001' => 'sneaky', 'injected' => 'nope'],
+        ]))->assertSessionHasNoErrors();
+
+        $this->assertSame(['custom_1000'], array_keys(AdmissionApplication::firstOrFail()->form_data['custom']));
+    }
+
+    public function test_without_a_page_id_only_standard_fields_are_accepted(): void
+    {
+        $this->publishFormWith([
+            'custom_1000' => ['label' => 'Emergency Contact', 'type' => 'text', 'enabled' => '1', 'required' => '1'],
+        ]);
+
+        $this->post('/admission', $this->validData(['custom' => ['custom_1000' => 'Uncle']]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame([], AdmissionApplication::firstOrFail()->form_data['custom']);
+    }
+
+    public function test_a_standard_field_the_admin_made_required_is_enforced(): void
+    {
+        $pageId = $this->publishFormWith(['notes' => ['enabled' => '1', 'required' => '1']]);
+
+        $this->from('/online-admission')->post('/admission', $this->validData(['page_id' => $pageId]))
+            ->assertSessionHasErrors('notes');
+        $this->from('/online-admission')->post('/admission', $this->validData(['page_id' => $pageId, 'notes' => 'Allergic to peanuts']))
+            ->assertSessionHasNoErrors();
+    }
+
+    public function test_custom_file_uploads_are_stored_privately(): void
+    {
+        Storage::fake('local');
+        Storage::fake('public');
+        $pageId = $this->publishFormWith([
+            'custom_1000' => ['label' => 'Birth Certificate Scan', 'type' => 'file', 'enabled' => '1', 'required' => '1'],
+        ]);
+
+        $this->post('/admission', $this->validData([
+            'page_id' => $pageId,
+            'custom' => ['custom_1000' => UploadedFile::fake()->image('bc.jpg', 400, 300)],
+        ]))->assertSessionHasNoErrors();
+
+        $path = AdmissionApplication::firstOrFail()->form_data['custom']['custom_1000']['value'];
+        Storage::disk('local')->assertExists($path);
+        Storage::disk('public')->assertMissing($path);
     }
 }

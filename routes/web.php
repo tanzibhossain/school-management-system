@@ -427,6 +427,9 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         // Online admission applications
         Route::get('/admissions', [AdmissionController::class, 'index'])->name('admissions.index');
         Route::get('/admissions/{id}', [AdmissionController::class, 'show'])->name('admissions.show');
+        // Applicant uploads live on the private disk; this is the only way to open them.
+        Route::get('/admissions/{id}/files/{key}', [AdmissionController::class, 'file'])
+            ->where('key', '[A-Za-z0-9_]+')->name('admissions.file');
         Route::patch('/admissions/{id}/approve', [AdmissionController::class, 'approve'])->name('admissions.approve');
         Route::patch('/admissions/{id}/reject', [AdmissionController::class, 'reject'])->name('admissions.reject');
 

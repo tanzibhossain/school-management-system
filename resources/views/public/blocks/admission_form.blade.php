@@ -31,6 +31,10 @@ $enabledCustom = array_filter($custom, fn($cfg) => !empty($cfg['enabled']));
   <?php endif; ?>
   <form method="POST" action="<?= route('admission.submit') ?>" enctype="multipart/form-data" class="card"><div class="card-body">
     <?= csrf_field() ?>
+    <?php if (isset($page) && $page instanceof \App\Modules\Website\Models\Page): ?>
+      {{-- Lets the server validate custom fields against this page's saved form config. --}}
+      <input type="hidden" name="page_id" value="<?= (int) $page->id ?>">
+    <?php endif; ?>
     {{-- Student --}}
     <h3 class="text-uppercase text-muted small fw-semibold form-section-label">{{ __('Student Information') }}</h3>
     <div class="row g-3 mb-3">

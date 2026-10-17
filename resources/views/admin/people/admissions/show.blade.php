@@ -41,6 +41,92 @@
     </div>
   </div>
 
+  @php
+    // form_data holds everything the public form collects beyond the core
+    // columns; applications from the API (or before form_data existed) may have none.
+    $fd = is_array($application->form_data) ? $application->form_data : [];
+    $val = fn ($v) => is_scalar($v) && filled($v) ? $v : '—';
+    $custom = is_array($fd['custom'] ?? null) ? $fd['custom'] : [];
+    $guardianTypes = ['father' => __('Father'), 'mother' => __('Mother'), 'other' => __('Other')];
+  @endphp
+
+  @if ($fd !== [] || $application->birth_certificate_no || $application->notes)
+    <div class="row g-4 mt-0">
+      <div class="col-lg-6">
+        <div class="card"><div class="card-header">{{ __('Student Details') }}</div><div class="card-body">
+          <div class="d-flex gap-3 align-items-start">
+            <dl class="row mb-0 flex-grow-1">
+              <dt class="col-5 text-muted">{{ __('Birth Certificate No.') }}</dt><dd class="col-7">{{ $val($application->birth_certificate_no) }}</dd>
+              <dt class="col-5 text-muted">{{ __('Student Phone') }}</dt><dd class="col-7">{{ $val($application->student_phone) }}</dd>
+              <dt class="col-5 text-muted">{{ __('Religion') }}</dt><dd class="col-7">{{ $val($fd['religion'] ?? null) }}</dd>
+              <dt class="col-5 text-muted">{{ __('Previous School') }}</dt><dd class="col-7">{{ $val($fd['previous_school'] ?? null) }}</dd>
+              <dt class="col-5 text-muted">{{ __('GPA') }}</dt><dd class="col-7">{{ $val($fd['gpa'] ?? null) }}</dd>
+            </dl>
+            @if (! empty($fd['photo']))
+              <a href="{{ route('admin.admissions.file', [$application->id, 'photo']) }}" target="_blank" rel="noopener">
+                <img src="{{ route('admin.admissions.file', [$application->id, 'photo']) }}" alt="{{ __('Student Photo') }}" class="img-thumbnail" style="max-width:120px;max-height:150px;object-fit:cover">
+              </a>
+            @endif
+          </div>
+        </div></div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card"><div class="card-header">{{ __('Parents') }}</div><div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-5 text-muted">{{ __('Father\'s Name') }}</dt><dd class="col-7">{{ $val($fd['father_name'] ?? null) }}</dd>
+            <dt class="col-5 text-muted">{{ __('Father\'s Phone') }}</dt><dd class="col-7">{{ $val($fd['father_phone'] ?? null) }}</dd>
+            <dt class="col-5 text-muted">{{ __('Father\'s NID') }}</dt><dd class="col-7">{{ $val($application->father_nid) }}</dd>
+            <dt class="col-5 text-muted">{{ __('Mother\'s Name') }}</dt><dd class="col-7">{{ $val($fd['mother_name'] ?? null) }}</dd>
+            <dt class="col-5 text-muted">{{ __('Mother\'s NID') }}</dt><dd class="col-7">{{ $val($fd['mother_nid'] ?? null) }}</dd>
+            <dt class="col-5 text-muted">{{ __('Guardian Is') }}</dt><dd class="col-7">{{ $val($guardianTypes[$fd['guardian_type'] ?? ''] ?? null) }}</dd>
+            @if (! empty($fd['guardian_relationship']))
+              <dt class="col-5 text-muted">{{ __('Guardian Relationship') }}</dt><dd class="col-7">{{ $fd['guardian_relationship'] }}</dd>
+            @endif
+          </dl>
+        </div></div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card"><div class="card-header">{{ __('Address') }}</div><div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-5 text-muted">{{ __('Present Address') }}</dt><dd class="col-7" style="white-space:pre-line">{{ $val($fd['present_address'] ?? null) }}</dd>
+            <dt class="col-5 text-muted">{{ __('Permanent Address') }}</dt>
+            <dd class="col-7" style="white-space:pre-line">{{ ! empty($fd['is_permanent_same']) ? __('Same As Present Address') : $val($fd['permanent_address'] ?? null) }}</dd>
+          </dl>
+        </div></div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card"><div class="card-header">{{ __('Notes') }}</div><div class="card-body">
+          <p class="mb-0" style="white-space:pre-line">{{ $val($application->notes) }}</p>
+        </div></div>
+      </div>
+      @if ($custom !== [])
+        <div class="col-12">
+          <div class="card"><div class="card-header">{{ __('Additional Information') }}</div><div class="card-body">
+            <dl class="row mb-0">
+              @foreach ($custom as $key => $answer)
+                @php $answer = is_array($answer) ? $answer : []; @endphp
+                <dt class="col-sm-4 col-lg-3 text-muted">{{ $answer['label'] ?? $key }}</dt>
+                <dd class="col-sm-8 col-lg-9" style="white-space:pre-line">
+                  @if (($answer['type'] ?? null) === 'file')
+                    @if (filled($answer['value'] ?? null))
+                      <a href="{{ route('admin.admissions.file', [$application->id, $key]) }}" target="_blank" rel="noopener"><i class="bi bi-paperclip"></i> {{ __('View File') }}</a>
+                    @else
+                      —
+                    @endif
+                  @elseif (($answer['type'] ?? null) === 'checkbox')
+                    {{ ! empty($answer['value']) ? __('Yes') : __('No') }}
+                  @else
+                    {{ $val($answer['value'] ?? null) }}
+                  @endif
+                </dd>
+              @endforeach
+            </dl>
+          </div></div>
+        </div>
+      @endif
+    </div>
+  @endif
+
   @if ($application->status === 'submitted')
     {{-- Approve --}}
     <div class="modal fade" id="approveModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">

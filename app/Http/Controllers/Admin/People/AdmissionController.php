@@ -10,8 +10,10 @@ use App\Modules\OnlineAdmission\Services\AdmissionApplicationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class AdmissionController extends Controller
@@ -47,6 +49,23 @@ class AdmissionController extends Controller
             'sections' => $sections,
             'class' => $application->desired_class_id ? SchoolClass::find($application->desired_class_id) : null,
             'year' => $application->desired_academic_year_id ? AcademicYear::find($application->desired_academic_year_id) : null,
+        ]);
+    }
+
+    /**
+     * Stream an applicant's upload (photo or a custom file field) from private
+     * storage. Same role gate as the review page; the path always comes from
+     * the application itself, never the request.
+     */
+    public function file(int $id, string $key): StreamedResponse
+    {
+        $application = AdmissionApplication::where('school_id', app('current_school_id'))->findOrFail($id);
+        $file = $this->admissions->storedFile($application, $key);
+        abort_unless($file !== null, 404);
+
+        return Storage::disk($file['disk'])->response($file['path'], null, [
+            'Cache-Control' => 'private, no-store',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Public;
 
 use App\Modules\Academic\Models\SchoolClass;
 use App\Modules\OnlineAdmission\Services\AdmissionApplicationService;
+use App\Modules\OnlineAdmission\Support\AdmissionFormSchema;
 use App\Modules\School\Models\School;
+use App\Modules\Website\Services\PageRenderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -16,17 +18,31 @@ use Illuminate\Support\Carbon;
  * `admission_form` block. Core fields map to columns the approval→enrolment flow
  * needs; the rest are stored in form_data (JSON) so schools can add/hide fields
  * and the form stays global-friendly. Duplicate applications are rejected.
+ *
+ * The form posts the id of the page it was rendered on; custom fields and the
+ * admin's Required switches are validated against that page's saved form
+ * config. Without a (valid) page_id only the standard fields are accepted.
  */
 class AdmissionController extends Controller
 {
-    public function __construct(private readonly AdmissionApplicationService $applications) {}
+    public function __construct(
+        private readonly AdmissionApplicationService $applications,
+        private readonly PageRenderService $pages,
+    ) {}
 
     public function submit(Request $request): RedirectResponse
     {
         $school = School::current();
         abort_unless($school !== null, 404);
 
-        $data = $request->validate($this->rules($request, $school->id));
+        $schema = new AdmissionFormSchema(
+            $this->pages->admissionFormFields($school->id, $request->integer('page_id'), app()->getLocale()) ?? [],
+        );
+        $data = $request->validate(
+            array_merge($this->rules($request, $school->id, $schema), $schema->rules()),
+            [],
+            $schema->attributes(),
+        );
         $photo = $request->file('photo');
 
         // Throws a 'duplicate' ValidationException -> back with input + error.
@@ -34,15 +50,16 @@ class AdmissionController extends Controller
             $school->id,
             $data,
             $photo instanceof UploadedFile ? $photo : null,
+            $schema,
         );
 
         return back()->with('admission_reference', $application->reference_number);
     }
 
     /** @return array<string, mixed> */
-    private function rules(Request $request, int $sid): array
+    private function rules(Request $request, int $sid, AdmissionFormSchema $schema): array
     {
-        return [
+        $rules = [
             // Student
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['nullable', 'string', 'max:100'],
@@ -90,5 +107,13 @@ class AdmissionController extends Controller
             'is_permanent_same' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
+
+        // Optional standard fields the admin switched to Required.
+        foreach ($schema->requiredStandardFields() as $field) {
+            $rule = $field === 'permanent_address' ? 'required_unless:is_permanent_same,1' : 'required';
+            $rules[$field] = [$rule, ...array_values(array_diff($rules[$field], ['nullable']))];
+        }
+
+        return $rules;
     }
 }

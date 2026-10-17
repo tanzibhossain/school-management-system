@@ -151,7 +151,19 @@
 
 @push('scripts')
 <script>
-    var customFieldCounter = 1000;
+    // Next unused custom_N key. Must look at the fields already on the page:
+    // a counter that restarts on every load reuses a saved field's key, and
+    // the new row then overwrites that field when the page is saved.
+    function nextCustomFieldKey() {
+        var max = 999;
+        document.querySelectorAll('[name*="[data][fields][custom_"]').forEach(function (el) {
+            var m = el.name.match(/\[data\]\[fields\]\[custom_(\d+)\]/);
+            if (m) {
+                max = Math.max(max, parseInt(m[1], 10));
+            }
+        });
+        return 'custom_' + (max + 1);
+    }
 
     function addCustomField(prefix) {
         var tplId = prefix.replace(/[\[\]]/g, '_') + '_custom_field_tpl';
@@ -169,7 +181,7 @@
             return;
         }
 
-        var html = tpl.innerHTML.replace(/__KEY__/g, 'custom_' + customFieldCounter++);
+        var html = tpl.innerHTML.replace(/__KEY__/g, nextCustomFieldKey());
         container.insertAdjacentHTML('beforeend', html);
     }
 

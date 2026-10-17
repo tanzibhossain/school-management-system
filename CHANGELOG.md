@@ -6,6 +6,15 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Admission review page shows everything the applicant submitted, including custom answers and uploads.
+- Applicant photos and uploaded files are stored privately; only admins can open them.
+
+### Fixed
+- Online admission form: answers to custom fields are validated and saved.
+- Online admission form: fields the admin marks Required are enforced on submit.
+- Page editor: adding a custom admission field no longer overwrites an existing one.
+
 ## [1.4.9] — 2026-10-17
 
 ### Fixed
