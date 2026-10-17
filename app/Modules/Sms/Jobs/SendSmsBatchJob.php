@@ -84,7 +84,7 @@ class SendSmsBatchJob implements ShouldQueue
             'class_id' => $batch->class_id,
             'section_id' => $batch->section_id,
             'target_ids' => $batch->target_ids,
-        ])->map(fn (Student $student) => ['student' => $student, 'body' => $batch->message_body]);
+        ])->map(fn (Student $student) => ['student' => $student, 'body' => (string) $batch->message_body]);
     }
 
     /** @return Collection<int, array{student: Student, body: string}> */
@@ -106,14 +106,14 @@ class SendSmsBatchJob implements ShouldQueue
                 return null;
             }
 
-            return [
-                'student' => $student,
-                'body' => __('sms_templates.due_reminder', [
-                    'student' => $student->name,
-                    'amount' => number_format($due->total_due, 2),
-                    'currency' => $due->currency,
-                ]),
-            ];
+            $body = __('sms_templates.due_reminder', [
+                'student' => $student->name,
+                'amount' => number_format($due->total_due, 2),
+                'currency' => $due->currency,
+            ]);
+
+            // __() is typed string|array (a bare group key returns the whole file); this key never does.
+            return ['student' => $student, 'body' => is_array($body) ? '' : $body];
         })->filter()->values();
     }
 }

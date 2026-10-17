@@ -24,7 +24,7 @@ class AdmissionController extends Controller
     public function submit(Request $request): RedirectResponse
     {
         $school = School::current();
-        abort_unless($school, 404);
+        abort_unless($school !== null, 404);
 
         $data = $request->validate($this->rules($request, $school->id));
         $photo = $request->file('photo');

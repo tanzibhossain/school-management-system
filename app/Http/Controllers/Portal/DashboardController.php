@@ -140,7 +140,7 @@ class DashboardController extends Controller
     public function leaveStore(Request $request, StudentLeaveService $service): RedirectResponse
     {
         $ctx = $this->context();
-        abort_unless($ctx['student'], 404);
+        abort_unless($ctx['student'] !== null, 404);
         $sid = app('current_school_id');
 
         $data = $request->validate([
@@ -178,7 +178,7 @@ class DashboardController extends Controller
     public function marksheet(int $examId)
     {
         $ctx = $this->context();
-        abort_unless($ctx['student'], 404);
+        abort_unless($ctx['student'] !== null, 404);
         $sid = app('current_school_id');
 
         $result = ExamResult::where('school_id', $sid)

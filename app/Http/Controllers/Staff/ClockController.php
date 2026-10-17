@@ -38,7 +38,7 @@ class ClockController extends Controller
     public function punch(): RedirectResponse
     {
         [$sid, $staff] = $this->context();
-        abort_unless($staff, 403, 'No staff record is linked to your account.');
+        abort_unless($staff !== null, 403, 'No staff record is linked to your account.');
 
         $this->attendance->punchStaff($sid, $staff, 'manual');
 

@@ -7,8 +7,15 @@ use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @template TModel of Model
+ *
+ * Subclasses declare their model with `@extends BaseRepository<Student>` so
+ * find()/findOrFail()/create()/update() are typed as that model for callers.
+ */
 abstract class BaseRepository
 {
+    /** @var TModel */
     protected Model $model;
 
     protected int $cacheTtl = 3600; // 1 hour
@@ -74,6 +81,7 @@ abstract class BaseRepository
 
     // ─── Base CRUD ────────────────────────────────────────────────────────────
 
+    /** @return Collection<int, TModel> */
     public function all(int $schoolId): Collection
     {
         return $this->remember(
@@ -82,6 +90,7 @@ abstract class BaseRepository
         );
     }
 
+    /** @return TModel|null */
     public function find(int $id, int $schoolId): ?Model
     {
         return $this->remember(
@@ -92,6 +101,7 @@ abstract class BaseRepository
         );
     }
 
+    /** @return TModel */
     public function findOrFail(int $id, int $schoolId): Model
     {
         return $this->remember(
@@ -102,6 +112,10 @@ abstract class BaseRepository
         );
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     * @return TModel
+     */
     public function create(array $data): Model
     {
         $record = $this->model->newQuery()->create($data);
@@ -110,6 +124,11 @@ abstract class BaseRepository
         return $record;
     }
 
+    /**
+     * @param  TModel  $model
+     * @param  array<string, mixed>  $data
+     * @return TModel
+     */
     public function update(Model $model, array $data): Model
     {
         $model->update($data);

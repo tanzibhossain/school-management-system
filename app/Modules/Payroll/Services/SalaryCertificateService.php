@@ -7,6 +7,7 @@ use App\Modules\Payroll\Models\SalaryCertificateRequest;
 use App\Modules\School\Models\School;
 use App\Modules\Staff\Models\Staff;
 use App\Services\PdfRenderingService;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 
 class SalaryCertificateService
@@ -51,7 +52,7 @@ class SalaryCertificateService
     private function buildHtml(School $school, Staff $staff, SalaryCertificateRequest $request, float $gross): string
     {
         $joined = $staff->joining_date ? Carbon::parse($staff->joining_date) : null;
-        $duration = $joined ? $joined->diffForHumans(now(), true) : 'N/A';
+        $duration = $joined ? $joined->diffForHumans(now(), CarbonInterface::DIFF_ABSOLUTE) : 'N/A';
 
         $schoolName = e($school->name);
         $staffName = e($staff->name);

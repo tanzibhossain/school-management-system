@@ -30,7 +30,7 @@ class AttendanceSetting extends Model
     ];
 
     /** Get (or lazily create) the settings row for a school. */
-    public static function forSchool(int $schoolId): static
+    public static function forSchool(int $schoolId): self
     {
         return static::firstOrCreate(['school_id' => $schoolId]);
     }

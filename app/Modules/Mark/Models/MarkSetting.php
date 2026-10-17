@@ -29,7 +29,7 @@ class MarkSetting extends Model
     ];
 
     /** Get (or lazily create) settings for a class. */
-    public static function forClass(int $schoolId, int $classId): static
+    public static function forClass(int $schoolId, int $classId): self
     {
         return static::firstOrCreate(['school_id' => $schoolId, 'class_id' => $classId]);
     }

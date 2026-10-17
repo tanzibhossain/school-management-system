@@ -37,7 +37,7 @@ class LeaveController extends Controller
     public function store(Request $request): RedirectResponse
     {
         [$sid, $staff] = $this->context();
-        abort_unless($staff, 403, 'No staff record is linked to your account.');
+        abort_unless($staff !== null, 403, 'No staff record is linked to your account.');
 
         $data = $request->validate([
             'leave_type_id' => ['required', 'integer', "exists:leave_types,id,school_id,{$sid}"],

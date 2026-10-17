@@ -24,7 +24,7 @@ class PageController extends Controller
     public function show(string $slug): View|RedirectResponse
     {
         $school = School::current();
-        abort_unless($school, 404);
+        abort_unless($school !== null, 404);
 
         $page = $this->portal->pageBySlug($school->id, $slug);
 

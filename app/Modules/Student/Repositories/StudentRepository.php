@@ -8,6 +8,7 @@ use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
+/** @extends BaseRepository<Student> */
 class StudentRepository extends BaseRepository
 {
     public function __construct(CacheRepository $cache)

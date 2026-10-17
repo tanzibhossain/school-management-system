@@ -29,7 +29,7 @@ class SchoolService extends BaseService
      */
     public function updateSettings(School $school, array $data): School
     {
-        return $this->repository->update($school, $data);
+        return $this->schools->update($school, $data);
     }
 
     /**

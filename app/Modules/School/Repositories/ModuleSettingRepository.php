@@ -7,6 +7,7 @@ use App\Repositories\BaseRepository;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Database\Eloquent\Collection;
 
+/** @extends BaseRepository<ModuleSetting> */
 class ModuleSettingRepository extends BaseRepository
 {
     public function __construct(CacheRepository $cache)

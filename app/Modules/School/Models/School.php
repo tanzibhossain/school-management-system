@@ -78,7 +78,7 @@ class School extends Model
     /**
      * Return the single school record for this tenant container.
      */
-    public static function current(): ?static
+    public static function current(): ?self
     {
         return static::first();
     }

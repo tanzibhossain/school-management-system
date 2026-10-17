@@ -10,7 +10,11 @@ class SalaryComponentService
 {
     public function __construct(private readonly SalaryComponentRepository $repository) {}
 
-    /** Lazily seeds config('payroll.default_components') the first time a school has none. */
+    /**
+     * Lazily seeds config('payroll.default_components') the first time a school has none.
+     *
+     * @return Collection<int, SalaryComponent>
+     */
     public function forSchool(int $schoolId): Collection
     {
         $this->ensureDefaults($schoolId);

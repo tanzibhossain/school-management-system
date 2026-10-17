@@ -5,7 +5,6 @@ namespace App\Modules\Student\Http\Controllers;
 use App\Modules\Student\Http\Requests\PromoteStudentRequest;
 use App\Modules\Student\Http\Resources\StudentAcademicResource;
 use App\Modules\Student\Http\Resources\StudentResource;
-use App\Modules\Student\Models\Student;
 use App\Modules\Student\Repositories\StudentRepository;
 use App\Modules\Student\Services\StudentService;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -21,7 +20,6 @@ class StudentAcademicController extends Controller
     /** List all academic records (history) for a student. */
     public function index(int $studentId): AnonymousResourceCollection
     {
-        /** @var Student $student */
         $student = $this->repository->findOrFail($studentId, app('current_school_id'));
 
         return StudentAcademicResource::collection(

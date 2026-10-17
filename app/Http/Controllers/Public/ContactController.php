@@ -17,7 +17,7 @@ class ContactController extends Controller
     public function submit(Request $request): RedirectResponse
     {
         $school = School::current();
-        abort_unless($school, 404);
+        abort_unless($school !== null, 404);
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],

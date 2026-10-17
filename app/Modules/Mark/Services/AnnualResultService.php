@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
  */
 class AnnualResultService
 {
-    /** @return Collection<int, array<string, mixed>> one row per student, ranked */
+    /** One row per student, ranked. */
     public function combined(int $schoolId, int $classId, int $yearId): Collection
     {
         $weights = ExamWeight::forClassYear($schoolId, $classId, $yearId)->get();

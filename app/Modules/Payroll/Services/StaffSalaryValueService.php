@@ -18,7 +18,7 @@ class StaffSalaryValueService
      * Every active component for the school, each carrying this staff member's
      * value (0 if never set — "components with no value set show as 0", per spec).
      *
-     * @return Collection<int, array{component: SalaryComponent, amount: string}>
+     * @return Collection<int, array{component: SalaryComponent, amount: numeric-string}>
      */
     public function breakdown(int $schoolId, int $staffId): Collection
     {
