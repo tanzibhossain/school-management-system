@@ -8,6 +8,7 @@ use App\Modules\Academic\Models\AcademicVersion;
 use App\Modules\Academic\Models\AcademicYear;
 use App\Modules\Academic\Models\SchoolClass;
 use App\Modules\Academic\Models\Section;
+use App\Modules\OnlineAdmission\Models\AdmissionApplication;
 use App\Modules\Payment\Models\Invoice;
 use App\Modules\Student\Models\Student;
 use App\Modules\Student\Models\StudentSubject;
@@ -15,11 +16,23 @@ use App\Modules\Student\Services\StudentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class StudentController extends Controller
 {
+    /** Student photos and documents (Student module storage). */
+    private const FILE_DISK = 'minio';
+
+    /** Uploaded files are never cached, sniffed or allowed to run script. */
+    private const FILE_HEADERS = [
+        'Cache-Control' => 'private, no-store',
+        'X-Content-Type-Options' => 'nosniff',
+        'Content-Security-Policy' => 'sandbox',
+    ];
+
     public function __construct(private readonly StudentService $students) {}
 
     public function index(Request $request): View
@@ -124,7 +137,7 @@ class StudentController extends Controller
         $student = Student::where('school_id', $schoolId)
             ->with([
                 'academics.schoolClass:id,name', 'academics.section:id,name',
-                'guardians',
+                'guardians', 'addresses', 'documents',
             ])->findOrFail($id);
 
         $years = AcademicYear::where('school_id', $schoolId)->pluck('year', 'id');
@@ -138,7 +151,30 @@ class StudentController extends Controller
             ->where('student_id', $student->id)
             ->orderByDesc('id')->limit(200)->get();
 
-        return view('admin.people.students.show', compact('student', 'years', 'subjects', 'invoices'));
+        // The online application this student was admitted from, if any —
+        // it keeps the details the student record has no place for.
+        $application = AdmissionApplication::where('school_id', $schoolId)
+            ->where('created_student_id', $student->id)->first(['id', 'reference_number']);
+
+        return view('admin.people.students.show', compact('student', 'years', 'subjects', 'invoices', 'application'));
+    }
+
+    public function photo(int $id): StreamedResponse
+    {
+        $student = Student::where('school_id', app('current_school_id'))->findOrFail($id);
+        abort_unless($student->photo && Storage::disk(self::FILE_DISK)->exists($student->photo), 404);
+
+        return Storage::disk(self::FILE_DISK)->response($student->photo, null, self::FILE_HEADERS);
+    }
+
+    /** Documents can be any file type, so they always download rather than open in the browser. */
+    public function document(int $id, int $documentId): StreamedResponse
+    {
+        $student = Student::where('school_id', app('current_school_id'))->findOrFail($id);
+        $document = $student->documents()->findOrFail($documentId);
+        abort_unless(Storage::disk(self::FILE_DISK)->exists($document->file_path), 404);
+
+        return Storage::disk(self::FILE_DISK)->download($document->file_path, $document->original_name, self::FILE_HEADERS);
     }
 
     public function transfer(Request $request, int $id): RedirectResponse

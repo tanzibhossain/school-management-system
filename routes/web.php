@@ -406,6 +406,9 @@ Route::middleware(['auth', 'school'])->prefix('admin')->name('admin.')->group(fu
         Route::get('/students/create', [StudentController::class, 'create'])->name('students.create');
         Route::post('/students', [StudentController::class, 'store'])->name('students.store');
         Route::get('/students/{id}', [StudentController::class, 'show'])->name('students.show');
+        Route::get('/students/{id}/photo', [StudentController::class, 'photo'])->whereNumber('id')->name('students.photo');
+        Route::get('/students/{id}/documents/{documentId}', [StudentController::class, 'document'])
+            ->whereNumber(['id', 'documentId'])->name('students.documents.show');
         Route::put('/students/{id}', [StudentController::class, 'update'])->name('students.update');
         Route::patch('/students/{id}/deactivate', [StudentController::class, 'deactivate'])->name('students.deactivate');
         Route::patch('/students/{id}/transfer', [StudentController::class, 'transfer'])->name('students.transfer');

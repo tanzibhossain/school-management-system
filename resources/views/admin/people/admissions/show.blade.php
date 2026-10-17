@@ -7,6 +7,9 @@
       <nav><ol class="breadcrumb small mb-1"><li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none">{{ __('Home') }}</a></li><li class="breadcrumb-item">{{ __('People') }}</li><li class="breadcrumb-item"><a href="{{ route('admin.admissions.index') }}" class="text-decoration-none">{{ __('Admissions') }}</a></li><li class="breadcrumb-item active">{{ $application->reference_number }}</li></ol></nav>
       <h1 class="h4 mb-0">{{ $application->applicant_name }} <x-badge :variant="$badgeMap[$application->status] ?? 'neutral'" class="align-middle">{{ ucfirst($application->status) }}</x-badge></h1>
     </div>
+    @if ($application->created_student_id)
+      <a href="{{ route('admin.students.show', $application->created_student_id) }}" class="btn btn-outline-primary"><i class="bi bi-person"></i> {{ __('View Student') }}</a>
+    @endif
     @if ($application->status === 'submitted')
       <div class="d-flex gap-2">
         <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#approveModal"><i class="bi bi-check2-all"></i> Approve &amp; enrol</button>

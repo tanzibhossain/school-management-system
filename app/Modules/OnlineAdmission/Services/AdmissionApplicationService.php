@@ -5,12 +5,16 @@ namespace App\Modules\OnlineAdmission\Services;
 use App\Models\User;
 use App\Modules\OnlineAdmission\Models\AdmissionApplication;
 use App\Modules\OnlineAdmission\Support\AdmissionFormSchema;
+use App\Modules\Student\Models\Student;
+use App\Modules\Student\Models\StudentAddress;
+use App\Modules\Student\Models\StudentDocument;
 use App\Modules\Student\Services\StudentService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
+use Throwable;
 
 /**
  * submit() creates the application; approve() calls the SAME
@@ -32,6 +36,9 @@ class AdmissionApplicationService
 
     /** Where photos were stored before uploads became private. */
     private const LEGACY_PHOTO_DISK = 'public';
+
+    /** Where the Student module keeps student photos and documents. */
+    private const STUDENT_DISK = 'minio';
 
     public function __construct(
         private readonly AdmissionReferenceGeneratorService $referenceGenerator,
@@ -146,7 +153,7 @@ class AdmissionApplicationService
      */
     public function storedFile(AdmissionApplication $application, string $key): ?array
     {
-        $formData = is_array($application->form_data) ? $application->form_data : [];
+        $formData = $this->formData($application);
         if ($key === 'photo') {
             $path = $formData['photo'] ?? null;
             $disks = [self::FILE_DISK, self::LEGACY_PHOTO_DISK];
@@ -194,47 +201,176 @@ class AdmissionApplicationService
      * class_id?, academic_year_id?, roll_number?} — class/year default to what
      * the applicant requested but can be overridden if plans changed since.
      *
+     * Everything the student record has a place for is carried over: religion,
+     * photo, guardians (primary + father/mother), addresses, and custom file
+     * uploads as documents. The rest (birth certificate no., NIDs, previous
+     * school, GPA, custom text answers) stays on the application, which links
+     * to the student. Uploads are copied to student storage first and removed
+     * again if the approval fails, so a failed approval leaves nothing behind.
+     *
      * @param  array<string, mixed>  $decision
      */
     public function approve(AdmissionApplication $application, User $user, array $decision): AdmissionApplication
     {
         $this->guardUndecided($application);
+        $copied = $this->copyUploadsToStudentStorage($application);
 
-        return DB::transaction(function () use ($application, $user, $decision): AdmissionApplication {
-            $student = $this->studentService->enrol(
-                $application->school_id,
-                [
-                    'admission_number' => $decision['admission_number'],
-                    'name' => $application->applicant_name,
-                    'gender' => $application->gender,
-                    'dob' => $application->dob?->toDateString(),
-                    'blood_group' => $application->blood_group,
-                ],
-                [
-                    'academic_year_id' => $decision['academic_year_id'] ?? $application->desired_academic_year_id,
-                    'class_id' => $decision['class_id'] ?? $application->desired_class_id,
-                    'section_id' => $decision['section_id'],
-                    'roll_number' => $decision['roll_number'] ?? null,
-                ],
-                [
+        try {
+            return DB::transaction(function () use ($application, $user, $decision, $copied): AdmissionApplication {
+                $student = $this->studentService->enrol(
+                    $application->school_id,
                     [
-                        'relation' => $application->guardian_relation,
-                        'name' => $application->guardian_name,
-                        'phone' => $application->guardian_phone,
-                        'email' => $application->guardian_email,
+                        'admission_number' => $decision['admission_number'],
+                        'name' => $application->applicant_name,
+                        'gender' => $application->gender,
+                        'dob' => $application->dob?->toDateString(),
+                        'blood_group' => $application->blood_group,
+                        'religion' => $this->formText($application, 'religion'),
+                        'photo' => $copied['photo'],
                     ],
-                ],
-            );
+                    [
+                        'academic_year_id' => $decision['academic_year_id'] ?? $application->desired_academic_year_id,
+                        'class_id' => $decision['class_id'] ?? $application->desired_class_id,
+                        'section_id' => $decision['section_id'],
+                        'roll_number' => $decision['roll_number'] ?? null,
+                    ],
+                    $this->guardiansFor($application),
+                );
 
-            $application->update([
-                'status' => 'approved',
-                'decided_by' => $user->id,
-                'decided_at' => now(),
-                'created_student_id' => $student->id,
-            ]);
+                $this->addAddresses($student, $application);
+                foreach ($copied['documents'] as $document) {
+                    StudentDocument::create([
+                        'school_id' => $student->school_id,
+                        'student_id' => $student->id,
+                        'document_type' => 'other',
+                        'file_path' => $document['path'],
+                        'original_name' => $document['name'],
+                        'uploaded_by' => $user->id,
+                    ]);
+                }
 
-            return $application->fresh(['student']);
-        });
+                $application->update([
+                    'status' => 'approved',
+                    'decided_by' => $user->id,
+                    'decided_at' => now(),
+                    'created_student_id' => $student->id,
+                ]);
+
+                return $application->fresh(['student']);
+            });
+        } catch (Throwable $e) {
+            $paths = array_column($copied['documents'], 'path');
+            if ($copied['photo'] !== null) {
+                $paths[] = $copied['photo'];
+            }
+            Storage::disk(self::STUDENT_DISK)->delete($paths);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * The primary guardian from the application, plus the father and mother
+     * from the form when neither is already that primary guardian.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function guardiansFor(AdmissionApplication $application): array
+    {
+        $guardians = [[
+            'relation' => $application->guardian_relation,
+            'name' => $application->guardian_name,
+            'phone' => self::guardianPhone($application->guardian_phone),
+            'email' => $application->guardian_email,
+            'is_primary' => true,
+        ]];
+
+        $parents = [
+            'father' => [$this->formText($application, 'father_name'), $this->formText($application, 'father_phone')],
+            'mother' => [$this->formText($application, 'mother_name'), null],
+        ];
+        foreach ($parents as $relation => [$name, $phone]) {
+            if ($name !== null && $application->guardian_relation !== $relation) {
+                $guardians[] = ['relation' => $relation, 'name' => $name, 'phone' => self::guardianPhone($phone), 'is_primary' => false];
+            }
+        }
+
+        return $guardians;
+    }
+
+    /**
+     * student_guardians.phone is 20 characters. The form now enforces that, but
+     * applications submitted before it allowed 30 — never fail an approval on it.
+     */
+    private static function guardianPhone(?string $phone): ?string
+    {
+        return $phone === null ? null : mb_substr($phone, 0, 20);
+    }
+
+    /** Present + permanent address from the form ("same as present" copies it). */
+    private function addAddresses(Student $student, AdmissionApplication $application): void
+    {
+        $present = $this->formText($application, 'present_address');
+        $permanent = ! empty($this->formData($application)['is_permanent_same'])
+            ? $present
+            : $this->formText($application, 'permanent_address');
+
+        foreach (['present' => $present, 'permanent' => $permanent] as $type => $address) {
+            if ($address !== null) {
+                StudentAddress::create(['student_id' => $student->id, 'type' => $type, 'address' => $address]);
+            }
+        }
+    }
+
+    /**
+     * Copy the applicant's photo and custom file uploads to student storage.
+     * The originals stay with the application.
+     *
+     * @return array{photo: ?string, documents: list<array{path: string, name: string}>}
+     */
+    private function copyUploadsToStudentStorage(AdmissionApplication $application): array
+    {
+        $dir = "students/{$application->school_id}";
+        $photo = $this->storedFile($application, 'photo');
+        $copied = ['photo' => $photo ? $this->copyToStudentStorage($photo, "{$dir}/photos") : null, 'documents' => []];
+
+        $custom = $this->formData($application)['custom'] ?? [];
+        foreach (is_array($custom) ? $custom : [] as $key => $field) {
+            if (! is_string($key)) {
+                continue;
+            }
+            $file = $this->storedFile($application, $key);
+            $path = $file ? $this->copyToStudentStorage($file, "{$dir}/documents") : null;
+            if ($path !== null) {
+                $label = is_array($field) && is_string($field['label'] ?? null) ? $field['label'] : $key;
+                $copied['documents'][] = ['path' => $path, 'name' => mb_substr($label, 0, 240).'.'.pathinfo($path, PATHINFO_EXTENSION)];
+            }
+        }
+
+        return $copied;
+    }
+
+    /** @param  array{disk: string, path: string}  $file */
+    private function copyToStudentStorage(array $file, string $dir): ?string
+    {
+        $contents = Storage::disk($file['disk'])->get($file['path']);
+        $target = $dir.'/'.basename($file['path']);
+
+        return $contents !== null && Storage::disk(self::STUDENT_DISK)->put($target, $contents) ? $target : null;
+    }
+
+    /** @return array<array-key, mixed> */
+    private function formData(AdmissionApplication $application): array
+    {
+        return is_array($application->form_data) ? $application->form_data : [];
+    }
+
+    /** A trimmed, non-empty string from form_data, else null. */
+    private function formText(AdmissionApplication $application, string $key): ?string
+    {
+        $value = $this->formData($application)[$key] ?? null;
+
+        return is_string($value) && trim($value) !== '' ? trim($value) : null;
     }
 
     public function reject(AdmissionApplication $application, User $user, string $reason): AdmissionApplication

@@ -66,6 +66,7 @@ class AdmissionController extends Controller
         return Storage::disk($file['disk'])->response($file['path'], null, [
             'Cache-Control' => 'private, no-store',
             'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => 'sandbox',
         ]);
     }
 

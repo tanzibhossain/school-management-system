@@ -6,14 +6,20 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Approving an online application also copies religion, photo, father and mother, addresses and uploaded files into the new student.
+- Student page shows the student's photo, addresses and documents, and links to the online application it came from.
+
 ### Changed
 - Admission review page shows everything the applicant submitted, including custom answers and uploads.
 - Applicant photos and uploaded files are stored privately; only admins can open them.
+- Online admission form: father's and guardian's phone are limited to 20 characters.
 
 ### Fixed
 - Online admission form: answers to custom fields are validated and saved.
 - Online admission form: fields the admin marks Required are enforced on submit.
 - Page editor: adding a custom admission field no longer overwrites an existing one.
+- Students admitted from an online application now have their guardian marked as primary.
 
 ## [1.4.9] — 2026-10-17
 

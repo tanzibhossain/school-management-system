@@ -7,6 +7,10 @@
       <h1 class="h4 mb-0">{{ $student->name }} <span class="text-muted">({{ $student->student_id }})</span>
         <x-badge :variant="$student->status === 'active' ? 'success' : 'neutral'" class="align-middle text-capitalize">{{ $student->status }}</x-badge>
       </h1>
+      @if ($application)
+        <div class="small mt-1"><i class="bi bi-clipboard-check"></i> {{ __('Admitted From Online Application') }}
+          <a href="{{ route('admin.admissions.show', $application->id) }}" class="text-decoration-none">{{ $application->reference_number }}</a></div>
+      @endif
     </div>
     @if ($student->status === 'active')
       <div class="d-flex gap-2">
@@ -19,6 +23,7 @@
   <ul class="nav nav-tabs mb-3" role="tablist">
     <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-academics">{{ __('Academics') }}</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-guardians">Guardians ({{ $student->guardians->count() }})</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-documents">{{ __('Documents') }} ({{ $student->documents->count() }})</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-subjects">Subjects ({{ $subjects->count() }})</button></li>
     <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-invoices">Invoices ({{ $invoices->count() }})</button></li>
   </ul>
@@ -32,6 +37,21 @@
           <div class="col-md-3"><span class="text-muted small">{{ __('Blood Group') }}</span><br>{{ $student->blood_group ?? '—' }}</div>
           <div class="col-md-3"><span class="text-muted small">{{ __('Religion') }}</span><br>{{ $student->religion ?? '—' }}</div>
         </div>
+        @php $addresses = $student->addresses->keyBy('type'); @endphp
+        @if ($student->photo || $addresses->isNotEmpty())
+          <div class="row g-3 mb-3">
+            @if ($student->photo)
+              <div class="col-md-3">
+                <img src="{{ route('admin.students.photo', $student->id) }}" alt="{{ __('Student Photo') }}" class="img-thumbnail" style="max-width:120px;max-height:150px;object-fit:cover">
+              </div>
+            @endif
+            @foreach (['present' => __('Present Address'), 'permanent' => __('Permanent Address')] as $type => $label)
+              @if ($addresses->has($type))
+                <div class="col-md-4"><span class="text-muted small">{{ $label }}</span><br><span style="white-space:pre-line">{{ $addresses[$type]->address ?? '—' }}</span></div>
+              @endif
+            @endforeach
+          </div>
+        @endif
         <h2 class="h6">{{ __('Enrolment History') }}</h2>
         <table class="table align-middle mb-0">
           <thead><tr><th>{{ __('Year') }}</th><th>{{ __('Class') }}</th><th>{{ __('Section') }}</th><th>{{ __('Roll') }}</th><th>{{ __('Current') }}</th></tr></thead>
@@ -67,6 +87,28 @@
                   <td>{{ $g->phone ?? '—' }}</td>
                   <td>{{ $g->email ?? '—' }}</td>
                   <td>{!! $g->is_primary ? '<i class="bi bi-check-lg text-success"></i>' : '—' !!}</td>
+                </tr>
+              @endforeach
+            </tbody>
+          </table>
+        @endif
+      </div></div>
+    </div>
+
+    <div class="tab-pane fade" id="tab-documents">
+      <div class="card"><div class="card-body">
+        @if ($student->documents->isEmpty())
+          <p class="text-muted mb-0">{{ __('No Documents Recorded.') }}</p>
+        @else
+          <table class="table align-middle mb-0">
+            <thead><tr><th>{{ __('Document') }}</th><th>{{ __('Type') }}</th><th>{{ __('Added') }}</th><th></th></tr></thead>
+            <tbody>
+              @foreach ($student->documents as $doc)
+                <tr>
+                  <td class="fw-semibold">{{ $doc->original_name }}</td>
+                  <td class="text-capitalize">{{ str_replace('_', ' ', $doc->document_type) }}</td>
+                  <td>{{ $doc->created_at?->format('d M Y') ?? '—' }}</td>
+                  <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{{ route('admin.students.documents.show', [$student->id, $doc->id]) }}"><i class="bi bi-download"></i> {{ __('Download') }}</a></td>
                 </tr>
               @endforeach
             </tbody>

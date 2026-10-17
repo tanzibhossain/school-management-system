@@ -17,7 +17,12 @@ This module supports public admission applications and their approval workflow. 
 
 ## Services & Business Rules
 - Public applications are stored as admission records and can be approved later.
-- Approval uses `StudentService::enrol()` to create the student record.
+- Approval uses `StudentService::enrol()` to create the student record, then carries over what the student
+  record has a place for: religion, photo, the primary guardian (`is_primary`) plus father/mother when neither is
+  already the primary guardian, present/permanent addresses, and custom file uploads as `other` documents. Files
+  are copied to the Student module's `minio` disk before the transaction and deleted again if approval fails.
+  Birth certificate no., NIDs, previous school, GPA and custom text answers stay on the application
+  (`created_student_id` links the two; both admin pages link to each other).
 - The workflow is designed to be idempotent and status-driven.
 
 ## Website admission form

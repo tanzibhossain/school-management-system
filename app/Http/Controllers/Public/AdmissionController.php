@@ -92,14 +92,14 @@ class AdmissionController extends Controller
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:1024'],
             // Parents
             'father_name' => ['required', 'string', 'max:150'],
-            'father_phone' => ['required', 'string', 'max:30'],
+            'father_phone' => ['required', 'string', 'max:20'],
             'father_nid' => ['required', 'string', 'max:50'],
             'mother_name' => ['required', 'string', 'max:150'],
             'mother_nid' => ['required', 'string', 'max:50'],
             // Guardian
             'guardian_type' => ['required', 'in:father,mother,other'],
             'guardian_name' => ['nullable', 'string', 'max:150'],
-            'guardian_phone' => ['nullable', 'string', 'max:30'],
+            'guardian_phone' => ['nullable', 'string', 'max:20'],
             'guardian_relationship' => ['nullable', 'string', 'max:100'],
             // Address
             'present_address' => ['required', 'string', 'max:500'],
