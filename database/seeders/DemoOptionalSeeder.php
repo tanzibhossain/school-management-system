@@ -8,9 +8,9 @@ use App\Modules\Academic\Models\Subject;
 use App\Modules\Library\Models\Book;
 use App\Modules\Library\Models\BorrowRecord;
 use App\Modules\Library\Models\LibraryMember;
-use App\Modules\Lms\Models\Assignment;
-use App\Modules\Lms\Models\Course;
-use App\Modules\Lms\Models\Lesson;
+use App\Modules\LMS\Models\Assignment;
+use App\Modules\LMS\Models\Course;
+use App\Modules\LMS\Models\Lesson;
 use App\Modules\Payroll\Models\SalaryComponent;
 use App\Modules\Payroll\Models\StaffSalaryValue;
 use App\Modules\School\Models\School;
@@ -92,7 +92,7 @@ class DemoOptionalSeeder extends Seeder
         }
 
         // One active borrow.
-        if ($studentMember && $firstBook && $firstBook->available_copies > 0) {
+        if ($studentMember && $firstBook->available_copies > 0) {
             $exists = BorrowRecord::where('school_id', $sid)
                 ->where('library_member_id', $studentMember->id)->where('book_id', $firstBook->id)->exists();
             if (! $exists) {

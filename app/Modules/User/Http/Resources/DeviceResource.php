@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Laravel\Sanctum\PersonalAccessToken;
 
+/** @mixin PersonalAccessToken */
 class DeviceResource extends JsonResource
 {
     /**
@@ -13,7 +14,6 @@ class DeviceResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        /** @var PersonalAccessToken $this */
         return [
             'id' => $this->id,
             'device_name' => $this->name,

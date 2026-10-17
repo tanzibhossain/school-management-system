@@ -164,7 +164,7 @@ class AcademicRepository extends BaseRepository
     /**
      * All dropdown data in one cached call.
      *
-     * @return array<string, Collection<int, mixed>>
+     * @return array{classes: Collection<int, SchoolClass>, shifts: Collection<int, AcademicShift>, versions: Collection<int, AcademicVersion>, groups: Collection<int, AcademicGroup>, transports: Collection<int, Transport>, student_types: Collection<int, StudentType>, current_year: AcademicYear|null}
      */
     public function getDropdownData(int $schoolId): array
     {

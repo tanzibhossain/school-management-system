@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class BkashWebhookController extends Controller
 {
@@ -38,9 +39,11 @@ class BkashWebhookController extends Controller
             return response()->json(['message' => 'Payment session expired or not found.'], 404);
         }
 
-        $payment = $this->service->executeBkash($paymentId, $cached['invoice_id'], $cached['school_id']);
+        try {
+            $payment = $this->service->executeBkash($paymentId, $cached['invoice_id'], $cached['school_id']);
+        } catch (RuntimeException $e) {
+            report($e);
 
-        if (! $payment) {
             return response()->json(['message' => 'bKash payment execution failed.'], 422);
         }
 

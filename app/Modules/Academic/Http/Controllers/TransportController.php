@@ -6,7 +6,6 @@ use App\Modules\Academic\Http\Requests\StoreTransportRequest;
 use App\Modules\Academic\Http\Requests\UpdateTransportRequest;
 use App\Modules\Academic\Http\Resources\TransportResource;
 use App\Modules\Academic\Models\Transport;
-use App\Modules\Academic\Repositories\AcademicRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -14,8 +13,6 @@ use Illuminate\Routing\Controller;
 
 class TransportController extends Controller
 {
-    public function __construct(private readonly AcademicRepository $repository) {}
-
     public function index(Request $request): AnonymousResourceCollection
     {
         $schoolId = app('current_school_id');

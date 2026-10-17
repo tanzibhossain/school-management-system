@@ -10,7 +10,9 @@ use App\Modules\School\Models\School;
 use App\Modules\Student\Models\Student;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 /**
@@ -166,6 +168,56 @@ class WebhookTest extends TestCase
         $this->withHeaders($this->paypalHeaders())
             ->postJson('/payments/webhook/paypal', $this->paypalEvent())
             ->assertStatus(400);
+
+        $this->assertDatabaseMissing('payments', ['invoice_id' => $this->invoice->id]);
+    }
+
+    // ── bKash (browser callback) ──────────────────────────────────────────────
+
+    /** @param array<string, mixed> $executeResponse */
+    private function bkashCallback(array $executeResponse): TestResponse
+    {
+        $this->config('bkash', [
+            'app_key' => 'k', 'app_secret' => 's', 'username' => 'u', 'password' => 'p',
+            'base_url' => 'https://bkash.test/tokenized',
+        ]);
+        Cache::put('bkash_payment:PAY1', [
+            'school_id' => $this->school->id, 'invoice_id' => $this->invoice->id,
+        ], now()->addHour());
+        Http::fake([
+            '*/checkout/token/grant' => Http::response(['id_token' => 'tok']),
+            '*/checkout/execute' => Http::response($executeResponse),
+        ]);
+
+        return $this->getJson('/api/v2/payments/bkash/callback?paymentID=PAY1&status=success');
+    }
+
+    public function test_bkash_callback_records_a_completed_payment(): void
+    {
+        $this->bkashCallback([
+            'statusCode' => '0000', 'statusMessage' => 'Successful', 'paymentID' => 'PAY1',
+            'trxID' => 'TRX1', 'amount' => '5000', 'transactionStatus' => 'Completed',
+        ])->assertOk();
+
+        $this->assertDatabaseHas('payments', [
+            'invoice_id' => $this->invoice->id, 'method' => 'bkash',
+            'transaction_ref' => 'TRX1', 'gateway_payment_id' => 'PAY1',
+        ]);
+    }
+
+    public function test_bkash_callback_returns_422_when_bkash_rejects_the_execute(): void
+    {
+        $this->bkashCallback(['statusCode' => '2056', 'statusMessage' => 'Invalid Payment State'])
+            ->assertStatus(422);
+
+        $this->assertDatabaseMissing('payments', ['invoice_id' => $this->invoice->id]);
+    }
+
+    public function test_bkash_callback_returns_422_when_the_payment_is_not_completed(): void
+    {
+        $this->bkashCallback([
+            'statusCode' => '0000', 'trxID' => 'TRX1', 'amount' => '5000', 'transactionStatus' => 'Initiated',
+        ])->assertStatus(422);
 
         $this->assertDatabaseMissing('payments', ['invoice_id' => $this->invoice->id]);
     }

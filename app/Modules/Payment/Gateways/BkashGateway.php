@@ -82,7 +82,10 @@ class BkashGateway
     /**
      * Execute payment after customer completes on bKash app.
      *
-     * @return array{ trxID: string, amount: string, transactionStatus: string }
+     * The decoded bKash response: statusCode, statusMessage, trxID, amount,
+     * transactionStatus, ... — external data, so callers check what they use.
+     *
+     * @return array<string, mixed>
      */
     public function executePayment(string $token, string $paymentId): array
     {
@@ -99,7 +102,10 @@ class BkashGateway
     }
 
     /**
-     * Query payment status from bKash (used for verification).
+     * Query payment status from bKash (used for verification). Same response
+     * fields as executePayment(); an empty body comes back as [].
+     *
+     * @return array<string, mixed>
      */
     public function queryPayment(string $token, string $paymentId): array
     {
@@ -108,7 +114,7 @@ class BkashGateway
 
         $this->log(null, 'query', ['paymentID' => $paymentId], $response->json(), $response->status());
 
-        return $response->json();
+        return $response->json() ?? [];
     }
 
     /**

@@ -187,7 +187,7 @@ $enabledCustom = array_filter($custom, fn($cfg) => !empty($cfg['enabled']));
                     } elseif ($type === 'file') {
                         echo '<input type="file" name="custom['.$key.']" accept="image/png,image/jpeg" class="form-control" '.($required ? 'required' : '').'>';
                     } elseif ($type === 'checkbox') {
-                        echo '<div class="form-check"><input type="hidden" name="custom['.$key.']" value="0"><input class="form-check-input" type="checkbox" name="custom['.$key.']" value="1" '.(old('custom.'.$key) ? 'checked' : '').'><label class="form-check-label">'.$label.'</label></div>';
+                        echo '<div class="form-check"><input type="hidden" name="custom['.$key.']" value="0"><input class="form-check-input" type="checkbox" name="custom['.$key.']" value="1" '.(old('custom.'.$key) ? 'checked' : '').'><label class="form-check-label">'.e($label).'</label></div>';
                     } else {
                         echo '<input type="text" name="custom['.$key.']" class="form-control" value="'.e(old('custom.'.$key)).'" '.($required ? 'required' : '').'>';
                     }

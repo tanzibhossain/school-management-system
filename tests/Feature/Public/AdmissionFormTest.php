@@ -217,6 +217,18 @@ class AdmissionFormTest extends TestCase
             ->assertDontSee('শেষ নাম');
     }
 
+    public function test_custom_select_field_renders_its_options(): void
+    {
+        $this->publishAdmissionPage(['fields' => [
+            'transport_need' => ['label' => 'Transport Need', 'type' => 'select', 'options' => 'School Bus, Private', 'enabled' => '1'],
+        ]]);
+
+        $this->get('/online-admission')->assertOk()
+            ->assertSee('name="custom[transport_need]"', false)
+            ->assertSee('<option value="School Bus"', false)
+            ->assertSee('<option value="Private"', false);
+    }
+
     public function test_photo_upload_is_stored(): void
     {
         Storage::fake('public');

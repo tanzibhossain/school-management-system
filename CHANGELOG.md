@@ -4,6 +4,12 @@ All notable changes to this project are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning
 follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+- Online admission form: custom dropdown fields now show their options.
+- bKash API callback returns 422 instead of 500 when bKash rejects or doesn't complete the payment.
+
 ## [1.4.8] — 2026-10-16
 
 ### Changed

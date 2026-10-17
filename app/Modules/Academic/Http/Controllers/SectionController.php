@@ -6,7 +6,6 @@ use App\Modules\Academic\Http\Requests\StoreSectionRequest;
 use App\Modules\Academic\Http\Requests\UpdateSectionRequest;
 use App\Modules\Academic\Http\Resources\SectionResource;
 use App\Modules\Academic\Models\Section;
-use App\Modules\Academic\Repositories\AcademicRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -14,8 +13,6 @@ use Illuminate\Routing\Controller;
 
 class SectionController extends Controller
 {
-    public function __construct(private readonly AcademicRepository $repository) {}
-
     public function index(Request $request): AnonymousResourceCollection
     {
         $schoolId = app('current_school_id');

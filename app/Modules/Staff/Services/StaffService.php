@@ -55,7 +55,7 @@ class StaffService extends BaseService
     public function assign(Staff $staff, array $data): StaffAcademic
     {
         // Enforce one class teacher per section per year
-        if (! empty($data['is_class_teacher']) && $data['is_class_teacher']) {
+        if (! empty($data['is_class_teacher'])) {
             $existing = StaffAcademic::where('school_id', $staff->school_id)
                 ->where('academic_year_id', $data['academic_year_id'])
                 ->where('class_id', $data['class_id'])

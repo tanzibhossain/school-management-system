@@ -6,7 +6,6 @@ use App\Modules\Academic\Http\Requests\StoreAcademicShiftRequest;
 use App\Modules\Academic\Http\Requests\UpdateAcademicShiftRequest;
 use App\Modules\Academic\Http\Resources\AcademicShiftResource;
 use App\Modules\Academic\Models\AcademicShift;
-use App\Modules\Academic\Repositories\AcademicRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -14,8 +13,6 @@ use Illuminate\Routing\Controller;
 
 class AcademicShiftController extends Controller
 {
-    public function __construct(private readonly AcademicRepository $repository) {}
-
     public function index(Request $request): AnonymousResourceCollection
     {
         $schoolId = app('current_school_id');

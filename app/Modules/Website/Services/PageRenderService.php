@@ -136,7 +136,7 @@ class PageRenderService
      * 'heading' text), so the locale has to be threaded all the way down to
      * PublicPortalService rather than translated once and cached.
      *
-     * @param  array{type: string, data: array}  $block
+     * @param  array{type: string, data?: array<string, mixed>}  $block
      * @return array<string, mixed>
      */
     public function resolveBlockData(int $schoolId, array $block, string $locale, int $depth = 0): array
@@ -474,8 +474,10 @@ class PageRenderService
      * - New format: ['field_key' => ['enabled' => true, 'label' => '...', 'required' => false], ...]
      * - Old format: 'hidden' => 'field1,field2,field3' (comma-separated string)
      *
+     * Custom (non-standard) fields also carry their 'type' and raw 'options'.
+     *
      * @param  array|string|null  $fields
-     * @return array<string, array{enabled: bool, label: ?string, required: bool}>
+     * @return array<string, array{enabled: bool, label: ?string, required: bool, type?: string, options?: mixed}>
      */
     private function normalizeAdmissionFields($fields): array
     {
@@ -535,6 +537,7 @@ class PageRenderService
                         'label' => $cfg['label'] ?? ucfirst(str_replace('_', ' ', $key)),
                         'required' => (bool) ($cfg['required'] ?? false),
                         'type' => $cfg['type'] ?? 'text',
+                        'options' => $cfg['options'] ?? null,
                     ];
                 }
             }
@@ -575,12 +578,13 @@ class PageRenderService
 
         foreach ($normalized as $key => $cfg) {
             if (! in_array($key, $standardKeys, true)) {
+                $options = $cfg['options'] ?? null;
                 $customFields[$key] = [
-                    'enabled' => (bool) ($cfg['enabled'] ?? true),
+                    'enabled' => $cfg['enabled'],
                     'label' => $cfg['label'] ?? ucfirst(str_replace('_', ' ', $key)),
-                    'required' => (bool) ($cfg['required'] ?? false),
+                    'required' => $cfg['required'],
                     'type' => $cfg['type'] ?? 'text',
-                    'options' => is_array($cfg['options'] ?? null) ? $cfg['options'] : (is_string($cfg['options'] ?? null) ? array_map('trim', explode(',', $cfg['options'])) : []),
+                    'options' => is_array($options) ? $options : (is_string($options) ? array_map('trim', explode(',', $options)) : []),
                 ];
             }
         }
