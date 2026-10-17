@@ -721,30 +721,6 @@ parameters:
 			path: app/Modules/User/Http/Resources/DeviceResource.php
 
 		-
-			message: '#^Generic type Illuminate\\Contracts\\Pagination\\LengthAwarePaginator\<App\\Modules\\User\\Models\\LoginHistory\> in PHPDoc tag @return does not specify all template types of interface Illuminate\\Contracts\\Pagination\\LengthAwarePaginator\: TKey, TValue$#'
-			identifier: generics.lessTypes
-			count: 1
-			path: app/Modules/User/Repositories/UserRepository.php
-
-		-
-			message: '#^Method App\\Modules\\User\\Repositories\\UserRepository\:\:getAllLoginHistory\(\) should return Illuminate\\Contracts\\Pagination\\LengthAwarePaginator\<App\\Modules\\User\\Models\\LoginHistory\> but returns Illuminate\\Pagination\\LengthAwarePaginator\<int, App\\Modules\\User\\Models\\LoginHistory\>\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Modules/User/Repositories/UserRepository.php
-
-		-
-			message: '#^PHPDoc tag @return with type Illuminate\\Database\\Eloquent\\Collection\<int, App\\Modules\\User\\Models\\LoginHistory\> is not subtype of native type Illuminate\\Contracts\\Pagination\\LengthAwarePaginator\.$#'
-			identifier: return.phpDocType
-			count: 1
-			path: app/Modules/User/Repositories/UserRepository.php
-
-		-
-			message: '#^Type App\\Modules\\User\\Models\\LoginHistory in generic type Illuminate\\Contracts\\Pagination\\LengthAwarePaginator\<App\\Modules\\User\\Models\\LoginHistory\> in PHPDoc tag @return is not subtype of template type TKey of \(int\|string\) of interface Illuminate\\Contracts\\Pagination\\LengthAwarePaginator\.$#'
-			identifier: generics.notSubtype
-			count: 1
-			path: app/Modules/User/Repositories/UserRepository.php
-
-		-
 			message: '#^Using nullsafe method call on non\-nullable type Laravel\\Sanctum\\PersonalAccessToken\. Use \-\> instead\.$#'
 			identifier: nullsafe.neverNull
 			count: 1
