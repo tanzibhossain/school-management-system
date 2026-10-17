@@ -29,10 +29,10 @@ class MakeUploadsPrivateCommandTest extends TestCase
             'filesystems.disks.minio' => ['driver' => 'local', 'root' => $this->private, 'visibility' => 'private'],
         ]);
 
-        $this->put($this->public.'/students/1/photos/p.jpg', 'photo');
-        $this->put($this->public.'/1/payroll/2026/1/7.pdf', 'payslip');
-        $this->put($this->public.'/site/logo.png', 'logo');
-        $this->put($this->public.'/admissions/old.jpg', 'admission');
+        $this->writeFile($this->public.'/students/1/photos/p.jpg', 'photo');
+        $this->writeFile($this->public.'/1/payroll/2026/1/7.pdf', 'payslip');
+        $this->writeFile($this->public.'/site/logo.png', 'logo');
+        $this->writeFile($this->public.'/admissions/old.jpg', 'admission');
     }
 
     protected function tearDown(): void
@@ -42,7 +42,7 @@ class MakeUploadsPrivateCommandTest extends TestCase
         parent::tearDown();
     }
 
-    private function put(string $path, string $contents): void
+    private function writeFile(string $path, string $contents): void
     {
         (new Filesystem)->ensureDirectoryExists(dirname($path));
         file_put_contents($path, $contents);
@@ -74,7 +74,7 @@ class MakeUploadsPrivateCommandTest extends TestCase
 
     public function test_an_existing_private_file_is_never_overwritten(): void
     {
-        $this->put($this->private.'/students/1/photos/p.jpg', 'newer');
+        $this->writeFile($this->private.'/students/1/photos/p.jpg', 'newer');
 
         $this->artisan('storage:make-uploads-private')->assertSuccessful();
 
