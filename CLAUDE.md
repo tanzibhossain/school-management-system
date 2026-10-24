@@ -351,6 +351,11 @@ DB::transaction(function () use ($data) {
   semver-*minor* bump to Dependabot) — the rule now ignores minor too. The PHP floor stays 8.3 for cPanel
   hosts: `composer.json` pins `config.platform.php` to 8.3.0 so the lock file stays installable there, and CI
   tests both 8.3 and 8.5.
+- **Don't `pecl install` in the Dockerfile.** PECL is deprecated (pecl.php.net now points to PIE) and its
+  release API has answered "No releases available for package pecl.php.net/redis" mid-outage, failing every
+  image build — including unrelated Dependabot PRs, since `composer.lock` changes trigger Docker Build. phpredis
+  is built from its pinned GitHub release tarball via `docker-php-source extract` + `docker-php-ext-install`
+  (`PHPREDIS_VERSION` build arg). Dependabot can't see that pin; bump it by hand.
 - **Larastan only knows model columns from the migrations it scans.** It defaults to `database/migrations`,
   but every module's migrations live in `app/Modules/*/database/migrations`, so until `phpstan.neon` set
   `databaseMigrationsPath` every column access (`$invoice->status`, `$student->name`, ...) was an "undefined

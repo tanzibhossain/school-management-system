@@ -40,7 +40,19 @@ RUN docker-php-ext-install intl
 # this docker-php-ext-install line will need to come back.
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
 
-RUN pecl install redis && docker-php-ext-enable redis
+# phpredis is built from its pinned GitHub release, not `pecl install redis`.
+# PECL is deprecated (pecl.php.net points to PIE) and its release API has
+# returned "No releases available for package pecl.php.net/redis" during
+# outages, failing the whole build. Same source code, one less service to
+# depend on. Dependabot can't track this pin — check
+# https://github.com/phpredis/phpredis/releases when updating the image.
+ARG PHPREDIS_VERSION=6.3.0
+RUN docker-php-source extract \
+    && mkdir -p /usr/src/php/ext/redis \
+    && curl -fsSL "https://github.com/phpredis/phpredis/archive/refs/tags/${PHPREDIS_VERSION}.tar.gz" \
+        | tar -xz -C /usr/src/php/ext/redis --strip-components=1 \
+    && docker-php-ext-install redis \
+    && docker-php-source delete
 
 # composer:2, not :latest — a future Composer 3 shouldn't land in the image
 # without a deliberate change here.

@@ -6,6 +6,9 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Docker image builds the Redis extension from its GitHub release instead of PECL.
+
 ## [1.5.0] — 2026-10-17
 
 ### Added
