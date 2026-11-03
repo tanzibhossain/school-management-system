@@ -18,7 +18,12 @@ class StaffSalaryValueService
      * Every active component for the school, each carrying this staff member's
      * value (0 if never set — "components with no value set show as 0", per spec).
      *
-     * @return Collection<int, array{component: SalaryComponent, amount: numeric-string}>
+     * amount is the decimal:2 column as a string. Declared as plain `string`
+     * on purpose: Larastan has typed that cast as `numeric-string` in some
+     * versions and `string` in others, and Collection's value type is
+     * covariant, so `string` accepts either.
+     *
+     * @return Collection<int, array{component: SalaryComponent, amount: string}>
      */
     public function breakdown(int $schoolId, int $staffId): Collection
     {
