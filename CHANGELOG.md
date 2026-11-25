@@ -6,8 +6,20 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.5.2] — 2026-11-25
+
+### Changed
+- Dependency bumps: laravel/framework 13.44.1, laravel/horizon 5.52.0, laravel/sanctum 4.5.0, laravel/tinker 3.2.0, maatwebsite/excel 4.0.7, predis/predis 3.7.1, spatie/laravel-permission 8.5.0.
+- AI detector service: fastapi 0.165.0, pydantic 2.14.4, transformers 5.24.0.
+- `docker compose up` waits for MySQL to be ready before starting the app.
+
+## [1.5.1] — 2026-11-06
+
 ### Changed
 - Docker image builds the Redis extension from its GitHub release instead of PECL.
+- Dependency bumps: laravel/framework 13.39.0, laravel/horizon 5.50.1, maatwebsite/excel 4.0.6, spatie/laravel-permission 8.3.2, smalot/pdfparser 2.13.1.
+- AI detector service: fastapi 0.162.0, pydantic 2.14.2, torch 2.15.0, transformers 5.22.1.
+- The v1.5.1 build reports its version as 1.5.0.
 
 ## [1.5.0] — 2026-10-17
 
