@@ -12,6 +12,17 @@ services:
             - "3306:3306" # connect from TablePlus / DBeaver on Windows
         volumes:
             - db_data:/var/lib/mysql
+        # A fresh db_data volume takes ~30-60s to initialize, and MySQL only
+        # listens on TCP once that's done (the init server runs with
+        # --skip-networking). app/horizon/scheduler wait for this to pass, so
+        # `docker compose up -d` returns only when migrations can actually run
+        # instead of failing with "Connection refused".
+        healthcheck:
+            test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+            interval: 5s
+            timeout: 5s
+            retries: 30
+            start_period: 30s
 
     redis:
         image: redis:7-alpine
@@ -37,8 +48,10 @@ services:
             # After changing composer.json: docker compose exec app composer install
             - vendor:/var/www/vendor
         depends_on:
-            - db
-            - redis
+            db:
+                condition: service_healthy
+            redis:
+                condition: service_started
 
     nginx:
         image: nginx:alpine
@@ -64,8 +77,10 @@ services:
             - ./:/var/www
             - vendor:/var/www/vendor # same vendor volume as app
         depends_on:
-            - db
-            - redis
+            db:
+                condition: service_healthy
+            redis:
+                condition: service_started
 
     scheduler:
         build:
@@ -82,8 +97,10 @@ services:
             - ./:/var/www
             - vendor:/var/www/vendor
         depends_on:
-            - db
-            - redis
+            db:
+                condition: service_healthy
+            redis:
+                condition: service_started
 
     # Free/unlimited self-hosted alternative to the paid Anthropic-backed LMS
     # AI checker (app/Modules/LMS/Gateways/). Opt-in — the app defaults to

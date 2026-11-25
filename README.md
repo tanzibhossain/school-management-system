@@ -156,12 +156,12 @@ nothing else creates one, so every file upload in the app would fail without thi
 
 ### 3. Initialize Application
 
-Generates the app key, runs migrations, and links storage:
+Generates the app key and runs migrations. (`docker compose up` waits for MySQL to finish its first-run
+setup, and the `app` container creates the `public/storage` link itself on start.)
 
 ```bash
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate --seed
-docker compose exec app php artisan storage:link
 ```
 
 > **Note:** The `--seed` flag runs all module seeders (roles, permissions, grading templates, gateways, menus, languages, etc.)
